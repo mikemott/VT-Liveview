@@ -142,16 +142,20 @@ export async function fetchHereIncidents(bounds = VERMONT_BOUNDS) {
   }
 
   try {
-    const bbox = `${bounds.west},${bounds.south},${bounds.east},${bounds.north}`;
-    const url = `https://data.traffic.hereapi.com/v7/incidents?locationReferencing=shape&in=bbox:${bbox}&apiKey=${apiKey}`;
+    // HERE API limits bbox to max 1 degree width/height
+    // Vermont is ~1.9 degrees wide and ~2.4 degrees tall, so we need to tile it
+    const tiles = [];
+    const tileSize = 0.9; // Use 0.9 degrees to stay safely under 1 degree limit
 
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      throw new Error(`HERE API error: ${response.status}`);
+    for (let west = bounds.west; west < bounds.east; west += tileSize) {
+      for (let south = bounds.south; south < bounds.north; south += tileSize) {
+        const east = Math.min(west + tileSize, bounds.east);
+        const north = Math.min(south + tileSize, bounds.north);
+        tiles.push({ west, south, east, north });
+      }
     }
 
-    const data = await response.json();
+    console.log(`Fetching HERE incidents from ${tiles.length} tiles`);
 
     // Normalize HERE incidents to our format, filtering out invalid/expired ones
     const incidents = [];
@@ -199,6 +203,12 @@ export async function fetchHereIncidents(bounds = VERMONT_BOUNDS) {
  * @returns {Promise<Array>} Flood incidents
  */
 export async function fetchFloodGauges() {
+  // USGS API has CORS issues when called from browser - disable for now
+  // In production, this should be proxied through a backend server
+  console.warn('USGS flood data disabled due to CORS restrictions');
+  return [];
+
+  /* Disabled due to CORS - needs backend proxy to work
   try {
     // Fetch Vermont river gauges with gage height parameter
     const url = 'https://waterservices.usgs.gov/nwis/iv/?format=json&stateCd=VT&parameterCd=00065&siteStatus=active';
@@ -267,6 +277,7 @@ export async function fetchFloodGauges() {
     console.error('Error fetching USGS flood data:', error);
     return [];
   }
+  */
 }
 
 /**

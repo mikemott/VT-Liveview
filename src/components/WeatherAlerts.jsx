@@ -17,7 +17,7 @@ function WeatherAlerts() {
     try {
       const response = await fetch('https://api.weather.gov/alerts/active?area=VT');
       const data = await response.json();
-      
+
       if (data.features) {
         setAlerts(data.features);
       }
@@ -92,7 +92,14 @@ function WeatherAlerts() {
       {expanded && (
         <div className="alerts-list">
           {alerts.map((alert, index) => (
-            <div key={index} className="alert-item">
+            <a
+              key={index}
+              href={alert.id}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="alert-item"
+              title="Click to view full alert details on weather.gov"
+            >
               <div className="alert-header-row">
                 <div className="alert-event">{alert.properties.event}</div>
                 {getSeverityBadge(alert.properties.severity)}
@@ -106,7 +113,7 @@ function WeatherAlerts() {
                   minute: '2-digit'
                 })}
               </div>
-            </div>
+            </a>
           ))}
         </div>
       )}
