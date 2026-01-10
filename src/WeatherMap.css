@@ -1,0 +1,241 @@
+.weather-map-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.map-container {
+  width: 100%;
+  height: 100%;
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #e0e0e0;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-overlay p {
+  margin-top: 16px;
+  color: #333;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.controls-panel {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-width: 320px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.controls-panel h2 {
+  margin: 0 0 16px 0;
+  color: #1e40af;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.control-section {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.control-section:last-of-type {
+  border-bottom: none;
+}
+
+.control-section h3 {
+  margin: 0 0 12px 0;
+  color: #374151;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.toggle-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-control input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.toggle-control span {
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.slider-control {
+  margin-top: 12px;
+}
+
+.slider-control label {
+  display: block;
+  margin-bottom: 8px;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.slider-control input[type="range"] {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #e5e7eb;
+  outline: none;
+  cursor: pointer;
+}
+
+.slider-control input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #2563eb;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.slider-control input[type="range"]::-webkit-slider-thumb:hover {
+  background: #1d4ed8;
+}
+
+.slider-control input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #2563eb;
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s;
+}
+
+.slider-control input[type="range"]::-moz-range-thumb:hover {
+  background: #1d4ed8;
+}
+
+.alerts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.alert-item {
+  padding: 12px;
+  border-radius: 8px;
+  border-left: 4px solid;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.alert-item:hover {
+  transform: translateX(4px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.alert-item.severity-extreme {
+  background: #fee2e2;
+  border-left-color: #dc2626;
+}
+
+.alert-item.severity-severe {
+  background: #fed7aa;
+  border-left-color: #ea580c;
+}
+
+.alert-item.severity-moderate {
+  background: #fef3c7;
+  border-left-color: #ca8a04;
+}
+
+.alert-item.severity-minor {
+  background: #dbeafe;
+  border-left-color: #2563eb;
+}
+
+.alert-event {
+  font-weight: 600;
+  font-size: 14px;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.alert-headline {
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.attribution {
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.attribution p {
+  margin: 4px 0;
+  color: #9ca3af;
+  font-size: 11px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 640px) {
+  .controls-panel {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    max-width: none;
+    max-height: 50vh;
+  }
+
+  .controls-panel h2 {
+    font-size: 20px;
+  }
+}
+
+/* Maplibre popup styling */
+.maplibregl-popup-content {
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.maplibregl-popup-close-button {
+  font-size: 20px;
+  padding: 4px 8px;
+}

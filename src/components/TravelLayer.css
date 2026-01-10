@@ -1,0 +1,291 @@
+/* Travel Layer Styles */
+
+.travel-section {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.travel-section:last-child {
+  border-bottom: none;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  margin-bottom: 12px;
+}
+
+.section-header h3 {
+  margin: 0;
+  color: #374151;
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.incident-badge {
+  background: #ef4444;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  min-width: 20px;
+  text-align: center;
+}
+
+.expand-toggle {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.expand-toggle:hover {
+  color: #374151;
+}
+
+.section-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Filter Grid */
+.filter-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.filter-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+  user-select: none;
+}
+
+.filter-checkbox:hover {
+  background: #f3f4f6;
+}
+
+.filter-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.checkbox-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkbox-label {
+  font-size: 13px;
+  color: #4b5563;
+  font-weight: 500;
+  flex: 1;
+}
+
+.checkbox-label .count {
+  color: #9ca3af;
+  font-weight: 400;
+  margin-left: 4px;
+}
+
+/* Loading State */
+.incidents-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  justify-content: center;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.loading-spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e5e7eb;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* No Incidents */
+.no-incidents {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px;
+  text-align: center;
+}
+
+.success-icon {
+  font-size: 32px;
+  color: #22c55e;
+}
+
+.no-incidents p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+/* Incidents List */
+.incidents-list {
+  max-height: 300px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.incidents-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.incidents-list::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 3px;
+}
+
+.incidents-list::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+.incidents-list::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Incident Group */
+.incident-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  padding: 4px 0;
+}
+
+.group-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.group-title {
+  flex: 1;
+}
+
+/* Incident Item */
+.incident-item {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 10px 12px;
+  border-left: 3px solid;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.incident-item:hover {
+  transform: translateX(2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.incident-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.incident-road {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.incident-desc {
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.4;
+  margin-bottom: 6px;
+}
+
+.incident-source {
+  font-size: 11px;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* Zoom Hint */
+.zoom-hint {
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 6px;
+  padding: 8px 12px;
+  text-align: center;
+}
+
+.zoom-hint span {
+  font-size: 12px;
+  color: #92400e;
+  font-weight: 500;
+}
+
+/* Marker Styles (for map) */
+.incident-marker {
+  cursor: pointer;
+}
+
+/* Mobile Responsive */
+@media (max-width: 640px) {
+  .filter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .incidents-list {
+    max-height: 200px;
+  }
+
+  .section-header h3 {
+    font-size: 14px;
+  }
+
+  .filter-checkbox {
+    padding: 8px;
+  }
+}
