@@ -98,12 +98,16 @@ export async function fetchFloodGauges() {
 
         const latestValue = values[values.length - 1];
         const gageHeight = parseFloat(latestValue.value);
+        const latestTime = new Date(latestValue.dateTime);
+        const now = new Date();
+        const hoursSinceReading = (now - latestTime) / (1000 * 60 * 60);
 
-        // Simple flood detection: if gage height > threshold
-        // TODO: Improve with actual flood stage data
-        const isFlooding = gageHeight > 10; // Simplified threshold
+        // Only show if data is recent (within last 3 hours) and height is significant
+        // TODO: Improve with actual flood stage data from USGS flood categories
+        const isRecentData = hoursSinceReading < 3;
+        const isFlooding = gageHeight > 15; // Higher threshold to reduce false positives
 
-        if (isFlooding) {
+        if (isFlooding && isRecentData) {
           floods.push({
             id: `usgs-${siteInfo.siteCode[0].value}`,
             type: 'FLOODING',

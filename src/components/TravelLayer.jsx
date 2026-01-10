@@ -18,13 +18,16 @@ function TravelLayer({ map, visible, currentZoom }) {
     HAZARD: true
   });
   const markersRef = useRef([]);
+  const currentPopupRef = useRef(null);
 
   // Fetch incidents on mount and every 2 minutes
   useEffect(() => {
+    if (!map) return;
+
     fetchIncidents();
     const interval = setInterval(fetchIncidents, 2 * 60 * 1000); // 2 minutes
     return () => clearInterval(interval);
-  }, []);
+  }, [map]);
 
   const fetchIncidents = async () => {
     if (!map) return;
@@ -94,11 +97,24 @@ function TravelLayer({ map, visible, currentZoom }) {
   // Add markers to map when incidents or filters change
   useEffect(() => {
     if (!map || !visible) {
-      // Clear existing markers
+      // Clear existing markers and popup
       markersRef.current.forEach(marker => marker.remove());
       markersRef.current = [];
+      if (currentPopupRef.current) {
+        currentPopupRef.current.remove();
+        currentPopupRef.current = null;
+      }
       return;
     }
+
+    // Close popup when clicking on map
+    const handleMapClick = () => {
+      if (currentPopupRef.current) {
+        currentPopupRef.current.remove();
+        currentPopupRef.current = null;
+      }
+    };
+    map.on('click', handleMapClick);
 
     // Remove old markers
     markersRef.current.forEach(marker => marker.remove());
@@ -169,8 +185,17 @@ function TravelLayer({ map, visible, currentZoom }) {
       `);
 
       // Add popup on click
-      el.addEventListener('click', () => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent map click from closing immediately
+
+        // Close existing popup if any
+        if (currentPopupRef.current) {
+          currentPopupRef.current.remove();
+        }
+
+        // Open new popup and store reference
         popup.setLngLat([incident.location.lng, incident.location.lat]).addTo(map);
+        currentPopupRef.current = popup;
       });
 
       markersRef.current.push(marker);
@@ -180,6 +205,11 @@ function TravelLayer({ map, visible, currentZoom }) {
     return () => {
       markersRef.current.forEach(marker => marker.remove());
       markersRef.current = [];
+      if (currentPopupRef.current) {
+        currentPopupRef.current.remove();
+        currentPopupRef.current = null;
+      }
+      map.off('click', handleMapClick);
     };
   }, [map, visible, visibleIncidents, activeFilters, currentZoom]);
 
