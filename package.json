@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@maptiler/sdk": "^3.9.0",
+    "@maptiler/weather": "^3.1.1",
     "lucide-react": "^0.562.0",
     "maplibre-gl": "^5.15.0",
     "react": "^19.2.0",

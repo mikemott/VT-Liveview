@@ -3,6 +3,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './WeatherMap.css';
 import TravelLayer from './components/TravelLayer';
+import MapTilerRadar from './components/MapTilerRadar';
 
 const VERMONT_CENTER = {
   lng: -72.7,
@@ -57,7 +58,6 @@ function WeatherMap() {
 
     map.current.on('load', () => {
       setLoading(false);
-      addRadarLayer();
       fetchAlerts();
     });
 
@@ -74,39 +74,6 @@ function WeatherMap() {
     };
   }, []);
 
-  // Add radar overlay
-  const addRadarLayer = async () => {
-    if (!map.current) return;
-
-    try {
-      // Fetch latest radar timestamp from RainViewer
-      const response = await fetch('https://api.rainviewer.com/public/weather-maps.json');
-      const data = await response.json();
-      
-      if (data.radar && data.radar.past && data.radar.past.length > 0) {
-        const latestRadar = data.radar.past[data.radar.past.length - 1];
-        
-        map.current.addSource('radar', {
-          type: 'raster',
-          tiles: [
-            `https://tilecache.rainviewer.com${latestRadar.path}/256/{z}/{x}/{y}/2/1_1.png`
-          ],
-          tileSize: 256
-        });
-
-        map.current.addLayer({
-          id: 'radar-layer',
-          type: 'raster',
-          source: 'radar',
-          paint: {
-            'raster-opacity': radarOpacity
-          }
-        });
-      }
-    } catch (error) {
-      console.error('Error loading radar:', error);
-    }
-  };
 
   // Fetch NOAA weather alerts
   const fetchAlerts = async () => {
@@ -207,26 +174,12 @@ function WeatherMap() {
 
   // Toggle radar visibility
   const toggleRadar = () => {
-    if (!map.current) return;
-    
-    const newVisibility = !radarVisible;
-    setRadarVisible(newVisibility);
-    
-    if (map.current.getLayer('radar-layer')) {
-      map.current.setLayoutProperty(
-        'radar-layer',
-        'visibility',
-        newVisibility ? 'visible' : 'none'
-      );
-    }
+    setRadarVisible(!radarVisible);
   };
 
   // Update radar opacity
   const updateRadarOpacity = (value) => {
     setRadarOpacity(value);
-    if (map.current && map.current.getLayer('radar-layer')) {
-      map.current.setPaintProperty('radar-layer', 'raster-opacity', value);
-    }
   };
 
   return (
@@ -244,7 +197,7 @@ function WeatherMap() {
         <h2>Vermont Weather</h2>
         
         <div className="control-section">
-          <h3>Radar</h3>
+          <h3>Weather Radar</h3>
           <label className="toggle-control">
             <input
               type="checkbox"
@@ -253,21 +206,17 @@ function WeatherMap() {
             />
             <span>Show Radar</span>
           </label>
-          
-          {radarVisible && (
-            <div className="slider-control">
-              <label>Opacity</label>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.1"
-                value={radarOpacity}
-                onChange={(e) => updateRadarOpacity(parseFloat(e.target.value))}
-              />
-            </div>
-          )}
         </div>
+
+        {/* MapTiler Radar with Animation Controls */}
+        {!loading && (
+          <MapTilerRadar
+            map={map.current}
+            visible={radarVisible}
+            opacity={radarOpacity}
+            onOpacityChange={updateRadarOpacity}
+          />
+        )}
 
         <div className="control-section">
           <h3>Travel</h3>
@@ -308,7 +257,7 @@ function WeatherMap() {
 
         <div className="attribution">
           <p>Weather: NOAA</p>
-          <p>Radar: RainViewer</p>
+          <p>Radar: <a href="https://www.maptiler.com/weather/" target="_blank" rel="noopener noreferrer">MapTiler Weather</a></p>
           <p>Traffic: HERE, USGS, VTrans</p>
           <p>Map: OpenStreetMap</p>
         </div>
