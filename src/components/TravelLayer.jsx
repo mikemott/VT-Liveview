@@ -134,6 +134,58 @@ function TravelLayer({ map, visible, currentZoom }) {
 
       // Create popup
       const color = getIncidentColor(incident.type);
+
+      // Generate status badge based on timeStatus
+      const getStatusBadge = (status) => {
+        const statusStyles = {
+          active: { bg: '#10B98120', color: '#10B981', label: 'Active' },
+          ongoing: { bg: '#10B98120', color: '#10B981', label: 'Ongoing' },
+          scheduled: { bg: '#6366F120', color: '#6366F1', label: 'Scheduled' },
+          upcoming: { bg: '#6366F120', color: '#6366F1', label: 'Upcoming' },
+          ending: { bg: '#F5920B20', color: '#F59E0B', label: 'Ending Soon' },
+          completing: { bg: '#F5920B20', color: '#F59E0B', label: 'Wrapping Up' }
+        };
+        const style = statusStyles[status] || statusStyles.active;
+        return `<span style="
+          background: ${style.bg};
+          color: ${style.color};
+          padding: 2px 6px;
+          border-radius: 3px;
+          font-size: 10px;
+          font-weight: 600;
+          text-transform: uppercase;
+        ">${style.label}</span>`;
+      };
+
+      // Format time range if both start and end exist
+      const formatTimeInfo = () => {
+        if (!incident.startTime && !incident.endTime) return '';
+
+        const formatDate = (dateStr) => {
+          if (!dateStr) return null;
+          const date = new Date(dateStr);
+          if (isNaN(date.getTime())) return null;
+          return date.toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit'
+          });
+        };
+
+        const start = formatDate(incident.startTime);
+        const end = formatDate(incident.endTime);
+
+        if (start && end) {
+          return `${start} - ${end}`;
+        } else if (start) {
+          return `Started: ${start}`;
+        } else if (end) {
+          return `Until: ${end}`;
+        }
+        return '';
+      };
+
       const popup = new maplibregl.Popup({
         offset: 25,
         closeButton: true,
@@ -141,7 +193,7 @@ function TravelLayer({ map, visible, currentZoom }) {
         maxWidth: '320px'
       }).setHTML(`
         <div style="padding: 4px;">
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
             <span style="
               background: ${color.background};
               color: ${color.primary};
@@ -152,32 +204,30 @@ function TravelLayer({ map, visible, currentZoom }) {
               text-transform: uppercase;
               letter-spacing: 0.5px;
             ">${incident.type}</span>
+            ${incident.timeStatus ? getStatusBadge(incident.timeStatus) : ''}
           </div>
           <h3 style="margin: 0 0 8px 0; color: #1f2937; font-size: 15px; font-weight: 600;">
             ${incident.title}
           </h3>
-          ${incident.roadName ? `
+          ${incident.roadName && incident.roadName !== incident.title ? `
             <p style="margin: 0 0 6px 0; color: #6b7280; font-size: 13px; font-weight: 500;">
               📍 ${incident.roadName}
             </p>
           ` : ''}
-          ${incident.description ? `
+          ${incident.description && incident.description !== incident.title ? `
             <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 13px; line-height: 1.4;">
               ${incident.description}
             </p>
           ` : ''}
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e7eb;">
-            <span style="font-size: 11px; color: #9ca3af; font-style: italic;">
-              ${incident.source}
-            </span>
-            ${incident.startTime ? `
-              <span style="font-size: 11px; color: #9ca3af;">
-                ${new Date(incident.startTime).toLocaleString('en-US', {
-                  month: 'short',
-                  day: 'numeric',
-                  hour: 'numeric',
-                  minute: '2-digit'
-                })}
+          <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e7eb;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 11px; color: #9ca3af; font-style: italic;">
+                ${incident.source}
+              </span>
+            </div>
+            ${formatTimeInfo() ? `
+              <span style="font-size: 11px; color: #6b7280;">
+                🕐 ${formatTimeInfo()}
               </span>
             ` : ''}
           </div>
@@ -306,11 +356,19 @@ function TravelLayer({ map, visible, currentZoom }) {
                           borderLeftColor: getIncidentColor(incident.type).primary
                         }}
                       >
-                        <div className="incident-title">{incident.title}</div>
-                        {incident.roadName && (
+                        <div className="incident-header">
+                          <div className="incident-title">{incident.title}</div>
+                          {incident.timeStatus && (
+                            <span className={`status-badge status-${incident.timeStatus}`}>
+                              {incident.timeStatus === 'scheduled' || incident.timeStatus === 'upcoming' ? '⏱️' :
+                               incident.timeStatus === 'ending' || incident.timeStatus === 'completing' ? '⏳' : '●'}
+                            </span>
+                          )}
+                        </div>
+                        {incident.roadName && incident.roadName !== incident.title && (
                           <div className="incident-road">{incident.roadName}</div>
                         )}
-                        {incident.description && (
+                        {incident.description && incident.description !== incident.title && (
                           <div className="incident-desc">{incident.description}</div>
                         )}
                         <div className="incident-source">{incident.source}</div>

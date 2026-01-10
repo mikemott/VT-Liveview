@@ -225,11 +225,43 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
+.incident-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .incident-title {
   font-size: 13px;
   font-weight: 600;
   color: #1f2937;
   margin-bottom: 4px;
+  flex: 1;
+}
+
+/* Status Badges */
+.status-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-active,
+.status-ongoing {
+  color: #10B981;
+}
+
+.status-scheduled,
+.status-upcoming {
+  color: #6366F1;
+}
+
+.status-ending,
+.status-completing {
+  color: #F59E0B;
 }
 
 .incident-road {
