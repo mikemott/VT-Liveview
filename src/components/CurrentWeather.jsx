@@ -1,0 +1,136 @@
+import { useQuery } from '@tanstack/react-query';
+import { fetchCurrentWeather, fetchForecast } from '../services/graphqlClient';
+import {
+  Thermometer,
+  Wind,
+  Droplets,
+  Cloud,
+  Sun,
+  CloudRain,
+  CloudSnow,
+  CloudSun,
+  CloudMoon,
+  Moon
+} from 'lucide-react';
+import './CurrentWeather.css';
+
+// Default location: Montpelier, VT
+const DEFAULT_LAT = 44.2601;
+const DEFAULT_LON = -72.5754;
+
+function getWeatherIcon(description, isDark) {
+  const desc = description?.toLowerCase() || '';
+
+  if (desc.includes('rain') || desc.includes('showers')) {
+    return <CloudRain size={48} />;
+  }
+  if (desc.includes('snow')) {
+    return <CloudSnow size={48} />;
+  }
+  if (desc.includes('cloud') && desc.includes('sun')) {
+    return isDark ? <CloudMoon size={48} /> : <CloudSun size={48} />;
+  }
+  if (desc.includes('cloud') || desc.includes('overcast')) {
+    return <Cloud size={48} />;
+  }
+  if (desc.includes('clear') || desc.includes('sunny') || desc.includes('fair')) {
+    return isDark ? <Moon size={48} /> : <Sun size={48} />;
+  }
+  return <Cloud size={48} />;
+}
+
+export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, isDark = false }) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['currentWeather', lat, lon],
+    queryFn: () => fetchCurrentWeather(lat, lon),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
+    retry: 2
+  });
+
+  const { data: forecastData } = useQuery({
+    queryKey: ['forecast', lat, lon],
+    queryFn: () => fetchForecast(lat, lon),
+    staleTime: 15 * 60 * 1000, // 15 minutes (forecast changes less often)
+    refetchInterval: 15 * 60 * 1000,
+    retry: 2
+  });
+
+  // Filter to 3-day forecast (6 periods = 3 days of day/night)
+  const forecast3Day = forecastData?.slice(0, 6) || [];
+
+  if (isLoading) {
+    return (
+      <div className="current-weather loading">
+        <div className="weather-skeleton">
+          <div className="skeleton-line large" />
+          <div className="skeleton-line medium" />
+          <div className="skeleton-line small" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="current-weather error">
+        <p>Unable to load weather</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`current-weather ${isDark ? 'dark' : ''}`}>
+      <div className="weather-main">
+        <div className="weather-icon">
+          {getWeatherIcon(data.description, isDark)}
+        </div>
+        <div className="temperature">
+          <span className="temp-value">{data.temperature ?? '--'}</span>
+          <span className="temp-unit">°{data.temperatureUnit}</span>
+        </div>
+      </div>
+
+      <div className="weather-description">
+        {data.description}
+      </div>
+
+      <div className="weather-details">
+        {data.windSpeed && (
+          <div className="detail-item">
+            <Wind size={16} />
+            <span>{data.windSpeed} {data.windDirection}</span>
+          </div>
+        )}
+        {data.humidity !== null && data.humidity !== undefined && (
+          <div className="detail-item">
+            <Droplets size={16} />
+            <span>{Math.round(data.humidity)}%</span>
+          </div>
+        )}
+      </div>
+
+      {/* 3-Day Forecast */}
+      {forecast3Day.length > 0 && (
+        <div className="forecast-section">
+          <div className="forecast-title">3-Day Forecast</div>
+          {forecast3Day.map((period, index) => (
+            <div key={index} className="forecast-period">
+              <span className="forecast-name">{period.name}</span>
+              <span className="forecast-temp">
+                {Math.round(period.temperature)}°{period.temperatureUnit}
+              </span>
+              <span className="forecast-desc">{period.shortForecast}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {data.stationName && (
+        <div className="station-name">
+          {data.stationName}
+        </div>
+      )}
+    </div>
+  );
+}

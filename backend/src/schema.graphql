@@ -1,0 +1,63 @@
+type Query {
+  currentWeather(lat: Float!, lon: Float!): WeatherConditions
+  forecast(lat: Float!, lon: Float!): [ForecastPeriod!]!
+  alerts(state: String!): [Alert!]!
+  radarInfo: RadarInfo!
+}
+
+type WeatherConditions {
+  temperature: Float
+  temperatureUnit: String!
+  description: String!
+  windSpeed: String
+  windDirection: String
+  humidity: Float
+  timestamp: String!
+  stationName: String
+  icon: String
+}
+
+type ForecastPeriod {
+  name: String!
+  temperature: Float!
+  temperatureUnit: String!
+  shortForecast: String!
+  detailedForecast: String!
+  startTime: String!
+  endTime: String!
+  isDaytime: Boolean!
+  icon: String
+  windSpeed: String
+  windDirection: String
+}
+
+type Alert {
+  id: String!
+  event: String!
+  headline: String
+  severity: String!
+  certainty: String!
+  urgency: String!
+  description: String!
+  instruction: String
+  areaDesc: String!
+  effective: String!
+  expires: String!
+  geometry: AlertGeometry
+}
+
+type AlertGeometry {
+  type: String!
+  coordinates: [[[[Float!]!]!]!]
+}
+
+type RadarInfo {
+  baseUrl: String!
+  timestamps: [RadarTimestamp!]!
+  tilePattern: String!
+}
+
+type RadarTimestamp {
+  time: String!
+  path: String!
+}

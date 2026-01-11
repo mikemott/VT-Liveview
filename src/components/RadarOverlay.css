@@ -1,0 +1,325 @@
+.radar-overlay {
+  background: transparent;
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.radar-overlay.dark {
+  background: transparent;
+  color: #e5e5e5;
+}
+
+.radar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.radar-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.radar-overlay.dark .radar-header h3 {
+  color: #e5e5e5;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.visibility-toggle {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: #666;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.visibility-toggle:hover {
+  background-color: rgba(210, 205, 190, 0.4);
+}
+
+.radar-overlay.dark .visibility-toggle {
+  color: #a0a0b0;
+}
+
+.radar-overlay.dark .visibility-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.radar-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.radar-controls button {
+  background: none;
+  border: 1px solid rgba(200, 195, 180, 0.6);
+  border-radius: 8px;
+  padding: 8px;
+  cursor: pointer;
+  color: #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.radar-controls button:hover:not(:disabled) {
+  background-color: rgba(225, 220, 210, 0.5);
+  border-color: rgba(190, 185, 170, 0.8);
+}
+
+.radar-controls button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.radar-overlay.dark .radar-controls button {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #c5c5c5;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.radar-overlay.dark .radar-controls button:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #e5e5e5;
+}
+
+.play-button {
+  width: 44px;
+  height: 44px;
+  border-radius: 50% !important;
+  background: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+  color: white !important;
+}
+
+.play-button:hover:not(:disabled) {
+  background: #2563eb !important;
+}
+
+.radar-overlay.dark .play-button {
+  background: #909090 !important;
+  border-color: #909090 !important;
+}
+
+.radar-overlay.dark .play-button:hover:not(:disabled) {
+  background: #a5a5a5 !important;
+  border-color: #a5a5a5 !important;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+.radar-timeline {
+  margin-bottom: 12px;
+}
+
+.timeline-track {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.timeline-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid rgba(190, 185, 170, 0.7);
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s;
+}
+
+.timeline-dot:hover {
+  border-color: #3b82f6;
+  transform: scale(1.2);
+}
+
+.timeline-dot.active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.timeline-dot.nowcast {
+  border-style: dashed;
+}
+
+.timeline-dot.nowcast.active {
+  background: #9a60d9;
+  border-color: #9a60d9;
+}
+
+.radar-overlay.dark .timeline-dot {
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.radar-overlay.dark .timeline-dot:hover {
+  border-color: #d5d5d5;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.radar-overlay.dark .timeline-dot.active {
+  background: #d5d5d5;
+  border-color: #d5d5d5;
+  box-shadow: 0 0 8px rgba(213, 213, 213, 0.4);
+}
+
+.timeline-time {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #666;
+}
+
+.radar-overlay.dark .timeline-time {
+  color: #c0c0c0;
+  font-weight: 500;
+}
+
+.nowcast-badge {
+  background: #9a60d9;
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.opacity-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.opacity-control label {
+  font-size: 12px;
+  color: #666;
+  min-width: 50px;
+}
+
+.radar-overlay.dark .opacity-control label {
+  color: #b5b5b5;
+  font-weight: 500;
+}
+
+.opacity-control input[type="range"] {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(210, 205, 190, 0.7);
+  appearance: none;
+  cursor: pointer;
+}
+
+.opacity-control input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #3b82f6;
+  cursor: pointer;
+}
+
+.radar-overlay.dark .opacity-control input[type="range"] {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.radar-overlay.dark .opacity-control input[type="range"]::-webkit-slider-thumb {
+  background: #d5d5d5;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.radar-overlay.dark .opacity-control input[type="range"]::-webkit-slider-thumb:hover {
+  background: #e5e5e5;
+}
+
+.opacity-control span {
+  font-size: 12px;
+  color: #888;
+  min-width: 35px;
+  text-align: right;
+}
+
+.radar-legend {
+  padding-top: 10px;
+  border-top: 1px solid rgba(210, 205, 190, 0.6);
+}
+
+.radar-overlay.dark .radar-legend {
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+.legend-title {
+  font-size: 11px;
+  color: #888;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.radar-overlay.dark .legend-title {
+  color: #a5a5a5;
+  font-weight: 500;
+}
+
+.legend-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.legend-gradient {
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(
+    to right,
+    #04e9e7 0%,
+    #01c4f8 15%,
+    #019ff4 25%,
+    #03da00 40%,
+    #79c900 50%,
+    #ffff00 60%,
+    #ff9500 70%,
+    #ff0000 80%,
+    #c60000 90%,
+    #ff00ff 100%
+  );
+}
+
+.legend-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #999;
+}
+
+.radar-overlay.dark .legend-labels {
+  color: #959595;
+  font-weight: 500;
+}

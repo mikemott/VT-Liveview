@@ -1,0 +1,17 @@
+{
+  "name": "vt-liveview-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "@apollo/server": "^4.11.0",
+    "@as-integrations/fastify": "^2.1.1",
+    "fastify": "^4.28.1",
+    "@fastify/cors": "^9.0.1",
+    "graphql": "^16.9.0"
+  }
+}
