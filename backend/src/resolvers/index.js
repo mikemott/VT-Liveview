@@ -1,4 +1,4 @@
-import { getCurrentWeather, getForecast, getAlerts } from '../services/noaa.js';
+import { getCurrentWeather, getForecast, getAlerts, getObservationStations } from '../services/noaa.js';
 import { getRadarInfo } from '../services/radar.js';
 
 export const resolvers = {
@@ -17,6 +17,10 @@ export const resolvers = {
 
     radarInfo: async () => {
       return await getRadarInfo();
+    },
+
+    observationStations: async () => {
+      return await getObservationStations();
     }
   }
 };

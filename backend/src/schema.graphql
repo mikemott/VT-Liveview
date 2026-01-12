@@ -3,6 +3,7 @@ type Query {
   forecast(lat: Float!, lon: Float!): [ForecastPeriod!]!
   alerts(state: String!): [Alert!]!
   radarInfo: RadarInfo!
+  observationStations: [ObservationStation!]!
 }
 
 type WeatherConditions {
@@ -60,4 +61,29 @@ type RadarInfo {
 type RadarTimestamp {
   time: String!
   path: String!
+}
+
+type ObservationStation {
+  id: String!
+  name: String!
+  location: Location!
+  elevation: Int
+  weather: StationWeather!
+}
+
+type Location {
+  lat: Float!
+  lng: Float!
+}
+
+type StationWeather {
+  temperature: Float!
+  temperatureUnit: String!
+  description: String!
+  windSpeed: String
+  windDirection: String
+  humidity: Float
+  dewpoint: Float
+  pressure: Int
+  timestamp: String!
 }

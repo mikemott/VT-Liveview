@@ -203,3 +203,108 @@ function degreesToCardinal(degrees) {
   const index = Math.round(degrees / 22.5) % 16;
   return directions[index];
 }
+
+// Cache for observation stations
+const stationsCache = {
+  data: null,
+  timestamp: null,
+  ttl: 3600000 // 1 hour
+};
+
+export async function getObservationStations() {
+  try {
+    // Check cache first
+    if (stationsCache.data && stationsCache.timestamp) {
+      const age = Date.now() - stationsCache.timestamp;
+      if (age < stationsCache.ttl) {
+        return stationsCache.data;
+      }
+    }
+
+    // Fetch all Vermont observation stations
+    const stationsResponse = await fetch(
+      `${NOAA_BASE}/stations?state=VT&limit=50`,
+      fetchOptions
+    );
+
+    if (!stationsResponse.ok) {
+      throw new Error(`Failed to get stations: ${stationsResponse.status}`);
+    }
+
+    const stationsData = await stationsResponse.json();
+    const stations = stationsData.features || [];
+
+    // Fetch latest observation for each station (in parallel, limited to first 50 stations)
+    const stationsWithWeather = await Promise.all(
+      stations.slice(0, 50).map(async (station) => {
+        try {
+          const stationId = station.properties.stationIdentifier;
+          const obsResponse = await fetch(
+            `${NOAA_BASE}/stations/${stationId}/observations/latest`,
+            fetchOptions
+          );
+
+          if (!obsResponse.ok) {
+            return null;
+          }
+
+          const obsData = await obsResponse.json();
+          const props = obsData.properties;
+
+          // Only include stations with valid temperature data
+          if (props.temperature?.value === null) {
+            return null;
+          }
+
+          return {
+            id: stationId,
+            name: station.properties.name,
+            location: {
+              lat: station.geometry.coordinates[1],
+              lng: station.geometry.coordinates[0]
+            },
+            elevation: station.properties.elevation?.value
+              ? Math.round(station.properties.elevation.value * 3.28084) // Convert m to ft
+              : null,
+            weather: {
+              temperature: celsiusToFahrenheit(props.temperature.value),
+              temperatureUnit: 'F',
+              description: props.textDescription || 'Unknown',
+              windSpeed: props.windSpeed?.value !== null
+                ? `${Math.round(props.windSpeed.value * 2.237)} mph`
+                : null,
+              windDirection: props.windDirection?.value !== null
+                ? degreesToCardinal(props.windDirection.value)
+                : null,
+              humidity: props.relativeHumidity?.value ?? null,
+              dewpoint: props.dewpoint?.value !== null
+                ? celsiusToFahrenheit(props.dewpoint.value)
+                : null,
+              pressure: props.barometricPressure?.value !== null
+                ? Math.round(props.barometricPressure.value / 100) // Convert Pa to mb
+                : null,
+              timestamp: props.timestamp || new Date().toISOString()
+            }
+          };
+        } catch (error) {
+          // Skip stations with errors
+          return null;
+        }
+      })
+    );
+
+    // Filter out null results and cache
+    const validStations = stationsWithWeather.filter(s => s !== null);
+
+    stationsCache.data = validStations;
+    stationsCache.timestamp = Date.now();
+
+    return validStations;
+  } catch (error) {
+    // If fetch fails, return cached data if available
+    if (stationsCache.data) {
+      return stationsCache.data;
+    }
+    throw error;
+  }
+}

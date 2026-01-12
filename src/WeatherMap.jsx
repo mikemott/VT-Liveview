@@ -1,16 +1,18 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { Thermometer } from 'lucide-react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './WeatherMap.css';
 import TravelLayer from './components/TravelLayer';
+import WeatherStationsLayer from './components/WeatherStationsLayer';
 import CurrentWeather from './components/CurrentWeather';
 import RadarOverlay from './components/RadarOverlay';
 import ThemeToggle from './components/ThemeToggle';
 import { getMapStyle, isDarkMode } from './utils/mapStyles';
 
 const VERMONT_CENTER = {
-  lng: -72.5778,
-  lat: 44.5588,
+  lng: -73.3, // Further west to frame Vermont and reduce eastern ocean view
+  lat: 44.0,  // Slightly south to better center VT with left panel
   zoom: 7.5
 };
 
@@ -34,6 +36,7 @@ function WeatherMap() {
     lat: VERMONT_CENTER.lat,
     lng: VERMONT_CENTER.lng
   });
+  const [showWeatherStations, setShowWeatherStations] = useState(true);
 
   // Add alerts to map
   const addAlertsToMap = useCallback((alertFeatures) => {
@@ -340,6 +343,35 @@ function WeatherMap() {
             <div className="control-section">
               <RadarOverlay map={map.current} isDark={isDark} key={mapStyleVersion} />
             </div>
+          )}
+
+          {/* Weather Stations Control */}
+          {mapLoaded && (
+            <div className="control-section">
+              <h3>Weather</h3>
+              <label className="filter-checkbox">
+                <input
+                  type="checkbox"
+                  checked={showWeatherStations}
+                  onChange={() => setShowWeatherStations(!showWeatherStations)}
+                />
+                <span className="checkbox-icon" style={{ color: '#3b82f6' }}>
+                  <Thermometer size={16} strokeWidth={2.5} />
+                </span>
+                <span className="checkbox-label">
+                  Weather Stations
+                </span>
+              </label>
+            </div>
+          )}
+
+          {/* Weather Stations Layer */}
+          {mapLoaded && (
+            <WeatherStationsLayer
+              map={map.current}
+              visible={showWeatherStations}
+              isDark={isDark}
+            />
           )}
 
           {/* Travel Layer */}
