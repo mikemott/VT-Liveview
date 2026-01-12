@@ -6,7 +6,7 @@ import { getIncidentColor, shouldShowIncident } from '../utils/incidentColors';
 import { createMarkerElement } from '../utils/incidentIcons';
 import './TravelLayer.css';
 
-function TravelLayer({ map, visible, currentZoom }) {
+function TravelLayer({ map, visible, currentZoom, isDark }) {
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(true);
@@ -45,7 +45,9 @@ function TravelLayer({ map, visible, currentZoom }) {
       });
       setIncidents(data);
     } catch (error) {
-      console.error('Error fetching travel incidents:', error);
+      if (import.meta.env.DEV) {
+        console.error('Error fetching travel incidents:', error);
+      }
     } finally {
       setLoading(false);
     }
@@ -192,8 +194,13 @@ function TravelLayer({ map, visible, currentZoom }) {
   // Add markers to map when incidents or filters change
   useEffect(() => {
     if (!map || !visible) {
-      // Clear existing markers and popup
-      markersRef.current.forEach(marker => marker.remove());
+      // Clear existing markers, event listeners, and popup
+      markersRef.current.forEach(({ marker, element, handler }) => {
+        if (element && handler) {
+          element.removeEventListener('click', handler);
+        }
+        marker.remove();
+      });
       markersRef.current = [];
       if (currentPopupRef.current) {
         currentPopupRef.current.remove();
@@ -211,8 +218,13 @@ function TravelLayer({ map, visible, currentZoom }) {
     };
     map.on('click', handleMapClick);
 
-    // Remove old markers
-    markersRef.current.forEach(marker => marker.remove());
+    // Remove old markers and clean up event listeners
+    markersRef.current.forEach(({ marker, element, handler }) => {
+      if (element && handler) {
+        element.removeEventListener('click', handler);
+      }
+      marker.remove();
+    });
     markersRef.current = [];
 
     // Add new markers for visible incidents
@@ -227,15 +239,31 @@ function TravelLayer({ map, visible, currentZoom }) {
         .setLngLat([incident.location.lng, incident.location.lat])
         .addTo(map);
 
-      // Create popup
+      // Create popup with theme-aware colors
       const color = getIncidentColor(incident.type);
+      const themeColors = isDark ? {
+        title: '#f5f5f5',
+        text: '#c0c0c0',
+        textSecondary: '#b5b5b5',
+        metadata: '#a5a5a5',
+        border: 'rgba(255, 255, 255, 0.1)',
+        background: '#1a1a1a'
+      } : {
+        title: '#1f2937',
+        text: '#6b7280',
+        textSecondary: '#6b7280',
+        metadata: '#9ca3af',
+        border: '#e5e7eb',
+        background: '#ffffff'
+      };
+
       const popup = new maplibregl.Popup({
         offset: 25,
         closeButton: true,
         closeOnClick: false,
         maxWidth: '320px'
       }).setHTML(`
-        <div style="padding: 4px;">
+        <div style="padding: 4px; background: ${themeColors.background}; color: ${themeColors.text};">
           <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
             <span style="
               background: ${color.background};
@@ -248,25 +276,25 @@ function TravelLayer({ map, visible, currentZoom }) {
               letter-spacing: 0.5px;
             ">${incident.type}</span>
           </div>
-          <h3 style="margin: 0 0 8px 0; color: #1f2937; font-size: 15px; font-weight: 600;">
+          <h3 style="margin: 0 0 8px 0; color: ${themeColors.title}; font-size: 15px; font-weight: 600;">
             ${incident.title}
           </h3>
           ${incident.roadName ? `
-            <p style="margin: 0 0 6px 0; color: #6b7280; font-size: 13px; font-weight: 500;">
+            <p style="margin: 0 0 6px 0; color: ${themeColors.text}; font-size: 13px; font-weight: 500;">
               📍 ${incident.roadName}
             </p>
           ` : ''}
           ${incident.description ? `
-            <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 13px; line-height: 1.4;">
+            <p style="margin: 0 0 8px 0; color: ${themeColors.textSecondary}; font-size: 13px; line-height: 1.4;">
               ${incident.description}
             </p>
           ` : ''}
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e7eb;">
-            <span style="font-size: 11px; color: #9ca3af; font-style: italic;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 8px; border-top: 1px solid ${themeColors.border};">
+            <span style="font-size: 11px; color: ${themeColors.metadata}; font-style: italic;">
               ${incident.source}
             </span>
             ${incident.startTime ? `
-              <span style="font-size: 11px; color: #9ca3af;">
+              <span style="font-size: 11px; color: ${themeColors.metadata};">
                 ${new Date(incident.startTime).toLocaleString('en-US', {
                   month: 'short',
                   day: 'numeric',
@@ -279,34 +307,58 @@ function TravelLayer({ map, visible, currentZoom }) {
         </div>
       `);
 
-      // Add popup on click
-      el.addEventListener('click', (e) => {
+      // Store click handler for cleanup
+      const handleMarkerClick = (e) => {
         e.stopPropagation(); // Prevent map click from closing immediately
 
-        // Close existing popup if any
-        if (currentPopupRef.current) {
+        // Close existing popup if any (atomic operation)
+        if (currentPopupRef.current && currentPopupRef.current !== popup) {
           currentPopupRef.current.remove();
+          currentPopupRef.current = null;
         }
 
-        // Open new popup and store reference
-        popup.setLngLat([incident.location.lng, incident.location.lat]).addTo(map);
-        currentPopupRef.current = popup;
-      });
+        // Toggle popup: close if clicking same marker, open if different
+        if (currentPopupRef.current === popup) {
+          popup.remove();
+          currentPopupRef.current = null;
+        } else {
+          popup.setLngLat([incident.location.lng, incident.location.lat]).addTo(map);
+          currentPopupRef.current = popup;
+        }
+      };
 
-      markersRef.current.push(marker);
+      // Add event listener and store for cleanup
+      el.addEventListener('click', handleMarkerClick);
+
+      // Store marker and its cleanup function
+      markersRef.current.push({
+        marker: marker,
+        element: el,
+        handler: handleMarkerClick
+      });
     });
 
     // Cleanup function
     return () => {
-      markersRef.current.forEach(marker => marker.remove());
+      // Clean up markers and event listeners
+      markersRef.current.forEach(({ marker, element, handler }) => {
+        if (element && handler) {
+          element.removeEventListener('click', handler);
+        }
+        marker.remove();
+      });
       markersRef.current = [];
+
+      // Clean up popup
       if (currentPopupRef.current) {
         currentPopupRef.current.remove();
         currentPopupRef.current = null;
       }
+
+      // Clean up map click handler
       map.off('click', handleMapClick);
     };
-  }, [map, visible, visibleIncidents, activeFilters, currentZoom]);
+  }, [map, visible, visibleIncidents, activeFilters, currentZoom, isDark]);
 
   // Group incidents by type
   const incidentsByType = visibleIncidents.reduce((acc, incident) => {

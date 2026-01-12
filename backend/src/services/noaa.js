@@ -1,5 +1,5 @@
 const NOAA_BASE = 'https://api.weather.gov';
-const USER_AGENT = 'VT-Liveview Weather App (contact@example.com)';
+const USER_AGENT = 'VT-Liveview Weather App (mike@mottvt.com)';
 
 const fetchOptions = {
   headers: {
@@ -9,7 +9,10 @@ const fetchOptions = {
 };
 
 // Cache for grid point lookups to avoid repeated API calls
+// Max size: 100 entries to prevent unbounded growth
 const gridPointCache = new Map();
+const cacheTimeouts = new Map();
+const MAX_CACHE_SIZE = 100;
 
 async function getGridPoint(lat, lon) {
   const cacheKey = `${lat.toFixed(4)},${lon.toFixed(4)}`;
@@ -25,10 +28,29 @@ async function getGridPoint(lat, lon) {
   }
 
   const data = await response.json();
+
+  // Implement LRU eviction if cache is full
+  if (gridPointCache.size >= MAX_CACHE_SIZE) {
+    const firstKey = gridPointCache.keys().next().value;
+    gridPointCache.delete(firstKey);
+
+    // Clear associated timeout
+    const timeout = cacheTimeouts.get(firstKey);
+    if (timeout) {
+      clearTimeout(timeout);
+      cacheTimeouts.delete(firstKey);
+    }
+  }
+
   gridPointCache.set(cacheKey, data.properties);
 
-  // Clear cache after 1 hour
-  setTimeout(() => gridPointCache.delete(cacheKey), 3600000);
+  // Clear cache after 1 hour and store timeout reference
+  const timeout = setTimeout(() => {
+    gridPointCache.delete(cacheKey);
+    cacheTimeouts.delete(cacheKey);
+  }, 3600000);
+
+  cacheTimeouts.set(cacheKey, timeout);
 
   return data.properties;
 }
@@ -93,7 +115,7 @@ export async function getCurrentWeather(lat, lon) {
 
     throw new Error('No valid observations available from nearby stations');
   } catch (error) {
-    console.error('Error fetching current weather:', error);
+    // Errors are thrown and handled by GraphQL resolver
     throw error;
   }
 }
@@ -125,7 +147,7 @@ export async function getForecast(lat, lon) {
       windDirection: period.windDirection
     }));
   } catch (error) {
-    console.error('Error fetching forecast:', error);
+    // Errors are thrown and handled by GraphQL resolver
     throw error;
   }
 }
@@ -165,7 +187,7 @@ export async function getAlerts(state) {
       };
     });
   } catch (error) {
-    console.error('Error fetching alerts:', error);
+    // Errors are thrown and handled by GraphQL resolver
     throw error;
   }
 }

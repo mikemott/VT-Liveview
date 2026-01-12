@@ -6,7 +6,7 @@ import TravelLayer from './components/TravelLayer';
 import CurrentWeather from './components/CurrentWeather';
 import RadarOverlay from './components/RadarOverlay';
 import ThemeToggle from './components/ThemeToggle';
-import { getMapStyle, registerPMTilesProtocol, isDarkMode } from './utils/mapStyles';
+import { getMapStyle, isDarkMode } from './utils/mapStyles';
 
 const VERMONT_CENTER = {
   lng: -72.5778,
@@ -169,16 +169,15 @@ function WeatherMap() {
         addAlertsToMap(data.features);
       }
     } catch (error) {
-      console.error('Error fetching alerts:', error);
+      if (import.meta.env.DEV) {
+        console.error('Error fetching alerts:', error);
+      }
     }
   }, [addAlertsToMap]);
 
   // Initialize map with Protomaps basemap
   useEffect(() => {
     if (map.current) return;
-
-    // Register PMTiles protocol
-    registerPMTilesProtocol();
 
     // Create map with Protomaps style
     map.current = new maplibregl.Map({
@@ -202,20 +201,25 @@ function WeatherMap() {
 
     // Debug tile loading
     map.current.on('error', (e) => {
-      console.error('Map error:', e);
+      if (import.meta.env.DEV) {
+        console.error('Map error:', e);
+      }
     });
 
     map.current.on('data', (e) => {
-      if (e.dataType === 'source' && e.sourceDataType === 'metadata') {
+      if (import.meta.env.DEV && e.dataType === 'source' && e.sourceDataType === 'metadata') {
         console.log('Source loaded:', e.sourceId);
       }
     });
 
     map.current.on('load', () => {
-      console.log('Map loaded!');
-      console.log('Sources:', Object.keys(map.current.getStyle().sources));
-      console.log('Layers:', map.current.getStyle().layers.length);
-      console.log('First layer:', map.current.getStyle().layers[0]);
+      if (import.meta.env.DEV) {
+        console.log('Map loaded!', {
+          sources: Object.keys(map.current.getStyle().sources),
+          layers: map.current.getStyle().layers.length,
+          firstLayer: map.current.getStyle().layers[0]
+        });
+      }
 
       setLoading(false);
       setMapLoaded(true);
@@ -243,8 +247,7 @@ function WeatherMap() {
         map.current = null;
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchAlerts]); // fetchAlerts is stable (useCallback with [addAlertsToMap])
 
   // Check theme based on daylight hours and update automatically (only if user hasn't manually overridden)
   useEffect(() => {
@@ -345,6 +348,7 @@ function WeatherMap() {
               map={map.current}
               visible={true}
               currentZoom={currentZoom}
+              isDark={isDark}
             />
           )}
 

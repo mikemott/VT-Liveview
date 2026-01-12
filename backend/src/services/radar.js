@@ -27,7 +27,7 @@ export async function getRadarInfo() {
       tilePattern: `${IEM_BASE}/cache/tile.py/1.0.0/${RADAR_PRODUCT}/{z}/{x}/{y}.png`
     };
   } catch (error) {
-    console.error('Error fetching radar info:', error);
+    // Silently fall back to generated timestamps
     return generateFallbackRadarInfo();
   }
 }
@@ -86,7 +86,7 @@ export async function getRainViewerRadar() {
       tilePattern: pastFrames[pastFrames.length - 1]?.path || ''
     };
   } catch (error) {
-    console.error('Error fetching RainViewer radar:', error);
+    // Errors are thrown and handled by GraphQL resolver
     throw error;
   }
 }

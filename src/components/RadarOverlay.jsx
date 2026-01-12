@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { useRadarAnimation, getCurrentRadarTileUrl } from '../hooks/useRadarAnimation';
+import { useRadarAnimation } from '../hooks/useRadarAnimation';
 import {
   Play,
   Pause,
@@ -57,56 +57,121 @@ export default function RadarOverlay({ map, isDark = false }) {
   useEffect(() => {
     if (!map || !map.isStyleLoaded() || frames.length === 0) return;
 
-    // If frames changed (e.g., after refresh), reinitialize
-    if (frames.length !== previousFrameCount.current) {
+    const currentCount = frames.length;
+    const previousCount = previousFrameCount.current;
+
+    // If frame count changed, we need to add/remove layers
+    if (currentCount !== previousCount) {
       // Reset tile loading state
       setTilesLoaded(false);
       loadedSources.current.clear();
 
-      // Clean up old layers
-      for (let i = 0; i < previousFrameCount.current; i++) {
-        const layerId = `radar-layer-${i}`;
-        const sourceId = `radar-source-${i}`;
-        if (hasLayer(layerId)) {
-          map.removeLayer(layerId);
-        }
-        if (hasSource(sourceId)) {
-          map.removeSource(sourceId);
+      // Remove extra layers if count decreased
+      if (currentCount < previousCount) {
+        for (let i = currentCount; i < previousCount; i++) {
+          const layerId = `radar-layer-${i}`;
+          const sourceId = `radar-source-${i}`;
+          if (hasLayer(layerId)) {
+            map.removeLayer(layerId);
+          }
+          if (hasSource(sourceId)) {
+            map.removeSource(sourceId);
+          }
         }
       }
 
-      // Create source and layer for each frame
+      // Update existing sources and add new ones if count increased
       frames.forEach((frame, index) => {
         const sourceId = `radar-source-${index}`;
         const layerId = `radar-layer-${index}`;
 
-        if (!hasSource(sourceId)) {
-          map.addSource(sourceId, {
-            type: 'raster',
-            tiles: [frame.tileUrl],
-            tileSize: 256,
-            attribution: index === 0 ? 'Weather radar: RainViewer / NOAA' : ''
-          });
+        // If source exists, remove and recreate with new URL
+        if (hasSource(sourceId)) {
+          if (hasLayer(layerId)) {
+            map.removeLayer(layerId);
+          }
+          map.removeSource(sourceId);
         }
 
-        if (!hasLayer(layerId)) {
-          map.addLayer({
-            id: layerId,
-            type: 'raster',
-            source: sourceId,
-            layout: {
-              visibility: 'visible' // Keep visible to preload tiles
-            },
-            paint: {
-              'raster-opacity': 0, // Start transparent, increase after tiles load
-              'raster-fade-duration': 0 // No fade during preload
-            }
-          });
-        }
+        // Add source with current frame URL
+        map.addSource(sourceId, {
+          type: 'raster',
+          tiles: [frame.tileUrl],
+          tileSize: 256,
+          attribution: index === 0 ? 'Weather radar: RainViewer / NOAA' : ''
+        });
+
+        // Add layer
+        map.addLayer({
+          id: layerId,
+          type: 'raster',
+          source: sourceId,
+          layout: {
+            visibility: 'visible' // Keep visible to preload tiles
+          },
+          paint: {
+            'raster-opacity': 0, // Start transparent, increase after tiles load
+            'raster-fade-duration': 0 // No fade during preload
+          }
+        });
       });
 
       layersInitialized.current = true;
-      previousFrameCount.current = frames.length;
+      previousFrameCount.current = currentCount;
+    } else if (currentCount > 0 && layersInitialized.current) {
+      // Frame count same but URLs may have changed (refresh)
+      // Update sources without full layer recreation to avoid flicker
+      let needsUpdate = false;
+
+      frames.forEach((frame, index) => {
+        const sourceId = `radar-source-${index}`;
+        if (hasSource(sourceId)) {
+          // Check if URL changed by comparing with previous frame
+          // Since we can't directly compare, we'll update on every refresh
+          // This is triggered by the 5-minute interval
+          needsUpdate = true;
+        }
+      });
+
+      if (needsUpdate) {
+        setTilesLoaded(false);
+        loadedSources.current.clear();
+
+        // Update each source with new tile URL
+        frames.forEach((frame, index) => {
+          const sourceId = `radar-source-${index}`;
+          const layerId = `radar-layer-${index}`;
+
+          if (hasSource(sourceId) && hasLayer(layerId)) {
+            // Hide layer temporarily
+            map.setPaintProperty(layerId, 'raster-opacity', 0);
+
+            // Remove and recreate source with new URL
+            map.removeLayer(layerId);
+            map.removeSource(sourceId);
+
+            map.addSource(sourceId, {
+              type: 'raster',
+              tiles: [frame.tileUrl],
+              tileSize: 256,
+              attribution: index === 0 ? 'Weather radar: RainViewer / NOAA' : ''
+            });
+
+            map.addLayer({
+              id: layerId,
+              type: 'raster',
+              source: sourceId,
+              layout: {
+                visibility: 'visible'
+              },
+              paint: {
+                'raster-opacity': 0,
+                'raster-fade-duration': 0
+              }
+            });
+          }
+        });
+      }
     }
 
     return () => {
@@ -152,7 +217,9 @@ export default function RadarOverlay({ map, isDark = false }) {
     // Fallback: If tiles don't load within 8 seconds, show anyway
     preloadTimeoutRef.current = setTimeout(() => {
       if (!tilesLoaded) {
-        console.log('Radar tiles preload timeout, showing anyway');
+        if (import.meta.env.DEV) {
+          console.log('Radar tiles preload timeout, showing anyway');
+        }
         setTilesLoaded(true);
       }
     }, 8000);

@@ -20,7 +20,9 @@ async function start() {
 
   // Enable CORS for frontend
   await fastify.register(cors, {
-    origin: true, // Allow all origins in development
+    origin: process.env.NODE_ENV === 'production'
+      ? (process.env.ALLOWED_ORIGINS || 'https://vtliveview.com').split(',')
+      : true, // Allow all origins in development
     methods: ['GET', 'POST', 'OPTIONS']
   });
 
@@ -72,8 +74,8 @@ async function start() {
 
   try {
     await fastify.listen({ port, host });
-    console.log(`\n🚀 GraphQL server ready at http://${host}:${port}/graphql`);
-    console.log(`📊 Health check at http://${host}:${port}/health\n`);
+    fastify.log.info(`🚀 GraphQL server ready at http://${host}:${port}/graphql`);
+    fastify.log.info(`📊 Health check at http://${host}:${port}/health`);
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);

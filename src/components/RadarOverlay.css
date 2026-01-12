@@ -75,7 +75,7 @@
 .radar-controls button {
   background: rgba(255, 255, 255, 0.6);
   border: 1.5px solid rgba(139, 119, 85, 0.25);
-  border-radius: 8px;
+  border-radius: 12px; /* Consistent with control sections */
   padding: 10px;
   cursor: pointer;
   color: #4a5c47;

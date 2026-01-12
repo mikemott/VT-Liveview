@@ -67,7 +67,9 @@ export async function fetchFloodGauges() {
 
     return floods;
   } catch (error) {
-    console.error('Error fetching USGS flood data:', error);
+    if (import.meta.env.DEV) {
+      console.error('Error fetching USGS flood data:', error);
+    }
     return [];
   }
 }
@@ -85,7 +87,9 @@ export async function fetchAllIncidents() {
 
     return [...vt511Data, ...floods];
   } catch (error) {
-    console.error('Error fetching incidents:', error);
+    if (import.meta.env.DEV) {
+      console.error('Error fetching incidents:', error);
+    }
     return [];
   }
 }

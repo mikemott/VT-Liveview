@@ -21,12 +21,12 @@ All in one beautiful, easy-to-use map interface.
 ## Features
 
 ### Weather Layer
-- **Live Radar**: Real-time precipitation radar from RainViewer
+- **Live Radar**: Real-time precipitation radar from Iowa Environmental Mesonet (IEM)
 - **Weather Alerts**: NOAA alerts for Vermont with severity color-coding
 - **Updates**: Automatic refresh every 5 minutes
 
 ### Travel Incidents Layer
-- **Real-time Traffic**: Accidents, hazards, and congestion from HERE Traffic API
+- **Real-time Traffic**: Accidents, hazards, and congestion from Vermont 511 (VT 511)
 - **Road Closures**: Full and partial closures with visual indicators
 - **Construction Zones**: VTrans construction projects and roadwork
 - **Flood Monitoring**: USGS river gauge data for flood-affected roads
@@ -44,7 +44,7 @@ All in one beautiful, easy-to-use map interface.
 
 ### Prerequisites
 - Node.js 18+ and npm
-- HERE Maps API key (free tier: 250k requests/month)
+- Protomaps API key (free tier: 1M map views/month)
 
 ### Installation
 
@@ -54,31 +54,44 @@ All in one beautiful, easy-to-use map interface.
    cd VT-Liveview
    ```
 
-2. Install dependencies:
+2. Install frontend dependencies:
    ```bash
    npm install
    ```
 
-3. Set up environment variables:
+3. Install backend dependencies:
+   ```bash
+   cd backend
+   npm install
+   cd ..
+   ```
+
+4. Set up environment variables:
    ```bash
    cp .env.example .env
    ```
 
-4. Get your FREE HERE API key:
-   - Visit https://developer.here.com/
+5. Get your FREE Protomaps API key:
+   - Visit https://protomaps.com/api
    - Sign up (no credit card required)
-   - Create a project and generate an API key
+   - Generate an API key
    - Add it to `.env`:
      ```
-     VITE_HERE_API_KEY=your_key_here
+     VITE_PROTOMAPS_API_KEY=your_key_here
      ```
 
-5. Start the development server:
+6. Start the backend server (in one terminal):
+   ```bash
+   cd backend
+   npm start
+   ```
+
+7. Start the frontend development server (in another terminal):
    ```bash
    npm run dev
    ```
 
-6. Open http://localhost:5173 in your browser
+8. Open http://localhost:5173 in your browser
 
 ## Usage
 
@@ -107,37 +120,51 @@ All data sources are free and publicly available:
 
 | Source | Data Type | Update Frequency | Cost |
 |--------|-----------|------------------|------|
-| [NOAA Weather](https://www.weather.gov/documentation/services-web-api) | Weather alerts | Real-time | Free |
-| [RainViewer](https://www.rainviewer.com/api.html) | Radar imagery | Real-time | Free |
-| [HERE Traffic](https://developer.here.com/documentation/traffic-api/dev_guide/index.html) | Traffic incidents | 2 minutes | Free (250k/month) |
+| [NOAA Weather](https://www.weather.gov/documentation/services-web-api) | Weather alerts & forecasts | Real-time | Free |
+| [Iowa Mesonet (IEM)](https://mesonet.agron.iastate.edu/) | Radar imagery | Real-time | Free |
+| [Vermont 511](https://511vt.com/) | Traffic incidents & construction | 2 minutes | Free |
 | [USGS Water](https://waterservices.usgs.gov/) | River gauges | Real-time | Free |
-| [VTrans](https://vtrans.vermont.gov/) | Construction projects | As available | Free |
+| [Protomaps](https://protomaps.com/) | Vector map tiles | Real-time | Free (1M views/month) |
 
 ## Tech Stack
 
 - **Frontend**: React 19.2.0 + Vite 7.2.4
+- **Backend**: Express.js 4.x (proxy for VT 511 API)
 - **Mapping**: MapLibre GL JS 5.15.0
 - **Icons**: Lucide React
-- **Base Map**: OpenStreetMap
+- **Base Map**: Protomaps (vector tiles from OpenStreetMap data)
+- **Data Fetching**: React Query (TanStack Query)
 
 ## Project Structure
 
 ```
-weather-map/
-├── src/
+VT-Liveview/
+├── backend/                 # Express.js backend server
+│   ├── src/
+│   │   ├── server.js        # Main server file
+│   │   ├── services/
+│   │   │   ├── noaa.js      # NOAA API service
+│   │   │   └── radar.js     # Radar data service
+│   │   └── routes/
+│   └── package.json
+├── src/                     # React frontend
 │   ├── components/          # React components
-│   │   ├── TravelLayer.jsx  # Travel incidents layer
-│   │   └── WeatherAlerts.jsx # Weather alerts panel
+│   │   ├── CurrentWeather.jsx # Current weather display
+│   │   ├── RadarOverlay.jsx   # Radar animation layer
+│   │   ├── ThemeToggle.jsx    # Dark mode toggle
+│   │   └── TravelLayer.jsx    # Travel incidents layer
+│   ├── hooks/
+│   │   └── useRadarAnimation.js # Radar animation logic
 │   ├── services/
-│   │   └── travelApi.js     # API service layer
+│   │   ├── travelApi.js     # VT 511 API service
+│   │   └── vt511Api.js      # VT 511 XML parser
 │   ├── utils/
-│   │   ├── incidentColors.js # Color constants
-│   │   └── incidentIcons.js  # Icon utilities
-│   ├── App.jsx              # Root component
+│   │   ├── mapStyles.js     # Protomaps style config
+│   │   └── incidentIcons.js # Icon utilities
 │   ├── WeatherMap.jsx       # Main map component
 │   └── main.jsx             # Entry point
 ├── .env.example             # Environment template
-├── package.json
+├── package.json             # Frontend dependencies
 └── vite.config.js
 ```
 
@@ -160,13 +187,22 @@ npm run lint
 
 ## Deployment
 
-VT-Liveview is a static site that can be deployed to:
+VT-Liveview requires both frontend and backend deployment:
+
+### Frontend (Static Site)
+Deploy the `dist/` folder to:
 - **Netlify/Vercel**: Automatic deployment from GitHub
 - **Nginx/Apache**: Serve the `dist/` folder
-- **Docker**: Containerize for cloud deployment
+- **Cloudflare Pages**: Zero-config deployment
+
+### Backend (Node.js Server)
+Deploy the Express.js backend to:
+- **VPS/Cloud Server**: Run with PM2 or systemd
+- **Docker**: Containerize the backend service
+- **Railway/Render**: Automatic deployment from GitHub
 - **Proxmox LXC**: Run in a container on your homelab
 
-See [TRAVEL_LAYER_SETUP.md](TRAVEL_LAYER_SETUP.md) for detailed setup instructions.
+**Important**: Update `VITE_BACKEND_URL` in production to point to your deployed backend server.
 
 ## Roadmap
 
@@ -193,11 +229,11 @@ MIT License - feel free to use this project for your own purposes.
 ## Acknowledgments
 
 - Weather data: NOAA National Weather Service
-- Radar imagery: RainViewer
-- Traffic data: HERE Technologies
+- Radar imagery: Iowa Environmental Mesonet (IEM)
+- Traffic data: Vermont 511 (VTrans)
 - Flood data: USGS Water Services
-- Construction data: Vermont Agency of Transportation
-- Base map: OpenStreetMap contributors
+- Base map: Protomaps (using OpenStreetMap data)
+- Icons: Lucide React
 
 ## Support
 

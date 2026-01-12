@@ -219,7 +219,7 @@
 /* Incident Item */
 .incident-item {
   background: rgba(235, 232, 223, 0.6);
-  border-radius: 8px;
+  border-radius: 12px; /* Consistent with control sections */
   padding: 10px 12px;
   border-left: 3px solid;
   transition: transform 0.2s, box-shadow 0.2s;
@@ -391,7 +391,7 @@
 }
 
 .controls-panel.dark .incident-source {
-  color: #959595;
+  color: #a5a5a5; /* WCAG AA compliant contrast */
 }
 
 .controls-panel.dark .zoom-hint {

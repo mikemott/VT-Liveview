@@ -45,7 +45,7 @@ export function getMapStyle(isDark = false) {
   // Get API key from environment variable
   const apiKey = import.meta.env.VITE_PROTOMAPS_API_KEY;
 
-  if (!apiKey) {
+  if (!apiKey && import.meta.env.DEV) {
     console.error('VITE_PROTOMAPS_API_KEY is not set. Get your free API key at https://protomaps.com/api');
   }
 
@@ -130,9 +130,4 @@ export function onThemeChange(callback) {
     return () => mediaQuery.removeEventListener('change', callback);
   }
   return () => {};
-}
-
-// Empty function for compatibility
-export function registerPMTilesProtocol() {
-  // Not needed for hosted tiles
 }

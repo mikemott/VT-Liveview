@@ -56,7 +56,9 @@ export function useRadarAnimation(map, options = {}) {
       setFrames([...pastFrames, ...nowcastFrames]);
       setCurrentFrame(pastFrames.length - 1); // Start at most recent past frame
     } catch (err) {
-      console.error('Error fetching radar frames:', err);
+      if (import.meta.env.DEV) {
+        console.error('Error fetching radar frames:', err);
+      }
       setError(err.message);
 
       // Fallback to static IEM tile
@@ -138,9 +140,4 @@ export function useRadarAnimation(map, options = {}) {
     prevFrame,
     refresh: fetchFrames
   };
-}
-
-// Get the current radar tile URL (for static display)
-export function getCurrentRadarTileUrl() {
-  return IEM_RADAR_URL;
 }
