@@ -6,7 +6,7 @@ import TravelLayer from './components/TravelLayer';
 import CurrentWeather from './components/CurrentWeather';
 import RadarOverlay from './components/RadarOverlay';
 import ThemeToggle from './components/ThemeToggle';
-import { getMapStyle, registerPMTilesProtocol, isDarkMode, onThemeChange } from './utils/mapStyles';
+import { getMapStyle, registerPMTilesProtocol, isDarkMode } from './utils/mapStyles';
 
 const VERMONT_CENTER = {
   lng: -72.5778,
@@ -25,9 +25,10 @@ function WeatherMap() {
   const map = useRef(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [travelVisible, setTravelVisible] = useState(true);
   const [currentZoom, setCurrentZoom] = useState(VERMONT_CENTER.zoom);
   const [isDark, setIsDark] = useState(isDarkMode);
+  const [manualThemeOverride, setManualThemeOverride] = useState(false);
+  const [mapStyleVersion, setMapStyleVersion] = useState(0); // Track map style changes
   const [alerts, setAlerts] = useState([]);
   const [mapCenter, setMapCenter] = useState({
     lat: VERMONT_CENTER.lat,
@@ -185,9 +186,11 @@ function WeatherMap() {
       style: getMapStyle(isDark),
       center: [VERMONT_CENTER.lng, VERMONT_CENTER.lat],
       zoom: VERMONT_CENTER.zoom,
+      minZoom: 6.5,  // Allow zooming out to see full state and surrounding areas
+      maxZoom: 18,   // Allow detailed street-level zoom
       maxBounds: [
-        [-74.5, 42.0], // Southwest corner
-        [-70.5, 46.0]  // Northeast corner
+        [-75.0, 41.5], // Southwest corner - more generous bounds
+        [-70.0, 46.5]  // Northeast corner - allows viewing all of Vermont
       ]
     });
 
@@ -243,13 +246,25 @@ function WeatherMap() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Listen for system theme changes
+  // Check theme based on daylight hours and update automatically (only if user hasn't manually overridden)
   useEffect(() => {
-    const unsubscribe = onThemeChange((prefersDark) => {
-      setIsDark(prefersDark);
-    });
-    return unsubscribe;
-  }, []);
+    // Skip automatic updates if user has manually set theme
+    if (manualThemeOverride) return;
+
+    // Check theme every minute to catch sunrise/sunset transitions
+    const checkTheme = () => {
+      const shouldBeDark = isDarkMode();
+      if (shouldBeDark !== isDark) {
+        setIsDark(shouldBeDark);
+      }
+    };
+
+    // Check immediately and then every minute
+    checkTheme();
+    const interval = setInterval(checkTheme, 60000); // Check every minute
+
+    return () => clearInterval(interval);
+  }, [isDark, manualThemeOverride]);
 
   // Update map style when theme changes
   useEffect(() => {
@@ -271,12 +286,16 @@ function WeatherMap() {
       if (alerts.length > 0) {
         addAlertsToMap(alerts);
       }
+
+      // Increment mapStyleVersion to trigger radar layer recreation
+      setMapStyleVersion(v => v + 1);
     });
   }, [isDark, mapLoaded, alerts, addAlertsToMap]);
 
-  // Toggle theme
+  // Toggle theme manually
   const toggleTheme = useCallback(() => {
     setIsDark(prev => !prev);
+    setManualThemeOverride(true); // User has manually set the theme
   }, []);
 
   return (
@@ -304,68 +323,66 @@ function WeatherMap() {
 
       {/* Controls Panel */}
       <div className={`controls-panel ${isDark ? 'dark' : ''}`}>
-        <h2>VT LiveView</h2>
-
-        {/* Radar Controls */}
-        {mapLoaded && (
-          <RadarOverlay map={map.current} isDark={isDark} />
-        )}
-
-        {/* Travel Layer Controls */}
-        <div className="control-section">
-          <h3>Travel</h3>
-          <label className="toggle-control">
-            <input
-              type="checkbox"
-              checked={travelVisible}
-              onChange={() => setTravelVisible(!travelVisible)}
-            />
-            <span>Show Incidents</span>
-          </label>
+        <div className="logo-container">
+          <img
+            src={isDark ? '/assets/vt-liveview-dark.svg' : '/assets/vt-liveview-light.svg'}
+            alt="VT LiveView"
+            className="app-logo"
+          />
         </div>
 
-        {travelVisible && mapLoaded && (
-          <TravelLayer
-            map={map.current}
-            visible={travelVisible}
-            currentZoom={currentZoom}
-          />
-        )}
-
-        {/* Active Alerts */}
-        {alerts.length > 0 && (
-          <div className="control-section">
-            <h3>Active Alerts ({alerts.length})</h3>
-            <div className="alerts-list">
-              {alerts.map((alert, index) => (
-                <div
-                  key={index}
-                  className={`alert-item severity-${alert.properties.severity?.toLowerCase()}`}
-                  onClick={() => handleAlertClick(alert)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      handleAlertClick(alert);
-                    }
-                  }}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`Zoom to ${alert.properties.event} affected area`}
-                >
-                  <div className="alert-event">{alert.properties.event}</div>
-                  <div className="alert-headline">{alert.properties.headline}</div>
-                </div>
-              ))}
+        <div className="controls-panel-scroll">
+          {/* Radar Controls */}
+          {mapLoaded && (
+            <div className="control-section">
+              <RadarOverlay map={map.current} isDark={isDark} key={mapStyleVersion} />
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Attribution */}
-        <div className="attribution">
-          <p>Weather: NOAA</p>
-          <p>Radar: RainViewer</p>
-          <p>Traffic: VT 511, USGS</p>
-          <p>Map: Protomaps / OSM</p>
+          {/* Travel Layer */}
+          {mapLoaded && (
+            <TravelLayer
+              map={map.current}
+              visible={true}
+              currentZoom={currentZoom}
+            />
+          )}
+
+          {/* Active Alerts */}
+          {alerts.length > 0 && (
+            <div className="control-section">
+              <h3>Active Alerts ({alerts.length})</h3>
+              <div className="alerts-list">
+                {alerts.map((alert, index) => (
+                  <div
+                    key={index}
+                    className={`alert-item severity-${alert.properties.severity?.toLowerCase()}`}
+                    onClick={() => handleAlertClick(alert)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleAlertClick(alert);
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Zoom to ${alert.properties.event} affected area`}
+                  >
+                    <div className="alert-event">{alert.properties.event}</div>
+                    <div className="alert-headline">{alert.properties.headline}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Attribution */}
+          <div className="attribution">
+            <p>Weather: NOAA</p>
+            <p>Radar: RainViewer</p>
+            <p>Traffic: VT 511, USGS</p>
+            <p>Map: Protomaps / OSM</p>
+          </div>
         </div>
       </div>
     </div>

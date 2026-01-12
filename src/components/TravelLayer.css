@@ -1,6 +1,8 @@
 /* Travel Layer Styles */
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap');
 
 .travel-section {
+  font-family: 'Public Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   margin-bottom: 24px;
   padding-bottom: 16px;
   border-bottom: 1px solid #e5e7eb;
@@ -21,9 +23,12 @@
 
 .section-header h3 {
   margin: 0;
-  color: #374151;
-  font-size: 16px;
-  font-weight: 600;
+  color: #2d4a2b;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: 'Public Sans', sans-serif;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -289,8 +294,13 @@
 }
 
 /* Dark Mode Styles */
+.controls-panel.dark .travel-section {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
 .controls-panel.dark .section-header h3 {
-  color: #e5e5e5;
+  color: #b8cdb0;
+  font-weight: 700;
 }
 
 .controls-panel.dark .expand-toggle {
@@ -405,7 +415,8 @@
   }
 
   .section-header h3 {
-    font-size: 14px;
+    font-size: 13px;
+    letter-spacing: 0.8px;
   }
 
   .filter-checkbox {

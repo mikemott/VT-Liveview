@@ -64,16 +64,62 @@ export function getMapStyle(isDark = false) {
   };
 }
 
-// Determine if it's night time based on sun position or system preference
-export function isDarkMode() {
-  // Check system preference first
-  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    return true;
-  }
+// Calculate sunrise and sunset times for a given location
+// Uses simplified astronomical algorithm
+function calculateSunTimes(lat, lng, date = new Date()) {
+  const J2000 = 2451545.0;
+  const julianDay = date.getTime() / 86400000 + 2440587.5;
+  const n = julianDay - J2000;
 
-  // Fallback to time-based (6am-6pm is day)
-  const hour = new Date().getHours();
-  return hour < 6 || hour >= 18;
+  // Mean solar time
+  const meanAnomaly = (357.5291 + 0.98560028 * n) % 360;
+  const meanAnomalyRad = meanAnomaly * Math.PI / 180;
+
+  // Equation of center
+  const center = 1.9148 * Math.sin(meanAnomalyRad) +
+                 0.0200 * Math.sin(2 * meanAnomalyRad) +
+                 0.0003 * Math.sin(3 * meanAnomalyRad);
+
+  // Ecliptic longitude
+  const eclipticLongitude = (meanAnomaly + center + 180 + 102.9372) % 360;
+  const eclipticLongitudeRad = eclipticLongitude * Math.PI / 180;
+
+  // Solar transit (solar noon)
+  const solarTransit = J2000 + n + 0.0053 * Math.sin(meanAnomalyRad) -
+                       0.0069 * Math.sin(2 * eclipticLongitudeRad);
+
+  // Declination of the sun
+  const declination = Math.asin(Math.sin(eclipticLongitudeRad) * Math.sin(23.44 * Math.PI / 180));
+
+  // Hour angle
+  const latRad = lat * Math.PI / 180;
+  const hourAngle = Math.acos((Math.sin(-0.833 * Math.PI / 180) -
+                               Math.sin(latRad) * Math.sin(declination)) /
+                              (Math.cos(latRad) * Math.cos(declination)));
+
+  // Calculate sunrise and sunset in Julian days
+  const sunriseJD = solarTransit - hourAngle / (2 * Math.PI);
+  const sunsetJD = solarTransit + hourAngle / (2 * Math.PI);
+
+  // Convert to local time (accounting for longitude)
+  const lngOffset = lng / 15; // 15 degrees per hour
+  const sunrise = new Date((sunriseJD - 2440587.5) * 86400000);
+  const sunset = new Date((sunsetJD - 2440587.5) * 86400000);
+
+  return { sunrise, sunset };
+}
+
+// Determine if it's night time based on actual sunrise/sunset for Vermont
+export function isDarkMode() {
+  // Vermont center coordinates
+  const VT_LAT = 44.5588;
+  const VT_LNG = -72.5778;
+
+  const now = new Date();
+  const { sunrise, sunset } = calculateSunTimes(VT_LAT, VT_LNG, now);
+
+  // Dark mode if current time is before sunrise or after sunset
+  return now < sunrise || now > sunset;
 }
 
 // Listen for system theme changes

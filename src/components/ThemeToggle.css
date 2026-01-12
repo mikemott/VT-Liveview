@@ -24,14 +24,15 @@
 }
 
 .theme-toggle.dark {
-  background: rgba(42, 45, 51, 0.96);
-  color: #f5d060;
+  background: linear-gradient(165deg, rgba(28, 32, 36, 0.97) 0%, rgba(22, 26, 30, 0.97) 100%);
+  color: #b8cdb0;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(118, 141, 115, 0.15);
 }
 
 .theme-toggle.dark:hover {
-  background: rgba(52, 55, 61, 0.96);
-  color: #ffd870;
+  background: linear-gradient(165deg, rgba(32, 36, 40, 0.97) 0%, rgba(26, 30, 34, 0.97) 100%);
+  color: #c8ddc0;
+  border-color: rgba(118, 141, 115, 0.3);
   transform: scale(1.08);
 }

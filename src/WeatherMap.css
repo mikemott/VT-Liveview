@@ -1,3 +1,6 @@
+/* Import Google Font for typography */
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap');
+
 .weather-map-container {
   position: relative;
   width: 100vw;
@@ -48,52 +51,167 @@
   position: absolute;
   top: 20px;
   left: 20px;
-  background: rgba(244, 241, 232, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  max-width: 320px;
+  background: linear-gradient(165deg, #f8f6f0 0%, #ede9dd 100%);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 0;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    0 2px 8px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  max-width: 360px;
   max-height: calc(100vh - 40px);
-  overflow-y: auto;
+  overflow: visible;
   z-index: 10;
-  border: 1px solid rgba(210, 205, 190, 0.5);
+  border: 2px solid rgba(139, 119, 85, 0.15);
+  font-family: 'Public Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Scrollable content area */
+.controls-panel-scroll {
+  max-height: calc(100vh - 180px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 24px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139, 119, 85, 0.3) transparent;
+  flex: 1;
+}
+
+.controls-panel-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.controls-panel-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.controls-panel-scroll::-webkit-scrollbar-thumb {
+  background: rgba(139, 119, 85, 0.3);
+  border-radius: 3px;
+}
+
+.controls-panel-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 119, 85, 0.5);
+}
+
+.logo-container {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px 24px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.8) 0%, rgba(245, 243, 237, 0.6) 100%);
+  border-bottom: 3px solid transparent;
+  border-image: linear-gradient(90deg,
+    transparent 0%,
+    rgba(76, 111, 68, 0.3) 20%,
+    rgba(76, 111, 68, 0.5) 50%,
+    rgba(76, 111, 68, 0.3) 80%,
+    transparent 100%
+  ) 1;
+  position: relative;
+  border-radius: 16px 16px 0 0;
+}
+
+.logo-container::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 3px;
+  background: radial-gradient(ellipse at center, rgba(76, 111, 68, 0.4) 0%, transparent 70%);
+}
+
+.app-logo {
+  max-width: 100%;
+  height: auto;
+  max-height: 52px;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
+}
+
+.app-logo:hover {
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.12));
+  transform: translateY(-1px);
 }
 
 .controls-panel h2 {
   margin: 0 0 20px 0;
-  color: #1e40af;
-  font-family: 'Orbitron', sans-serif;
-  font-size: 28px;
-  font-weight: 900;
-  letter-spacing: 0.05em;
+  color: #2d4a2b;
+  font-family: 'Public Sans', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1px;
   text-transform: uppercase;
-  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
   padding-bottom: 16px;
   border-bottom: 2px solid rgba(210, 205, 190, 0.6);
-  filter: drop-shadow(0 2px 8px rgba(59, 130, 246, 0.3));
 }
 
 .control-section {
-  background: rgba(235, 232, 223, 0.7);
-  padding: 16px;
-  border-radius: 8px;
-  margin-bottom: 16px;
-  border: 1px solid rgba(210, 205, 190, 0.4);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.8) 0%, rgba(245, 243, 237, 0.6) 100%);
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  border: 2px solid rgba(139, 119, 85, 0.12);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.control-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg,
+    rgba(76, 111, 68, 0) 0%,
+    rgba(76, 111, 68, 0.4) 50%,
+    rgba(76, 111, 68, 0) 100%
+  );
+}
+
+.control-section:hover {
+  border-color: rgba(139, 119, 85, 0.25);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  transform: translateY(-1px);
 }
 
 .control-section:last-of-type {
-  border-bottom: none;
+  margin-bottom: 0;
 }
 
 .control-section h3 {
-  margin: 0 0 12px 0;
-  color: #374151;
-  font-size: 16px;
-  font-weight: 600;
+  margin: 0 0 16px 0;
+  color: #2d4a2b;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: 'Public Sans', sans-serif;
+  position: relative;
+  padding-bottom: 12px;
+}
+
+.control-section h3::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 40px;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(76, 111, 68, 0.6) 0%, transparent 100%);
 }
 
 .toggle-control {
@@ -228,18 +346,36 @@
 }
 
 .attribution {
-  background: rgba(230, 227, 218, 0.9);
-  border-top: 1px solid rgba(210, 205, 190, 0.6);
-  margin: 16px -20px -20px -20px;
-  padding: 16px 20px 12px 20px;
-  border-radius: 0 0 12px 12px;
+  background: linear-gradient(180deg, rgba(230, 227, 218, 0.4) 0%, rgba(220, 215, 205, 0.6) 100%);
+  border-top: 2px solid rgba(139, 119, 85, 0.2);
+  margin: 24px 0 0 0;
+  padding: 20px 0 0 0;
+  position: relative;
+}
+
+.attribution::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 2px;
+  background: radial-gradient(ellipse at center, rgba(139, 119, 85, 0.3) 0%, transparent 70%);
 }
 
 .attribution p {
-  margin: 4px 0;
-  color: #9ca3af;
-  font-size: 11px;
+  margin: 8px 0;
+  color: #6b5d4f;
+  font-size: 10px;
   font-weight: 500;
+  letter-spacing: 0.3px;
+  text-align: center;
+  font-family: 'Public Sans', sans-serif;
+}
+
+.attribution p:first-child {
+  margin-top: 0;
 }
 
 /* Mobile responsiveness */
@@ -268,50 +404,92 @@
   padding: 4px 8px;
 }
 
-/* Dark mode styles - sophisticated multi-toned gray palette */
+/* Dark mode styles - Night Mountain Aesthetic */
 .weather-map-container.dark .loading-overlay {
-  background: rgba(31, 31, 31, 0.95);
+  background: linear-gradient(165deg, rgba(24, 28, 32, 0.97) 0%, rgba(18, 22, 26, 0.97) 100%);
 }
 
 .weather-map-container.dark .loading-overlay p {
-  color: #f5f5f5;
+  color: #d4cfc4;
   font-weight: 500;
 }
 
 .weather-map-container.dark .loading-spinner {
-  border-color: #3a3a3a;
-  border-top-color: #d5d5d5;
+  border-color: rgba(100, 116, 128, 0.3);
+  border-top-color: #89a57c;
 }
 
 .controls-panel.dark {
-  background: rgba(42, 45, 51, 0.96);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(165deg, rgba(28, 32, 36, 0.97) 0%, rgba(22, 26, 30, 0.97) 100%);
+  box-shadow:
+    0 12px 48px rgba(0, 0, 0, 0.5),
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  border: 2px solid rgba(118, 141, 115, 0.15);
+}
+
+.controls-panel.dark .controls-panel-scroll::-webkit-scrollbar-thumb {
+  background: rgba(137, 165, 124, 0.3);
+}
+
+.controls-panel.dark .controls-panel-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(137, 165, 124, 0.5);
+}
+
+.controls-panel.dark .logo-container {
+  background: linear-gradient(160deg, rgba(36, 42, 46, 0.7) 0%, rgba(30, 36, 40, 0.5) 100%);
+  border-image: linear-gradient(90deg,
+    transparent 0%,
+    rgba(137, 165, 124, 0.3) 20%,
+    rgba(137, 165, 124, 0.5) 50%,
+    rgba(137, 165, 124, 0.3) 80%,
+    transparent 100%
+  ) 1;
+}
+
+.controls-panel.dark .logo-container::after {
+  background: radial-gradient(ellipse at center, rgba(137, 165, 124, 0.4) 0%, transparent 70%);
+}
+
+.controls-panel.dark .app-logo {
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4));
 }
 
 .controls-panel.dark h2 {
-  background: linear-gradient(135deg, #e0e0e0 0%, #ffffff 50%, #d5d5d5 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  border-bottom-color: rgba(255, 255, 255, 0.15);
-  font-weight: 900;
-  letter-spacing: 0.05em;
-  filter: drop-shadow(0 2px 12px rgba(255, 255, 255, 0.4)) drop-shadow(0 0 20px rgba(255, 255, 255, 0.2));
+  color: #b8cdb0;
+  border-bottom-color: rgba(137, 165, 124, 0.3);
 }
 
 .controls-panel.dark .control-section {
-  border-bottom-color: rgba(255, 255, 255, 0.12);
-  background: rgba(36, 38, 41, 0.4);
-  padding: 16px;
-  border-radius: 8px;
-  margin-bottom: 16px;
+  background: linear-gradient(160deg, rgba(36, 42, 46, 0.7) 0%, rgba(30, 36, 40, 0.5) 100%);
+  border-color: rgba(118, 141, 115, 0.15);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.controls-panel.dark .control-section::before {
+  background: linear-gradient(90deg,
+    rgba(137, 165, 124, 0) 0%,
+    rgba(137, 165, 124, 0.3) 50%,
+    rgba(137, 165, 124, 0) 100%
+  );
+}
+
+.controls-panel.dark .control-section:hover {
+  border-color: rgba(118, 141, 115, 0.3);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .controls-panel.dark .control-section h3 {
-  color: #e5e5e5;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  color: #b8cdb0;
+  font-weight: 700;
+}
+
+.controls-panel.dark .control-section h3::after {
+  background: linear-gradient(90deg, rgba(137, 165, 124, 0.6) 0%, transparent 100%);
 }
 
 .controls-panel.dark .toggle-control span {
@@ -376,15 +554,16 @@
 }
 
 .controls-panel.dark .attribution {
-  border-top-color: rgba(255, 255, 255, 0.12);
-  background: rgba(0, 0, 0, 0.2);
-  margin: 16px -20px -20px -20px;
-  padding: 16px 20px 12px 20px;
-  border-radius: 0 0 12px 12px;
+  border-top-color: rgba(118, 141, 115, 0.2);
+  background: linear-gradient(180deg, rgba(20, 24, 28, 0.3) 0%, rgba(16, 20, 24, 0.5) 100%);
+}
+
+.controls-panel.dark .attribution::before {
+  background: radial-gradient(ellipse at center, rgba(137, 165, 124, 0.3) 0%, transparent 70%);
 }
 
 .controls-panel.dark .attribution p {
-  color: #909090;
+  color: #7a8f73;
   font-size: 10px;
   font-weight: 500;
 }

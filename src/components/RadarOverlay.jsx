@@ -14,7 +14,11 @@ import './RadarOverlay.css';
 export default function RadarOverlay({ map, isDark = false }) {
   const [visible, setVisible] = useState(true);
   const [opacity, setOpacity] = useState(0.7);
-  const layerInitialized = useRef(false);
+  const [tilesLoaded, setTilesLoaded] = useState(false);
+  const layersInitialized = useRef(false);
+  const previousFrameCount = useRef(0);
+  const loadedSources = useRef(new Set());
+  const preloadTimeoutRef = useRef(null);
 
   const {
     frames,
@@ -27,7 +31,7 @@ export default function RadarOverlay({ map, isDark = false }) {
     prevFrame,
     goToFrame,
     refresh
-  } = useRadarAnimation(map, { frameCount: 6, frameDelay: 700 });
+  } = useRadarAnimation(map, { frameCount: 6, frameDelay: 500 });
 
   // Helper to safely check if layer exists
   const hasLayer = useCallback((layerId) => {
@@ -49,76 +53,136 @@ export default function RadarOverlay({ map, isDark = false }) {
     }
   }, [map]);
 
-  // Initialize radar layer
+  // Initialize multiple radar layers (one per frame) for smooth transitions
   useEffect(() => {
-    if (!map || layerInitialized.current) return;
+    if (!map || !map.isStyleLoaded() || frames.length === 0) return;
 
-    const initLayer = () => {
-      if (!map.isStyleLoaded() || hasSource('radar')) return;
+    // If frames changed (e.g., after refresh), reinitialize
+    if (frames.length !== previousFrameCount.current) {
+      // Reset tile loading state
+      setTilesLoaded(false);
+      loadedSources.current.clear();
 
-      // Add radar source with initial URL
-      const initialUrl = frames[0]?.tileUrl || getCurrentRadarTileUrl();
+      // Clean up old layers
+      for (let i = 0; i < previousFrameCount.current; i++) {
+        const layerId = `radar-layer-${i}`;
+        const sourceId = `radar-source-${i}`;
+        if (hasLayer(layerId)) {
+          map.removeLayer(layerId);
+        }
+        if (hasSource(sourceId)) {
+          map.removeSource(sourceId);
+        }
+      }
 
-      map.addSource('radar', {
-        type: 'raster',
-        tiles: [initialUrl],
-        tileSize: 256,
-        attribution: 'Weather radar: RainViewer / NOAA'
-      });
+      // Create source and layer for each frame
+      frames.forEach((frame, index) => {
+        const sourceId = `radar-source-${index}`;
+        const layerId = `radar-layer-${index}`;
 
-      map.addLayer({
-        id: 'radar-layer',
-        type: 'raster',
-        source: 'radar',
-        paint: {
-          'raster-opacity': opacity,
-          'raster-fade-duration': 0
+        if (!hasSource(sourceId)) {
+          map.addSource(sourceId, {
+            type: 'raster',
+            tiles: [frame.tileUrl],
+            tileSize: 256,
+            attribution: index === 0 ? 'Weather radar: RainViewer / NOAA' : ''
+          });
+        }
+
+        if (!hasLayer(layerId)) {
+          map.addLayer({
+            id: layerId,
+            type: 'raster',
+            source: sourceId,
+            layout: {
+              visibility: 'visible' // Keep visible to preload tiles
+            },
+            paint: {
+              'raster-opacity': 0, // Start transparent, increase after tiles load
+              'raster-fade-duration': 0 // No fade during preload
+            }
+          });
         }
       });
 
-      layerInitialized.current = true;
-    };
-
-    // Wait for style to load
-    if (map.isStyleLoaded()) {
-      initLayer();
-    } else {
-      map.once('style.load', initLayer);
+      layersInitialized.current = true;
+      previousFrameCount.current = frames.length;
     }
 
     return () => {
-      if (hasLayer('radar-layer')) {
-        map.removeLayer('radar-layer');
+      // Cleanup all layers and sources
+      for (let i = 0; i < previousFrameCount.current; i++) {
+        const layerId = `radar-layer-${i}`;
+        const sourceId = `radar-source-${i}`;
+        if (hasLayer(layerId)) {
+          map.removeLayer(layerId);
+        }
+        if (hasSource(sourceId)) {
+          map.removeSource(sourceId);
+        }
       }
-      if (hasSource('radar')) {
-        map.removeSource('radar');
+      layersInitialized.current = false;
+      previousFrameCount.current = 0;
+      loadedSources.current.clear();
+      if (preloadTimeoutRef.current) {
+        clearTimeout(preloadTimeoutRef.current);
       }
-      layerInitialized.current = false;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map, hasSource, hasLayer]);
+  }, [map, frames, hasSource, hasLayer]);
 
-  // Update radar tiles when frame changes
+  // Preload tiles by listening for data events
   useEffect(() => {
-    if (!map || !currentFrameData || !hasSource('radar')) return;
+    if (!map || !layersInitialized.current || frames.length === 0 || tilesLoaded) return;
 
-    const source = map.getSource('radar');
-    if (source) {
-      source.setTiles([currentFrameData.tileUrl]);
-    }
-  }, [map, currentFrameData, hasSource]);
+    const handleSourceData = (e) => {
+      // Check if this is a radar source and tiles are loaded
+      if (e.sourceId && e.sourceId.startsWith('radar-source-') && e.isSourceLoaded) {
+        loadedSources.current.add(e.sourceId);
 
-  // Update visibility
+        // If all sources have loaded tiles, mark as ready
+        if (loadedSources.current.size >= frames.length) {
+          setTilesLoaded(true);
+        }
+      }
+    };
+
+    map.on('sourcedata', handleSourceData);
+
+    // Fallback: If tiles don't load within 8 seconds, show anyway
+    preloadTimeoutRef.current = setTimeout(() => {
+      if (!tilesLoaded) {
+        console.log('Radar tiles preload timeout, showing anyway');
+        setTilesLoaded(true);
+      }
+    }, 8000);
+
+    return () => {
+      map.off('sourcedata', handleSourceData);
+      if (preloadTimeoutRef.current) {
+        clearTimeout(preloadTimeoutRef.current);
+      }
+    };
+  }, [map, frames, layersInitialized, tilesLoaded]);
+
+  // Toggle opacity between layers based on current frame
   useEffect(() => {
-    if (!hasLayer('radar-layer')) return;
-    map.setLayoutProperty('radar-layer', 'visibility', visible ? 'visible' : 'none');
-  }, [map, visible, hasLayer]);
+    if (!map || !layersInitialized.current || frames.length === 0 || !tilesLoaded) return;
 
-  // Update opacity
-  useEffect(() => {
-    if (!hasLayer('radar-layer')) return;
-    map.setPaintProperty('radar-layer', 'raster-opacity', opacity);
-  }, [map, opacity, hasLayer]);
+    // Show only the current frame by adjusting opacity
+    frames.forEach((_, index) => {
+      const layerId = `radar-layer-${index}`;
+      if (hasLayer(layerId)) {
+        const shouldShow = index === currentFrame && visible;
+        // Use opacity for instant switching - no fade during animation
+        map.setPaintProperty(layerId, 'raster-fade-duration', 0);
+        map.setPaintProperty(layerId, 'raster-opacity', shouldShow ? opacity : 0);
+      }
+    });
+  }, [map, currentFrame, visible, frames, hasLayer, tilesLoaded, opacity]);
+
+  // Note: Opacity is now handled in the frame switching effect above
+  // to avoid conflicts and ensure smooth transitions
 
   const formatTime = (isoString) => {
     if (!isoString) return '--:--';
@@ -142,24 +206,31 @@ export default function RadarOverlay({ map, isDark = false }) {
       {visible && (
         <>
           <div className="radar-controls">
-            <button onClick={prevFrame} disabled={isLoading} title="Previous frame">
+            <button onClick={prevFrame} disabled={isLoading || !tilesLoaded} title="Previous frame">
               <SkipBack size={18} />
             </button>
             <button
               className="play-button"
               onClick={toggle}
-              disabled={isLoading || frames.length === 0}
+              disabled={isLoading || frames.length === 0 || !tilesLoaded}
               title={isPlaying ? 'Pause' : 'Play'}
             >
               {isPlaying ? <Pause size={20} /> : <Play size={20} />}
             </button>
-            <button onClick={nextFrame} disabled={isLoading} title="Next frame">
+            <button onClick={nextFrame} disabled={isLoading || !tilesLoaded} title="Next frame">
               <SkipForward size={18} />
             </button>
             <button onClick={refresh} disabled={isLoading} title="Refresh radar">
               <RefreshCw size={16} className={isLoading ? 'spinning' : ''} />
             </button>
           </div>
+
+          {!tilesLoaded && frames.length > 0 && (
+            <div className="radar-preloading">
+              <RefreshCw size={14} className="spinning" />
+              <span>Loading radar tiles...</span>
+            </div>
+          )}
 
           <div className="radar-timeline">
             <div className="timeline-track">

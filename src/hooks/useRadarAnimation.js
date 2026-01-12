@@ -102,22 +102,8 @@ export function useRadarAnimation(map, options = {}) {
     };
   }, [isPlaying, frames.length, frameDelay]);
 
-  // Update radar layer when frame changes
-  useEffect(() => {
-    if (!map || frames.length === 0) return;
-
-    const frame = frames[currentFrame];
-    if (!frame) return;
-
-    const sourceId = 'radar';
-
-    // Check if source exists
-    if (map.getSource(sourceId)) {
-      // Update the source tiles
-      const source = map.getSource(sourceId);
-      source.setTiles([frame.tileUrl]);
-    }
-  }, [map, frames, currentFrame]);
+  // Note: Tile updates are now handled by RadarOverlay component
+  // to avoid duplicate setTiles() calls and flickering
 
   const play = useCallback(() => setIsPlaying(true), []);
   const pause = useCallback(() => setIsPlaying(false), []);

@@ -1,7 +1,7 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchCurrentWeather, fetchForecast } from '../services/graphqlClient';
 import {
-  Thermometer,
   Wind,
   Droplets,
   Cloud,
@@ -10,7 +10,8 @@ import {
   CloudSnow,
   CloudSun,
   CloudMoon,
-  Moon
+  Moon,
+  ChevronDown
 } from 'lucide-react';
 import './CurrentWeather.css';
 
@@ -40,12 +41,15 @@ function getWeatherIcon(description, isDark) {
 }
 
 export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, isDark = false }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const { data, isLoading, error } = useQuery({
     queryKey: ['currentWeather', lat, lon],
     queryFn: () => fetchCurrentWeather(lat, lon),
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
-    retry: 2
+    retry: 2,
+    placeholderData: (previousData) => previousData // Keep previous data during refetch to prevent flashing
   });
 
   const { data: forecastData } = useQuery({
@@ -53,7 +57,8 @@ export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, i
     queryFn: () => fetchForecast(lat, lon),
     staleTime: 15 * 60 * 1000, // 15 minutes (forecast changes less often)
     refetchInterval: 15 * 60 * 1000,
-    retry: 2
+    retry: 2,
+    placeholderData: (previousData) => previousData // Keep previous data during refetch
   });
 
   // Filter to 3-day forecast (6 periods = 3 days of day/night)
@@ -61,7 +66,7 @@ export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, i
 
   if (isLoading) {
     return (
-      <div className="current-weather loading">
+      <div className={`current-weather loading ${isDark ? 'dark' : ''}`}>
         <div className="weather-skeleton">
           <div className="skeleton-line large" />
           <div className="skeleton-line medium" />
@@ -73,14 +78,17 @@ export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, i
 
   if (error || !data) {
     return (
-      <div className="current-weather error">
+      <div className={`current-weather error ${isDark ? 'dark' : ''}`}>
         <p>Unable to load weather</p>
       </div>
     );
   }
 
   return (
-    <div className={`current-weather ${isDark ? 'dark' : ''}`}>
+    <div
+      className={`current-weather ${isDark ? 'dark' : ''} ${isExpanded ? 'expanded' : 'collapsed'}`}
+      onClick={() => setIsExpanded(!isExpanded)}
+    >
       <div className="weather-main">
         <div className="weather-icon">
           {getWeatherIcon(data.description, isDark)}
@@ -110,27 +118,39 @@ export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, i
         )}
       </div>
 
-      {/* 3-Day Forecast */}
-      {forecast3Day.length > 0 && (
-        <div className="forecast-section">
-          <div className="forecast-title">3-Day Forecast</div>
-          {forecast3Day.map((period, index) => (
-            <div key={index} className="forecast-period">
-              <span className="forecast-name">{period.name}</span>
-              <span className="forecast-temp">
-                {Math.round(period.temperature)}°{period.temperatureUnit}
-              </span>
-              <span className="forecast-desc">{period.shortForecast}</span>
+      {isExpanded && (
+        <>
+          {/* 3-Day Forecast */}
+          {forecast3Day.length > 0 && (
+            <div className="forecast-section">
+              <div className="forecast-title">Next 3 Days</div>
+              <div className="forecast-cards">
+                {forecast3Day.map((period, index) => (
+                  <div key={index} className="forecast-card">
+                    <div className="forecast-period-label">{period.name}</div>
+                    <div className="forecast-icon">
+                      {getWeatherIcon(period.shortForecast, period.name.toLowerCase().includes('night'))}
+                    </div>
+                    <div className="forecast-temperature">
+                      {Math.round(period.temperature)}°
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
-        </div>
+          )}
+
+          {data.stationName && (
+            <div className="station-name">
+              {data.stationName}
+            </div>
+          )}
+        </>
       )}
 
-      {data.stationName && (
-        <div className="station-name">
-          {data.stationName}
-        </div>
-      )}
+      <div className={`expand-indicator ${isExpanded ? 'expanded' : ''}`}>
+        <ChevronDown size={20} />
+      </div>
     </div>
   );
 }
