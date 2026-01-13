@@ -92,10 +92,11 @@ function calculateSunTimes(lat, lng, date = new Date()) {
   const hourAngleHours = hourAngle / 15;
 
   // Solar noon in hours (12:00 adjusted for longitude within timezone)
-  // Vermont is in Eastern Time (UTC-5), standard meridian is -75°
-  const standardMeridian = -75; // Eastern Time zone
-  const longitudeCorrection = (standardMeridian - lng) * 4 / 60; // 4 minutes per degree, convert to hours
-  const solarNoon = 12 + longitudeCorrection;
+  // Use actual timezone offset to handle DST automatically
+  const timezoneOffsetHours = date.getTimezoneOffset() / 60; // negative for west of UTC
+  const standardMeridian = -15 * timezoneOffsetHours; // meridian for current timezone
+  const longitudeCorrection = (lng - standardMeridian) / 15; // in hours
+  const solarNoon = 12 - longitudeCorrection;
 
   // Calculate sunrise and sunset in local hours
   const sunriseHours = solarNoon - hourAngleHours;

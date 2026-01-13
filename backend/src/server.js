@@ -47,7 +47,14 @@ async function start() {
   });
 
   // Admin endpoint to clear weather station cache
-  fastify.post('/admin/clear-cache', async () => {
+  fastify.post('/admin/clear-cache', async (request, reply) => {
+    // Require auth token in production
+    if (process.env.NODE_ENV === 'production') {
+      const adminToken = request.headers['x-admin-token'];
+      if (!process.env.ADMIN_TOKEN || adminToken !== process.env.ADMIN_TOKEN) {
+        return reply.code(401).send({ error: 'Unauthorized' });
+      }
+    }
     const result = clearStationsCache();
     return { ...result, message: 'Weather station cache cleared' };
   });
