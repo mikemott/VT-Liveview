@@ -6,6 +6,7 @@ import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { resolvers } from './resolvers/index.js';
+import { clearStationsCache } from './services/noaa.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -43,6 +44,12 @@ async function start() {
   // Health check endpoint
   fastify.get('/health', async () => {
     return { status: 'ok', timestamp: new Date().toISOString() };
+  });
+
+  // Admin endpoint to clear weather station cache
+  fastify.post('/admin/clear-cache', async () => {
+    const result = clearStationsCache();
+    return { ...result, message: 'Weather station cache cleared' };
   });
 
   // VT 511 proxy endpoints

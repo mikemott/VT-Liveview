@@ -208,8 +208,15 @@ function degreesToCardinal(degrees) {
 const stationsCache = {
   data: null,
   timestamp: null,
-  ttl: 3600000 // 1 hour
+  ttl: 900000 // 15 minutes (reduced from 1 hour to prevent stale data)
 };
+
+// Clear the stations cache (for admin endpoint)
+export function clearStationsCache() {
+  stationsCache.data = null;
+  stationsCache.timestamp = null;
+  return { cleared: true, timestamp: new Date().toISOString() };
+}
 
 export async function getObservationStations() {
   try {

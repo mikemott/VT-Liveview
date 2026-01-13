@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Thermometer } from 'lucide-react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './WeatherMap.css';
@@ -28,7 +27,7 @@ function WeatherMap() {
   const [mapLoaded, setMapLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [currentZoom, setCurrentZoom] = useState(VERMONT_CENTER.zoom);
-  const [isDark, setIsDark] = useState(isDarkMode);
+  const [isDark, setIsDark] = useState(() => isDarkMode());
   const [manualThemeOverride, setManualThemeOverride] = useState(false);
   const [mapStyleVersion, setMapStyleVersion] = useState(0); // Track map style changes
   const [alerts, setAlerts] = useState([]);
@@ -345,24 +344,16 @@ function WeatherMap() {
             </div>
           )}
 
-          {/* Weather Stations Control */}
+          {/* Map Features (Travel Layer with Weather Stations toggle) */}
           {mapLoaded && (
-            <div className="control-section">
-              <h3>Weather</h3>
-              <label className="filter-checkbox">
-                <input
-                  type="checkbox"
-                  checked={showWeatherStations}
-                  onChange={() => setShowWeatherStations(!showWeatherStations)}
-                />
-                <span className="checkbox-icon" style={{ color: '#3b82f6' }}>
-                  <Thermometer size={16} strokeWidth={2.5} />
-                </span>
-                <span className="checkbox-label">
-                  Weather Stations
-                </span>
-              </label>
-            </div>
+            <TravelLayer
+              map={map.current}
+              visible={true}
+              currentZoom={currentZoom}
+              isDark={isDark}
+              showWeatherStations={showWeatherStations}
+              onToggleWeatherStations={() => setShowWeatherStations(!showWeatherStations)}
+            />
           )}
 
           {/* Weather Stations Layer */}
@@ -370,16 +361,6 @@ function WeatherMap() {
             <WeatherStationsLayer
               map={map.current}
               visible={showWeatherStations}
-              isDark={isDark}
-            />
-          )}
-
-          {/* Travel Layer */}
-          {mapLoaded && (
-            <TravelLayer
-              map={map.current}
-              visible={true}
-              currentZoom={currentZoom}
               isDark={isDark}
             />
           )}

@@ -65,46 +65,46 @@ export function getMapStyle(isDark = false) {
 }
 
 // Calculate sunrise and sunset times for a given location
-// Uses simplified astronomical algorithm
+// Uses NOAA solar calculator algorithm
 function calculateSunTimes(lat, lng, date = new Date()) {
-  const J2000 = 2451545.0;
-  const julianDay = date.getTime() / 86400000 + 2440587.5;
-  const n = julianDay - J2000;
+  // Get the day of year
+  const start = new Date(date.getFullYear(), 0, 0);
+  const diff = date - start;
+  const oneDay = 1000 * 60 * 60 * 24;
+  const dayOfYear = Math.floor(diff / oneDay);
 
-  // Mean solar time
-  const meanAnomaly = (357.5291 + 0.98560028 * n) % 360;
-  const meanAnomalyRad = meanAnomaly * Math.PI / 180;
-
-  // Equation of center
-  const center = 1.9148 * Math.sin(meanAnomalyRad) +
-                 0.0200 * Math.sin(2 * meanAnomalyRad) +
-                 0.0003 * Math.sin(3 * meanAnomalyRad);
-
-  // Ecliptic longitude
-  const eclipticLongitude = (meanAnomaly + center + 180 + 102.9372) % 360;
-  const eclipticLongitudeRad = eclipticLongitude * Math.PI / 180;
-
-  // Solar transit (solar noon)
-  const solarTransit = J2000 + n + 0.0053 * Math.sin(meanAnomalyRad) -
-                       0.0069 * Math.sin(2 * eclipticLongitudeRad);
-
-  // Declination of the sun
-  const declination = Math.asin(Math.sin(eclipticLongitudeRad) * Math.sin(23.44 * Math.PI / 180));
-
-  // Hour angle
+  // Convert latitude to radians
   const latRad = lat * Math.PI / 180;
-  const hourAngle = Math.acos((Math.sin(-0.833 * Math.PI / 180) -
-                               Math.sin(latRad) * Math.sin(declination)) /
-                              (Math.cos(latRad) * Math.cos(declination)));
 
-  // Calculate sunrise and sunset in Julian days
-  const sunriseJD = solarTransit - hourAngle / (2 * Math.PI);
-  const sunsetJD = solarTransit + hourAngle / (2 * Math.PI);
+  // Calculate solar declination (simplified formula)
+  const declination = -23.45 * Math.cos((360 / 365) * (dayOfYear + 10) * Math.PI / 180) * Math.PI / 180;
 
-  // Convert to local time (accounting for longitude)
-  const lngOffset = lng / 15; // 15 degrees per hour
-  const sunrise = new Date((sunriseJD - 2440587.5) * 86400000);
-  const sunset = new Date((sunsetJD - 2440587.5) * 86400000);
+  // Calculate hour angle for sunrise/sunset
+  // -0.833 degrees accounts for atmospheric refraction and solar disc size
+  const cosHourAngle = (Math.sin(-0.833 * Math.PI / 180) - Math.sin(latRad) * Math.sin(declination)) /
+                       (Math.cos(latRad) * Math.cos(declination));
+
+  // Clamp to valid range (handles polar day/night)
+  const clampedCos = Math.max(-1, Math.min(1, cosHourAngle));
+  const hourAngle = Math.acos(clampedCos) * 180 / Math.PI; // in degrees
+
+  // Convert hour angle to hours (15 degrees per hour)
+  const hourAngleHours = hourAngle / 15;
+
+  // Solar noon in hours (12:00 adjusted for longitude within timezone)
+  // Vermont is in Eastern Time (UTC-5), standard meridian is -75°
+  const standardMeridian = -75; // Eastern Time zone
+  const longitudeCorrection = (standardMeridian - lng) * 4 / 60; // 4 minutes per degree, convert to hours
+  const solarNoon = 12 + longitudeCorrection;
+
+  // Calculate sunrise and sunset in local hours
+  const sunriseHours = solarNoon - hourAngleHours;
+  const sunsetHours = solarNoon + hourAngleHours;
+
+  // Convert to Date objects (using local date)
+  const baseDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const sunrise = new Date(baseDate.getTime() + sunriseHours * 60 * 60 * 1000);
+  const sunset = new Date(baseDate.getTime() + sunsetHours * 60 * 60 * 1000);
 
   return { sunrise, sunset };
 }

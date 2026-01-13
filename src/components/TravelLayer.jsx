@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { AlertTriangle, Construction, Ban, Waves, AlertOctagon, ChevronDown, ChevronRight } from 'lucide-react';
+import { AlertTriangle, Construction, Ban, Waves, AlertOctagon, ChevronDown, ChevronRight, Thermometer } from 'lucide-react';
 import maplibregl from 'maplibre-gl';
 import { fetchAllIncidents } from '../services/travelApi';
 import { getIncidentColor, shouldShowIncident } from '../utils/incidentColors';
 import { createMarkerElement } from '../utils/incidentIcons';
 import './TravelLayer.css';
 
-function TravelLayer({ map, visible, currentZoom, isDark }) {
+function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, onToggleWeatherStations }) {
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(true);
@@ -377,7 +377,7 @@ function TravelLayer({ map, visible, currentZoom, isDark }) {
     <div className="travel-section">
       <div className="section-header" onClick={() => setExpanded(!expanded)}>
         <h3>
-          Travel Incidents
+          Map Features
           {totalCount > 0 && <span className="incident-badge">{totalCount}</span>}
         </h3>
         <button className="expand-toggle">
@@ -389,6 +389,22 @@ function TravelLayer({ map, visible, currentZoom, isDark }) {
         <div className="section-content">
           {/* Filter checkboxes */}
           <div className="filter-grid">
+            {/* Weather Stations toggle */}
+            <label className="filter-checkbox">
+              <input
+                type="checkbox"
+                checked={showWeatherStations}
+                onChange={onToggleWeatherStations}
+              />
+              <span className="checkbox-icon" style={{ color: '#3b82f6' }}>
+                <Thermometer size={16} strokeWidth={2.5} />
+              </span>
+              <span className="checkbox-label">
+                Weather Stations
+              </span>
+            </label>
+
+            {/* Incident type toggles */}
             {Object.keys(activeFilters).map(type => {
               const color = getIncidentColor(type);
               const count = incidentsByType[type]?.length || 0;
