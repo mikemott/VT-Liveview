@@ -4,30 +4,78 @@
  * Data source: https://nec-por.ne-compass.com/NEC.XmlDataPortal/
  */
 
-// Use backend proxy to avoid CORS issues
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
+import type { IncidentType, IncidentSeverity } from '@/types';
+
+// =============================================================================
+// Types
+// =============================================================================
+
+/** Location coordinates */
+interface Location {
+  lat: number;
+  lng: number;
+}
+
+/** GeoJSON LineString geometry for routes */
+interface RouteGeometry {
+  type: 'LineString';
+  coordinates: [number, number][]; // [lng, lat] pairs
+}
+
+/** Road restrictions from VT 511 */
+interface RoadRestrictions {
+  weight: string | null;
+  width: string | null;
+}
+
+/** Base VT 511 incident/closure data */
+export interface VT511ParsedIncident {
+  id: string;
+  type: IncidentType;
+  title: string;
+  description: string;
+  location: Location;
+  geometry: RouteGeometry | null;
+  severity: IncidentSeverity;
+  startTime: string | null;
+  endTime: null;
+  source: 'VT 511';
+  roadName: string;
+  affectedLanes: string | null;
+  roadRestrictions?: RoadRestrictions;
+  eventType?: string;
+  eventSubType?: string;
+  hasSchedule?: boolean;
+}
+
+// =============================================================================
+// Internal Constants
+// =============================================================================
+
+/** Backend URL for proxy endpoints */
+const BACKEND_URL =
+  import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
+
+// =============================================================================
+// XML Parsing Utilities
+// =============================================================================
 
 /**
- * Parse XML string to DOM
- * @param {string} xmlString - XML data
- * @returns {Document} Parsed XML document
+ * Parse XML string to DOM Document
  */
-function parseXML(xmlString) {
+function parseXML(xmlString: string): Document {
   const parser = new DOMParser();
   return parser.parseFromString(xmlString, 'text/xml');
 }
 
 /**
  * Get text content from XML element
- * @param {Element} parent - Parent element
- * @param {string} tagName - Tag name to find
- * @returns {string|null} Text content or null
  */
-function getElementText(parent, tagName) {
+function getElementText(parent: Element | null, tagName: string): string | null {
   try {
     if (!parent) return null;
     const element = parent.querySelector(tagName);
-    return element?.textContent || null;
+    return element?.textContent ?? null;
   } catch (error) {
     if (import.meta.env.DEV) {
       console.warn(`Error querying element ${tagName}:`, error);
@@ -38,11 +86,10 @@ function getElementText(parent, tagName) {
 
 /**
  * Convert microdegree coordinates to decimal degrees
- * @param {string} microDegrees - Coordinate in microdegrees
- * @returns {number} Coordinate in decimal degrees
  */
-function microDegreesToDecimal(microDegrees) {
+function microDegreesToDecimal(microDegrees: string | null): number {
   try {
+    if (!microDegrees) return 0;
     const value = parseFloat(microDegrees);
     if (isNaN(value)) return 0;
     return value / 1000000;
@@ -56,10 +103,8 @@ function microDegreesToDecimal(microDegrees) {
 
 /**
  * Parse route geometry from incident/closure element
- * @param {Element} element - Incident or closure XML element
- * @returns {object|null} GeoJSON LineString geometry or null
  */
-function parseRouteGeometry(element) {
+function parseRouteGeometry(element: Element | null): RouteGeometry | null {
   try {
     if (!element) return null;
 
@@ -69,7 +114,7 @@ function parseRouteGeometry(element) {
 
     if (!startLocation || !endLocation) return null;
 
-    const coordinates = [];
+    const coordinates: [number, number][] = [];
 
     // Add start point
     const startLat = getElementText(startLocation, 'lat');
@@ -77,7 +122,7 @@ function parseRouteGeometry(element) {
     if (startLat && startLon) {
       coordinates.push([
         microDegreesToDecimal(startLon),
-        microDegreesToDecimal(startLat)
+        microDegreesToDecimal(startLat),
       ]);
     }
 
@@ -85,18 +130,18 @@ function parseRouteGeometry(element) {
     if (midpointsContainer) {
       const points = midpointsContainer.querySelectorAll('point');
       const sortedPoints = Array.from(points).sort((a, b) => {
-        const orderA = parseInt(getElementText(a, 'order') || '0');
-        const orderB = parseInt(getElementText(b, 'order') || '0');
+        const orderA = parseInt(getElementText(a, 'order') ?? '0', 10);
+        const orderB = parseInt(getElementText(b, 'order') ?? '0', 10);
         return orderA - orderB;
       });
 
-      sortedPoints.forEach(point => {
+      sortedPoints.forEach((point) => {
         const lat = getElementText(point, 'lat');
         const lon = getElementText(point, 'lon');
         if (lat && lon) {
           coordinates.push([
             microDegreesToDecimal(lon),
-            microDegreesToDecimal(lat)
+            microDegreesToDecimal(lat),
           ]);
         }
       });
@@ -108,7 +153,7 @@ function parseRouteGeometry(element) {
     if (endLat && endLon) {
       coordinates.push([
         microDegreesToDecimal(endLon),
-        microDegreesToDecimal(endLat)
+        microDegreesToDecimal(endLat),
       ]);
     }
 
@@ -116,7 +161,7 @@ function parseRouteGeometry(element) {
 
     return {
       type: 'LineString',
-      coordinates: coordinates
+      coordinates: coordinates,
     };
   } catch (error) {
     if (import.meta.env.DEV) {
@@ -128,72 +173,76 @@ function parseRouteGeometry(element) {
 
 /**
  * Map VT 511 incident type to our incident types
- * @param {Element} typeElement - Type element with attributes
- * @returns {string} Incident type
  */
-function mapIncidentType(typeElement) {
+function mapIncidentType(typeElement: Element | null): IncidentType {
   if (!typeElement) return 'HAZARD';
 
   const attrs = typeElement.attributes;
   for (let i = 0; i < attrs.length; i++) {
-    const attrName = attrs[i].name;
-    if (attrName === 'Construction' || attrName === 'RoadWork') return 'CONSTRUCTION';
-    if (attrName === 'BridgeOut' || attrName === 'BridgeMaintenance') return 'CLOSURE';
+    const attrName = attrs[i]?.name;
+    if (attrName === 'Construction' || attrName === 'RoadWork')
+      return 'CONSTRUCTION';
+    if (attrName === 'BridgeOut' || attrName === 'BridgeMaintenance')
+      return 'CLOSURE';
     if (attrName === 'Accident') return 'ACCIDENT';
   }
 
   return 'HAZARD';
 }
 
+/** Severity mapping from VT 511 to our types */
+const SEVERITY_MAP: Record<string, IncidentSeverity> = {
+  Low: 'MINOR',
+  Medium: 'MODERATE',
+  High: 'MAJOR',
+};
+
 /**
  * Map VT 511 severity to our severity levels
- * @param {string} severity - VT 511 severity (Low/Medium/High)
- * @returns {string} Our severity level
  */
-function mapSeverity(severity) {
-  const severityMap = {
-    'Low': 'MINOR',
-    'Medium': 'MODERATE',
-    'High': 'MAJOR'
-  };
-  return severityMap[severity] || 'MINOR';
+function mapSeverity(severity: string | null): IncidentSeverity {
+  if (!severity) return 'MINOR';
+  return SEVERITY_MAP[severity] ?? 'MINOR';
 }
+
+// =============================================================================
+// Incident Parsing
+// =============================================================================
 
 /**
  * Parse incident from XML element
- * @param {Element} incidentElement - Incident XML element
- * @returns {object|null} Normalized incident or null if parsing fails
  */
-function parseIncident(incidentElement) {
+function parseIncident(incidentElement: Element): VT511ParsedIncident | null {
   try {
-    if (!incidentElement) return null;
-
     const startLocation = incidentElement.querySelector('startLocation');
     const lat = getElementText(startLocation, 'lat');
     const lon = getElementText(startLocation, 'lon');
     const typeElement = incidentElement.querySelector('type');
     const roadRestrictions = incidentElement.querySelector('roadRestrictions');
 
+    const desc = getElementText(incidentElement, 'desc') ?? '';
+    const titleParts = desc.split('.');
+
     return {
-      id: `vt511-incident-${incidentElement.getAttribute('id') || Date.now()}`,
+      id: `vt511-incident-${incidentElement.getAttribute('id') ?? Date.now()}`,
       type: mapIncidentType(typeElement),
-      title: getElementText(incidentElement, 'desc')?.split('.')[0] || 'Traffic Incident',
-      description: getElementText(incidentElement, 'desc') || '',
+      title: titleParts[0] ?? 'Traffic Incident',
+      description: desc,
       location: {
-        lat: lat ? microDegreesToDecimal(lat) : 0,
-        lng: lon ? microDegreesToDecimal(lon) : 0
+        lat: microDegreesToDecimal(lat),
+        lng: microDegreesToDecimal(lon),
       },
       geometry: parseRouteGeometry(incidentElement),
       severity: mapSeverity(getElementText(incidentElement, 'severity')),
       startTime: getElementText(incidentElement, 'createdTimestamp'),
       endTime: null,
       source: 'VT 511',
-      roadName: `${getElementText(startLocation, 'roadway') || 'Unknown Road'} in ${getElementText(startLocation, 'city') || 'Unknown City'}`,
+      roadName: `${getElementText(startLocation, 'roadway') ?? 'Unknown Road'} in ${getElementText(startLocation, 'city') ?? 'Unknown City'}`,
       affectedLanes: getElementText(incidentElement, 'affectedLanesDescription'),
       roadRestrictions: {
         weight: getElementText(roadRestrictions, 'weight'),
-        width: getElementText(roadRestrictions, 'width')
-      }
+        width: getElementText(roadRestrictions, 'width'),
+      },
     };
   } catch (error) {
     if (import.meta.env.DEV) {
@@ -205,39 +254,39 @@ function parseIncident(incidentElement) {
 
 /**
  * Parse lane closure from XML element
- * @param {Element} closureElement - Lane closure XML element
- * @returns {object|null} Normalized incident or null if parsing fails
  */
-function parseLaneClosure(closureElement) {
+function parseLaneClosure(closureElement: Element): VT511ParsedIncident | null {
   try {
-    if (!closureElement) return null;
-
     const startLocation = closureElement.querySelector('startLocation');
     const lat = getElementText(startLocation, 'lat');
     const lon = getElementText(startLocation, 'lon');
-    const desc = getElementText(closureElement, 'desc') || '';
+    const desc = getElementText(closureElement, 'desc') ?? '';
 
     // Extract work schedule from description if present
     const hasSchedule = desc.includes('AM') || desc.includes('PM');
-    const title = desc.split('.')[0] || 'Construction';
+    const titleParts = desc.split('.');
+    let title = titleParts[0] ?? 'Construction';
+    if (title.length > 100) {
+      title = title.substring(0, 97) + '...';
+    }
 
     return {
-      id: `vt511-closure-${closureElement.getAttribute('id') || Date.now()}`,
+      id: `vt511-closure-${closureElement.getAttribute('id') ?? Date.now()}`,
       type: 'CONSTRUCTION',
-      title: title.length > 100 ? title.substring(0, 97) + '...' : title,
+      title,
       description: desc,
       location: {
-        lat: lat ? microDegreesToDecimal(lat) : 0,
-        lng: lon ? microDegreesToDecimal(lon) : 0
+        lat: microDegreesToDecimal(lat),
+        lng: microDegreesToDecimal(lon),
       },
       geometry: parseRouteGeometry(closureElement),
       severity: mapSeverity(getElementText(closureElement, 'severity')),
       startTime: getElementText(closureElement, 'createdTimestamp'),
       endTime: null,
       source: 'VT 511',
-      roadName: `${getElementText(startLocation, 'roadway') || 'Unknown Road'} in ${getElementText(startLocation, 'city') || 'Unknown City'}`,
+      roadName: `${getElementText(startLocation, 'roadway') ?? 'Unknown Road'} in ${getElementText(startLocation, 'city') ?? 'Unknown City'}`,
       affectedLanes: getElementText(closureElement, 'affectedLanesDescription'),
-      hasSchedule: hasSchedule
+      hasSchedule,
     };
   } catch (error) {
     if (import.meta.env.DEV) {
@@ -247,17 +296,27 @@ function parseLaneClosure(closureElement) {
   }
 }
 
+// =============================================================================
+// Public API Functions
+// =============================================================================
+
+/**
+ * Type guard to filter out null values
+ */
+function isNotNull<T>(value: T | null): value is T {
+  return value !== null;
+}
+
 /**
  * Fetch incident data from VT 511 (via backend proxy)
- * @returns {Promise<Array>} Array of incidents
  */
-export async function fetchVT511Incidents() {
+export async function fetchVT511Incidents(): Promise<VT511ParsedIncident[]> {
   try {
     const url = `${BACKEND_URL}/api/vt511/incidents`;
     const response = await fetch(url);
 
     if (!response.ok) {
-      // VT 511 data unavailable - silently return empty array('VT 511 incident data not available');
+      // VT 511 data unavailable - silently return empty array
       return [];
     }
 
@@ -265,9 +324,7 @@ export async function fetchVT511Incidents() {
     const xmlDoc = parseXML(xmlText);
 
     const incidents = xmlDoc.querySelectorAll('incident');
-    return Array.from(incidents)
-      .map(parseIncident)
-      .filter(incident => incident !== null); // Filter out failed parses
+    return Array.from(incidents).map(parseIncident).filter(isNotNull);
   } catch (error) {
     if (import.meta.env.DEV) {
       console.error('Error fetching VT 511 incidents:', error);
@@ -278,15 +335,14 @@ export async function fetchVT511Incidents() {
 
 /**
  * Fetch lane closure (construction) data from VT 511 (via backend proxy)
- * @returns {Promise<Array>} Array of lane closures
  */
-export async function fetchVT511LaneClosures() {
+export async function fetchVT511LaneClosures(): Promise<VT511ParsedIncident[]> {
   try {
     const url = `${BACKEND_URL}/api/vt511/closures`;
     const response = await fetch(url);
 
     if (!response.ok) {
-      // VT 511 data unavailable - silently return empty array('VT 511 lane closure data not available');
+      // VT 511 data unavailable - silently return empty array
       return [];
     }
 
@@ -294,9 +350,7 @@ export async function fetchVT511LaneClosures() {
     const xmlDoc = parseXML(xmlText);
 
     const closures = xmlDoc.querySelectorAll('laneClosure');
-    return Array.from(closures)
-      .map(parseLaneClosure)
-      .filter(closure => closure !== null); // Filter out failed parses
+    return Array.from(closures).map(parseLaneClosure).filter(isNotNull);
   } catch (error) {
     if (import.meta.env.DEV) {
       console.error('Error fetching VT 511 lane closures:', error);
@@ -307,13 +361,12 @@ export async function fetchVT511LaneClosures() {
 
 /**
  * Fetch all VT 511 data (incidents + lane closures)
- * @returns {Promise<Array>} Combined incidents and closures
  */
-export async function fetchAllVT511Data() {
+export async function fetchAllVT511Data(): Promise<VT511ParsedIncident[]> {
   try {
     const [incidents, closures] = await Promise.all([
       fetchVT511Incidents(),
-      fetchVT511LaneClosures()
+      fetchVT511LaneClosures(),
     ]);
 
     return [...incidents, ...closures];
