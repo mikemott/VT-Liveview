@@ -1,17 +1,27 @@
-import React from 'react';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 
-class ErrorBoundary extends React.Component {
-  constructor(props) {
+interface ErrorBoundaryProps {
+  children: ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+  errorInfo: ErrorInfo | null;
+}
+
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false, error: null, errorInfo: null };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(_error: Error): Partial<ErrorBoundaryState> {
     return { hasError: true };
   }
 
-  componentDidCatch(error, errorInfo) {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     // Log error to console in development
     if (import.meta.env.DEV) {
       console.error('ErrorBoundary caught an error:', error, errorInfo);
@@ -28,12 +38,12 @@ class ErrorBoundary extends React.Component {
     });
   }
 
-  handleReset = () => {
+  handleReset = (): void => {
     this.setState({ hasError: false, error: null, errorInfo: null });
     window.location.reload();
   };
 
-  render() {
+  render(): ReactNode {
     if (this.state.hasError) {
       const isDark = document.documentElement.classList.contains('dark') ||
                      window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -44,7 +54,7 @@ class ErrorBoundary extends React.Component {
             <AlertTriangle size={48} className="error-icon" />
             <h2>Something went wrong</h2>
             <p>We're sorry, but something unexpected happened. Please try refreshing the page.</p>
-            
+
             {import.meta.env.DEV && this.state.error && (
               <details className="error-details">
                 <summary>Error Details (Development Only)</summary>
@@ -171,4 +181,3 @@ class ErrorBoundary extends React.Component {
 }
 
 export default ErrorBoundary;
-

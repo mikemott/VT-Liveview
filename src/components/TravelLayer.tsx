@@ -1,99 +1,136 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, ReactNode } from 'react';
 import { AlertTriangle, Construction, Ban, Waves, AlertOctagon, ChevronDown, ChevronRight, Thermometer } from 'lucide-react';
 import maplibregl from 'maplibre-gl';
-import { fetchAllIncidents } from '../services/travelApi';
+import { fetchAllIncidents, type TravelIncident } from '../services/travelApi';
 import { getIncidentColor, shouldShowIncident } from '../utils/incidentColors';
 import { createMarkerElement } from '../utils/incidentIcons';
 import { INTERVALS } from '../utils/constants';
+import type { MapLibreMap, Marker, Popup, IncidentType, IncidentColor } from '../types';
 import './TravelLayer.css';
 
-function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, onToggleWeatherStations }) {
-  const [incidents, setIncidents] = useState([]);
+// =============================================================================
+// Types
+// =============================================================================
+
+interface ActiveFilters {
+  ACCIDENT: boolean;
+  CONSTRUCTION: boolean;
+  CLOSURE: boolean;
+  FLOODING: boolean;
+  HAZARD: boolean;
+}
+
+interface MarkerEntry {
+  marker: Marker;
+  element: HTMLDivElement;
+  handler: (e: MouseEvent) => void;
+}
+
+interface TravelLayerProps {
+  map: MapLibreMap | null;
+  visible: boolean;
+  currentZoom: number;
+  isDark: boolean;
+  showWeatherStations: boolean;
+  onToggleWeatherStations: () => void;
+}
+
+interface IncidentsByType {
+  [key: string]: TravelIncident[];
+}
+
+// =============================================================================
+// Helper Functions
+// =============================================================================
+
+function getIcon(type: IncidentType): ReactNode {
+  const iconProps = { size: 16, strokeWidth: 2.5 };
+  switch (type) {
+    case 'ACCIDENT':
+      return <AlertTriangle {...iconProps} />;
+    case 'CONSTRUCTION':
+      return <Construction {...iconProps} />;
+    case 'CLOSURE':
+      return <Ban {...iconProps} />;
+    case 'FLOODING':
+      return <Waves {...iconProps} />;
+    case 'HAZARD':
+    default:
+      return <AlertOctagon {...iconProps} />;
+  }
+}
+
+function getTypeLabel(type: IncidentType): string {
+  const labels: Record<IncidentType, string> = {
+    ACCIDENT: 'Accidents',
+    CONSTRUCTION: 'Construction',
+    CLOSURE: 'Road Closures',
+    FLOODING: 'Flooding',
+    HAZARD: 'Hazards'
+  };
+  return labels[type] || 'Other';
+}
+
+// =============================================================================
+// Component
+// =============================================================================
+
+function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, onToggleWeatherStations }: TravelLayerProps) {
+  const [incidents, setIncidents] = useState<TravelIncident[]>([]);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(true);
-  const [selectedIncident, setSelectedIncident] = useState(null);
-  const [activeFilters, setActiveFilters] = useState({
+  const [selectedIncident, setSelectedIncident] = useState<TravelIncident | null>(null);
+  const [activeFilters, setActiveFilters] = useState<ActiveFilters>({
     ACCIDENT: true,
     CONSTRUCTION: true,
     CLOSURE: true,
     FLOODING: true,
     HAZARD: true
   });
-  const markersRef = useRef([]);
-  const currentPopupRef = useRef(null);
+  const markersRef = useRef<MarkerEntry[]>([]);
+  const currentPopupRef = useRef<Popup | null>(null);
 
   // Fetch incidents on mount and every 2 minutes
   useEffect(() => {
     if (!map) return;
 
-    fetchIncidents();
-    const interval = setInterval(fetchIncidents, INTERVALS.INCIDENTS_REFRESH);
+    const fetchIncidentsData = async (): Promise<void> => {
+      if (!map) return;
+
+      setLoading(true);
+      try {
+        const bounds = map.getBounds();
+        const data = await fetchAllIncidents({
+          west: bounds.getWest(),
+          south: bounds.getSouth(),
+          east: bounds.getEast(),
+          north: bounds.getNorth()
+        });
+        setIncidents(data);
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.error('Error fetching travel incidents:', error);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchIncidentsData();
+    const interval = setInterval(fetchIncidentsData, INTERVALS.INCIDENTS_REFRESH);
     return () => clearInterval(interval);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map]);
 
-  const fetchIncidents = async () => {
-    if (!map) return;
-
-    setLoading(true);
-    try {
-      const bounds = map.getBounds();
-      const data = await fetchAllIncidents({
-        west: bounds.getWest(),
-        south: bounds.getSouth(),
-        east: bounds.getEast(),
-        north: bounds.getNorth()
-      });
-      setIncidents(data);
-    } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error('Error fetching travel incidents:', error);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Toggle filter for incident type
-  const toggleFilter = (type) => {
+  const toggleFilter = (type: IncidentType): void => {
     setActiveFilters(prev => ({
       ...prev,
       [type]: !prev[type]
     }));
   };
 
-  // Get icon component for incident type
-  const getIcon = (type) => {
-    const iconProps = { size: 16, strokeWidth: 2.5 };
-    switch (type) {
-      case 'ACCIDENT':
-        return <AlertTriangle {...iconProps} />;
-      case 'CONSTRUCTION':
-        return <Construction {...iconProps} />;
-      case 'CLOSURE':
-        return <Ban {...iconProps} />;
-      case 'FLOODING':
-        return <Waves {...iconProps} />;
-      case 'HAZARD':
-      default:
-        return <AlertOctagon {...iconProps} />;
-    }
-  };
-
-  // Get type label
-  const getTypeLabel = (type) => {
-    const labels = {
-      ACCIDENT: 'Accidents',
-      CONSTRUCTION: 'Construction',
-      CLOSURE: 'Road Closures',
-      FLOODING: 'Flooding',
-      HAZARD: 'Hazards'
-    };
-    return labels[type] || 'Other';
-  };
-
   // Handle incident click to highlight affected area
-  const handleIncidentClick = (incident) => {
+  const handleIncidentClick = (incident: TravelIncident): void => {
     if (!map) return;
 
     // Toggle selection - if already selected, deselect
@@ -133,6 +170,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
         type: 'geojson',
         data: {
           type: 'Feature',
+          properties: {},
           geometry: incident.geometry
         }
       });
@@ -146,7 +184,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
           type: 'line',
           source: 'incident-highlight',
           paint: {
-            'line-color': color,
+            'line-color': color.primary,
             'line-width': 8,
             'line-opacity': 0.4
           }
@@ -157,7 +195,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
           type: 'line',
           source: 'incident-highlight',
           paint: {
-            'line-color': color,
+            'line-color': color.primary,
             'line-width': 4,
             'line-opacity': 0.8
           }
@@ -165,9 +203,9 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
       }
 
       // Fit map to show the entire route
-      const coordinates = incident.geometry.coordinates;
-      const bounds = coordinates.reduce((bounds, coord) => {
-        return bounds.extend(coord);
+      const coordinates = incident.geometry.coordinates as [number, number][];
+      const bounds = coordinates.reduce((bnds, coord) => {
+        return bnds.extend(coord);
       }, new maplibregl.LngLatBounds(coordinates[0], coordinates[0]));
 
       map.fitBounds(bounds, {
@@ -187,7 +225,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
 
   // Filter incidents by active filters and zoom level
   const visibleIncidents = incidents.filter(incident => {
-    const typeMatch = activeFilters[incident.type];
+    const typeMatch = activeFilters[incident.type as keyof ActiveFilters];
     const zoomMatch = shouldShowIncident(incident, currentZoom);
     return typeMatch && zoomMatch;
   });
@@ -198,7 +236,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
       // Clear existing markers, event listeners, and popup
       markersRef.current.forEach(({ marker, element, handler }) => {
         if (element && handler) {
-          element.removeEventListener('click', handler);
+          element.removeEventListener('click', handler as EventListener);
         }
         marker.remove();
       });
@@ -211,7 +249,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
     }
 
     // Close popup when clicking on map
-    const handleMapClick = () => {
+    const handleMapClick = (): void => {
       if (currentPopupRef.current) {
         currentPopupRef.current.remove();
         currentPopupRef.current = null;
@@ -222,7 +260,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
     // Remove old markers and clean up event listeners
     markersRef.current.forEach(({ marker, element, handler }) => {
       if (element && handler) {
-        element.removeEventListener('click', handler);
+        element.removeEventListener('click', handler as EventListener);
       }
       marker.remove();
     });
@@ -235,6 +273,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
       }
 
       const el = createMarkerElement(incident.type);
+      if (!el) return;
 
       const marker = new maplibregl.Marker({ element: el })
         .setLngLat([incident.location.lng, incident.location.lat])
@@ -309,7 +348,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
       `);
 
       // Store click handler for cleanup
-      const handleMarkerClick = (e) => {
+      const handleMarkerClick = (e: MouseEvent): void => {
         e.stopPropagation(); // Prevent map click from closing immediately
 
         // Close existing popup if any (atomic operation)
@@ -329,11 +368,11 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
       };
 
       // Add event listener and store for cleanup
-      el.addEventListener('click', handleMarkerClick);
+      el.addEventListener('click', handleMarkerClick as EventListener);
 
       // Store marker and its cleanup function
       markersRef.current.push({
-        marker: marker,
+        marker: marker as Marker,
         element: el,
         handler: handleMarkerClick
       });
@@ -344,7 +383,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
       // Clean up markers and event listeners
       markersRef.current.forEach(({ marker, element, handler }) => {
         if (element && handler) {
-          element.removeEventListener('click', handler);
+          element.removeEventListener('click', handler as EventListener);
         }
         marker.remove();
       });
@@ -362,13 +401,13 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
   }, [map, visible, visibleIncidents, activeFilters, currentZoom, isDark]);
 
   // Group incidents by type
-  const incidentsByType = visibleIncidents.reduce((acc, incident) => {
+  const incidentsByType: IncidentsByType = visibleIncidents.reduce((acc, incident) => {
     if (!acc[incident.type]) {
       acc[incident.type] = [];
     }
     acc[incident.type].push(incident);
     return acc;
-  }, {});
+  }, {} as IncidentsByType);
 
   const totalCount = visibleIncidents.length;
 
@@ -406,7 +445,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
             </label>
 
             {/* Incident type toggles */}
-            {Object.keys(activeFilters).map(type => {
+            {(Object.keys(activeFilters) as IncidentType[]).map(type => {
               const color = getIncidentColor(type);
               const count = incidentsByType[type]?.length || 0;
 
@@ -447,7 +486,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
 
           {!loading && totalCount > 0 && (
             <div className="incidents-list">
-              {Object.keys(incidentsByType)
+              {(Object.keys(incidentsByType) as IncidentType[])
                 .sort()
                 .map(type => (
                   <div key={type} className="incident-group">

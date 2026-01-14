@@ -3,7 +3,57 @@ import maplibregl from 'maplibre-gl';
 import { graphqlClient } from '../services/graphqlClient';
 import { gql } from 'graphql-request';
 import { INTERVALS } from '../utils/constants';
+import type { MapLibreMap, Marker, Popup } from '../types';
 import './WeatherStationsLayer.css';
+
+// =============================================================================
+// Types
+// =============================================================================
+
+interface StationLocation {
+  lat: number;
+  lng: number;
+}
+
+interface StationWeather {
+  temperature: number;
+  temperatureUnit: string;
+  description: string;
+  windSpeed: string | null;
+  windDirection: string | null;
+  humidity: number | null;
+  dewpoint: number | null;
+  pressure: number | null;
+  timestamp: string;
+}
+
+interface ObservationStation {
+  id: string;
+  name: string;
+  location: StationLocation;
+  elevation: number | null;
+  weather: StationWeather;
+}
+
+interface StationsResponse {
+  observationStations: ObservationStation[];
+}
+
+interface MarkerEntry {
+  marker: Marker;
+  element: HTMLDivElement;
+  handler: (e: MouseEvent) => void;
+}
+
+interface WeatherStationsLayerProps {
+  map: MapLibreMap | null;
+  visible: boolean;
+  isDark: boolean;
+}
+
+// =============================================================================
+// GraphQL Query
+// =============================================================================
 
 const STATIONS_QUERY = gql`
   query GetObservationStations {
@@ -30,37 +80,96 @@ const STATIONS_QUERY = gql`
   }
 `;
 
-function WeatherStationsLayer({ map, visible, isDark }) {
-  const [stations, setStations] = useState([]);
+// =============================================================================
+// Helper Functions
+// =============================================================================
+
+function createWeatherStationMarker(station: ObservationStation): HTMLDivElement {
+  const el = document.createElement('div');
+  el.className = 'weather-station-marker';
+
+  // Color based on temperature
+  const temp = station.weather.temperature;
+  let color: string;
+  if (temp < 32) {
+    color = '#3b82f6'; // Blue for freezing
+  } else if (temp < 50) {
+    color = '#06b6d4'; // Cyan for cold
+  } else if (temp < 70) {
+    color = '#10b981'; // Green for mild
+  } else if (temp < 85) {
+    color = '#f59e0b'; // Amber for warm
+  } else {
+    color = '#ef4444'; // Red for hot
+  }
+
+  el.style.cssText = `
+    width: 28px;
+    height: 28px;
+    background: ${color};
+    border: 2px solid white;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: box-shadow 0.2s ease, border-width 0.2s ease;
+    font-size: 10px;
+    font-weight: 700;
+    color: white;
+  `;
+
+  el.textContent = `${Math.round(station.weather.temperature)}°`;
+
+  // Use box-shadow glow effect on hover instead of transform
+  el.addEventListener('mouseenter', () => {
+    el.style.boxShadow = `0 0 12px ${color}, 0 2px 8px rgba(0, 0, 0, 0.3)`;
+    el.style.borderWidth = '3px';
+  });
+
+  el.addEventListener('mouseleave', () => {
+    el.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.25)';
+    el.style.borderWidth = '2px';
+  });
+
+  return el;
+}
+
+// =============================================================================
+// Component
+// =============================================================================
+
+function WeatherStationsLayer({ map, visible, isDark }: WeatherStationsLayerProps) {
+  const [stations, setStations] = useState<ObservationStation[]>([]);
   const [loading, setLoading] = useState(false);
-  const markersRef = useRef([]);
-  const currentPopupRef = useRef(null);
+  const markersRef = useRef<MarkerEntry[]>([]);
+  const currentPopupRef = useRef<Popup | null>(null);
 
   // Fetch stations on mount and every 15 minutes
   useEffect(() => {
     if (!map) return;
 
+    const fetchStations = async (): Promise<void> => {
+      if (!map) return;
+
+      setLoading(true);
+      try {
+        const data = await graphqlClient.request<StationsResponse>(STATIONS_QUERY);
+        setStations(data.observationStations);
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.error('Error fetching weather stations:', error);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchStations();
     const interval = setInterval(fetchStations, INTERVALS.STATIONS_REFRESH);
     return () => clearInterval(interval);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map]);
-
-  const fetchStations = async () => {
-    if (!map) return;
-
-    setLoading(true);
-    try {
-      const data = await graphqlClient.request(STATIONS_QUERY);
-      setStations(data.observationStations);
-    } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error('Error fetching weather stations:', error);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Add markers to map when stations change
   useEffect(() => {
@@ -68,7 +177,7 @@ function WeatherStationsLayer({ map, visible, isDark }) {
       // Clear existing markers and popups
       markersRef.current.forEach(({ marker, element, handler }) => {
         if (element && handler) {
-          element.removeEventListener('click', handler);
+          element.removeEventListener('click', handler as EventListener);
         }
         marker.remove();
       });
@@ -81,7 +190,7 @@ function WeatherStationsLayer({ map, visible, isDark }) {
     }
 
     // Close popup when clicking on map
-    const handleMapClick = () => {
+    const handleMapClick = (): void => {
       if (currentPopupRef.current) {
         currentPopupRef.current.remove();
         currentPopupRef.current = null;
@@ -92,14 +201,14 @@ function WeatherStationsLayer({ map, visible, isDark }) {
     // Remove old markers
     markersRef.current.forEach(({ marker, element, handler }) => {
       if (element && handler) {
-        element.removeEventListener('click', handler);
+        element.removeEventListener('click', handler as EventListener);
       }
       marker.remove();
     });
     markersRef.current = [];
 
     // Add new markers for stations
-    stations.forEach(station => {
+    stations.forEach((station) => {
       const el = createWeatherStationMarker(station);
 
       const marker = new maplibregl.Marker({ element: el })
@@ -202,7 +311,7 @@ function WeatherStationsLayer({ map, visible, isDark }) {
       `);
 
       // Store click handler for cleanup
-      const handleMarkerClick = (e) => {
+      const handleMarkerClick = (e: MouseEvent): void => {
         e.stopPropagation();
 
         // Close existing popup if any
@@ -221,10 +330,10 @@ function WeatherStationsLayer({ map, visible, isDark }) {
         }
       };
 
-      el.addEventListener('click', handleMarkerClick);
+      el.addEventListener('click', handleMarkerClick as EventListener);
 
       markersRef.current.push({
-        marker: marker,
+        marker: marker as Marker,
         element: el,
         handler: handleMarkerClick
       });
@@ -234,7 +343,7 @@ function WeatherStationsLayer({ map, visible, isDark }) {
     return () => {
       markersRef.current.forEach(({ marker, element, handler }) => {
         if (element && handler) {
-          element.removeEventListener('click', handler);
+          element.removeEventListener('click', handler as EventListener);
         }
         marker.remove();
       });
@@ -251,59 +360,6 @@ function WeatherStationsLayer({ map, visible, isDark }) {
 
   // No UI panel - markers only
   return null;
-}
-
-// Create weather station marker element
-function createWeatherStationMarker(station) {
-  const el = document.createElement('div');
-  el.className = 'weather-station-marker';
-
-  // Color based on temperature
-  const temp = station.weather.temperature;
-  let color;
-  if (temp < 32) {
-    color = '#3b82f6'; // Blue for freezing
-  } else if (temp < 50) {
-    color = '#06b6d4'; // Cyan for cold
-  } else if (temp < 70) {
-    color = '#10b981'; // Green for mild
-  } else if (temp < 85) {
-    color = '#f59e0b'; // Amber for warm
-  } else {
-    color = '#ef4444'; // Red for hot
-  }
-
-  el.style.cssText = `
-    width: 28px;
-    height: 28px;
-    background: ${color};
-    border: 2px solid white;
-    border-radius: 50%;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: box-shadow 0.2s ease, border-width 0.2s ease;
-    font-size: 10px;
-    font-weight: 700;
-    color: white;
-  `;
-
-  el.textContent = `${Math.round(station.weather.temperature)}°`;
-
-  // Use box-shadow glow effect on hover instead of transform
-  el.addEventListener('mouseenter', () => {
-    el.style.boxShadow = `0 0 12px ${color}, 0 2px 8px rgba(0, 0, 0, 0.3)`;
-    el.style.borderWidth = '3px';
-  });
-
-  el.addEventListener('mouseleave', () => {
-    el.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.25)';
-    el.style.borderWidth = '2px';
-  });
-
-  return el;
 }
 
 export default WeatherStationsLayer;
