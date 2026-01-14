@@ -25,6 +25,9 @@ ENV PORT=8080
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nodejs
 
+# Install wget for healthcheck (not in base alpine image)
+RUN apk add --no-cache wget
+
 # Copy dependencies
 COPY --from=deps /app/node_modules ./node_modules
 
