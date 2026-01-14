@@ -1,22 +1,44 @@
 /**
  * Icon components for travel incidents
- * Using Lucide icons for consistency
+ * Using Lucide-style SVG icons for consistency
  */
 
+import type { IncidentType } from '@/types';
 import { getIncidentColor } from './incidentColors';
+
+// =============================================================================
+// SVG Icon Generation
+// =============================================================================
+
+/** Icon name mapping for display purposes */
+type IncidentIconName =
+  | 'alert-triangle'
+  | 'hard-hat'
+  | 'ban'
+  | 'waves'
+  | 'alert-octagon';
+
+/** Map of incident types to icon names */
+const ICON_NAMES: Record<IncidentType, IncidentIconName> = {
+  ACCIDENT: 'alert-triangle',
+  CONSTRUCTION: 'hard-hat',
+  CLOSURE: 'ban',
+  FLOODING: 'waves',
+  HAZARD: 'alert-octagon',
+};
 
 /**
  * Get Lucide SVG icon for incident type
  * These match the icons used in the TravelLayer component
- * @param {string} type - Incident type
- * @param {number} size - Icon size in pixels
- * @returns {string} SVG markup
+ * @param type - Incident type
+ * @param size - Icon size in pixels
+ * @returns SVG markup string
  */
-export function getIncidentIcon(type, size = 20) {
+export function getIncidentIcon(type: IncidentType, size = 20): string {
   const color = getIncidentColor(type).primary;
   const strokeWidth = 2.5;
 
-  const icons = {
+  const icons: Record<IncidentType, string> = {
     // AlertTriangle - for accidents
     ACCIDENT: `
       <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round">
@@ -60,71 +82,80 @@ export function getIncidentIcon(type, size = 20) {
         <path d="M12 8v4"/>
         <path d="M12 16h.01"/>
       </svg>
-    `
+    `,
   };
 
-  return icons[type] || icons.HAZARD;
+  return icons[type] ?? icons.HAZARD;
 }
+
+// =============================================================================
+// DOM Element Creation
+// =============================================================================
 
 /**
  * Create a marker icon as an HTML element for MapLibre
- * @param {string} type - Incident type
- * @returns {HTMLElement} Marker element
+ * Note: innerHTML is safe here as all content comes from hardcoded SVG strings
+ * @param type - Incident type
+ * @returns Marker HTML element with hover effects
  */
-export function createMarkerElement(type) {
+export function createMarkerElement(type: IncidentType): HTMLDivElement {
   const el = document.createElement('div');
   el.className = 'incident-marker';
   el.dataset.type = type.toLowerCase();
 
   const color = getIncidentColor(type);
 
-  el.innerHTML = `
-    <div class="marker-circle" style="
-      background: white;
-      border: 2px solid ${color.primary};
-      border-radius: 50%;
-      width: 28px;
-      height: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-    ">
-      ${getIncidentIcon(type, 16)}
-    </div>
+  // Build marker structure - content is from trusted hardcoded sources only
+  const circleDiv = document.createElement('div');
+  circleDiv.className = 'marker-circle';
+  circleDiv.style.cssText = `
+    background: white;
+    border: 2px solid ${color.primary};
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
   `;
+
+  // SVG content is hardcoded in getIncidentIcon, not from external sources
+  const svgContent = getIncidentIcon(type, 16);
+  const template = document.createElement('template');
+  template.innerHTML = svgContent.trim();
+  const svgElement = template.content.firstChild;
+  if (svgElement) {
+    circleDiv.appendChild(svgElement);
+  }
+
+  el.appendChild(circleDiv);
 
   // Add hover effect
   el.addEventListener('mouseenter', () => {
-    const circle = el.querySelector('.marker-circle');
-    circle.style.transform = 'scale(1.1)';
-    circle.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
+    circleDiv.style.transform = 'scale(1.1)';
+    circleDiv.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
   });
 
   el.addEventListener('mouseleave', () => {
-    const circle = el.querySelector('.marker-circle');
-    circle.style.transform = 'scale(1)';
-    circle.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+    circleDiv.style.transform = 'scale(1)';
+    circleDiv.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
   });
 
   return el;
 }
 
+// =============================================================================
+// Utility Functions
+// =============================================================================
+
 /**
  * Get icon name for incident type (for UI display)
- * @param {string} type - Incident type
- * @returns {string} Human-readable icon description
+ * @param type - Incident type
+ * @returns Human-readable icon name
  */
-export function getIncidentIconName(type) {
-  const names = {
-    ACCIDENT: 'alert-triangle',
-    CONSTRUCTION: 'hard-hat',
-    CLOSURE: 'ban',
-    FLOODING: 'waves',
-    HAZARD: 'alert-octagon'
-  };
-
-  return names[type] || 'alert-octagon';
+export function getIncidentIconName(type: IncidentType): IncidentIconName {
+  return ICON_NAMES[type] ?? 'alert-octagon';
 }
