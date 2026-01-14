@@ -4,6 +4,7 @@ import maplibregl from 'maplibre-gl';
 import { fetchAllIncidents } from '../services/travelApi';
 import { getIncidentColor, shouldShowIncident } from '../utils/incidentColors';
 import { createMarkerElement } from '../utils/incidentIcons';
+import { INTERVALS } from '../utils/constants';
 import './TravelLayer.css';
 
 function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, onToggleWeatherStations }) {
@@ -26,7 +27,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
     if (!map) return;
 
     fetchIncidents();
-    const interval = setInterval(fetchIncidents, 2 * 60 * 1000); // 2 minutes
+    const interval = setInterval(fetchIncidents, INTERVALS.INCIDENTS_REFRESH);
     return () => clearInterval(interval);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map]);

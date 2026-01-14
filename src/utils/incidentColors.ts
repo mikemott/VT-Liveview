@@ -3,49 +3,52 @@
  * Categorical colors for different incident types
  */
 
-export const INCIDENT_COLORS = {
+import type { IncidentType, IncidentSeverity, IncidentColor, IncidentColorMap, Incident } from '@/types';
+
+/** Color configuration for each incident type */
+export const INCIDENT_COLORS: IncidentColorMap = {
   ACCIDENT: {
     primary: '#8B5CF6',
     background: '#8B5CF620',
-    name: 'purple'
+    name: 'purple',
   },
   CONSTRUCTION: {
     primary: '#F97316',
     background: '#F9731620',
-    name: 'orange'
+    name: 'orange',
   },
   CLOSURE: {
     primary: '#3B82F6',
     background: '#3B82F620',
-    name: 'blue'
+    name: 'blue',
   },
   FLOODING: {
     primary: '#14B8A6',
     background: '#14B8A620',
-    name: 'teal'
+    name: 'teal',
   },
   HAZARD: {
     primary: '#F59E0B',
     background: '#F59E0B20',
-    name: 'amber'
-  }
-};
+    name: 'amber',
+  },
+} as const;
 
 /**
- * Get color for incident type
- * @param {string} type - Incident type (ACCIDENT, CONSTRUCTION, etc.)
- * @returns {object} Color object with primary and background
+ * Get color configuration for an incident type
+ * @param type - Incident type (ACCIDENT, CONSTRUCTION, etc.)
+ * @returns Color object with primary and background colors
  */
-export function getIncidentColor(type) {
-  return INCIDENT_COLORS[type] || INCIDENT_COLORS.HAZARD;
+export function getIncidentColor(type: IncidentType): IncidentColor {
+  return INCIDENT_COLORS[type] ?? INCIDENT_COLORS.HAZARD;
 }
 
 /**
  * Get severity level for zoom-based filtering
- * @param {object} incident - Incident object
- * @returns {string} Severity level: CRITICAL, MAJOR, MODERATE, MINOR
+ * @param incident - Incident object with type property
+ * @returns Severity level: CRITICAL, MAJOR, MODERATE, or MINOR
  */
-export function getIncidentSeverity(incident) {
+export function getIncidentSeverity(incident: Pick<Incident, 'type'>): IncidentSeverity {
   // Road closures are always critical
   if (incident.type === 'CLOSURE') {
     return 'CRITICAL';
@@ -72,11 +75,13 @@ export function getIncidentSeverity(incident) {
 
 /**
  * Determine if incident should be visible at current zoom level
- * @param {object} incident - Incident object
- * @param {number} zoom - Current map zoom level
- * @returns {boolean} True if incident should be visible
+ * Uses severity-based filtering to reduce clutter at lower zoom levels
+ *
+ * @param incident - Incident object with type property
+ * @param zoom - Current map zoom level
+ * @returns True if incident should be visible at the given zoom
  */
-export function shouldShowIncident(incident, zoom) {
+export function shouldShowIncident(incident: Pick<Incident, 'type'>, zoom: number): boolean {
   const severity = getIncidentSeverity(incident);
 
   if (zoom < 8) {

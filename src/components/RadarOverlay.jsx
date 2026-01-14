@@ -9,6 +9,7 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
+import { INTERVALS } from '../utils/constants';
 import './RadarOverlay.css';
 
 export default function RadarOverlay({ map, isDark = false }) {
@@ -214,7 +215,7 @@ export default function RadarOverlay({ map, isDark = false }) {
 
     map.on('sourcedata', handleSourceData);
 
-    // Fallback: If tiles don't load within 8 seconds, show anyway
+    // Fallback: If tiles don't load within timeout, show anyway
     preloadTimeoutRef.current = setTimeout(() => {
       if (!tilesLoaded) {
         if (import.meta.env.DEV) {
@@ -222,7 +223,7 @@ export default function RadarOverlay({ map, isDark = false }) {
         }
         setTilesLoaded(true);
       }
-    }, 8000);
+    }, INTERVALS.PRELOAD_TIMEOUT);
 
     return () => {
       map.off('sourcedata', handleSourceData);

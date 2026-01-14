@@ -1,0 +1,35 @@
+# Dependencies
+node_modules
+npm-debug.log
+
+# Environment files (secrets should be set via fly secrets)
+.env
+.env.*
+!.env.example
+
+# Development files
+*.md
+.git
+.gitignore
+
+# TypeScript build output (when we migrate)
+dist
+*.tsbuildinfo
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Test files
+__tests__
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+coverage
+
+# OS files
+.DS_Store
+Thumbs.db
