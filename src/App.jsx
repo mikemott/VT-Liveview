@@ -1,21 +1,14 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import WeatherMap from './WeatherMap'
 import ErrorBoundary from './components/ErrorBoundary'
+import { getEnv } from './types'
 import './App.css'
 
-// Validate required environment variables
-const requiredEnvVars = {
-  VITE_PROTOMAPS_API_KEY: import.meta.env.VITE_PROTOMAPS_API_KEY
-};
-
-const missingVars = Object.entries(requiredEnvVars)
-  .filter(([_, value]) => !value)
-  .map(([key]) => key);
-
-if (missingVars.length > 0 && import.meta.env.PROD) {
-  console.error('Missing required environment variables:', missingVars.join(', '));
-  // In production, you might want to show an error page instead
-}
+// Validate environment variables on startup using Zod schema.
+// In production, this throws if required variables are missing,
+// which will be caught by the ErrorBoundary.
+// In development, it logs errors but continues with defaults.
+getEnv();
 
 const queryClient = new QueryClient({
   defaultOptions: {

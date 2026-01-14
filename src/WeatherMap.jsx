@@ -12,15 +12,15 @@ import { getMapStyle, isDarkMode } from './utils/mapStyles';
 import { VERMONT, INTERVALS } from './utils/constants';
 
 const VERMONT_CENTER = {
-  lng: VERMONT.CENTER_LNG,
-  lat: VERMONT.CENTER_LAT,
-  zoom: VERMONT.CENTER_ZOOM
+  lng: VERMONT.centerLng,
+  lat: VERMONT.centerLat,
+  zoom: VERMONT.centerZoom
 };
 
 // Default weather location: Montpelier, VT
 const WEATHER_LOCATION = {
-  lat: VERMONT.DEFAULT_LAT,
-  lon: VERMONT.DEFAULT_LON
+  lat: VERMONT.defaultLat,
+  lon: VERMONT.defaultLon
 };
 
 function WeatherMap() {

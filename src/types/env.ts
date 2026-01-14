@@ -64,16 +64,16 @@ export function getEnv(): Env {
     // In development, log error but continue with defaults where possible
     console.error(message);
 
-    // Return with defaults for development
-    validatedEnv = {
-      VITE_PROTOMAPS_API_KEY: rawEnv.VITE_PROTOMAPS_API_KEY ?? '',
-      VITE_BACKEND_URL: rawEnv.VITE_BACKEND_URL ?? 'http://localhost:4000',
-      VITE_GRAPHQL_ENDPOINT: rawEnv.VITE_GRAPHQL_ENDPOINT,
+    // Return with schema defaults for development (single source of truth)
+    // Merge raw env with an empty object parse to get schema defaults
+    const schemaDefaults = envSchema.parse({
+      VITE_PROTOMAPS_API_KEY: rawEnv.VITE_PROTOMAPS_API_KEY ?? 'missing-key',
       DEV: rawEnv.DEV ?? true,
       PROD: rawEnv.PROD ?? false,
-      MODE: (rawEnv.MODE as Env['MODE']) ?? 'development',
-    };
+      MODE: rawEnv.MODE ?? 'development',
+    });
 
+    validatedEnv = schemaDefaults;
     return validatedEnv;
   }
 
