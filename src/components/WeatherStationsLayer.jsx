@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
 import { graphqlClient } from '../services/graphqlClient';
 import { gql } from 'graphql-request';
+import { INTERVALS } from '../utils/constants';
 import './WeatherStationsLayer.css';
 
 const STATIONS_QUERY = gql`
@@ -40,7 +41,7 @@ function WeatherStationsLayer({ map, visible, isDark }) {
     if (!map) return;
 
     fetchStations();
-    const interval = setInterval(fetchStations, 15 * 60 * 1000); // 15 minutes
+    const interval = setInterval(fetchStations, INTERVALS.STATIONS_REFRESH);
     return () => clearInterval(interval);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map]);

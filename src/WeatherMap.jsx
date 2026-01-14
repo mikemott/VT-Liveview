@@ -9,16 +9,18 @@ import RadarOverlay from './components/RadarOverlay';
 import ThemeToggle from './components/ThemeToggle';
 import { getMapStyle, isDarkMode } from './utils/mapStyles';
 
+import { VERMONT, INTERVALS } from './utils/constants';
+
 const VERMONT_CENTER = {
-  lng: -73.3, // Further west to frame Vermont and reduce eastern ocean view
-  lat: 44.0,  // Slightly south to better center VT with left panel
-  zoom: 7.5
+  lng: VERMONT.CENTER_LNG,
+  lat: VERMONT.CENTER_LAT,
+  zoom: VERMONT.CENTER_ZOOM
 };
 
 // Default weather location: Montpelier, VT
 const WEATHER_LOCATION = {
-  lat: 44.2601,
-  lon: -72.5754
+  lat: VERMONT.DEFAULT_LAT,
+  lon: VERMONT.DEFAULT_LON
 };
 
 function WeatherMap() {
@@ -240,7 +242,7 @@ function WeatherMap() {
       moveEndTimeout = setTimeout(() => {
         const center = map.current.getCenter();
         setMapCenter({ lat: center.lat, lng: center.lng });
-      }, 500);
+      }, INTERVALS.MAP_MOVE_DEBOUNCE);
     });
 
     return () => {
@@ -266,7 +268,7 @@ function WeatherMap() {
 
     // Check immediately and then every minute
     checkTheme();
-    const interval = setInterval(checkTheme, 60000); // Check every minute
+    const interval = setInterval(checkTheme, INTERVALS.THEME_CHECK);
 
     return () => clearInterval(interval);
   }, [isDark, manualThemeOverride]);
