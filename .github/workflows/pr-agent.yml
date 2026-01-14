@@ -2,47 +2,28 @@ name: PR Agent
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review]
+    types: [opened, reopened, ready_for_review, synchronize]
   issue_comment:
-    types: [created]
+    types: [created, edited]
 
 permissions:
-  contents: read
-  pull-requests: write
   issues: write
+  pull-requests: write
+  contents: write
 
 jobs:
-  pr-agent:
+  pr_agent_job:
+    if: ${{ github.event.sender.type != 'Bot' }}
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' || (github.event_name == 'issue_comment' && contains(github.event.comment.body, '/'))
-    
+    name: Run PR Agent
     steps:
-      - name: PR Agent Action
+      - name: PR Agent action
+        id: pragent
         uses: Codium-ai/pr-agent@main
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          QODO_API_KEY: ${{ secrets.QODO_API_KEY }}
-          
-          # PR Agent Configuration
-          PR_AGENT_MODE: github_action
-          PR_AGENT_AUTO_REVIEW: true
-          PR_AGENT_AUTO_DESCRIBE: true
-          PR_AGENT_AUTO_IMPROVE: false
-          
-          # Custom configurations
-          PR_DESCRIPTION_TEMPLATE: |
-            ## Summary
-            {summary}
-            
-            ## Changes
-            {changes}
-            
-            ## Linear Issues
-            {linear_issues}
-            
-            ## Testing
-            {testing}
-          
-          # Linear integration
-          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          ANTHROPIC.KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          config.model: "anthropic/claude-sonnet-4-5-20250929"
+          github_action_config.auto_review: "true"
+          github_action_config.auto_describe: "true"
+          github_action_config.auto_improve: "true"
