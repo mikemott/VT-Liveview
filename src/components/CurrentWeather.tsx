@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { fetchCurrentWeather, fetchForecast } from '../services/graphqlClient';
+import { fetchCurrentWeather, fetchForecast, type CurrentWeatherData, type ForecastPeriodData } from '../services/graphqlClient';
 import {
   Wind,
   Droplets,
@@ -19,7 +19,13 @@ import './CurrentWeather.css';
 const DEFAULT_LAT = 44.2601;
 const DEFAULT_LON = -72.5754;
 
-function getWeatherIcon(description, isDark) {
+interface CurrentWeatherProps {
+  lat?: number;
+  lon?: number;
+  isDark?: boolean;
+}
+
+function getWeatherIcon(description: string | undefined, isDark: boolean): ReactNode {
   const desc = description?.toLowerCase() || '';
 
   if (desc.includes('rain') || desc.includes('showers')) {
@@ -40,10 +46,10 @@ function getWeatherIcon(description, isDark) {
   return <Cloud size={48} />;
 }
 
-export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, isDark = false }) {
+export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, isDark = false }: CurrentWeatherProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery<CurrentWeatherData | null>({
     queryKey: ['currentWeather', lat, lon],
     queryFn: () => fetchCurrentWeather(lat, lon),
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -52,7 +58,7 @@ export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, i
     placeholderData: (previousData) => previousData // Keep previous data during refetch to prevent flashing
   });
 
-  const { data: forecastData } = useQuery({
+  const { data: forecastData } = useQuery<ForecastPeriodData[] | null>({
     queryKey: ['forecast', lat, lon],
     queryFn: () => fetchForecast(lat, lon),
     staleTime: 15 * 60 * 1000, // 15 minutes (forecast changes less often)

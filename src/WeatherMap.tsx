@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, KeyboardEvent } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './WeatherMap.css';
@@ -8,8 +8,39 @@ import CurrentWeather from './components/CurrentWeather';
 import RadarOverlay from './components/RadarOverlay';
 import ThemeToggle from './components/ThemeToggle';
 import { getMapStyle, isDarkMode } from './utils/mapStyles';
-
+import type { MapLibreMap } from './types';
 import { VERMONT, INTERVALS } from './utils/constants';
+
+// =============================================================================
+// Types
+// =============================================================================
+
+interface AlertProperties {
+  event: string;
+  headline: string;
+  severity?: string;
+  areaDesc: string;
+}
+
+interface AlertGeometry {
+  type: 'Polygon';
+  coordinates: number[][][];
+}
+
+interface AlertFeature {
+  type: 'Feature';
+  properties: AlertProperties;
+  geometry: AlertGeometry | null;
+}
+
+interface MapCenterState {
+  lat: number;
+  lng: number;
+}
+
+// =============================================================================
+// Constants
+// =============================================================================
 
 const VERMONT_CENTER = {
   lng: VERMONT.centerLng,
@@ -17,30 +48,28 @@ const VERMONT_CENTER = {
   zoom: VERMONT.centerZoom
 };
 
-// Default weather location: Montpelier, VT
-const WEATHER_LOCATION = {
-  lat: VERMONT.defaultLat,
-  lon: VERMONT.defaultLon
-};
+// =============================================================================
+// Component
+// =============================================================================
 
 function WeatherMap() {
-  const mapContainer = useRef(null);
-  const map = useRef(null);
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<MapLibreMap | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [currentZoom, setCurrentZoom] = useState(VERMONT_CENTER.zoom);
   const [isDark, setIsDark] = useState(() => isDarkMode());
   const [manualThemeOverride, setManualThemeOverride] = useState(false);
   const [mapStyleVersion, setMapStyleVersion] = useState(0); // Track map style changes
-  const [alerts, setAlerts] = useState([]);
-  const [mapCenter, setMapCenter] = useState({
+  const [alerts, setAlerts] = useState<AlertFeature[]>([]);
+  const [mapCenter, setMapCenter] = useState<MapCenterState>({
     lat: VERMONT_CENTER.lat,
     lng: VERMONT_CENTER.lng
   });
   const [showWeatherStations, setShowWeatherStations] = useState(true);
 
   // Add alerts to map
-  const addAlertsToMap = useCallback((alertFeatures) => {
+  const addAlertsToMap = useCallback((alertFeatures: AlertFeature[]): void => {
     if (!map.current) return;
 
     // Remove existing alert layers if present
@@ -59,7 +88,7 @@ function WeatherMap() {
       type: 'geojson',
       data: {
         type: 'FeatureCollection',
-        features: alertFeatures.filter(f => f.geometry)
+        features: alertFeatures.filter(f => f.geometry) as GeoJSON.Feature[]
       }
     });
 
@@ -103,9 +132,11 @@ function WeatherMap() {
 
     // Add click handlers for alerts
     map.current.on('click', 'alert-fills', (e) => {
-      if (e.features.length === 0) return;
+      if (!e.features || e.features.length === 0 || !map.current) return;
 
-      const alert = e.features[0].properties;
+      const feature = e.features[0];
+      if (!feature) return;
+      const alert = feature.properties as AlertProperties;
       const coordinates = e.lngLat;
 
       new maplibregl.Popup()
@@ -123,28 +154,38 @@ function WeatherMap() {
 
     // Change cursor on hover
     map.current.on('mouseenter', 'alert-fills', () => {
-      map.current.getCanvas().style.cursor = 'pointer';
+      if (map.current) {
+        map.current.getCanvas().style.cursor = 'pointer';
+      }
     });
 
     map.current.on('mouseleave', 'alert-fills', () => {
-      map.current.getCanvas().style.cursor = '';
+      if (map.current) {
+        map.current.getCanvas().style.cursor = '';
+      }
     });
   }, []);
 
   // Handle alert item click to fly to affected area
-  const handleAlertClick = useCallback((alert) => {
+  const handleAlertClick = useCallback((alert: AlertFeature): void => {
     if (!map.current || !alert.geometry) return;
 
     // Calculate bounding box from polygon coordinates
     const coords = alert.geometry.coordinates[0];
+    if (!coords || coords.length === 0) return;
+
     let minLng = Infinity, maxLng = -Infinity;
     let minLat = Infinity, maxLat = -Infinity;
 
-    coords.forEach(([lng, lat]) => {
-      minLng = Math.min(minLng, lng);
-      maxLng = Math.max(maxLng, lng);
-      minLat = Math.min(minLat, lat);
-      maxLat = Math.max(maxLat, lat);
+    coords.forEach((point) => {
+      const lng = point[0];
+      const lat = point[1];
+      if (lng !== undefined && lat !== undefined) {
+        minLng = Math.min(minLng, lng);
+        maxLng = Math.max(maxLng, lng);
+        minLat = Math.min(minLat, lat);
+        maxLat = Math.max(maxLat, lat);
+      }
     });
 
     // Fly to bounds with smooth animation
@@ -159,7 +200,7 @@ function WeatherMap() {
   }, []);
 
   // Fetch NOAA weather alerts
-  const fetchAlerts = useCallback(async () => {
+  const fetchAlerts = useCallback(async (): Promise<void> => {
     try {
       const response = await fetch('https://api.weather.gov/alerts/active?area=VT', {
         headers: {
@@ -169,8 +210,8 @@ function WeatherMap() {
       const data = await response.json();
 
       if (data.features && data.features.length > 0) {
-        setAlerts(data.features);
-        addAlertsToMap(data.features);
+        setAlerts(data.features as AlertFeature[]);
+        addAlertsToMap(data.features as AlertFeature[]);
       }
     } catch (error) {
       if (import.meta.env.DEV) {
@@ -181,7 +222,7 @@ function WeatherMap() {
 
   // Initialize map with Protomaps basemap
   useEffect(() => {
-    if (map.current) return;
+    if (map.current || !mapContainer.current) return;
 
     // Create map with Protomaps style
     map.current = new maplibregl.Map({
@@ -201,7 +242,7 @@ function WeatherMap() {
     map.current.addControl(new maplibregl.FullscreenControl(), 'top-right');
 
     // Expose map for debugging
-    window.map = map.current;
+    (window as { map?: MapLibreMap }).map = map.current;
 
     // Debug tile loading
     map.current.on('error', (e) => {
@@ -212,16 +253,18 @@ function WeatherMap() {
 
     map.current.on('data', (e) => {
       if (import.meta.env.DEV && e.dataType === 'source' && e.sourceDataType === 'metadata') {
-        console.log('Source loaded:', e.sourceId);
+        // Cast to access sourceId which exists on source data events
+        const sourceEvent = e as { sourceId?: string };
+        console.log('Source loaded:', sourceEvent.sourceId);
       }
     });
 
     map.current.on('load', () => {
-      if (import.meta.env.DEV) {
+      if (import.meta.env.DEV && map.current) {
         console.log('Map loaded!', {
-          sources: Object.keys(map.current.getStyle().sources),
-          layers: map.current.getStyle().layers.length,
-          firstLayer: map.current.getStyle().layers[0]
+          sources: Object.keys(map.current.getStyle().sources || {}),
+          layers: (map.current.getStyle().layers || []).length,
+          firstLayer: (map.current.getStyle().layers || [])[0]
         });
       }
 
@@ -232,16 +275,20 @@ function WeatherMap() {
 
     // Track zoom changes
     map.current.on('zoom', () => {
-      setCurrentZoom(map.current.getZoom());
+      if (map.current) {
+        setCurrentZoom(map.current.getZoom());
+      }
     });
 
     // Track map center changes (debounced)
-    let moveEndTimeout;
+    let moveEndTimeout: ReturnType<typeof setTimeout>;
     map.current.on('moveend', () => {
       clearTimeout(moveEndTimeout);
       moveEndTimeout = setTimeout(() => {
-        const center = map.current.getCenter();
-        setMapCenter({ lat: center.lat, lng: center.lng });
+        if (map.current) {
+          const center = map.current.getCenter();
+          setMapCenter({ lat: center.lat, lng: center.lng });
+        }
       }, INTERVALS.MAP_MOVE_DEBOUNCE);
     });
 
@@ -251,7 +298,7 @@ function WeatherMap() {
         map.current = null;
       }
     };
-  }, [fetchAlerts]); // fetchAlerts is stable (useCallback with [addAlertsToMap])
+  }, [fetchAlerts, isDark]);
 
   // Check theme based on daylight hours and update automatically (only if user hasn't manually overridden)
   useEffect(() => {
@@ -259,7 +306,7 @@ function WeatherMap() {
     if (manualThemeOverride) return;
 
     // Check theme every minute to catch sunrise/sunset transitions
-    const checkTheme = () => {
+    const checkTheme = (): void => {
       const shouldBeDark = isDarkMode();
       if (shouldBeDark !== isDark) {
         setIsDark(shouldBeDark);
@@ -286,6 +333,8 @@ function WeatherMap() {
 
     // Restore center and zoom after style load
     map.current.once('style.load', () => {
+      if (!map.current) return;
+
       map.current.setCenter(center);
       map.current.setZoom(zoom);
 
@@ -300,10 +349,18 @@ function WeatherMap() {
   }, [isDark, mapLoaded, alerts, addAlertsToMap]);
 
   // Toggle theme manually
-  const toggleTheme = useCallback(() => {
+  const toggleTheme = useCallback((): void => {
     setIsDark(prev => !prev);
     setManualThemeOverride(true); // User has manually set the theme
   }, []);
+
+  // Handle alert keyboard navigation
+  const handleAlertKeyDown = (e: KeyboardEvent<HTMLDivElement>, alert: AlertFeature): void => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleAlertClick(alert);
+    }
+  };
 
   return (
     <div className={`weather-map-container ${isDark ? 'dark' : ''}`}>
@@ -377,12 +434,7 @@ function WeatherMap() {
                     key={index}
                     className={`alert-item severity-${alert.properties.severity?.toLowerCase()}`}
                     onClick={() => handleAlertClick(alert)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        handleAlertClick(alert);
-                      }
-                    }}
+                    onKeyDown={(e) => handleAlertKeyDown(e, alert)}
                     role="button"
                     tabIndex={0}
                     aria-label={`Zoom to ${alert.properties.event} affected area`}

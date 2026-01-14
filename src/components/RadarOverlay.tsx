@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { useRadarAnimation } from '../hooks/useRadarAnimation';
+import { useEffect, useRef, useState, useCallback, ChangeEvent } from 'react';
+import { useRadarAnimation, type RadarFrameData } from '../hooks/useRadarAnimation';
 import {
   Play,
   Pause,
@@ -10,16 +10,22 @@ import {
   EyeOff
 } from 'lucide-react';
 import { INTERVALS } from '../utils/constants';
+import type { MapLibreMap } from '../types';
 import './RadarOverlay.css';
 
-export default function RadarOverlay({ map, isDark = false }) {
+interface RadarOverlayProps {
+  map: MapLibreMap | null;
+  isDark?: boolean;
+}
+
+export default function RadarOverlay({ map, isDark = false }: RadarOverlayProps) {
   const [visible, setVisible] = useState(true);
   const [opacity, setOpacity] = useState(0.7);
   const [tilesLoaded, setTilesLoaded] = useState(false);
   const layersInitialized = useRef(false);
   const previousFrameCount = useRef(0);
-  const loadedSources = useRef(new Set());
-  const preloadTimeoutRef = useRef(null);
+  const loadedSources = useRef(new Set<string>());
+  const preloadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const {
     frames,
@@ -35,7 +41,7 @@ export default function RadarOverlay({ map, isDark = false }) {
   } = useRadarAnimation(map, { frameCount: 6, frameDelay: 500 });
 
   // Helper to safely check if layer exists
-  const hasLayer = useCallback((layerId) => {
+  const hasLayer = useCallback((layerId: string): boolean => {
     if (!map || !map.isStyleLoaded()) return false;
     try {
       return !!map.getLayer(layerId);
@@ -45,7 +51,7 @@ export default function RadarOverlay({ map, isDark = false }) {
   }, [map]);
 
   // Helper to safely check if source exists
-  const hasSource = useCallback((sourceId) => {
+  const hasSource = useCallback((sourceId: string): boolean => {
     if (!map || !map.isStyleLoaded()) return false;
     try {
       return !!map.getSource(sourceId);
@@ -82,7 +88,7 @@ export default function RadarOverlay({ map, isDark = false }) {
       }
 
       // Update existing sources and add new ones if count increased
-      frames.forEach((frame, index) => {
+      frames.forEach((frame: RadarFrameData, index: number) => {
         const sourceId = `radar-source-${index}`;
         const layerId = `radar-layer-${index}`;
 
@@ -124,7 +130,7 @@ export default function RadarOverlay({ map, isDark = false }) {
       // Update sources without full layer recreation to avoid flicker
       let needsUpdate = false;
 
-      frames.forEach((frame, index) => {
+      frames.forEach((_frame: RadarFrameData, index: number) => {
         const sourceId = `radar-source-${index}`;
         if (hasSource(sourceId)) {
           // Check if URL changed by comparing with previous frame
@@ -139,7 +145,7 @@ export default function RadarOverlay({ map, isDark = false }) {
         loadedSources.current.clear();
 
         // Update each source with new tile URL
-        frames.forEach((frame, index) => {
+        frames.forEach((frame: RadarFrameData, index: number) => {
           const sourceId = `radar-source-${index}`;
           const layerId = `radar-layer-${index}`;
 
@@ -201,7 +207,7 @@ export default function RadarOverlay({ map, isDark = false }) {
   useEffect(() => {
     if (!map || !layersInitialized.current || frames.length === 0 || tilesLoaded) return;
 
-    const handleSourceData = (e) => {
+    const handleSourceData = (e: { sourceId?: string; isSourceLoaded?: boolean }) => {
       // Check if this is a radar source and tiles are loaded
       if (e.sourceId && e.sourceId.startsWith('radar-source-') && e.isSourceLoaded) {
         loadedSources.current.add(e.sourceId);
@@ -231,14 +237,14 @@ export default function RadarOverlay({ map, isDark = false }) {
         clearTimeout(preloadTimeoutRef.current);
       }
     };
-  }, [map, frames, layersInitialized, tilesLoaded]);
+  }, [map, frames, tilesLoaded]);
 
   // Toggle opacity between layers based on current frame
   useEffect(() => {
     if (!map || !layersInitialized.current || frames.length === 0 || !tilesLoaded) return;
 
     // Show only the current frame by adjusting opacity
-    frames.forEach((_, index) => {
+    frames.forEach((_: RadarFrameData, index: number) => {
       const layerId = `radar-layer-${index}`;
       if (hasLayer(layerId)) {
         const shouldShow = index === currentFrame && visible;
@@ -252,10 +258,14 @@ export default function RadarOverlay({ map, isDark = false }) {
   // Note: Opacity is now handled in the frame switching effect above
   // to avoid conflicts and ensure smooth transitions
 
-  const formatTime = (isoString) => {
+  const formatTime = (isoString: string | undefined): string => {
     if (!isoString) return '--:--';
     const date = new Date(isoString);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const handleOpacityChange = (e: ChangeEvent<HTMLInputElement>): void => {
+    setOpacity(parseFloat(e.target.value));
   };
 
   return (
@@ -302,7 +312,7 @@ export default function RadarOverlay({ map, isDark = false }) {
 
           <div className="radar-timeline">
             <div className="timeline-track">
-              {frames.map((frame, idx) => (
+              {frames.map((frame: RadarFrameData, idx: number) => (
                 <button
                   key={idx}
                   className={`timeline-dot ${idx === currentFrame ? 'active' : ''} ${frame.isNowcast ? 'nowcast' : ''}`}
@@ -325,7 +335,7 @@ export default function RadarOverlay({ map, isDark = false }) {
               max="1"
               step="0.1"
               value={opacity}
-              onChange={(e) => setOpacity(parseFloat(e.target.value))}
+              onChange={handleOpacityChange}
             />
             <span>{Math.round(opacity * 100)}%</span>
           </div>

@@ -20,7 +20,7 @@ const queryClient = new QueryClient({
   }
 })
 
-function App() {
+function App(): React.ReactNode {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
