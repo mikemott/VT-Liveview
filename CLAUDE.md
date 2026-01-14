@@ -52,6 +52,121 @@
 
 ---
 
+## 🔄 Development Workflow
+
+**⚠️ CRITICAL: NEVER commit directly to `main` branch!**
+
+All work follows a Linear → Branch → PR → Review → Merge workflow with full automation.
+
+### Required Steps for All Non-Trivial Work
+
+#### 1. Start with Linear Issue
+- Check Linear for existing issues or create new ones
+- Use Linear MCP tools: `mcp__linear__list_issues`, `mcp__linear__create_issue`
+- Issues auto-generate branch names (e.g., `vtl-XX-short-description`)
+
+#### 2. Create Feature Branch (Use Worktrees When Possible)
+
+**For isolated work (recommended):**
+```bash
+# Create worktree for parallel development
+git worktree add ../VT-LiveView-vtl-XX vtl-XX-feature-name
+cd ../VT-LiveView-vtl-XX
+
+# Or if branch doesn't exist yet:
+git worktree add -b vtl-XX-feature-name ../VT-LiveView-vtl-XX main
+```
+
+**For quick fixes in main repo:**
+```bash
+git checkout -b vtl-XX-short-description
+```
+
+**Branch naming:** Use Linear's format (`vtl-XX-short-description`, lowercase, hyphens)
+
+#### 3. Implement & Commit
+- Make changes on feature branch
+- Commit with clear messages referencing the issue
+- Multiple commits are fine
+
+#### 4. Push & Create PR
+```bash
+git push -u origin vtl-XX-short-description
+gh pr create --title "feat: description" --body "$(cat <<'EOF'
+## Summary
+- Change 1
+- Change 2
+
+## Test Plan
+- [ ] Test item
+
+Closes VTL-XX
+
+🤖 Generated with [Claude Code](https://claude.ai/claude-code)
+EOF
+)"
+```
+
+- Include `Closes VTL-XX` in PR body for auto-linking
+- Update Linear issue with PR link using `mcp__linear__update_issue`
+
+#### 5. Review PR Agent Feedback (AUTOMATIC - Claude Does This)
+
+**After creating a PR, Claude automatically:**
+1. Waits ~30-60 seconds for PR Agent (qodo-code-review) to complete
+2. Fetches comments: `gh pr view <number> --comments`
+3. Reviews all compliance checks and code suggestions
+
+**Claude uses judgment to prioritize feedback:**
+- ✅ **Always fix:** Security issues, bugs, runtime errors, backward compatibility breaks
+- ✅ **Fix if straightforward:** High-impact improvements that are quick wins
+- 📝 **Document for later:** Larger architectural refactorings (create Linear issue)
+- ⏭️ **Skip:** Minor style preferences, subjective suggestions, or conflicts with project patterns
+
+**Not all PR Agent feedback requires action** - Claude makes pragmatic decisions about what adds value vs. what's noise. The goal is to catch real issues, not to satisfy every bot suggestion.
+
+#### 6. Merge After Review
+```bash
+gh pr merge <number> --squash --delete-branch
+```
+- Verify all checks pass
+- Linear issue auto-updates when PR is merged
+
+#### 7. Clean Up Worktree (if used)
+```bash
+cd /path/to/main/VT-LiveView
+git worktree remove ../VT-LiveView-vtl-XX
+```
+
+### When to Use Worktrees
+
+**Use worktrees for:**
+- Features that might take multiple sessions
+- Parallel work on different issues
+- Keeping main repo clean for quick fixes
+- Long-running experiments
+
+**Skip worktrees for:**
+- Quick single-file fixes
+- Documentation updates
+- Trivial changes
+
+### Automation in Place
+
+| Automation | Trigger | Action |
+|------------|---------|--------|
+| **PR Agent** | PR opened/updated | AI code review with compliance checks |
+| **Deploy** | Push to `main` | Build & deploy to Cloudflare Pages |
+| **Sentry** | Production deploy | Upload source maps |
+| **Linear Sync** | PR with `Closes VTL-XX` | Auto-close issue on merge |
+
+### Workflow Files
+
+- `.github/workflows/pr-agent.yml` - PR Agent code review
+- `.github/workflows/deploy.yml` - Cloudflare Pages deployment + Sentry
+
+---
+
 ## 🚀 Quick Start for Development
 
 ### Prerequisites
@@ -731,14 +846,16 @@ When starting a new Claude session on this project:
 
 - [ ] Read this CLAUDE.md file
 - [ ] Check recent commits: `git log --oneline -5`
+- [ ] Check Linear for open issues: `mcp__linear__list_issues` with team "VT LiveView"
 - [ ] Review `AUDIT_REPORT.md` for known issues
 - [ ] Verify current branch: `git branch`
+- [ ] Check for existing worktrees: `git worktree list`
 - [ ] Check if backend is running: `curl http://localhost:4000/health`
 - [ ] Check if frontend is running: `curl http://localhost:5173`
 - [ ] Review user's request and ask clarifying questions if needed
 
 ---
 
-**Last Updated:** 2026-01-12
+**Last Updated:** 2026-01-14
 **Maintainer:** Mike Mott (mike@mottvt.com)
 **License:** MIT
