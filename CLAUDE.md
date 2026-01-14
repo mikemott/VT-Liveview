@@ -52,6 +52,57 @@
 
 ---
 
+## 🔄 Development Workflow
+
+**⚠️ CRITICAL: NEVER commit directly to `main` branch!**
+
+All work follows a Branch → PR → CodeRabbit Review → Merge workflow.
+
+### Creating Pull Requests
+
+```bash
+# 1. Create feature branch
+git checkout -b feature-name
+
+# 2. Make changes and commit
+git add . && git commit -m "feat: description"
+
+# 3. Push and create PR
+git push -u origin feature-name
+gh pr create --title "feat: description" --body "## Summary\n- Change 1"
+```
+
+### Review CodeRabbit Feedback (AUTOMATIC - Claude Does This)
+
+**After creating a PR, Claude automatically:**
+1. Waits ~30-60 seconds for CodeRabbit to complete its review
+2. Fetches the review: `gh pr view <number> --comments`
+3. Analyzes all feedback and code suggestions
+
+**Claude uses judgment to prioritize feedback:**
+- ✅ **Always fix:** Security issues, bugs, runtime errors, backward compatibility breaks
+- ✅ **Fix if straightforward:** High-impact improvements that are quick wins
+- 📝 **Document for later:** Larger architectural refactorings (create Linear issue)
+- ⏭️ **Skip:** Minor style preferences, subjective suggestions, or conflicts with project patterns
+
+**Not all CodeRabbit feedback requires action** - Claude makes pragmatic decisions about what adds value vs. what's noise. The goal is to catch real issues, not to satisfy every bot suggestion.
+
+### Merge After Review
+
+```bash
+gh pr merge <number> --squash --delete-branch
+```
+
+### Automation in Place
+
+| Automation | Trigger | Action |
+|------------|---------|--------|
+| **CodeRabbit** | PR opened/updated | AI code review (GitHub App) |
+| **Deploy** | Push to `main` | Build & deploy to Cloudflare Pages |
+| **Sentry** | Production deploy | Upload source maps |
+
+---
+
 ## 🚀 Quick Start for Development
 
 ### Prerequisites
@@ -162,8 +213,7 @@ VT-Liveview/
 │   └── package.json                  # Backend dependencies
 │
 ├── .github/workflows/
-│   ├── deploy.yml                    # Cloudflare Pages CI/CD + Sentry uploads
-│   └── pr-agent.yml                  # PR Agent code review automation
+│   └── deploy.yml                    # Cloudflare Pages CI/CD + Sentry uploads
 │
 ├── Configuration Files
 │   ├── package.json                  # Frontend dependencies (8 core, 11 dev)
@@ -631,7 +681,7 @@ grep -n "addSource" src/components/TravelLayer.jsx
 
 ### Tools & Services
 - **Cloudflare Pages:** https://developers.cloudflare.com/pages/
-- **PR Agent (Qodo):** https://qodo.ai/pr-agent/
+- **CodeRabbit:** https://docs.coderabbit.ai/ (AI code review)
 - **Sentry:** https://docs.sentry.io/
 
 ---
@@ -739,6 +789,6 @@ When starting a new Claude session on this project:
 
 ---
 
-**Last Updated:** 2026-01-12
+**Last Updated:** 2026-01-14
 **Maintainer:** Mike Mott (mike@mottvt.com)
 **License:** MIT
