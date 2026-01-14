@@ -162,8 +162,7 @@ VT-Liveview/
 │   └── package.json                  # Backend dependencies
 │
 ├── .github/workflows/
-│   ├── deploy.yml                    # Cloudflare Pages CI/CD + Sentry uploads
-│   └── pr-agent.yml                  # PR Agent code review automation
+│   └── deploy.yml                    # Cloudflare Pages CI/CD + Sentry uploads
 │
 ├── Configuration Files
 │   ├── package.json                  # Frontend dependencies (8 core, 11 dev)
@@ -631,7 +630,7 @@ grep -n "addSource" src/components/TravelLayer.jsx
 
 ### Tools & Services
 - **Cloudflare Pages:** https://developers.cloudflare.com/pages/
-- **PR Agent (Qodo):** https://qodo.ai/pr-agent/
+- **CodeRabbit:** https://docs.coderabbit.ai/ (AI code review)
 - **Sentry:** https://docs.sentry.io/
 
 ---
@@ -739,6 +738,6 @@ When starting a new Claude session on this project:
 
 ---
 
-**Last Updated:** 2026-01-12
+**Last Updated:** 2026-01-14
 **Maintainer:** Mike Mott (mike@mottvt.com)
 **License:** MIT
