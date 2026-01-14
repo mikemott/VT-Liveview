@@ -241,10 +241,12 @@ export function useRadarAnimation(
   );
 
   const nextFrame = useCallback(() => {
+    if (frames.length === 0) return;
     setCurrentFrame((prev) => (prev + 1) % frames.length);
   }, [frames.length]);
 
   const prevFrame = useCallback(() => {
+    if (frames.length === 0) return;
     setCurrentFrame((prev) => (prev - 1 + frames.length) % frames.length);
   }, [frames.length]);
 
