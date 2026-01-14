@@ -130,7 +130,7 @@ export default function RadarOverlay({ map, isDark = false }: RadarOverlayProps)
       // Update sources without full layer recreation to avoid flicker
       let needsUpdate = false;
 
-      frames.forEach((frame: RadarFrameData, index: number) => {
+      frames.forEach((_frame: RadarFrameData, index: number) => {
         const sourceId = `radar-source-${index}`;
         if (hasSource(sourceId)) {
           // Check if URL changed by comparing with previous frame

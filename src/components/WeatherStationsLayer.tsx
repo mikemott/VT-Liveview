@@ -142,7 +142,7 @@ function createWeatherStationMarker(station: ObservationStation): HTMLDivElement
 
 function WeatherStationsLayer({ map, visible, isDark }: WeatherStationsLayerProps) {
   const [stations, setStations] = useState<ObservationStation[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [_loading, setLoading] = useState(false);
   const markersRef = useRef<MarkerEntry[]>([]);
   const currentPopupRef = useRef<Popup | null>(null);
 

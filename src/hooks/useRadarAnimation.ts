@@ -114,7 +114,7 @@ interface RainViewerResponse {
  * @param options - Animation options
  */
 export function useRadarAnimation(
-  _map: React.RefObject<MapLibreMap | null>,
+  _map: MapLibreMap | null,
   options: UseRadarAnimationOptions = {}
 ): UseRadarAnimationReturn {
   const {

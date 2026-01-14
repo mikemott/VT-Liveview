@@ -28,6 +28,7 @@ interface AlertGeometry {
 }
 
 interface AlertFeature {
+  type: 'Feature';
   properties: AlertProperties;
   geometry: AlertGeometry | null;
 }
@@ -45,12 +46,6 @@ const VERMONT_CENTER = {
   lng: VERMONT.centerLng,
   lat: VERMONT.centerLat,
   zoom: VERMONT.centerZoom
-};
-
-// Default weather location: Montpelier, VT
-const WEATHER_LOCATION = {
-  lat: VERMONT.defaultLat,
-  lon: VERMONT.defaultLon
 };
 
 // =============================================================================
@@ -140,6 +135,7 @@ function WeatherMap() {
       if (!e.features || e.features.length === 0 || !map.current) return;
 
       const feature = e.features[0];
+      if (!feature) return;
       const alert = feature.properties as AlertProperties;
       const coordinates = e.lngLat;
 
@@ -176,14 +172,20 @@ function WeatherMap() {
 
     // Calculate bounding box from polygon coordinates
     const coords = alert.geometry.coordinates[0];
+    if (!coords || coords.length === 0) return;
+
     let minLng = Infinity, maxLng = -Infinity;
     let minLat = Infinity, maxLat = -Infinity;
 
-    coords.forEach(([lng, lat]) => {
-      minLng = Math.min(minLng, lng);
-      maxLng = Math.max(maxLng, lng);
-      minLat = Math.min(minLat, lat);
-      maxLat = Math.max(maxLat, lat);
+    coords.forEach((point) => {
+      const lng = point[0];
+      const lat = point[1];
+      if (lng !== undefined && lat !== undefined) {
+        minLng = Math.min(minLng, lng);
+        maxLng = Math.max(maxLng, lng);
+        minLat = Math.min(minLat, lat);
+        maxLat = Math.max(maxLat, lat);
+      }
     });
 
     // Fly to bounds with smooth animation
@@ -251,7 +253,9 @@ function WeatherMap() {
 
     map.current.on('data', (e) => {
       if (import.meta.env.DEV && e.dataType === 'source' && e.sourceDataType === 'metadata') {
-        console.log('Source loaded:', e.sourceId);
+        // Cast to access sourceId which exists on source data events
+        const sourceEvent = e as { sourceId?: string };
+        console.log('Source loaded:', sourceEvent.sourceId);
       }
     });
 

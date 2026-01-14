@@ -5,7 +5,7 @@ import { fetchAllIncidents, type TravelIncident } from '../services/travelApi';
 import { getIncidentColor, shouldShowIncident } from '../utils/incidentColors';
 import { createMarkerElement } from '../utils/incidentIcons';
 import { INTERVALS } from '../utils/constants';
-import type { MapLibreMap, Marker, Popup, IncidentType, IncidentColor } from '../types';
+import type { MapLibreMap, Marker, Popup, IncidentType } from '../types';
 import './TravelLayer.css';
 
 // =============================================================================
@@ -99,13 +99,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
 
       setLoading(true);
       try {
-        const bounds = map.getBounds();
-        const data = await fetchAllIncidents({
-          west: bounds.getWest(),
-          south: bounds.getSouth(),
-          east: bounds.getEast(),
-          north: bounds.getNorth()
-        });
+        const data = await fetchAllIncidents();
         setIncidents(data);
       } catch (error) {
         if (import.meta.env.DEV) {
@@ -402,10 +396,8 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
 
   // Group incidents by type
   const incidentsByType: IncidentsByType = visibleIncidents.reduce((acc, incident) => {
-    if (!acc[incident.type]) {
-      acc[incident.type] = [];
-    }
-    acc[incident.type].push(incident);
+    const incidentList = acc[incident.type] ?? (acc[incident.type] = []);
+    incidentList.push(incident);
     return acc;
   }, {} as IncidentsByType);
 
@@ -498,10 +490,10 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
                         {getIcon(type)}
                       </span>
                       <span className="group-title">
-                        {getTypeLabel(type)} ({incidentsByType[type].length})
+                        {getTypeLabel(type)} ({incidentsByType[type]?.length ?? 0})
                       </span>
                     </div>
-                    {incidentsByType[type].map(incident => (
+                    {(incidentsByType[type] ?? []).map(incident => (
                       <div
                         key={incident.id}
                         className={`incident-item ${selectedIncident?.id === incident.id ? 'selected' : ''} ${(incident.geometry || incident.location) ? 'clickable' : ''}`}
