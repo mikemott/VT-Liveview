@@ -3,6 +3,7 @@ import maplibregl from 'maplibre-gl';
 import { graphqlClient } from '../services/graphqlClient';
 import { gql } from 'graphql-request';
 import { INTERVALS } from '../utils/constants';
+import { escapeHTML } from '../utils/sanitize';
 import type { MapLibreMap, Marker, Popup } from '../types';
 import './WeatherStationsLayer.css';
 
@@ -232,6 +233,12 @@ function WeatherStationsLayer({ map, visible, isDark }: WeatherStationsLayerProp
         background: '#ffffff'
       };
 
+      // Escape user-controlled content to prevent XSS
+      const safeName = escapeHTML(station.name);
+      const safeDescription = escapeHTML(station.weather.description);
+      const safeWindSpeed = escapeHTML(station.weather.windSpeed);
+      const safeWindDirection = escapeHTML(station.weather.windDirection);
+
       const popup = new maplibregl.Popup({
         offset: 25,
         closeButton: true,
@@ -241,7 +248,7 @@ function WeatherStationsLayer({ map, visible, isDark }: WeatherStationsLayerProp
         <div style="padding: 6px; background: ${themeColors.background}; color: ${themeColors.text};">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
             <h3 style="margin: 0; color: ${themeColors.title}; font-size: 15px; font-weight: 600;">
-              ${station.name}
+              ${safeName}
             </h3>
           </div>
 
@@ -262,17 +269,17 @@ function WeatherStationsLayer({ map, visible, isDark }: WeatherStationsLayerProp
             </div>
             <div style="text-align: right;">
               <div style="font-size: 13px; color: ${themeColors.text}; font-weight: 500;">
-                ${station.weather.description}
+                ${safeDescription}
               </div>
             </div>
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; margin-bottom: 8px;">
-            ${station.weather.windSpeed ? `
+            ${safeWindSpeed ? `
               <div style="padding: 6px; background: ${isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)'}; border-radius: 4px;">
                 <div style="color: ${themeColors.metadata}; font-size: 10px; margin-bottom: 2px;">Wind</div>
                 <div style="color: ${themeColors.text}; font-weight: 600;">
-                  ${station.weather.windDirection || ''} ${station.weather.windSpeed}
+                  ${safeWindDirection} ${safeWindSpeed}
                 </div>
               </div>
             ` : ''}
