@@ -162,7 +162,7 @@ describe('shouldShowIncident', () => {
   });
 
   describe('edge cases at zoom boundaries', () => {
-    it('should hide MAJOR at exactly zoom 8', () => {
+    it('should show MAJOR at exactly zoom 8 (boundary)', () => {
       expect(shouldShowIncident({ type: 'ACCIDENT' }, 8)).toBe(true);
     });
 
