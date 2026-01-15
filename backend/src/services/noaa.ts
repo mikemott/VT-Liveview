@@ -239,14 +239,24 @@ export async function getAlerts(state: string): Promise<Alert[]> {
 }
 
 // ============================================================================
-// Helper Functions
+// Helper Functions (exported for testing)
 // ============================================================================
 
-function celsiusToFahrenheit(celsius: number): number {
+/**
+ * Convert Celsius temperature to Fahrenheit.
+ * @param celsius - Temperature in Celsius
+ * @returns Temperature in Fahrenheit, rounded to nearest integer
+ */
+export function celsiusToFahrenheit(celsius: number): number {
   return Math.round((celsius * 9) / 5 + 32);
 }
 
-function degreesToCardinal(degrees: number): string {
+/**
+ * Convert wind direction degrees to cardinal direction string.
+ * @param degrees - Wind direction in degrees (0-360)
+ * @returns Cardinal direction (N, NNE, NE, etc.)
+ */
+export function degreesToCardinal(degrees: number): string {
   const directions = [
     'N',
     'NNE',
