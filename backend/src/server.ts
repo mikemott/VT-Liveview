@@ -17,8 +17,27 @@ import { validateEnv, isProd, isDev } from './types/index.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Read GraphQL schema
-const typeDefs = readFileSync(join(__dirname, 'schema.graphql'), 'utf-8');
+// Read GraphQL schema - handle both development (src/) and production (dist/) paths
+function loadSchema(): string {
+  const possiblePaths = [
+    join(__dirname, 'schema.graphql'), // Development: running from src/
+    join(__dirname, '..', 'src', 'schema.graphql'), // Production: running from dist/
+  ];
+
+  for (const schemaPath of possiblePaths) {
+    try {
+      return readFileSync(schemaPath, 'utf-8');
+    } catch {
+      // Try next path
+    }
+  }
+
+  throw new Error(
+    `Could not find schema.graphql. Searched: ${possiblePaths.join(', ')}`
+  );
+}
+
+const typeDefs = loadSchema();
 
 /**
  * Health check response type
@@ -101,12 +120,20 @@ async function start(): Promise<void> {
 
   // VT 511 proxy endpoints
   const VT_511_BASE = 'https://nec-por.ne-compass.com/NEC.XmlDataPortal/api/c2c';
+  const vt511FetchOptions: RequestInit = {
+    headers: {
+      'User-Agent': `VT-Liveview/1.0 (${env.CONTACT_EMAIL ?? 'weather-app'})`,
+    },
+  };
 
   fastify.get(
     '/api/vt511/incidents',
     async (_request: FastifyRequest, reply: FastifyReply): Promise<void> => {
       try {
-        const response = await fetch(`${VT_511_BASE}?networks=Vermont&dataTypes=incidentData`);
+        const response = await fetch(
+          `${VT_511_BASE}?networks=Vermont&dataTypes=incidentData`,
+          vt511FetchOptions
+        );
         const xmlText = await response.text();
         reply.type('text/xml').send(xmlText);
       } catch {
@@ -119,7 +146,10 @@ async function start(): Promise<void> {
     '/api/vt511/closures',
     async (_request: FastifyRequest, reply: FastifyReply): Promise<void> => {
       try {
-        const response = await fetch(`${VT_511_BASE}?networks=Vermont&dataTypes=laneClosureData`);
+        const response = await fetch(
+          `${VT_511_BASE}?networks=Vermont&dataTypes=laneClosureData`,
+          vt511FetchOptions
+        );
         const xmlText = await response.text();
         reply.type('text/xml').send(xmlText);
       } catch {

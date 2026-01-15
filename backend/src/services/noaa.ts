@@ -16,16 +16,31 @@ import type {
   NOAAForecastResponse,
   NOAAAlertsResponse,
 } from '../types/index.js';
+import { getEnv } from '../types/index.js';
 
 const NOAA_BASE = 'https://api.weather.gov';
-const USER_AGENT = 'VT-Liveview Weather App (mike@mottvt.com)';
 
-const fetchOptions: RequestInit = {
-  headers: {
-    'User-Agent': USER_AGENT,
-    Accept: 'application/geo+json',
-  },
-};
+/**
+ * Build User-Agent string for NOAA API requests.
+ * Uses CONTACT_EMAIL env var per NOAA API Terms of Service.
+ */
+function getUserAgent(): string {
+  const env = getEnv();
+  const contactEmail = env.CONTACT_EMAIL ?? 'weather-app@localhost';
+  return `VT-Liveview Weather App (${contactEmail})`;
+}
+
+/**
+ * Get fetch options with dynamic User-Agent header.
+ */
+function getFetchOptions(): RequestInit {
+  return {
+    headers: {
+      'User-Agent': getUserAgent(),
+      Accept: 'application/geo+json',
+    },
+  };
+}
 
 // ============================================================================
 // Grid Point Cache (LRU with max 100 entries)
@@ -47,7 +62,7 @@ async function getGridPoint(lat: number, lon: number): Promise<NOAAGridPointProp
     return cached;
   }
 
-  const response = await fetch(`${NOAA_BASE}/points/${lat},${lon}`, fetchOptions);
+  const response = await fetch(`${NOAA_BASE}/points/${lat},${lon}`, getFetchOptions());
 
   if (!response.ok) {
     throw new Error(`Failed to get grid point: ${response.status}`);
@@ -95,7 +110,7 @@ export async function getCurrentWeather(lat: number, lon: number): Promise<Weath
   const gridPoint = await getGridPoint(lat, lon);
 
   // Get observation stations
-  const stationsResponse = await fetch(gridPoint.observationStations, fetchOptions);
+  const stationsResponse = await fetch(gridPoint.observationStations, getFetchOptions());
   if (!stationsResponse.ok) {
     throw new Error(`Failed to get stations: ${stationsResponse.status}`);
   }
@@ -114,7 +129,7 @@ export async function getCurrentWeather(lat: number, lon: number): Promise<Weath
     try {
       const obsResponse = await fetch(
         `${NOAA_BASE}/stations/${stationId}/observations/latest`,
-        fetchOptions
+        getFetchOptions()
       );
 
       if (!obsResponse.ok) continue;
@@ -162,7 +177,7 @@ export async function getCurrentWeather(lat: number, lon: number): Promise<Weath
 export async function getForecast(lat: number, lon: number): Promise<ForecastPeriod[]> {
   const gridPoint = await getGridPoint(lat, lon);
 
-  const forecastResponse = await fetch(gridPoint.forecast, fetchOptions);
+  const forecastResponse = await fetch(gridPoint.forecast, getFetchOptions());
 
   if (!forecastResponse.ok) {
     throw new Error(`Failed to get forecast: ${forecastResponse.status}`);
@@ -190,7 +205,7 @@ export async function getForecast(lat: number, lon: number): Promise<ForecastPer
  * Get active weather alerts for a state.
  */
 export async function getAlerts(state: string): Promise<Alert[]> {
-  const response = await fetch(`${NOAA_BASE}/alerts/active?area=${state}`, fetchOptions);
+  const response = await fetch(`${NOAA_BASE}/alerts/active?area=${state}`, getFetchOptions());
 
   if (!response.ok) {
     throw new Error(`Failed to get alerts: ${response.status}`);
@@ -287,7 +302,7 @@ export async function getObservationStations(): Promise<ObservationStation[]> {
   }
 
   // Fetch all Vermont observation stations
-  const stationsResponse = await fetch(`${NOAA_BASE}/stations?state=VT&limit=50`, fetchOptions);
+  const stationsResponse = await fetch(`${NOAA_BASE}/stations?state=VT&limit=50`, getFetchOptions());
 
   if (!stationsResponse.ok) {
     throw new Error(`Failed to get stations: ${stationsResponse.status}`);
@@ -303,7 +318,7 @@ export async function getObservationStations(): Promise<ObservationStation[]> {
         const stationId = station.properties.stationIdentifier;
         const obsResponse = await fetch(
           `${NOAA_BASE}/stations/${stationId}/observations/latest`,
-          fetchOptions
+          getFetchOptions()
         );
 
         if (!obsResponse.ok) {

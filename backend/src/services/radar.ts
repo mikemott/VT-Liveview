@@ -105,6 +105,12 @@ export async function getRainViewerRadar(): Promise<RadarInfo> {
   }
 
   const data = (await response.json()) as RainViewerResponse;
+
+  // Validate response structure before accessing
+  if (!data.radar?.past || data.radar.past.length === 0) {
+    throw new Error('RainViewer API returned no radar frames');
+  }
+
   const radar = data.radar;
 
   // Get past frames (last 6)
@@ -113,11 +119,12 @@ export async function getRainViewerRadar(): Promise<RadarInfo> {
     path: `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/2/1_1.png`,
   }));
 
-  const lastFrame = pastFrames[pastFrames.length - 1];
+  // Safe to access since we validated radar.past has items above
+  const lastFrame = pastFrames.at(-1)!;
 
   return {
     baseUrl: 'https://tilecache.rainviewer.com',
     timestamps: pastFrames,
-    tilePattern: lastFrame?.path ?? '',
+    tilePattern: lastFrame.path,
   };
 }
