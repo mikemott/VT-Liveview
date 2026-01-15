@@ -379,9 +379,9 @@
   margin-top: 0;
 }
 
-/* Mobile responsiveness */
+/* Mobile responsiveness - OLD breakpoint (keeping for backwards compatibility) */
 @media (max-width: 640px) {
-  .controls-panel {
+  .controls-panel:not(.mobile) {
     top: 10px;
     left: 10px;
     right: 10px;
@@ -392,6 +392,142 @@
   .controls-panel h2 {
     font-size: 20px;
   }
+}
+
+/* =============================================================================
+   Mobile-First Responsive Design (768px breakpoint)
+   ============================================================================= */
+
+/* Mobile Menu Toggle Button */
+.mobile-menu-toggle {
+  position: absolute;
+  bottom: 24px;
+  left: 16px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(244, 241, 232, 0.95);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(139, 119, 85, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 100;
+  transition: all 0.3s ease;
+  color: #2d4a2b;
+}
+
+.mobile-menu-toggle:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.mobile-menu-toggle:active {
+  transform: scale(0.95);
+}
+
+.mobile-menu-toggle.open {
+  background: rgba(76, 111, 68, 0.9);
+  color: white;
+  border-color: rgba(76, 111, 68, 0.8);
+}
+
+.mobile-menu-toggle.dark {
+  background: rgba(28, 32, 36, 0.95);
+  border-color: rgba(118, 141, 115, 0.3);
+  color: #b8cdb0;
+}
+
+.mobile-menu-toggle.dark.open {
+  background: rgba(118, 141, 115, 0.9);
+  color: white;
+}
+
+/* Mobile Controls Panel */
+.controls-panel.mobile {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: auto;
+  bottom: 0;
+  width: 85vw;
+  max-width: 360px;
+  max-height: 100vh;
+  border-radius: 0 16px 16px 0;
+  transform: translateX(0);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+  z-index: 200;
+  overflow: hidden;
+}
+
+.controls-panel.mobile.hidden {
+  transform: translateX(-100%);
+  pointer-events: none;
+  opacity: 0;
+}
+
+.controls-panel.mobile .controls-panel-scroll {
+  max-height: calc(100vh - 100px);
+  padding-bottom: 40px;
+}
+
+/* Close button inside panel */
+.mobile-panel-close {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.1);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #2d4a2b;
+  transition: all 0.2s ease;
+}
+
+.mobile-panel-close:hover {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.controls-panel.dark .mobile-panel-close {
+  background: rgba(255, 255, 255, 0.1);
+  color: #b8cdb0;
+}
+
+.controls-panel.dark .mobile-panel-close:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Mobile overlay backdrop */
+.controls-panel.mobile::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.controls-panel.mobile:not(.hidden)::before {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Logo container adjustments for mobile */
+.controls-panel.mobile .logo-container {
+  padding-right: 56px; /* Make room for close button */
 }
 
 /* Maplibre popup styling */
