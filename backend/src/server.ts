@@ -159,9 +159,10 @@ async function start(): Promise<void> {
 
         if (!tokenValid) {
           // Log failed access attempts with IP (but not the attempted token)
-          const clientIP = request.headers['x-forwarded-for'] ?? request.ip;
+          // Note: Only use request.ip (derived from socket) since trustProxy is not enabled.
+          // x-forwarded-for can be spoofed without a trusted proxy configuration.
           fastify.log.warn(
-            `Failed admin access attempt from IP: ${clientIP}`
+            `Failed admin access attempt from IP: ${request.ip}`
           );
           reply.code(401);
           return { error: 'Unauthorized' };

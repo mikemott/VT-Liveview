@@ -84,6 +84,26 @@ describe('escapeAndTruncate', () => {
   it('should handle null input', () => {
     expect(escapeAndTruncate(null)).toBe('');
   });
+
+  it('should not cut through HTML entities when truncating', () => {
+    // String with many & characters that expand to &amp; (5 chars each)
+    const manyAmps = '&'.repeat(20); // 20 chars, expands to 100 chars escaped
+    const result = escapeAndTruncate(manyAmps, 50);
+
+    // Should not contain broken entities like "&am" or "&amp"
+    expect(result).not.toMatch(/&(?!amp;|lt;|gt;|quot;|#x27;|#x2F;|#x60;|#x3D;)/);
+
+    // Should end with ... and be valid
+    expect(result.endsWith('...')).toBe(true);
+    expect(result.length).toBeLessThanOrEqual(50);
+  });
+
+  it('should handle strings at exactly max length', () => {
+    const exactString = 'a'.repeat(500);
+    const result = escapeAndTruncate(exactString);
+    expect(result.length).toBe(500);
+    expect(result.endsWith('...')).toBe(false);
+  });
 });
 
 describe('containsHTML', () => {

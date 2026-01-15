@@ -41,6 +41,9 @@ export function escapeHTML(str: string | null | undefined): string {
  * Escape HTML and truncate to max length
  * Useful for displaying user content in limited-width UI elements
  *
+ * Important: Truncates the ORIGINAL string before escaping to avoid
+ * cutting through HTML entities (e.g., "&amp;" becoming "&am").
+ *
  * @param str - The string to escape and truncate
  * @param maxLength - Maximum length before truncation (default: 500)
  * @returns Escaped and possibly truncated string
@@ -49,13 +52,42 @@ export function escapeAndTruncate(
   str: string | null | undefined,
   maxLength = 500
 ): string {
-  const escaped = escapeHTML(str);
+  if (str == null) {
+    return '';
+  }
 
+  const original = String(str);
+  const escaped = escapeHTML(original);
+
+  // If escaped version fits, return it
   if (escaped.length <= maxLength) {
     return escaped;
   }
 
-  return escaped.slice(0, maxLength - 3) + '...';
+  // Truncate original string before escaping to avoid cutting through entities.
+  // Start with a conservative estimate and adjust if needed.
+  // Reserve 3 chars for "..." suffix.
+  const targetLength = maxLength - 3;
+
+  // Binary search for the longest prefix that fits when escaped
+  let low = 0;
+  let high = original.length;
+  let bestFit = 0;
+
+  while (low <= high) {
+    const mid = Math.floor((low + high) / 2);
+    const truncated = original.slice(0, mid);
+    const escapedTruncated = escapeHTML(truncated);
+
+    if (escapedTruncated.length <= targetLength) {
+      bestFit = mid;
+      low = mid + 1;
+    } else {
+      high = mid - 1;
+    }
+  }
+
+  return escapeHTML(original.slice(0, bestFit)) + '...';
 }
 
 /**
