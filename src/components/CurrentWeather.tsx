@@ -23,6 +23,7 @@ interface CurrentWeatherProps {
   lat?: number;
   lon?: number;
   isDark?: boolean;
+  isMobile?: boolean;
 }
 
 function getWeatherIcon(description: string | undefined, isDark: boolean): ReactNode {
@@ -46,8 +47,9 @@ function getWeatherIcon(description: string | undefined, isDark: boolean): React
   return <Cloud size={48} />;
 }
 
-export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, isDark = false }: CurrentWeatherProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, isDark = false, isMobile = false }: CurrentWeatherProps) {
+  // Default to collapsed on mobile for better map visibility
+  const [isExpanded, setIsExpanded] = useState(!isMobile);
 
   const { data, isLoading, error } = useQuery<CurrentWeatherData | null>({
     queryKey: ['currentWeather', lat, lon],
@@ -90,9 +92,12 @@ export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, i
     );
   }
 
+  // Mobile collapsed: ultra-minimal view (just temp + icon)
+  const showMinimalView = isMobile && !isExpanded;
+
   return (
     <div
-      className={`current-weather ${isDark ? 'dark' : ''} ${isExpanded ? 'expanded' : 'collapsed'}`}
+      className={`current-weather ${isDark ? 'dark' : ''} ${isExpanded ? 'expanded' : 'collapsed'} ${isMobile ? 'mobile' : ''}`}
       onClick={() => setIsExpanded(!isExpanded)}
     >
       <div className="weather-main">
@@ -105,24 +110,29 @@ export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, i
         </div>
       </div>
 
-      <div className="weather-description">
-        {data.description}
-      </div>
+      {/* Hide description and details when mobile collapsed */}
+      {!showMinimalView && (
+        <>
+          <div className="weather-description">
+            {data.description}
+          </div>
 
-      <div className="weather-details">
-        {data.windSpeed && (
-          <div className="detail-item">
-            <Wind size={16} />
-            <span>{data.windSpeed} {data.windDirection}</span>
+          <div className="weather-details">
+            {data.windSpeed && (
+              <div className="detail-item">
+                <Wind size={16} />
+                <span>{data.windSpeed} {data.windDirection}</span>
+              </div>
+            )}
+            {data.humidity !== null && data.humidity !== undefined && (
+              <div className="detail-item">
+                <Droplets size={16} />
+                <span>{Math.round(data.humidity)}%</span>
+              </div>
+            )}
           </div>
-        )}
-        {data.humidity !== null && data.humidity !== undefined && (
-          <div className="detail-item">
-            <Droplets size={16} />
-            <span>{Math.round(data.humidity)}%</span>
-          </div>
-        )}
-      </div>
+        </>
+      )}
 
       {isExpanded && (
         <>

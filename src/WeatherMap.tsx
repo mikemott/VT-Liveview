@@ -10,6 +10,8 @@ import ThemeToggle from './components/ThemeToggle';
 import { getMapStyle, isDarkMode } from './utils/mapStyles';
 import type { MapLibreMap } from './types';
 import { VERMONT, INTERVALS } from './utils/constants';
+import { useIsMobile } from './hooks/useIsMobile';
+import { Menu, X } from 'lucide-react';
 
 // =============================================================================
 // Types
@@ -67,6 +69,10 @@ function WeatherMap() {
     lng: VERMONT_CENTER.lng
   });
   const [showWeatherStations, setShowWeatherStations] = useState(true);
+
+  // Mobile responsiveness
+  const isMobile = useIsMobile();
+  const [controlsPanelOpen, setControlsPanelOpen] = useState(false); // Collapsed by default on mobile
 
   // Add alerts to map
   const addAlertsToMap = useCallback((alertFeatures: AlertFeature[]): void => {
@@ -379,20 +385,52 @@ function WeatherMap() {
           lat={mapCenter.lat}
           lon={mapCenter.lng}
           isDark={isDark}
+          isMobile={isMobile}
         />
       )}
 
       {/* Theme Toggle */}
       <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
 
-      {/* Controls Panel */}
-      <div className={`controls-panel ${isDark ? 'dark' : ''}`}>
+      {/* Mobile Menu Toggle Button */}
+      {isMobile && (
+        <button
+          className={`mobile-menu-toggle ${isDark ? 'dark' : ''} ${controlsPanelOpen ? 'open' : ''}`}
+          onClick={() => setControlsPanelOpen(!controlsPanelOpen)}
+          aria-label={controlsPanelOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={controlsPanelOpen}
+        >
+          {controlsPanelOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      )}
+
+      {/* Mobile Backdrop Overlay - clickable to close panel */}
+      {isMobile && controlsPanelOpen && (
+        <div
+          className={`mobile-backdrop ${isDark ? 'dark' : ''}`}
+          onClick={() => setControlsPanelOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Controls Panel - hidden on mobile unless toggled open */}
+      <div className={`controls-panel ${isDark ? 'dark' : ''} ${isMobile ? 'mobile' : ''} ${isMobile && !controlsPanelOpen ? 'hidden' : ''}`}>
         <div className="logo-container">
           <img
             src={isDark ? '/assets/vt-liveview-dark.svg' : '/assets/vt-liveview-light.svg'}
             alt="VT LiveView"
             className="app-logo"
           />
+          {/* Close button inside panel on mobile */}
+          {isMobile && (
+            <button
+              className="mobile-panel-close"
+              onClick={() => setControlsPanelOpen(false)}
+              aria-label="Close panel"
+            >
+              <X size={20} />
+            </button>
+          )}
         </div>
 
         <div className="controls-panel-scroll">
