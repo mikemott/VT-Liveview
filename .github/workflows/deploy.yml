@@ -52,22 +52,13 @@ jobs:
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
 
       - name: Deploy to Cloudflare Pages
+        # Only deploy on push to main, not on PRs (PRs just run tests)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: cloudflare/pages-action@v1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: your-project-name
+          projectName: vt-liveview
           directory: dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update Linear issue
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-          # Extract Linear issue ID from commit message
-          ISSUE_ID=$(git log -1 --pretty=%B | grep -oE 'LIN-[0-9]+' | head -1)
-          if [ ! -z "$ISSUE_ID" ]; then
-            # Update Linear issue status (requires Linear API integration)
-            echo "Deployed for issue: $ISSUE_ID"
-          fi
-        env:
-          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}

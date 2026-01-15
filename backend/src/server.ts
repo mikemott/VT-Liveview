@@ -5,6 +5,8 @@
 
 import Fastify, { type FastifyRequest, type FastifyReply } from 'fastify';
 import cors from '@fastify/cors';
+import rateLimit from '@fastify/rate-limit';
+import { timingSafeEqual } from 'crypto';
 import { ApolloServer } from '@apollo/server';
 import { fastifyApolloDrainPlugin, fastifyApolloHandler } from '@as-integrations/fastify';
 import { readFileSync } from 'fs';
@@ -71,12 +73,45 @@ async function start(): Promise<void> {
     logger: true,
   });
 
-  // Enable CORS for frontend
+  // Parse allowed origins from environment
+  const allowedOrigins = new Set(
+    (env.ALLOWED_ORIGINS ?? 'https://vtliveview.com')
+      .split(',')
+      .map((origin) => origin.trim())
+      .filter(Boolean)
+  );
+
+  // Enable CORS with origin validation callback
   await fastify.register(cors, {
     origin: isProd()
-      ? (env.ALLOWED_ORIGINS ?? 'https://vtliveview.com').split(',')
+      ? (origin, callback) => {
+          // Allow requests with no origin (same-origin, curl, etc.)
+          if (!origin) {
+            callback(null, true);
+            return;
+          }
+          // Validate against allowlist
+          if (allowedOrigins.has(origin)) {
+            callback(null, true);
+          } else {
+            fastify.log.warn(`CORS blocked request from origin: ${origin}`);
+            callback(new Error('Not allowed by CORS'), false);
+          }
+        }
       : true, // Allow all origins in development
     methods: ['GET', 'POST', 'OPTIONS'],
+    maxAge: 86400, // Cache preflight responses for 24 hours
+  });
+
+  // Rate limiting for proxy endpoints (100 requests per minute)
+  await fastify.register(rateLimit, {
+    max: 100,
+    timeWindow: '1 minute',
+    // Only apply to API routes, not GraphQL or health
+    allowList: (request) => {
+      const url = request.url;
+      return url === '/health' || url === '/graphql';
+    },
   });
 
   // Create Apollo Server
@@ -108,7 +143,27 @@ async function start(): Promise<void> {
       // Require auth token in production
       if (isProd()) {
         const adminToken = request.headers['x-admin-token'];
-        if (!env.ADMIN_TOKEN || adminToken !== env.ADMIN_TOKEN) {
+
+        // Check if admin token is configured
+        if (!env.ADMIN_TOKEN) {
+          fastify.log.error('Admin endpoint accessed but ADMIN_TOKEN not configured');
+          reply.code(401);
+          return { error: 'Unauthorized' };
+        }
+
+        // Use timing-safe comparison to prevent timing attacks
+        const tokenValid =
+          typeof adminToken === 'string' &&
+          adminToken.length === env.ADMIN_TOKEN.length &&
+          timingSafeEqual(Buffer.from(adminToken), Buffer.from(env.ADMIN_TOKEN));
+
+        if (!tokenValid) {
+          // Log failed access attempts with IP (but not the attempted token)
+          // Note: Only use request.ip (derived from socket) since trustProxy is not enabled.
+          // x-forwarded-for can be spoofed without a trusted proxy configuration.
+          fastify.log.warn(
+            `Failed admin access attempt from IP: ${request.ip}`
+          );
           reply.code(401);
           return { error: 'Unauthorized' };
         }

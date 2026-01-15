@@ -58,19 +58,40 @@
 
 All work follows a Branch → PR → CodeRabbit Review → Merge workflow.
 
+### Linear Integration
+
+This project uses Linear for issue tracking with automatic GitHub integration.
+
+**Branch Naming Convention:**
+```bash
+vtl-XXX-short-description    # lowercase, Linear issue ID prefix
+# Example: vtl-12-add-air-quality → VTL-12
+```
+
+**Magic Words (in PR body or commits):**
+- `Closes VTL-XXX` - Auto-closes issue on merge
+- `Fixes VTL-XXX` - Auto-closes issue on merge
+
+**What Happens Automatically:**
+1. **PR opened** → Linear issue moves to "In Review" status
+2. **PR opened** → Comment added to Linear issue with PR link
+3. **PR merged with magic words** → Linear issue auto-closes
+
 ### Creating Pull Requests
 
 ```bash
-# 1. Create feature branch
-git checkout -b feature-name
+# 1. Create feature branch (use Linear issue ID!)
+git checkout -b vtl-XXX-short-description
 
 # 2. Make changes and commit
 git add . && git commit -m "feat: description"
 
-# 3. Push and create PR
-git push -u origin feature-name
-gh pr create --title "feat: description" --body "## Summary\n- Change 1"
+# 3. Push and create PR (include magic words!)
+git push -u origin vtl-XXX-short-description
+gh pr create --title "feat: description" --body "Closes VTL-XXX\n\n## Summary\n- Change 1"
 ```
+
+**Note:** A PR template is provided at `.github/pull_request_template.md` with `Closes VTL-` pre-filled.
 
 ### Review CodeRabbit Feedback (AUTOMATIC - Claude Does This)
 
@@ -98,8 +119,11 @@ gh pr merge <number> --squash --delete-branch
 | Automation | Trigger | Action |
 |------------|---------|--------|
 | **CodeRabbit** | PR opened/updated | AI code review (GitHub App) |
+| **Linear Sync** | PR opened/reopened | Update Linear issue to "In Review", add PR link comment |
 | **Deploy** | Push to `main` | Build & deploy to Cloudflare Pages |
 | **Sentry** | Production deploy | Upload source maps |
+
+**Required GitHub Secret:** `LINEAR_API_KEY` - Get from Linear Settings → API → Personal API Keys
 
 ---
 
@@ -212,8 +236,11 @@ VT-Liveview/
 │   │
 │   └── package.json                  # Backend dependencies
 │
-├── .github/workflows/
-│   └── deploy.yml                    # Cloudflare Pages CI/CD + Sentry uploads
+├── .github/
+│   ├── pull_request_template.md      # PR template with Linear magic words
+│   └── workflows/
+│       ├── deploy.yml                # Cloudflare Pages CI/CD + Sentry uploads
+│       └── linear-sync.yml           # Linear ↔ GitHub PR sync automation
 │
 ├── Configuration Files
 │   ├── package.json                  # Frontend dependencies (8 core, 11 dev)
@@ -418,10 +445,12 @@ npm start  # Production mode
 **GitHub Actions workflow (`.github/workflows/deploy.yml`):**
 1. Checkout code
 2. Install dependencies
-3. Build with Vite
-4. Upload source maps to Sentry (production only)
-5. Deploy to Cloudflare Pages
-6. Update Linear issues (if commit contains `LIN-XXX`)
+3. Run tests
+4. Build with Vite
+5. Upload source maps to Sentry (production only)
+6. Deploy to Cloudflare Pages
+
+**Linear sync handled separately** by `.github/workflows/linear-sync.yml` (see Development Workflow section).
 
 ### Backend Deployment Options
 
@@ -789,6 +818,6 @@ When starting a new Claude session on this project:
 
 ---
 
-**Last Updated:** 2026-01-14
+**Last Updated:** 2026-01-15
 **Maintainer:** Mike Mott (mike@mottvt.com)
 **License:** MIT

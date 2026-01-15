@@ -5,6 +5,7 @@ import { fetchAllIncidents, type TravelIncident } from '../services/travelApi';
 import { getIncidentColor, shouldShowIncident } from '../utils/incidentColors';
 import { createMarkerElement } from '../utils/incidentIcons';
 import { INTERVALS } from '../utils/constants';
+import { escapeHTML } from '../utils/sanitize';
 import type { MapLibreMap, Marker, Popup, IncidentType } from '../types';
 import './TravelLayer.css';
 
@@ -291,6 +292,12 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
         background: '#ffffff'
       };
 
+      // Escape user-controlled content to prevent XSS
+      const safeTitle = escapeHTML(incident.title);
+      const safeRoadName = escapeHTML(incident.roadName);
+      const safeDescription = escapeHTML(incident.description);
+      const safeSource = escapeHTML(incident.source);
+
       const popup = new maplibregl.Popup({
         offset: 25,
         closeButton: true,
@@ -311,21 +318,21 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
             ">${incident.type}</span>
           </div>
           <h3 style="margin: 0 0 8px 0; color: ${themeColors.title}; font-size: 15px; font-weight: 600;">
-            ${incident.title}
+            ${safeTitle}
           </h3>
-          ${incident.roadName ? `
+          ${safeRoadName ? `
             <p style="margin: 0 0 6px 0; color: ${themeColors.text}; font-size: 13px; font-weight: 500;">
-              📍 ${incident.roadName}
+              📍 ${safeRoadName}
             </p>
           ` : ''}
-          ${incident.description ? `
+          ${safeDescription ? `
             <p style="margin: 0 0 8px 0; color: ${themeColors.textSecondary}; font-size: 13px; line-height: 1.4;">
-              ${incident.description}
+              ${safeDescription}
             </p>
           ` : ''}
           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 8px; border-top: 1px solid ${themeColors.border};">
             <span style="font-size: 11px; color: ${themeColors.metadata}; font-style: italic;">
-              ${incident.source}
+              ${safeSource}
             </span>
             ${incident.startTime ? `
               <span style="font-size: 11px; color: ${themeColors.metadata};">
