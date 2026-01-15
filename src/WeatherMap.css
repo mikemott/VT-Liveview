@@ -505,24 +505,26 @@
   background: rgba(255, 255, 255, 0.15);
 }
 
-/* Mobile overlay backdrop */
-.controls-panel.mobile::before {
-  content: '';
+/* Mobile overlay backdrop - real DOM element for click handling */
+.mobile-backdrop {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.4);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-  z-index: -1;
+  z-index: 150; /* Between toggle (100) and panel (200) */
+  cursor: pointer;
+  animation: fadeIn 0.3s ease;
 }
 
-.controls-panel.mobile:not(.hidden)::before {
-  opacity: 1;
-  pointer-events: auto;
+.mobile-backdrop.dark {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* Logo container adjustments for mobile */

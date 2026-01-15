@@ -404,6 +404,15 @@ function WeatherMap() {
         </button>
       )}
 
+      {/* Mobile Backdrop Overlay - clickable to close panel */}
+      {isMobile && controlsPanelOpen && (
+        <div
+          className={`mobile-backdrop ${isDark ? 'dark' : ''}`}
+          onClick={() => setControlsPanelOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Controls Panel - hidden on mobile unless toggled open */}
       <div className={`controls-panel ${isDark ? 'dark' : ''} ${isMobile ? 'mobile' : ''} ${isMobile && !controlsPanelOpen ? 'hidden' : ''}`}>
         <div className="logo-container">
