@@ -1,0 +1,93 @@
+name: Linear PR Sync
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review, closed]
+
+jobs:
+  sync-linear:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract Linear issue identifier from PR
+        id: extract_issue
+        env:
+          BRANCH_NAME: ${{ github.head_ref }}
+        run: |
+          # Extract issue identifier from branch name (e.g., vtl-6-fix-feature -> VTL-6)
+          # Only match the numeric pattern to avoid injection
+          if [[ $BRANCH_NAME =~ ^vtl-([0-9]+) ]]; then
+            ISSUE_IDENTIFIER="VTL-${BASH_REMATCH[1]}"
+            echo "issue_identifier=$ISSUE_IDENTIFIER" >> $GITHUB_OUTPUT
+            echo "Found Linear issue: $ISSUE_IDENTIFIER"
+          else
+            echo "No Linear issue found in branch name"
+            echo "issue_identifier=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get Linear issue UUID and update to In Review
+        if: |
+          steps.extract_issue.outputs.issue_identifier != '' &&
+          (github.event.action == 'opened' ||
+           github.event.action == 'reopened' ||
+           github.event.action == 'ready_for_review')
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          ISSUE_ID: ${{ steps.extract_issue.outputs.issue_identifier }}
+        run: |
+          # Query Linear to get issue UUID from identifier
+          RESPONSE=$(curl -s -X POST https://api.linear.app/graphql \
+            -H "Authorization: $LINEAR_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"query\": \"query { issue(id: \\\"$ISSUE_ID\\\") { id team { states(filter: { name: { eq: \\\"In Review\\\" } }) { nodes { id } } } } }\"
+            }")
+
+          # Extract UUID and In Review state ID
+          ISSUE_UUID=$(echo $RESPONSE | jq -r '.data.issue.id')
+          IN_REVIEW_STATE_ID=$(echo $RESPONSE | jq -r '.data.issue.team.states.nodes[0].id')
+
+          if [ "$ISSUE_UUID" != "null" ] && [ "$IN_REVIEW_STATE_ID" != "null" ]; then
+            echo "Updating issue $ISSUE_UUID to In Review state $IN_REVIEW_STATE_ID"
+            curl -X POST https://api.linear.app/graphql \
+              -H "Authorization: $LINEAR_API_KEY" \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"query\": \"mutation { issueUpdate(id: \\\"$ISSUE_UUID\\\", input: { stateId: \\\"$IN_REVIEW_STATE_ID\\\" }) { success issue { id title state { name } } } }\"
+              }"
+          else
+            echo "Could not find issue or In Review state"
+          fi
+
+      - name: Add PR link comment to Linear
+        if: |
+          steps.extract_issue.outputs.issue_identifier != '' &&
+          github.event.action == 'opened'
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          ISSUE_ID: ${{ steps.extract_issue.outputs.issue_identifier }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          # Get issue UUID
+          RESPONSE=$(curl -s -X POST https://api.linear.app/graphql \
+            -H "Authorization: $LINEAR_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"query\": \"query { issue(id: \\\"$ISSUE_ID\\\") { id } }\"
+            }")
+
+          ISSUE_UUID=$(echo $RESPONSE | jq -r '.data.issue.id')
+
+          if [ "$ISSUE_UUID" != "null" ]; then
+            # Escape PR_TITLE for JSON (replace quotes and backslashes)
+            SAFE_TITLE=$(echo "$PR_TITLE" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g')
+            COMMENT_BODY="PR opened: [#$PR_NUMBER $SAFE_TITLE]($PR_URL)"
+
+            curl -X POST https://api.linear.app/graphql \
+              -H "Authorization: $LINEAR_API_KEY" \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"query\": \"mutation { commentCreate(input: { issueId: \\\"$ISSUE_UUID\\\", body: \\\"$COMMENT_BODY\\\" }) { success } }\"
+              }"
+          fi
