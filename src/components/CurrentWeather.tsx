@@ -93,7 +93,7 @@ export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, i
               )}
               {data.humidity !== null && data.humidity !== undefined && (
                 <>
-                  <span className="metric-separator">•</span>
+                  {data.windSpeed && <span className="metric-separator">•</span>}
                   <Droplets size={14} />
                   <span>{Math.round(data.humidity)}%</span>
                 </>
