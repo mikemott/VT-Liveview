@@ -3,7 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchCurrentWeather, fetchForecast, type CurrentWeatherData, type ForecastPeriodData } from '../services/graphqlClient';
 import { Wind, Droplets, ChevronDown } from 'lucide-react';
 import WeatherIcon from './WeatherIcon';
-import { getWeatherIconName, isNightPeriod } from '../utils/weatherIconMapping';
+import { getWeatherIconName } from '../utils/weatherIconMapping';
+import { isCurrentlyDaytime } from '../utils/time';
 import './CurrentWeather.css';
 
 // Default location: Montpelier, VT
@@ -73,7 +74,7 @@ export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, i
       <div className="weather-main">
         <div className="weather-icon">
           <WeatherIcon
-            name={getWeatherIconName(data.description, isDark)}
+            name={getWeatherIconName(data.description, !isCurrentlyDaytime(lat, lon))}
             size={48}
           />
         </div>
@@ -119,7 +120,7 @@ export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, i
                     <div className="forecast-period-label">{period.name}</div>
                     <div className="forecast-icon">
                       <WeatherIcon
-                        name={getWeatherIconName(period.shortForecast, isNightPeriod(period.name))}
+                        name={getWeatherIconName(period.shortForecast, !period.isDaytime)}
                         size={48}
                       />
                     </div>
