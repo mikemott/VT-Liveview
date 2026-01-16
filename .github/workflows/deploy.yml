@@ -41,6 +41,7 @@ jobs:
 
       - name: Upload source maps to Sentry
         if: github.ref == 'refs/heads/main'
+        continue-on-error: true
         run: |
           npm install -g @sentry/cli
           sentry-cli releases new ${{ github.sha }}
