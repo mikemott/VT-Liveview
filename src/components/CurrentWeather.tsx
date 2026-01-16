@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchCurrentWeather, fetchForecast, type CurrentWeatherData, type ForecastPeriodData } from '../services/graphqlClient';
 import { Wind, Droplets, ChevronDown } from 'lucide-react';
 import WeatherIcon from './WeatherIcon';
-import { getWeatherIconName } from '../utils/weatherIconMapping';
+import { getWeatherIconName, getWeatherIconFromNOAAUrl } from '../utils/weatherIconMapping';
 import { isCurrentlyDaytime } from '../utils/time';
 import './CurrentWeather.css';
 
@@ -122,7 +122,7 @@ export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, i
                     <div className="forecast-period-label">{period.name}</div>
                     <div className="forecast-icon">
                       <WeatherIcon
-                        name={getWeatherIconName(period.shortForecast, !period.isDaytime)}
+                        name={getWeatherIconFromNOAAUrl(period.icon)}
                         size={48}
                       />
                     </div>
