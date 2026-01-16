@@ -93,6 +93,51 @@ gh pr create --title "feat: description" --body "Closes VTL-XXX\n\n## Summary\n-
 
 **Note:** A PR template is provided at `.github/pull_request_template.md` with `Closes VTL-` pre-filled.
 
+### Branch Freshness Policy
+
+**⚠️ CRITICAL: Keep branches up-to-date with main to avoid merge conflicts and stale code!**
+
+**Branch Lifetime Rules:**
+- Feature branches should live **< 3 days** from creation to merge
+- Rebase from `main` **daily** if branch is still active
+- Branches **>5 commits behind main** MUST be rebased before PR can merge
+- Branches **>7 days old** should be closed and recreated from fresh main
+
+**Before Creating a PR:**
+```bash
+# Always rebase from main before creating PR
+git fetch origin main
+git rebase origin/main
+
+# Resolve any conflicts
+# Then push and create PR
+git push -u origin vtl-XXX-your-branch
+gh pr create ...
+```
+
+**If Your PR Gets Stale:**
+```bash
+# Fetch latest main
+git fetch origin main
+
+# Rebase your branch
+git rebase origin/main
+
+# Force push (your branch only!)
+git push --force-with-lease
+```
+
+**Why This Matters:**
+- Prevents merge conflicts from accumulating
+- Ensures your code works with latest changes
+- Avoids situations like PR #14 (closed due to TypeScript migration)
+- GitHub branch protection will enforce "branches must be up to date before merging"
+
+**For Major Migrations** (like TypeScript, major refactors):
+- Create pinned issue: "🚨 [Migration Name] - All open PRs must rebase by [date]"
+- Comment on all open PRs with deadline
+- Give 48-hour warning before starting migration
+
 ### Review CodeRabbit Feedback (AUTOMATIC - Claude Does This)
 
 **After creating a PR, Claude automatically:**
