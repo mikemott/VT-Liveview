@@ -13,6 +13,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@bybas/weather-icons": "^2.0.0",
     "@protomaps/basemaps": "^5.7.0",
     "@tanstack/react-query": "^5.90.16",
     "graphql-request": "^7.4.0",
