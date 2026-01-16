@@ -56,140 +56,125 @@ async function getGridPoint(lat, lon) {
 }
 
 export async function getCurrentWeather(lat, lon) {
-  try {
-    const gridPoint = await getGridPoint(lat, lon);
+  const gridPoint = await getGridPoint(lat, lon);
 
-    // Get observation stations
-    const stationsResponse = await fetch(gridPoint.observationStations, fetchOptions);
-    if (!stationsResponse.ok) {
-      throw new Error(`Failed to get stations: ${stationsResponse.status}`);
-    }
-
-    const stationsData = await stationsResponse.json();
-    const stations = stationsData.features;
-
-    if (!stations || stations.length === 0) {
-      throw new Error('No observation stations found');
-    }
-
-    // Try stations until we get a valid observation
-    for (const station of stations.slice(0, 3)) {
-      const stationId = station.properties.stationIdentifier;
-
-      try {
-        const obsResponse = await fetch(
-          `${NOAA_BASE}/stations/${stationId}/observations/latest`,
-          fetchOptions
-        );
-
-        if (!obsResponse.ok) continue;
-
-        const obsData = await obsResponse.json();
-        const props = obsData.properties;
-
-        // Check if we have valid temperature data
-        if (props.temperature?.value === null) continue;
-
-        return {
-          temperature: props.temperature?.value !== null
-            ? celsiusToFahrenheit(props.temperature.value)
-            : null,
-          temperatureUnit: 'F',
-          description: props.textDescription || 'Unknown',
-          windSpeed: props.windSpeed?.value !== null
-            ? `${Math.round(props.windSpeed.value * 2.237)} mph`
-            : null,
-          windDirection: props.windDirection?.value !== null
-            ? degreesToCardinal(props.windDirection.value)
-            : null,
-          humidity: props.relativeHumidity?.value ?? null,
-          timestamp: props.timestamp || new Date().toISOString(),
-          stationName: station.properties.name,
-          icon: props.icon
-        };
-      } catch {
-        // Try next station
-        continue;
-      }
-    }
-
-    throw new Error('No valid observations available from nearby stations');
-  } catch (error) {
-    // Errors are thrown and handled by GraphQL resolver
-    throw error;
+  // Get observation stations
+  const stationsResponse = await fetch(gridPoint.observationStations, fetchOptions);
+  if (!stationsResponse.ok) {
+    throw new Error(`Failed to get stations: ${stationsResponse.status}`);
   }
+
+  const stationsData = await stationsResponse.json();
+  const stations = stationsData.features;
+
+  if (!stations || stations.length === 0) {
+    throw new Error('No observation stations found');
+  }
+
+  // Try stations until we get a valid observation
+  for (const station of stations.slice(0, 3)) {
+    const stationId = station.properties.stationIdentifier;
+
+    try {
+      const obsResponse = await fetch(
+        `${NOAA_BASE}/stations/${stationId}/observations/latest`,
+        fetchOptions
+      );
+
+      if (!obsResponse.ok) continue;
+
+      const obsData = await obsResponse.json();
+      const props = obsData.properties;
+
+      // Check if we have valid temperature data
+      if (props.temperature?.value === null) continue;
+
+      return {
+        temperature: props.temperature?.value !== null
+          ? celsiusToFahrenheit(props.temperature.value)
+          : null,
+        temperatureUnit: 'F',
+        description: props.textDescription || 'Unknown',
+        windSpeed: props.windSpeed?.value !== null
+          ? `${Math.round(props.windSpeed.value * 2.237)} mph`
+          : null,
+        windDirection: props.windDirection?.value !== null
+          ? degreesToCardinal(props.windDirection.value)
+          : null,
+        humidity: props.relativeHumidity?.value ?? null,
+        timestamp: props.timestamp || new Date().toISOString(),
+        stationName: station.properties.name,
+        icon: props.icon
+      };
+    } catch {
+      // Try next station
+      continue;
+    }
+  }
+
+  throw new Error('No valid observations available from nearby stations');
 }
 
 export async function getForecast(lat, lon) {
-  try {
-    const gridPoint = await getGridPoint(lat, lon);
+  const gridPoint = await getGridPoint(lat, lon);
 
-    const forecastResponse = await fetch(gridPoint.forecast, fetchOptions);
+  const forecastResponse = await fetch(gridPoint.forecast, fetchOptions);
 
-    if (!forecastResponse.ok) {
-      throw new Error(`Failed to get forecast: ${forecastResponse.status}`);
-    }
-
-    const forecastData = await forecastResponse.json();
-    const periods = forecastData.properties.periods || [];
-
-    return periods.map(period => ({
-      name: period.name,
-      temperature: period.temperature,
-      temperatureUnit: period.temperatureUnit,
-      shortForecast: period.shortForecast,
-      detailedForecast: period.detailedForecast,
-      startTime: period.startTime,
-      endTime: period.endTime,
-      isDaytime: period.isDaytime,
-      icon: period.icon,
-      windSpeed: period.windSpeed,
-      windDirection: period.windDirection
-    }));
-  } catch (error) {
-    // Errors are thrown and handled by GraphQL resolver
-    throw error;
+  if (!forecastResponse.ok) {
+    throw new Error(`Failed to get forecast: ${forecastResponse.status}`);
   }
+
+  const forecastData = await forecastResponse.json();
+  const periods = forecastData.properties.periods || [];
+
+  return periods.map(period => ({
+    name: period.name,
+    temperature: period.temperature,
+    temperatureUnit: period.temperatureUnit,
+    shortForecast: period.shortForecast,
+    detailedForecast: period.detailedForecast,
+    startTime: period.startTime,
+    endTime: period.endTime,
+    isDaytime: period.isDaytime,
+    icon: period.icon,
+    windSpeed: period.windSpeed,
+    windDirection: period.windDirection
+  }));
 }
 
 export async function getAlerts(state) {
-  try {
-    const response = await fetch(
-      `${NOAA_BASE}/alerts/active?area=${state}`,
-      fetchOptions
-    );
+  const response = await fetch(
+    `${NOAA_BASE}/alerts/active?area=${state}`,
+    fetchOptions
+  );
 
-    if (!response.ok) {
-      throw new Error(`Failed to get alerts: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const features = data.features || [];
-
-    return features.map(feature => {
-      const props = feature.properties;
-      return {
-        id: props.id,
-        event: props.event,
-        headline: props.headline,
-        severity: props.severity,
-        certainty: props.certainty,
-        urgency: props.urgency,
-        description: props.description,
-        instruction: props.instruction,
-        areaDesc: props.areaDesc,
-        effective: props.effective,
-        expires: props.expires,
-        geometry: feature.geometry ? {
-          type: feature.geometry.type,
-          coordinates: feature.geometry.coordinates
-        } : null
-      };
-    });
-  } catch (error) {
-    // Errors are thrown and handled by GraphQL resolver
-    throw error;
+  if (!response.ok) {
+    throw new Error(`Failed to get alerts: ${response.status}`);
   }
+
+  const data = await response.json();
+  const features = data.features || [];
+
+  return features.map(feature => {
+    const props = feature.properties;
+    return {
+      id: props.id,
+      event: props.event,
+      headline: props.headline,
+      severity: props.severity,
+      certainty: props.certainty,
+      urgency: props.urgency,
+      description: props.description,
+      instruction: props.instruction,
+      areaDesc: props.areaDesc,
+      effective: props.effective,
+      expires: props.expires,
+      geometry: feature.geometry ? {
+        type: feature.geometry.type,
+        coordinates: feature.geometry.coordinates
+      } : null
+    };
+  });
 }
 
 // Helper functions

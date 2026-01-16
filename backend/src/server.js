@@ -53,7 +53,10 @@ async function start() {
       const response = await fetch(`${VT_511_BASE}?networks=Vermont&dataTypes=incidentData`);
       const xmlText = await response.text();
       reply.type('text/xml').send(xmlText);
-    } catch (error) {
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('VT 511 incidents fetch error:', err);
+      }
       reply.code(500).send({ error: 'Failed to fetch VT 511 incident data' });
     }
   });
@@ -63,7 +66,10 @@ async function start() {
       const response = await fetch(`${VT_511_BASE}?networks=Vermont&dataTypes=laneClosureData`);
       const xmlText = await response.text();
       reply.type('text/xml').send(xmlText);
-    } catch (error) {
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('VT 511 closures fetch error:', err);
+      }
       reply.code(500).send({ error: 'Failed to fetch VT 511 lane closure data' });
     }
   });

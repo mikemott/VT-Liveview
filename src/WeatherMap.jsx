@@ -25,6 +25,7 @@ const WEATHER_LOCATION = {
 function WeatherMap() {
   const mapContainer = useRef(null);
   const map = useRef(null);
+  const [mapInstance, setMapInstance] = useState(null); // Store map instance in state for child components
   const [mapLoaded, setMapLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [currentZoom, setCurrentZoom] = useState(VERMONT_CENTER.zoom);
@@ -226,6 +227,7 @@ function WeatherMap() {
 
       setLoading(false);
       setMapLoaded(true);
+      setMapInstance(map.current); // Store map instance in state for child components
       fetchAlerts();
     });
 
@@ -248,9 +250,11 @@ function WeatherMap() {
       if (map.current) {
         map.current.remove();
         map.current = null;
+        setMapInstance(null);
       }
     };
-  }, [fetchAlerts]); // fetchAlerts is stable (useCallback with [addAlertsToMap])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchAlerts]); // isDark intentionally excluded - style changes handled by separate useEffect
 
   // Check theme based on daylight hours and update automatically (only if user hasn't manually overridden)
   useEffect(() => {
@@ -341,7 +345,7 @@ function WeatherMap() {
           {/* Radar Controls */}
           {mapLoaded && (
             <div className="control-section">
-              <RadarOverlay map={map.current} isDark={isDark} key={mapStyleVersion} />
+              <RadarOverlay map={mapInstance} isDark={isDark} key={mapStyleVersion} />
             </div>
           )}
 
@@ -368,7 +372,7 @@ function WeatherMap() {
           {/* Weather Stations Layer */}
           {mapLoaded && (
             <WeatherStationsLayer
-              map={map.current}
+              map={mapInstance}
               visible={showWeatherStations}
               isDark={isDark}
             />
@@ -377,7 +381,7 @@ function WeatherMap() {
           {/* Travel Layer */}
           {mapLoaded && (
             <TravelLayer
-              map={map.current}
+              map={mapInstance}
               visible={true}
               currentZoom={currentZoom}
               isDark={isDark}

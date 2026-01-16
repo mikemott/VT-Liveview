@@ -16,7 +16,7 @@ export async function getRadarInfo() {
       return generateFallbackRadarInfo();
     }
 
-    const _data = await response.json();
+    await response.json(); // Validate JSON response
 
     // IEM provides scan times - extract recent ones for animation
     const timestamps = generateRecentTimestamps(6, 5); // 6 frames, 5 minutes apart
@@ -26,7 +26,7 @@ export async function getRadarInfo() {
       timestamps: timestamps,
       tilePattern: `${IEM_BASE}/cache/tile.py/1.0.0/${RADAR_PRODUCT}/{z}/{x}/{y}.png`
     };
-  } catch (error) {
+  } catch {
     // Silently fall back to generated timestamps
     return generateFallbackRadarInfo();
   }
@@ -64,29 +64,24 @@ function generateRecentTimestamps(count, intervalMinutes) {
 
 // RainViewer API as alternative/backup
 export async function getRainViewerRadar() {
-  try {
-    const response = await fetch('https://api.rainviewer.com/public/weather-maps.json');
+  const response = await fetch('https://api.rainviewer.com/public/weather-maps.json');
 
-    if (!response.ok) {
-      throw new Error(`RainViewer API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const radar = data.radar;
-
-    // Get past frames (last 6)
-    const pastFrames = radar.past.slice(-6).map(frame => ({
-      time: new Date(frame.time * 1000).toISOString(),
-      path: `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/2/1_1.png`
-    }));
-
-    return {
-      baseUrl: 'https://tilecache.rainviewer.com',
-      timestamps: pastFrames,
-      tilePattern: pastFrames[pastFrames.length - 1]?.path || ''
-    };
-  } catch (error) {
-    // Errors are thrown and handled by GraphQL resolver
-    throw error;
+  if (!response.ok) {
+    throw new Error(`RainViewer API error: ${response.status}`);
   }
+
+  const data = await response.json();
+  const radar = data.radar;
+
+  // Get past frames (last 6)
+  const pastFrames = radar.past.slice(-6).map(frame => ({
+    time: new Date(frame.time * 1000).toISOString(),
+    path: `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/2/1_1.png`
+  }));
+
+  return {
+    baseUrl: 'https://tilecache.rainviewer.com',
+    timestamps: pastFrames,
+    tilePattern: pastFrames[pastFrames.length - 1]?.path || ''
+  };
 }

@@ -57,14 +57,16 @@ export default function RadarOverlay({ map, isDark = false }) {
   useEffect(() => {
     if (!map || !map.isStyleLoaded() || frames.length === 0) return;
 
+    const loadedSourcesSet = loadedSources.current;
     const currentCount = frames.length;
     const previousCount = previousFrameCount.current;
 
     // If frame count changed, we need to add/remove layers
     if (currentCount !== previousCount) {
-      // Reset tile loading state
+      // Reset tile loading state when frames change
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTilesLoaded(false);
-      loadedSources.current.clear();
+      loadedSourcesSet.clear();
 
       // Remove extra layers if count decreased
       if (currentCount < previousCount) {
@@ -134,8 +136,9 @@ export default function RadarOverlay({ map, isDark = false }) {
       });
 
       if (needsUpdate) {
+        // Reset tile loading state when URLs change
         setTilesLoaded(false);
-        loadedSources.current.clear();
+        loadedSourcesSet.clear();
 
         // Update each source with new tile URL
         frames.forEach((frame, index) => {
@@ -175,7 +178,7 @@ export default function RadarOverlay({ map, isDark = false }) {
     }
 
     return () => {
-      // Cleanup all layers and sources
+      // Cleanup all layers and sources (using captured loadedSourcesSet from effect scope)
       for (let i = 0; i < previousFrameCount.current; i++) {
         const layerId = `radar-layer-${i}`;
         const sourceId = `radar-source-${i}`;
@@ -188,12 +191,11 @@ export default function RadarOverlay({ map, isDark = false }) {
       }
       layersInitialized.current = false;
       previousFrameCount.current = 0;
-      loadedSources.current.clear();
+      loadedSourcesSet.clear();
       if (preloadTimeoutRef.current) {
         clearTimeout(preloadTimeoutRef.current);
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, frames, hasSource, hasLayer]);
 
   // Preload tiles by listening for data events

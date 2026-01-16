@@ -31,7 +31,6 @@ const STATIONS_QUERY = gql`
 
 function WeatherStationsLayer({ map, visible, isDark }) {
   const [stations, setStations] = useState([]);
-  const [loading, setLoading] = useState(false);
   const markersRef = useRef([]);
   const currentPopupRef = useRef(null);
 
@@ -48,7 +47,6 @@ function WeatherStationsLayer({ map, visible, isDark }) {
   const fetchStations = async () => {
     if (!map) return;
 
-    setLoading(true);
     try {
       const data = await graphqlClient.request(STATIONS_QUERY);
       setStations(data.observationStations);
@@ -56,8 +54,6 @@ function WeatherStationsLayer({ map, visible, isDark }) {
       if (import.meta.env.DEV) {
         console.error('Error fetching weather stations:', error);
       }
-    } finally {
-      setLoading(false);
     }
   };
 
