@@ -78,34 +78,36 @@ export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, i
             size={48}
           />
         </div>
-        <div className="temperature">
-          <span className="temp-value">{data.temperature ?? '--'}</span>
-          <span className="temp-unit">°{data.temperatureUnit}</span>
+        <div className="weather-info">
+          <div className="temperature">
+            <span className="temp-value">{data.temperature ?? '--'}</span>
+            <span className="temp-unit">°{data.temperatureUnit}</span>
+          </div>
+          {!showMinimalView && (
+            <div className="weather-metrics">
+              {data.windSpeed && (
+                <>
+                  <Wind size={14} />
+                  <span>{data.windSpeed} {data.windDirection}</span>
+                </>
+              )}
+              {data.humidity !== null && data.humidity !== undefined && (
+                <>
+                  {data.windSpeed && <span className="metric-separator">•</span>}
+                  <Droplets size={14} />
+                  <span>{Math.round(data.humidity)}%</span>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Hide description and details when mobile collapsed */}
+      {/* Hide description when mobile collapsed */}
       {!showMinimalView && (
-        <>
-          <div className="weather-description">
-            {data.description}
-          </div>
-
-          <div className="weather-details">
-            {data.windSpeed && (
-              <div className="detail-item">
-                <Wind size={16} />
-                <span>{data.windSpeed} {data.windDirection}</span>
-              </div>
-            )}
-            {data.humidity !== null && data.humidity !== undefined && (
-              <div className="detail-item">
-                <Droplets size={16} />
-                <span>{Math.round(data.humidity)}%</span>
-              </div>
-            )}
-          </div>
-        </>
+        <div className="weather-description">
+          {data.description}
+        </div>
       )}
 
       {isExpanded && (
