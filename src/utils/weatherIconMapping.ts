@@ -17,7 +17,18 @@ function parseNOAAIconUrl(iconUrl: string): { isNight: boolean; codes: string[] 
     const pathParts = url.pathname.split('/').filter(Boolean);
 
     // Find day/night indicator
-    const timeIndex = pathParts.indexOf('day') !== -1 ? pathParts.indexOf('day') : pathParts.indexOf('night');
+    const dayIndex = pathParts.indexOf('day');
+    const nightIndex = pathParts.indexOf('night');
+    const timeIndex = dayIndex !== -1 ? dayIndex : nightIndex;
+
+    // Early return if neither day nor night found
+    if (timeIndex === -1) {
+      if (import.meta.env.DEV) {
+        console.warn('NOAA icon URL missing day/night indicator:', iconUrl);
+      }
+      return { isNight: false, codes: [] };
+    }
+
     const isNight = pathParts[timeIndex] === 'night';
 
     // Weather codes are after day/night
@@ -42,7 +53,7 @@ function parseNOAAIconUrl(iconUrl: string): { isNight: boolean; codes: string[] 
  */
 export function getWeatherIconFromNOAAUrl(iconUrl: string | null | undefined): string {
   if (!iconUrl) {
-    return 'not-available';
+    return 'clear-day';
   }
 
   const { isNight, codes } = parseNOAAIconUrl(iconUrl);
