@@ -97,8 +97,13 @@ function WeatherStationsLayer({ map, visible, isDark }) {
     });
     markersRef.current = [];
 
-    // Add new markers for stations
-    stations.forEach(station => {
+    // Filter out offline stations (those without valid temperature data)
+    const onlineStations = stations.filter(station =>
+      station.weather.temperature !== null && station.weather.temperature !== undefined
+    );
+
+    // Add new markers for online stations only
+    onlineStations.forEach(station => {
       const el = createWeatherStationMarker(station);
 
       const marker = new maplibregl.Marker({ element: el })
@@ -257,8 +262,9 @@ function createWeatherStationMarker(station) {
   const el = document.createElement('div');
   el.className = 'weather-station-marker';
 
-  // Color based on temperature
   const temp = station.weather.temperature;
+
+  // Color based on temperature
   let color;
   if (temp < 32) {
     color = '#3b82f6'; // Blue for freezing
@@ -289,7 +295,7 @@ function createWeatherStationMarker(station) {
     color: white;
   `;
 
-  el.textContent = `${Math.round(station.weather.temperature)}°`;
+  el.textContent = `${Math.round(temp)}°`;
 
   // Use box-shadow glow effect on hover instead of transform
   el.addEventListener('mouseenter', () => {

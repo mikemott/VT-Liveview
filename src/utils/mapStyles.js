@@ -101,10 +101,16 @@ function calculateSunTimes(lat, lng, date = new Date()) {
   const sunriseJD = solarTransit - hourAngle / (2 * Math.PI);
   const sunsetJD = solarTransit + hourAngle / (2 * Math.PI);
 
-  // Convert to local time (accounting for longitude)
-  const lngOffset = lng / 15; // 15 degrees per hour
-  const sunrise = new Date((sunriseJD - 2440587.5) * 86400000);
-  const sunset = new Date((sunsetJD - 2440587.5) * 86400000);
+  // Convert Julian days to milliseconds (UTC)
+  const sunriseUTC = (sunriseJD - 2440587.5) * 86400000;
+  const sunsetUTC = (sunsetJD - 2440587.5) * 86400000;
+
+  // Get timezone offset in milliseconds (negative for locations west of UTC like Vermont)
+  const timezoneOffsetMs = date.getTimezoneOffset() * 60 * 1000;
+
+  // Convert to local time by applying timezone offset
+  const sunrise = new Date(sunriseUTC - timezoneOffsetMs);
+  const sunset = new Date(sunsetUTC - timezoneOffsetMs);
 
   return { sunrise, sunset };
 }
@@ -117,6 +123,15 @@ export function isDarkMode() {
 
   const now = new Date();
   const { sunrise, sunset } = calculateSunTimes(VT_LAT, VT_LNG, now);
+
+  if (import.meta.env.DEV) {
+    console.log('Dark mode check:', {
+      now: now.toLocaleString(),
+      sunrise: sunrise.toLocaleString(),
+      sunset: sunset.toLocaleString(),
+      isDark: now < sunrise || now > sunset
+    });
+  }
 
   // Dark mode if current time is before sunrise or after sunset
   return now < sunrise || now > sunset;

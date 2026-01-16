@@ -28,7 +28,7 @@ function WeatherMap() {
   const [mapLoaded, setMapLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [currentZoom, setCurrentZoom] = useState(VERMONT_CENTER.zoom);
-  const [isDark, setIsDark] = useState(isDarkMode);
+  const [isDark, setIsDark] = useState(isDarkMode());
   const [manualThemeOverride, setManualThemeOverride] = useState(false);
   const [mapStyleVersion, setMapStyleVersion] = useState(0); // Track map style changes
   const [alerts, setAlerts] = useState([]);

@@ -237,25 +237,47 @@ export async function getObservationStations() {
     // Fetch latest observation for each station (in parallel, limited to first 50 stations)
     const stationsWithWeather = await Promise.all(
       stations.slice(0, 50).map(async (station) => {
+        const stationId = station.properties.stationIdentifier;
+
         try {
-          const stationId = station.properties.stationIdentifier;
           const obsResponse = await fetch(
             `${NOAA_BASE}/stations/${stationId}/observations/latest`,
             fetchOptions
           );
 
+          // If API call fails, still include station as offline
           if (!obsResponse.ok) {
-            return null;
+            if (process.env.NODE_ENV !== 'production') {
+              console.warn(`Station ${stationId} observation fetch failed: ${obsResponse.status}`);
+            }
+            return {
+              id: stationId,
+              name: station.properties.name,
+              location: {
+                lat: station.geometry.coordinates[1],
+                lng: station.geometry.coordinates[0]
+              },
+              elevation: station.properties.elevation?.value
+                ? Math.round(station.properties.elevation.value * 3.28084)
+                : null,
+              weather: {
+                temperature: null,
+                temperatureUnit: 'F',
+                description: 'Offline',
+                windSpeed: null,
+                windDirection: null,
+                humidity: null,
+                dewpoint: null,
+                pressure: null,
+                timestamp: new Date().toISOString()
+              }
+            };
           }
 
           const obsData = await obsResponse.json();
           const props = obsData.properties;
 
-          // Only include stations with valid temperature data
-          if (props.temperature?.value === null) {
-            return null;
-          }
-
+          // Include station even if temperature is unavailable (offline stations)
           return {
             id: stationId,
             name: station.properties.name,
@@ -267,9 +289,11 @@ export async function getObservationStations() {
               ? Math.round(station.properties.elevation.value * 3.28084) // Convert m to ft
               : null,
             weather: {
-              temperature: celsiusToFahrenheit(props.temperature.value),
+              temperature: props.temperature?.value !== null
+                ? celsiusToFahrenheit(props.temperature.value)
+                : null,
               temperatureUnit: 'F',
-              description: props.textDescription || 'Unknown',
+              description: props.textDescription || 'Offline',
               windSpeed: props.windSpeed?.value !== null
                 ? `${Math.round(props.windSpeed.value * 2.237)} mph`
                 : null,
@@ -287,19 +311,41 @@ export async function getObservationStations() {
             }
           };
         } catch (error) {
-          // Skip stations with errors
-          return null;
+          // Include station as offline even if there's an error
+          if (process.env.NODE_ENV !== 'production') {
+            console.error(`Error fetching station ${stationId}:`, error.message);
+          }
+          return {
+            id: stationId,
+            name: station.properties.name,
+            location: {
+              lat: station.geometry.coordinates[1],
+              lng: station.geometry.coordinates[0]
+            },
+            elevation: station.properties.elevation?.value
+              ? Math.round(station.properties.elevation.value * 3.28084)
+              : null,
+            weather: {
+              temperature: null,
+              temperatureUnit: 'F',
+              description: 'Offline',
+              windSpeed: null,
+              windDirection: null,
+              humidity: null,
+              dewpoint: null,
+              pressure: null,
+              timestamp: new Date().toISOString()
+            }
+          };
         }
       })
     );
 
-    // Filter out null results and cache
-    const validStations = stationsWithWeather.filter(s => s !== null);
-
-    stationsCache.data = validStations;
+    // All stations are now included (online or offline), cache them
+    stationsCache.data = stationsWithWeather;
     stationsCache.timestamp = Date.now();
 
-    return validStations;
+    return stationsWithWeather;
   } catch (error) {
     // If fetch fails, return cached data if available
     if (stationsCache.data) {

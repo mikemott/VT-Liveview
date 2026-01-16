@@ -46,23 +46,18 @@ export function getIncidentColor(type) {
  * @returns {string} Severity level: CRITICAL, MAJOR, MODERATE, MINOR
  */
 export function getIncidentSeverity(incident) {
-  // Road closures are always critical
-  if (incident.type === 'CLOSURE') {
-    return 'CRITICAL';
-  }
-
-  // Accidents are major
+  // Accidents are major (always visible at zoom 8+)
   if (incident.type === 'ACCIDENT') {
     return 'MAJOR';
   }
 
-  // Flooding is major
+  // Flooding is major (always visible at zoom 8+)
   if (incident.type === 'FLOODING') {
     return 'MAJOR';
   }
 
-  // Construction is moderate
-  if (incident.type === 'CONSTRUCTION') {
+  // Construction and road closures are moderate (only visible at zoom 10+)
+  if (incident.type === 'CONSTRUCTION' || incident.type === 'CLOSURE') {
     return 'MODERATE';
   }
 

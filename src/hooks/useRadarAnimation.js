@@ -37,11 +37,13 @@ export function useRadarAnimation(map, options = {}) {
       }
 
       // Get the last N frames
+      // Tile URL format: /{path}/{size}/{z}/{x}/{y}/{color}/{smooth}_{snow}.png
+      // color: 0-8 (we use 2 for blue/green), smooth: 0=no 1=yes, snow: 0=no 1=yes
       const pastFrames = radarData.past.slice(-frameCount).map(frame => ({
         time: new Date(frame.time * 1000).toISOString(),
         timestamp: frame.time,
         path: frame.path,
-        tileUrl: `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/2/1_1.png`
+        tileUrl: `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/6/1_1.png`
       }));
 
       // Add nowcast frames if available
@@ -49,7 +51,7 @@ export function useRadarAnimation(map, options = {}) {
         time: new Date(frame.time * 1000).toISOString(),
         timestamp: frame.time,
         path: frame.path,
-        tileUrl: `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/2/1_1.png`,
+        tileUrl: `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/6/1_1.png`,
         isNowcast: true
       }));
 
