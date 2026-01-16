@@ -1,44 +1,14 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchCurrentWeather, fetchForecast } from '../services/graphqlClient';
-import {
-  Wind,
-  Droplets,
-  Cloud,
-  Sun,
-  CloudRain,
-  CloudSnow,
-  CloudSun,
-  CloudMoon,
-  Moon,
-  ChevronDown
-} from 'lucide-react';
+import { Wind, Droplets, ChevronDown } from 'lucide-react';
+import WeatherIcon from './WeatherIcon';
+import { getWeatherIconName, isNightPeriod } from '../utils/weatherIconMapping';
 import './CurrentWeather.css';
 
 // Default location: Montpelier, VT
 const DEFAULT_LAT = 44.2601;
 const DEFAULT_LON = -72.5754;
-
-function getWeatherIcon(description, isDark) {
-  const desc = description?.toLowerCase() || '';
-
-  if (desc.includes('rain') || desc.includes('showers')) {
-    return <CloudRain size={48} />;
-  }
-  if (desc.includes('snow')) {
-    return <CloudSnow size={48} />;
-  }
-  if (desc.includes('cloud') && desc.includes('sun')) {
-    return isDark ? <CloudMoon size={48} /> : <CloudSun size={48} />;
-  }
-  if (desc.includes('cloud') || desc.includes('overcast')) {
-    return <Cloud size={48} />;
-  }
-  if (desc.includes('clear') || desc.includes('sunny') || desc.includes('fair')) {
-    return isDark ? <Moon size={48} /> : <Sun size={48} />;
-  }
-  return <Cloud size={48} />;
-}
 
 export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, isDark = false }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -91,7 +61,10 @@ export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, i
     >
       <div className="weather-main">
         <div className="weather-icon">
-          {getWeatherIcon(data.description, isDark)}
+          <WeatherIcon
+            name={getWeatherIconName(data.description, isDark)}
+            size={48}
+          />
         </div>
         <div className="temperature">
           <span className="temp-value">{data.temperature ?? '--'}</span>
@@ -129,7 +102,10 @@ export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, i
                   <div key={index} className="forecast-card">
                     <div className="forecast-period-label">{period.name}</div>
                     <div className="forecast-icon">
-                      {getWeatherIcon(period.shortForecast, period.name.toLowerCase().includes('night'))}
+                      <WeatherIcon
+                        name={getWeatherIconName(period.shortForecast, isNightPeriod(period.name))}
+                        size={48}
+                      />
                     </div>
                     <div className="forecast-temperature">
                       {Math.round(period.temperature)}°
