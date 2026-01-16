@@ -2,14 +2,15 @@ import { memo, useMemo } from 'react';
 
 // Vite glob import - loads all SVG icons from Meteocons line style
 // This creates a module map at build time
-const lineIcons = import.meta.glob(
-  '/node_modules/@bybas/weather-icons/production/line/all/*.svg',
-  { eager: true, as: 'url' }
+// Note: Vite resolves node_modules paths relative to project root
+const lineIcons = import.meta.glob<string>(
+  '../../node_modules/@bybas/weather-icons/production/line/all/*.svg',
+  { eager: true, query: '?url', import: 'default' }
 );
 
-const fillIcons = import.meta.glob(
-  '/node_modules/@bybas/weather-icons/production/fill/all/*.svg',
-  { eager: true, as: 'url' }
+const fillIcons = import.meta.glob<string>(
+  '../../node_modules/@bybas/weather-icons/production/fill/all/*.svg',
+  { eager: true, query: '?url', import: 'default' }
 );
 
 interface WeatherIconProps {
@@ -29,9 +30,9 @@ const WeatherIcon = memo<WeatherIconProps>(({ name, size = 48, style = 'line' })
     if (!name) return null;
 
     const icons = style === 'fill' ? fillIcons : lineIcons;
-    const iconPath = `/node_modules/@bybas/weather-icons/production/${style}/all/${name}.svg`;
+    const iconPath = `../../node_modules/@bybas/weather-icons/production/${style}/all/${name}.svg`;
 
-    return (icons[iconPath] as string) || null;
+    return icons[iconPath] || null;
   }, [name, style]);
 
   if (!iconUrl) {
