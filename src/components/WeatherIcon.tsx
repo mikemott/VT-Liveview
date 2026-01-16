@@ -3,6 +3,7 @@ import { memo, useMemo } from 'react';
 // Vite glob import - loads all SVG icons from Meteocons line style
 // This creates a module map at build time
 // Note: Vite resolves node_modules paths relative to project root
+// Note: glob patterns MUST be static string literals (Vite limitation)
 const lineIcons = import.meta.glob<string>(
   '../../node_modules/@bybas/weather-icons/production/line/all/*.svg',
   { eager: true, query: '?url', import: 'default' }
