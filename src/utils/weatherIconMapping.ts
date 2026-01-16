@@ -57,17 +57,12 @@ export function getWeatherIconName(description: string | null | undefined, isNig
 
   // 3. SNOW (check before "showers" to avoid rain icon)
   if (desc.includes('snow') || desc.includes('flurr')) {
-    // Check for blizzard/extreme
-    if (desc.includes('blizzard') || desc.includes('extreme') || desc.includes('heavy snow')) {
-      return `extreme-${timePrefix}-snow`;
-    }
-    // Check cloud cover
+    // Check cloud cover - Meteocons only has partly-cloudy variants for snow
     if (desc.includes('partly') || desc.includes('partial')) {
       return `partly-cloudy-${timePrefix}-snow`;
     }
-    if (desc.includes('overcast') || desc.includes('mostly cloudy')) {
-      return `overcast-${timePrefix}-snow`;
-    }
+    // For all other conditions (overcast, heavy, blizzard, etc.), use generic snow
+    // Note: Meteocons doesn't have overcast-snow or extreme-snow variants
     return 'snow';
   }
 
