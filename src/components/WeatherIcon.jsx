@@ -1,14 +1,14 @@
 import { memo, useMemo } from 'react';
 
 // Vite glob import - loads all SVG icons from Meteocons line style
-// This creates a module map at build time
+// This creates a module map at build time using the @weather-icons alias
 const lineIcons = import.meta.glob(
-  '/node_modules/@bybas/weather-icons/production/line/all/*.svg',
+  '@weather-icons/line/all/*.svg',
   { eager: true, as: 'url' }
 );
 
 const fillIcons = import.meta.glob(
-  '/node_modules/@bybas/weather-icons/production/fill/all/*.svg',
+  '@weather-icons/fill/all/*.svg',
   { eager: true, as: 'url' }
 );
 
@@ -24,7 +24,7 @@ const WeatherIcon = memo(({ name, size = 48, style = 'line' }) => {
     if (!name) return null;
 
     const icons = style === 'fill' ? fillIcons : lineIcons;
-    const iconPath = `/node_modules/@bybas/weather-icons/production/${style}/all/${name}.svg`;
+    const iconPath = `@weather-icons/${style}/all/${name}.svg`;
 
     return icons[iconPath] || null;
   }, [name, style]);

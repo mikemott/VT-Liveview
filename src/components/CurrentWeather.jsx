@@ -4,12 +4,22 @@ import { fetchCurrentWeather, fetchForecast } from '../services/graphqlClient';
 import { Wind, Droplets, ChevronDown } from 'lucide-react';
 import WeatherIcon from './WeatherIcon';
 import { getWeatherIconName, isNightPeriod } from '../utils/weatherIconMapping';
+import { isDarkMode } from '../utils/mapStyles';
 import './CurrentWeather.css';
 
 // Default location: Montpelier, VT
 const DEFAULT_LAT = 44.2601;
 const DEFAULT_LON = -72.5754;
 
+/**
+ * CurrentWeather component - displays current weather conditions and 3-day forecast
+ *
+ * @param {Object} props - Component props
+ * @param {number} props.lat - Latitude for weather location (default: Montpelier, VT)
+ * @param {number} props.lon - Longitude for weather location (default: Montpelier, VT)
+ * @param {boolean} props.isDark - Dark mode theme flag for UI styling
+ * @returns {JSX.Element} Weather widget with expandable forecast
+ */
 export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, isDark = false }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -62,7 +72,7 @@ export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, i
       <div className="weather-main">
         <div className="weather-icon">
           <WeatherIcon
-            name={getWeatherIconName(data.description, isDark)}
+            name={getWeatherIconName(data.description, isDarkMode())}
             size={48}
           />
         </div>
