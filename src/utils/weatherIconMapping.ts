@@ -1,9 +1,155 @@
 /**
  * Weather Icon Mapping Utility
  *
- * Maps NOAA weather descriptions to Meteocons icon names.
- * Handles complex conditions like mixed precipitation, thunderstorms, and time-of-day variations.
+ * Maps NOAA weather data to Meteocons icon names.
+ * Supports both icon URL parsing (preferred) and text description fallback.
  */
+
+/**
+ * Parse NOAA icon URL to extract weather condition codes
+ * @param iconUrl - NOAA icon URL (e.g., "https://api.weather.gov/icons/land/day/snow,20/sct?size=medium")
+ * @returns Object with isNight boolean and array of weather codes
+ */
+function parseNOAAIconUrl(iconUrl: string): { isNight: boolean; codes: string[] } {
+  try {
+    // Extract path from URL: /icons/land/day/snow,20/sct
+    const url = new URL(iconUrl);
+    const pathParts = url.pathname.split('/').filter(Boolean);
+
+    // Find day/night indicator
+    const dayIndex = pathParts.indexOf('day');
+    const nightIndex = pathParts.indexOf('night');
+    const timeIndex = dayIndex !== -1 ? dayIndex : nightIndex;
+
+    // Early return if neither day nor night found
+    if (timeIndex === -1) {
+      if (import.meta.env.DEV) {
+        console.warn('NOAA icon URL missing day/night indicator:', iconUrl);
+      }
+      return { isNight: false, codes: [] };
+    }
+
+    const isNight = pathParts[timeIndex] === 'night';
+
+    // Weather codes are after day/night
+    const codes = pathParts.slice(timeIndex + 1).map(code => {
+      // Remove probability percentages (e.g., "snow,20" -> "snow")
+      return code.split(',')[0];
+    });
+
+    return { isNight, codes };
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      console.warn('Failed to parse NOAA icon URL:', iconUrl, error);
+    }
+    return { isNight: false, codes: [] };
+  }
+}
+
+/**
+ * Map NOAA weather codes to Meteocons icon name
+ * @param iconUrl - NOAA icon URL
+ * @returns Meteocons icon name
+ */
+export function getWeatherIconFromNOAAUrl(iconUrl: string | null | undefined): string {
+  if (!iconUrl) {
+    return 'clear-day';
+  }
+
+  const { isNight, codes } = parseNOAAIconUrl(iconUrl);
+  const timePrefix = isNight ? 'night' : 'day';
+
+  // Primary weather code is the first one (or most significant)
+  const primaryCode = codes[0] || '';
+  const secondaryCode = codes[1] || '';
+
+  // NOAA Code to Meteocons mapping
+  // Reference: https://api.weather.gov/icons
+
+  // Severe weather (no day/night variants)
+  if (primaryCode === 'tornado') return 'tornado';
+  if (primaryCode === 'hurricane' || primaryCode === 'tropical_storm') return 'hurricane';
+  if (primaryCode === 'blizzard') return 'snow'; // Meteocons doesn't have blizzard
+
+  // Thunderstorms
+  if (primaryCode === 'tsra' || primaryCode === 'tsra_sct' || primaryCode === 'tsra_hi') {
+    if (secondaryCode === 'snow') return `thunderstorms-${timePrefix}-snow`;
+    if (secondaryCode === 'rain' || secondaryCode === 'rain_showers') return `thunderstorms-${timePrefix}-rain`;
+    return `thunderstorms-${timePrefix}`;
+  }
+
+  // Precipitation types
+  if (primaryCode === 'rain_snow' || primaryCode === 'snow_rain') {
+    return 'sleet'; // Mixed precip = sleet
+  }
+  if (primaryCode === 'rain_sleet' || primaryCode === 'snow_sleet') {
+    return 'sleet';
+  }
+  if (primaryCode === 'fzra' || primaryCode === 'rain_fzra' || primaryCode === 'snow_fzra') {
+    return 'sleet'; // Freezing rain shows as sleet
+  }
+
+  // Snow
+  if (primaryCode === 'snow') {
+    // Check cloud cover from secondary code
+    if (secondaryCode === 'few' || secondaryCode === 'sct') {
+      return `partly-cloudy-${timePrefix}-snow`;
+    }
+    return 'snow';
+  }
+
+  // Rain
+  if (primaryCode === 'rain' || primaryCode === 'rain_showers' || primaryCode === 'rain_showers_hi') {
+    // Check cloud cover from secondary code
+    if (secondaryCode === 'few' || secondaryCode === 'sct') {
+      return `partly-cloudy-${timePrefix}-rain`;
+    }
+    if (secondaryCode === 'bkn' || secondaryCode === 'ovc') {
+      return `partly-cloudy-${timePrefix}-rain`; // Use partly-cloudy for consistency
+    }
+    return 'rain';
+  }
+
+  // Sleet
+  if (primaryCode === 'sleet') {
+    if (secondaryCode === 'few' || secondaryCode === 'sct') {
+      return `partly-cloudy-${timePrefix}-sleet`;
+    }
+    return 'sleet';
+  }
+
+  // Atmospheric conditions
+  if (primaryCode === 'fog') return `fog-${timePrefix}`;
+  if (primaryCode === 'haze') return `haze-${timePrefix}`;
+  if (primaryCode === 'smoke') return `smoke-${timePrefix}`;
+  if (primaryCode === 'dust') return `dust-${timePrefix}`;
+
+  // Cloud cover (when no precip)
+  if (primaryCode === 'skc') return `clear-${timePrefix}`;
+  if (primaryCode === 'few') return `partly-cloudy-${timePrefix}`;
+  if (primaryCode === 'sct') return `partly-cloudy-${timePrefix}`;
+  if (primaryCode === 'bkn') return `overcast-${timePrefix}`;
+  if (primaryCode === 'ovc') return `overcast-${timePrefix}`;
+
+  // Wind variants (use cloud cover equivalent)
+  if (primaryCode.startsWith('wind_')) {
+    const baseCode = primaryCode.replace('wind_', '');
+    if (baseCode === 'skc') return `clear-${timePrefix}`;
+    if (baseCode === 'few' || baseCode === 'sct') return `partly-cloudy-${timePrefix}`;
+    if (baseCode === 'bkn' || baseCode === 'ovc') return `overcast-${timePrefix}`;
+  }
+
+  // Hot/cold (use clear as fallback)
+  if (primaryCode === 'hot' || primaryCode === 'cold') {
+    return `clear-${timePrefix}`;
+  }
+
+  // Fallback
+  if (import.meta.env.DEV) {
+    console.warn(`Unknown NOAA weather code: ${primaryCode}, secondary: ${secondaryCode}`);
+  }
+  return isNight ? 'clear-night' : 'clear-day';
+}
 
 /**
  * Determines the appropriate Meteocons icon name based on weather description
@@ -57,17 +203,12 @@ export function getWeatherIconName(description: string | null | undefined, isNig
 
   // 3. SNOW (check before "showers" to avoid rain icon)
   if (desc.includes('snow') || desc.includes('flurr')) {
-    // Check for blizzard/extreme
-    if (desc.includes('blizzard') || desc.includes('extreme') || desc.includes('heavy snow')) {
-      return `extreme-${timePrefix}-snow`;
-    }
-    // Check cloud cover
+    // Check cloud cover - Meteocons only has partly-cloudy variants for snow
     if (desc.includes('partly') || desc.includes('partial')) {
       return `partly-cloudy-${timePrefix}-snow`;
     }
-    if (desc.includes('overcast') || desc.includes('mostly cloudy')) {
-      return `overcast-${timePrefix}-snow`;
-    }
+    // For all other conditions (overcast, heavy, blizzard, etc.), use generic snow
+    // Note: Meteocons doesn't have overcast-snow or extreme-snow variants
     return 'snow';
   }
 
