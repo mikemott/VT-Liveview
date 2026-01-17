@@ -6,7 +6,8 @@ import { getIncidentColor, shouldShowIncident } from '../utils/incidentColors';
 import { createMarkerElement } from '../utils/incidentIcons';
 import { INTERVALS } from '../utils/constants';
 import { escapeHTML } from '../utils/sanitize';
-import type { MapLibreMap, Marker, Popup, IncidentType } from '../types';
+import { cleanupMarkers, type MarkerEntry } from '../utils/markerCleanup';
+import type { MapLibreMap, Popup, IncidentType } from '../types';
 import './TravelLayer.css';
 
 // =============================================================================
@@ -19,12 +20,6 @@ interface ActiveFilters {
   CLOSURE: boolean;
   FLOODING: boolean;
   HAZARD: boolean;
-}
-
-interface MarkerEntry {
-  marker: Marker;
-  element: HTMLDivElement;
-  handler: (e: MouseEvent) => void;
 }
 
 interface TravelLayerProps {
@@ -229,13 +224,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
   useEffect(() => {
     if (!map || !visible) {
       // Clear existing markers, event listeners, and popup
-      markersRef.current.forEach(({ marker, element, handler }) => {
-        if (element && handler) {
-          element.removeEventListener('click', handler as EventListener);
-        }
-        marker.remove();
-      });
-      markersRef.current = [];
+      cleanupMarkers(markersRef.current);
       if (currentPopupRef.current) {
         currentPopupRef.current.remove();
         currentPopupRef.current = null;
@@ -253,13 +242,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
     map.on('click', handleMapClick);
 
     // Remove old markers and clean up event listeners
-    markersRef.current.forEach(({ marker, element, handler }) => {
-      if (element && handler) {
-        element.removeEventListener('click', handler as EventListener);
-      }
-      marker.remove();
-    });
-    markersRef.current = [];
+    cleanupMarkers(markersRef.current);
 
     // Add new markers for visible incidents
     visibleIncidents.forEach(incident => {
@@ -382,13 +365,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
     // Cleanup function
     return () => {
       // Clean up markers and event listeners
-      markersRef.current.forEach(({ marker, element, handler }) => {
-        if (element && handler) {
-          element.removeEventListener('click', handler as EventListener);
-        }
-        marker.remove();
-      });
-      markersRef.current = [];
+      cleanupMarkers(markersRef.current);
 
       // Clean up popup
       if (currentPopupRef.current) {
