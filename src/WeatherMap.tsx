@@ -359,13 +359,29 @@ function WeatherMap() {
     map.current.on('click', (e) => {
       if (!map.current) return;
 
-      // Check if click was on an alert layer
-      const features = map.current.queryRenderedFeatures(e.point, {
-        layers: ['alert-fills', 'alert-highlight-fill']
-      });
+      // Build list of existing alert layers to query
+      const layersToQuery: string[] = [];
+      if (map.current.getLayer('alert-fills')) {
+        layersToQuery.push('alert-fills');
+      }
+      if (map.current.getLayer('alert-borders')) {
+        layersToQuery.push('alert-borders');
+      }
+      if (map.current.getLayer('alert-highlight-fill')) {
+        layersToQuery.push('alert-highlight-fill');
+      }
+
+      // Only query if we have layers to check
+      let clickedOnAlert = false;
+      if (layersToQuery.length > 0) {
+        const features = map.current.queryRenderedFeatures(e.point, {
+          layers: layersToQuery
+        });
+        clickedOnAlert = features.length > 0;
+      }
 
       // Only clear highlight if not clicking on an alert
-      if (features.length === 0) {
+      if (!clickedOnAlert) {
         if (map.current.getLayer('alert-highlight-border')) {
           map.current.removeLayer('alert-highlight-border');
         }
