@@ -172,9 +172,66 @@ function WeatherMap() {
     });
   }, []);
 
-  // Handle alert item click to fly to affected area
+  // Handle alert item click to fly to affected area and highlight boundary
   const handleAlertClick = useCallback((alert: AlertFeature): void => {
     if (!map.current || !alert.geometry) return;
+
+    // Close mobile controls panel for better visibility
+    if (isMobile) {
+      setControlsPanelOpen(false);
+    }
+
+    // Remove existing alert highlight if present
+    if (map.current.getLayer('alert-highlight-border')) {
+      map.current.removeLayer('alert-highlight-border');
+    }
+    if (map.current.getLayer('alert-highlight-fill')) {
+      map.current.removeLayer('alert-highlight-fill');
+    }
+    if (map.current.getSource('alert-highlight')) {
+      map.current.removeSource('alert-highlight');
+    }
+
+    // Add highlight source for this specific alert
+    map.current.addSource('alert-highlight', {
+      type: 'geojson',
+      data: {
+        type: 'Feature',
+        properties: alert.properties,
+        geometry: alert.geometry
+      } as GeoJSON.Feature
+    });
+
+    // Get color based on severity
+    const severityColor =
+      alert.properties.severity === 'Extreme' ? '#d00000' :
+      alert.properties.severity === 'Severe' ? '#ff6d00' :
+      alert.properties.severity === 'Moderate' ? '#ffba08' :
+      alert.properties.severity === 'Minor' ? '#3b82f6' :
+      '#8b8b8b';
+
+    // Add highlighted fill layer
+    map.current.addLayer({
+      id: 'alert-highlight-fill',
+      type: 'fill',
+      source: 'alert-highlight',
+      paint: {
+        'fill-color': severityColor,
+        'fill-opacity': 0.25
+      }
+    });
+
+    // Add prominent highlighted border
+    map.current.addLayer({
+      id: 'alert-highlight-border',
+      type: 'line',
+      source: 'alert-highlight',
+      paint: {
+        'line-color': severityColor,
+        'line-width': 4,
+        'line-opacity': 0.9
+      }
+    });
 
     // Calculate bounding box from polygon coordinates
     const coords = alert.geometry.coordinates[0];
@@ -203,7 +260,7 @@ function WeatherMap() {
         maxZoom: 15         // Prevent excessive zoom on tiny polygons
       }
     );
-  }, []);
+  }, [isMobile]);
 
   // Fetch NOAA weather alerts
   const fetchAlerts = useCallback(async (): Promise<void> => {
@@ -296,6 +353,29 @@ function WeatherMap() {
           setMapCenter({ lat: center.lat, lng: center.lng });
         }
       }, INTERVALS.MAP_MOVE_DEBOUNCE);
+    });
+
+    // Clear alert highlight when clicking elsewhere on map
+    map.current.on('click', (e) => {
+      if (!map.current) return;
+
+      // Check if click was on an alert layer
+      const features = map.current.queryRenderedFeatures(e.point, {
+        layers: ['alert-fills', 'alert-highlight-fill']
+      });
+
+      // Only clear highlight if not clicking on an alert
+      if (features.length === 0) {
+        if (map.current.getLayer('alert-highlight-border')) {
+          map.current.removeLayer('alert-highlight-border');
+        }
+        if (map.current.getLayer('alert-highlight-fill')) {
+          map.current.removeLayer('alert-highlight-fill');
+        }
+        if (map.current.getSource('alert-highlight')) {
+          map.current.removeSource('alert-highlight');
+        }
+      }
     });
 
     return () => {
