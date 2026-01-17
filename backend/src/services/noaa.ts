@@ -16,7 +16,7 @@ import type {
   NOAAForecastResponse,
   NOAAAlertsResponse,
 } from '../types/index.js';
-import { getEnv } from '../types/index.js';
+import { getEnv, isDev } from '../types/index.js';
 
 const NOAA_BASE = 'https://api.weather.gov';
 
@@ -307,8 +307,15 @@ export async function getObservationStations(): Promise<ObservationStation[]> {
   if (stationsCache.data && stationsCache.timestamp) {
     const age = Date.now() - stationsCache.timestamp;
     if (age < stationsCache.ttl) {
+      if (isDev()) {
+        console.log(`[Weather Stations] Returning ${stationsCache.data.length} stations from cache (age: ${Math.round(age / 1000)}s)`);
+      }
       return stationsCache.data;
     }
+  }
+
+  if (isDev()) {
+    console.log('[Weather Stations] Cache miss or expired, fetching fresh data...');
   }
 
   // Fetch all Vermont observation stations
@@ -321,6 +328,15 @@ export async function getObservationStations(): Promise<ObservationStation[]> {
   const stationsData = (await stationsResponse.json()) as NOAAStationsResponse;
   const stations = stationsData.features;
 
+  if (isDev()) {
+    console.log(`[Weather Stations] NOAA returned ${stations.length} stations for Vermont`);
+  }
+
+  // Diagnostic counters
+  let httpFailures = 0;
+  let noTemperature = 0;
+  let errors = 0;
+
   // Fetch latest observation for each station (in parallel, limited to first 50)
   const stationsWithWeather = await Promise.all(
     stations.slice(0, 50).map(async (station): Promise<ObservationStation | null> => {
@@ -332,6 +348,10 @@ export async function getObservationStations(): Promise<ObservationStation[]> {
         );
 
         if (!obsResponse.ok) {
+          if (isDev()) {
+            httpFailures++;
+            console.log(`[Weather Stations] HTTP ${obsResponse.status} for station ${stationId} (${station.properties.name})`);
+          }
           return null;
         }
 
@@ -347,6 +367,10 @@ export async function getObservationStations(): Promise<ObservationStation[]> {
 
         // Only include stations with valid temperature data
         if (tempValue === null || tempValue === undefined) {
+          if (isDev()) {
+            noTemperature++;
+            console.log(`[Weather Stations] No temperature data for ${stationId} (${station.properties.name})`);
+          }
           return null;
         }
 
@@ -384,8 +408,12 @@ export async function getObservationStations(): Promise<ObservationStation[]> {
             timestamp: props.timestamp ?? new Date().toISOString(),
           },
         };
-      } catch {
+      } catch (error) {
         // Skip stations with errors
+        if (isDev()) {
+          errors++;
+          console.error(`[Weather Stations] Error processing station ${station.properties.stationIdentifier}:`, error);
+        }
         return null;
       }
     })
@@ -395,6 +423,15 @@ export async function getObservationStations(): Promise<ObservationStation[]> {
   const validStations = stationsWithWeather.filter(
     (s): s is ObservationStation => s !== null
   );
+
+  if (isDev()) {
+    console.log(`[Weather Stations] Summary:
+  - Total fetched from NOAA: ${stations.length}
+  - HTTP failures: ${httpFailures}
+  - Missing temperature: ${noTemperature}
+  - Processing errors: ${errors}
+  - Valid stations returned: ${validStations.length}`);
+  }
 
   stationsCache.data = validStations;
   stationsCache.timestamp = Date.now();

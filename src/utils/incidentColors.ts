@@ -82,10 +82,15 @@ export function getIncidentSeverity(incident: Pick<Incident, 'type'>): IncidentS
  * @returns True if incident should be visible at the given zoom
  */
 export function shouldShowIncident(incident: Pick<Incident, 'type'>, zoom: number): boolean {
+  // Special handling for closures - only show when zoomed in to keep initial view clean
+  if (incident.type === 'CLOSURE') {
+    return zoom >= 9;
+  }
+
   const severity = getIncidentSeverity(incident);
 
   if (zoom < 8) {
-    // Only show critical incidents when zoomed out
+    // Only show critical incidents when zoomed out (closures already filtered above)
     return severity === 'CRITICAL';
   } else if (zoom < 10) {
     // Show critical and major incidents at medium zoom
