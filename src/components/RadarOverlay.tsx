@@ -366,16 +366,22 @@ export default function RadarOverlay({ map, isDark = false }: RadarOverlayProps)
           </div>
 
           <div className="opacity-control">
-            <label>Opacity</label>
+            <label htmlFor="radar-opacity">Opacity</label>
             <input
+              id="radar-opacity"
               type="range"
               min="0"
               max="1"
               step="0.1"
               value={opacity}
               onChange={handleOpacityChange}
+              aria-label="Radar overlay opacity"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(opacity * 100)}
+              aria-valuetext={`${Math.round(opacity * 100)} percent`}
             />
-            <span>{Math.round(opacity * 100)}%</span>
+            <span aria-live="polite">{Math.round(opacity * 100)}%</span>
           </div>
 
           <div className="radar-legend">
