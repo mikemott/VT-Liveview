@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, ReactNode } from 'react';
+import { useState, useEffect, useRef, useCallback, ReactNode, memo } from 'react';
 import { AlertTriangle, Construction, Ban, Waves, AlertOctagon, ChevronDown, ChevronRight, Thermometer } from 'lucide-react';
 import maplibregl from 'maplibre-gl';
 import { fetchAllIncidents, type TravelIncident } from '../services/travelApi';
@@ -6,7 +6,8 @@ import { getIncidentColor, shouldShowIncident } from '../utils/incidentColors';
 import { createMarkerElement } from '../utils/incidentIcons';
 import { INTERVALS } from '../utils/constants';
 import { escapeHTML } from '../utils/sanitize';
-import type { MapLibreMap, Marker, Popup, IncidentType } from '../types';
+import { cleanupMarkers, type MarkerEntry } from '../utils/markerCleanup';
+import type { MapLibreMap, Popup, IncidentType } from '../types';
 import './TravelLayer.css';
 
 // =============================================================================
@@ -19,12 +20,6 @@ interface ActiveFilters {
   CLOSURE: boolean;
   FLOODING: boolean;
   HAZARD: boolean;
-}
-
-interface MarkerEntry {
-  marker: Marker;
-  element: HTMLDivElement;
-  handler: (e: MouseEvent) => void;
 }
 
 interface TravelLayerProps {
@@ -88,33 +83,39 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
     FLOODING: true,
     HAZARD: true
   });
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const markersRef = useRef<MarkerEntry[]>([]);
   const currentPopupRef = useRef<Popup | null>(null);
+
+  // Fetch incidents function (accessible to retry button)
+  const fetchIncidentsData = useCallback(async (): Promise<void> => {
+    if (!map) return;
+
+    setLoading(true);
+    try {
+      setError(null); // Clear previous errors
+      const data = await fetchAllIncidents();
+      setIncidents(data);
+      setLastUpdated(new Date());
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.error('Error fetching travel incidents:', error);
+      }
+      setError(error instanceof Error ? error.message : 'Failed to load incidents');
+    } finally {
+      setLoading(false);
+    }
+  }, [map]);
 
   // Fetch incidents on mount and every 2 minutes
   useEffect(() => {
     if (!map) return;
 
-    const fetchIncidentsData = async (): Promise<void> => {
-      if (!map) return;
-
-      setLoading(true);
-      try {
-        const data = await fetchAllIncidents();
-        setIncidents(data);
-      } catch (error) {
-        if (import.meta.env.DEV) {
-          console.error('Error fetching travel incidents:', error);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchIncidentsData();
-    const interval = setInterval(fetchIncidentsData, INTERVALS.INCIDENTS_REFRESH);
+    void fetchIncidentsData();
+    const interval = setInterval(() => void fetchIncidentsData(), INTERVALS.INCIDENTS_REFRESH);
     return () => clearInterval(interval);
-  }, [map]);
+  }, [map, fetchIncidentsData]);
 
   // Toggle filter for incident type
   const toggleFilter = (type: IncidentType): void => {
@@ -229,13 +230,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
   useEffect(() => {
     if (!map || !visible) {
       // Clear existing markers, event listeners, and popup
-      markersRef.current.forEach(({ marker, element, handler }) => {
-        if (element && handler) {
-          element.removeEventListener('click', handler as EventListener);
-        }
-        marker.remove();
-      });
-      markersRef.current = [];
+      cleanupMarkers(markersRef.current);
       if (currentPopupRef.current) {
         currentPopupRef.current.remove();
         currentPopupRef.current = null;
@@ -253,13 +248,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
     map.on('click', handleMapClick);
 
     // Remove old markers and clean up event listeners
-    markersRef.current.forEach(({ marker, element, handler }) => {
-      if (element && handler) {
-        element.removeEventListener('click', handler as EventListener);
-      }
-      marker.remove();
-    });
-    markersRef.current = [];
+    cleanupMarkers(markersRef.current);
 
     // Add new markers for visible incidents
     visibleIncidents.forEach(incident => {
@@ -382,13 +371,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
     // Cleanup function
     return () => {
       // Clean up markers and event listeners
-      markersRef.current.forEach(({ marker, element, handler }) => {
-        if (element && handler) {
-          element.removeEventListener('click', handler as EventListener);
-        }
-        marker.remove();
-      });
-      markersRef.current = [];
+      cleanupMarkers(markersRef.current);
 
       // Clean up popup
       if (currentPopupRef.current) {
@@ -419,13 +402,18 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
           Map Features
           {totalCount > 0 && <span className="incident-badge">{totalCount}</span>}
         </h3>
-        <button className="expand-toggle">
+        <button
+          className="expand-toggle"
+          aria-label={expanded ? 'Collapse map features' : 'Expand map features'}
+          aria-expanded={expanded}
+          aria-controls="map-features-content"
+        >
           {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
         </button>
       </div>
 
       {expanded && (
-        <div className="section-content">
+        <div className="section-content" id="map-features-content">
           {/* Filter checkboxes */}
           <div className="filter-grid">
             {/* Weather Stations toggle */}
@@ -467,11 +455,45 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
             })}
           </div>
 
-          {/* Loading state */}
+          {/* Loading state with skeleton */}
           {loading && (
-            <div className="incidents-loading">
-              <div className="loading-spinner-small"></div>
-              <span>Updating...</span>
+            <div className="incidents-skeleton" aria-live="polite" aria-busy="true">
+              <div className="skeleton-item" />
+              <div className="skeleton-item" />
+              <div className="skeleton-item" />
+            </div>
+          )}
+
+          {/* Last updated timestamp */}
+          {lastUpdated && !loading && (
+            <div className="last-updated" aria-live="polite">
+              <span style={{ fontSize: '11px', opacity: 0.7 }}>
+                Updated {lastUpdated.toLocaleTimeString('en-US', {
+                  hour: 'numeric',
+                  minute: '2-digit'
+                })}
+              </span>
+            </div>
+          )}
+
+          {/* Error state with retry */}
+          {error && !loading && (
+            <div className="incidents-error" role="alert" aria-live="assertive">
+              <p style={{ margin: '0 0 8px 0', color: '#ef4444' }}>
+                ⚠️ Failed to load incidents
+              </p>
+              <p style={{ margin: '0 0 8px 0', fontSize: '12px', opacity: 0.8 }}>
+                {error}
+              </p>
+              <button
+                className="retry-button"
+                onClick={() => {
+                  void fetchIncidentsData();
+                }}
+                aria-label="Retry loading incidents"
+              >
+                Retry
+              </button>
             </div>
           )}
 
@@ -544,4 +566,4 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
   );
 }
 
-export default TravelLayer;
+export default memo(TravelLayer);

@@ -131,12 +131,15 @@ export function useRadarAnimation(
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Fetch radar frames from RainViewer
-  const fetchFrames = useCallback(async () => {
+  const fetchFrames = useCallback(async (signal?: AbortSignal) => {
     try {
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch(RAINVIEWER_API);
+      const response = await fetch(
+        RAINVIEWER_API,
+        signal ? { signal } : undefined
+      );
       if (!response.ok) throw new Error('Failed to fetch radar data');
 
       const data: RainViewerResponse = await response.json();
@@ -170,6 +173,11 @@ export function useRadarAnimation(
       setFrames([...pastFrames, ...nowcastFrames]);
       setCurrentFrame(pastFrames.length - 1); // Start at most recent past frame
     } catch (err) {
+      // Don't set error if aborted
+      if (err instanceof Error && err.name === 'AbortError') {
+        return;
+      }
+
       if (import.meta.env.DEV) {
         console.error('Error fetching radar frames:', err);
       }
@@ -192,14 +200,19 @@ export function useRadarAnimation(
 
   // Initial fetch
   useEffect(() => {
-    void fetchFrames();
+    const abortController = new AbortController();
+
+    void fetchFrames(abortController.signal);
 
     // Refresh frames every 5 minutes
     const refreshInterval = setInterval(() => {
-      void fetchFrames();
+      void fetchFrames(); // Don't abort interval refreshes
     }, INTERVALS.RADAR_REFRESH);
 
-    return () => clearInterval(refreshInterval);
+    return () => {
+      abortController.abort(); // Cancel in-flight request on unmount
+      clearInterval(refreshInterval);
+    };
   }, [fetchFrames]);
 
   // Animation loop

@@ -276,6 +276,8 @@ export default function RadarOverlay({ map, isDark = false }: RadarOverlayProps)
           className="visibility-toggle"
           onClick={() => setVisible(!visible)}
           title={visible ? 'Hide radar' : 'Show radar'}
+          aria-label={visible ? 'Hide radar overlay' : 'Show radar overlay'}
+          aria-pressed={visible}
         >
           {visible ? <Eye size={18} /> : <EyeOff size={18} />}
         </button>
@@ -284,7 +286,12 @@ export default function RadarOverlay({ map, isDark = false }: RadarOverlayProps)
       {visible && (
         <>
           <div className="radar-controls">
-            <button onClick={prevFrame} disabled={isLoading || !tilesLoaded} title="Previous frame">
+            <button
+              onClick={prevFrame}
+              disabled={isLoading || !tilesLoaded}
+              title="Previous frame"
+              aria-label="Previous radar frame"
+            >
               <SkipBack size={18} />
             </button>
             <button
@@ -292,13 +299,25 @@ export default function RadarOverlay({ map, isDark = false }: RadarOverlayProps)
               onClick={toggle}
               disabled={isLoading || frames.length === 0 || !tilesLoaded}
               title={isPlaying ? 'Pause' : 'Play'}
+              aria-label={isPlaying ? 'Pause radar animation' : 'Play radar animation'}
+              aria-pressed={isPlaying}
             >
               {isPlaying ? <Pause size={20} /> : <Play size={20} />}
             </button>
-            <button onClick={nextFrame} disabled={isLoading || !tilesLoaded} title="Next frame">
+            <button
+              onClick={nextFrame}
+              disabled={isLoading || !tilesLoaded}
+              title="Next frame"
+              aria-label="Next radar frame"
+            >
               <SkipForward size={18} />
             </button>
-            <button onClick={refresh} disabled={isLoading} title="Refresh radar">
+            <button
+              onClick={refresh}
+              disabled={isLoading}
+              title="Refresh radar"
+              aria-label="Refresh radar data"
+            >
               <RefreshCw size={16} className={isLoading ? 'spinning' : ''} />
             </button>
           </div>
@@ -310,7 +329,27 @@ export default function RadarOverlay({ map, isDark = false }: RadarOverlayProps)
             </div>
           )}
 
-          <div className="radar-timeline">
+          <div
+            className="radar-timeline"
+            role="slider"
+            aria-label="Radar timeline"
+            aria-valuemin={0}
+            aria-valuemax={Math.max(0, frames.length - 1)}
+            aria-valuenow={Math.max(0, Math.min(currentFrame, Math.max(0, frames.length - 1)))}
+            aria-valuetext={frames.length === 0 ? 'No frames available' : `Frame ${currentFrame + 1} of ${frames.length}: ${formatTime(currentFrameData?.time)}`}
+            tabIndex={frames.length === 0 ? -1 : 0}
+            aria-disabled={frames.length === 0}
+            onKeyDown={(e) => {
+              if (frames.length === 0) return;
+              if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prevFrame();
+              } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                nextFrame();
+              }
+            }}
+          >
             <div className="timeline-track">
               {frames.map((frame: RadarFrameData, idx: number) => (
                 <button
@@ -318,6 +357,7 @@ export default function RadarOverlay({ map, isDark = false }: RadarOverlayProps)
                   className={`timeline-dot ${idx === currentFrame ? 'active' : ''} ${frame.isNowcast ? 'nowcast' : ''}`}
                   onClick={() => goToFrame(idx)}
                   title={formatTime(frame.time)}
+                  aria-label={`Go to frame ${idx + 1}: ${formatTime(frame.time)}${frame.isNowcast ? ' (forecast)' : ''}`}
                 />
               ))}
             </div>
@@ -328,16 +368,22 @@ export default function RadarOverlay({ map, isDark = false }: RadarOverlayProps)
           </div>
 
           <div className="opacity-control">
-            <label>Opacity</label>
+            <label htmlFor="radar-opacity">Opacity</label>
             <input
+              id="radar-opacity"
               type="range"
               min="0"
               max="1"
               step="0.1"
               value={opacity}
               onChange={handleOpacityChange}
+              aria-label="Radar overlay opacity"
+              aria-valuemin={0}
+              aria-valuemax={1}
+              aria-valuenow={opacity}
+              aria-valuetext={`${Math.round(opacity * 100)} percent`}
             />
-            <span>{Math.round(opacity * 100)}%</span>
+            <span aria-live="polite">{Math.round(opacity * 100)}%</span>
           </div>
 
           <div className="radar-legend">

@@ -456,6 +456,11 @@ function WeatherMap() {
     setManualThemeOverride(true); // User has manually set the theme
   }, []);
 
+  // Toggle weather stations visibility
+  const toggleWeatherStations = useCallback((): void => {
+    setShowWeatherStations(prev => !prev);
+  }, []);
+
   // Handle alert keyboard navigation
   const handleAlertKeyDown = (e: KeyboardEvent<HTMLDivElement>, alert: AlertFeature): void => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -545,7 +550,7 @@ function WeatherMap() {
               currentZoom={currentZoom}
               isDark={isDark}
               showWeatherStations={showWeatherStations}
-              onToggleWeatherStations={() => setShowWeatherStations(!showWeatherStations)}
+              onToggleWeatherStations={toggleWeatherStations}
             />
           )}
 

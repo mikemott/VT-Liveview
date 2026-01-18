@@ -98,8 +98,8 @@ describe('shouldShowIncident', () => {
   describe('at low zoom levels (< 8)', () => {
     const lowZoom = 7;
 
-    it('should show CLOSURE (CRITICAL) incidents', () => {
-      expect(shouldShowIncident({ type: 'CLOSURE' }, lowZoom)).toBe(true);
+    it('should hide CLOSURE (CRITICAL) incidents at low zoom', () => {
+      expect(shouldShowIncident({ type: 'CLOSURE' }, lowZoom)).toBe(false);
     });
 
     it('should hide ACCIDENT (MAJOR) incidents', () => {

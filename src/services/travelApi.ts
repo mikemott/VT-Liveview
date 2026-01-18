@@ -217,7 +217,7 @@ export async function fetchFloodGauges(): Promise<FloodIncident[]> {
     if (import.meta.env.DEV) {
       console.error('Error fetching USGS flood data:', error);
     }
-    return [];
+    throw error;
   }
 }
 
@@ -240,6 +240,6 @@ export async function fetchAllIncidents(): Promise<TravelIncident[]> {
     if (import.meta.env.DEV) {
       console.error('Error fetching incidents:', error);
     }
-    return [];
+    throw error;
   }
 }

@@ -404,6 +404,105 @@
   font-weight: 600;
 }
 
+/* Skeleton Loader */
+.incidents-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.skeleton-item {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 6px;
+  height: 60px;
+}
+
+.dark .skeleton-item {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.1) 0%,
+    rgba(0, 0, 0, 0.2) 50%,
+    rgba(0, 0, 0, 0.1) 100%
+  );
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Last Updated Timestamp */
+.last-updated {
+  padding: 4px 8px;
+  text-align: center;
+  font-style: italic;
+}
+
+/* Error State */
+.incidents-error {
+  padding: 12px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  text-align: center;
+}
+
+.retry-button {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.retry-button:hover {
+  background: #dc2626;
+}
+
+.retry-button:focus-visible {
+  outline: 2px solid #ef4444;
+  outline-offset: 2px;
+}
+
+/* Keyboard Focus Styles */
+.expand-toggle:focus-visible,
+.filter-checkbox input:focus-visible,
+.incident-item:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.filter-checkbox input:focus-visible {
+  outline-offset: 0;
+}
+
+/* Make clickable incidents keyboard accessible */
+.incident-item.clickable {
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s, box-shadow 0.2s;
+}
+
+.incident-item.clickable:hover,
+.incident-item.clickable:focus-visible {
+  background: rgba(59, 130, 246, 0.1);
+}
+
 /* Mobile Responsive */
 @media (max-width: 640px) {
   .filter-grid {

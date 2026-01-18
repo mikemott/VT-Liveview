@@ -374,6 +374,6 @@ export async function fetchAllVT511Data(): Promise<VT511ParsedIncident[]> {
     if (import.meta.env.DEV) {
       console.error('Error fetching VT 511 data:', error);
     }
-    return [];
+    throw error;
   }
 }
