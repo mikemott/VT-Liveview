@@ -402,13 +402,18 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
           Map Features
           {totalCount > 0 && <span className="incident-badge">{totalCount}</span>}
         </h3>
-        <button className="expand-toggle">
+        <button
+          className="expand-toggle"
+          aria-label={expanded ? 'Collapse map features' : 'Expand map features'}
+          aria-expanded={expanded}
+          aria-controls="map-features-content"
+        >
           {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
         </button>
       </div>
 
       {expanded && (
-        <div className="section-content">
+        <div className="section-content" id="map-features-content">
           {/* Filter checkboxes */}
           <div className="filter-grid">
             {/* Weather Stations toggle */}

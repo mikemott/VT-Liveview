@@ -276,6 +276,8 @@ export default function RadarOverlay({ map, isDark = false }: RadarOverlayProps)
           className="visibility-toggle"
           onClick={() => setVisible(!visible)}
           title={visible ? 'Hide radar' : 'Show radar'}
+          aria-label={visible ? 'Hide radar overlay' : 'Show radar overlay'}
+          aria-pressed={visible}
         >
           {visible ? <Eye size={18} /> : <EyeOff size={18} />}
         </button>
@@ -284,7 +286,12 @@ export default function RadarOverlay({ map, isDark = false }: RadarOverlayProps)
       {visible && (
         <>
           <div className="radar-controls">
-            <button onClick={prevFrame} disabled={isLoading || !tilesLoaded} title="Previous frame">
+            <button
+              onClick={prevFrame}
+              disabled={isLoading || !tilesLoaded}
+              title="Previous frame"
+              aria-label="Previous radar frame"
+            >
               <SkipBack size={18} />
             </button>
             <button
@@ -292,13 +299,25 @@ export default function RadarOverlay({ map, isDark = false }: RadarOverlayProps)
               onClick={toggle}
               disabled={isLoading || frames.length === 0 || !tilesLoaded}
               title={isPlaying ? 'Pause' : 'Play'}
+              aria-label={isPlaying ? 'Pause radar animation' : 'Play radar animation'}
+              aria-pressed={isPlaying}
             >
               {isPlaying ? <Pause size={20} /> : <Play size={20} />}
             </button>
-            <button onClick={nextFrame} disabled={isLoading || !tilesLoaded} title="Next frame">
+            <button
+              onClick={nextFrame}
+              disabled={isLoading || !tilesLoaded}
+              title="Next frame"
+              aria-label="Next radar frame"
+            >
               <SkipForward size={18} />
             </button>
-            <button onClick={refresh} disabled={isLoading} title="Refresh radar">
+            <button
+              onClick={refresh}
+              disabled={isLoading}
+              title="Refresh radar"
+              aria-label="Refresh radar data"
+            >
               <RefreshCw size={16} className={isLoading ? 'spinning' : ''} />
             </button>
           </div>
