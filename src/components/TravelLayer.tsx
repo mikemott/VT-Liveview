@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, ReactNode, memo } from 'react';
+import { useState, useEffect, useRef, useCallback, ReactNode, memo } from 'react';
 import { AlertTriangle, Construction, Ban, Waves, AlertOctagon, ChevronDown, ChevronRight, Thermometer } from 'lucide-react';
 import maplibregl from 'maplibre-gl';
 import { fetchAllIncidents, type TravelIncident } from '../services/travelApi';
@@ -89,7 +89,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
   const currentPopupRef = useRef<Popup | null>(null);
 
   // Fetch incidents function (accessible to retry button)
-  const fetchIncidentsData = async (): Promise<void> => {
+  const fetchIncidentsData = useCallback(async (): Promise<void> => {
     if (!map) return;
 
     setLoading(true);
@@ -106,7 +106,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
     } finally {
       setLoading(false);
     }
-  };
+  }, [map]);
 
   // Fetch incidents on mount and every 2 minutes
   useEffect(() => {
@@ -115,7 +115,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
     void fetchIncidentsData();
     const interval = setInterval(() => void fetchIncidentsData(), INTERVALS.INCIDENTS_REFRESH);
     return () => clearInterval(interval);
-  }, [map]);
+  }, [map, fetchIncidentsData]);
 
   // Toggle filter for incident type
   const toggleFilter = (type: IncidentType): void => {
@@ -483,7 +483,6 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
               <button
                 className="retry-button"
                 onClick={() => {
-                  setError(null);
                   void fetchIncidentsData();
                 }}
                 aria-label="Retry loading incidents"
