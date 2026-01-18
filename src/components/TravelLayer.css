@@ -480,6 +480,29 @@
   outline-offset: 2px;
 }
 
+/* Keyboard Focus Styles */
+.expand-toggle:focus-visible,
+.filter-checkbox input:focus-visible,
+.incident-item:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.filter-checkbox input:focus-visible {
+  outline-offset: 0;
+}
+
+/* Make clickable incidents keyboard accessible */
+.incident-item.clickable {
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.incident-item.clickable:hover,
+.incident-item.clickable:focus-visible {
+  background: rgba(59, 130, 246, 0.1);
+}
+
 /* Mobile Responsive */
 @media (max-width: 640px) {
   .filter-grid {
