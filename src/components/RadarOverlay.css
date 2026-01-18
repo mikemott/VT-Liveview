@@ -399,3 +399,10 @@
   color: #959595;
   font-weight: 500;
 }
+
+/* Keyboard Focus Styles */
+.radar-timeline:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 6px;
+}

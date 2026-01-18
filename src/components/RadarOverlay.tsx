@@ -329,7 +329,25 @@ export default function RadarOverlay({ map, isDark = false }: RadarOverlayProps)
             </div>
           )}
 
-          <div className="radar-timeline">
+          <div
+            className="radar-timeline"
+            role="slider"
+            aria-label="Radar timeline"
+            aria-valuemin={0}
+            aria-valuemax={frames.length - 1}
+            aria-valuenow={currentFrame}
+            aria-valuetext={`Frame ${currentFrame + 1} of ${frames.length}: ${formatTime(currentFrameData?.time)}`}
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prevFrame();
+              } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                nextFrame();
+              }
+            }}
+          >
             <div className="timeline-track">
               {frames.map((frame: RadarFrameData, idx: number) => (
                 <button
@@ -337,6 +355,7 @@ export default function RadarOverlay({ map, isDark = false }: RadarOverlayProps)
                   className={`timeline-dot ${idx === currentFrame ? 'active' : ''} ${frame.isNowcast ? 'nowcast' : ''}`}
                   onClick={() => goToFrame(idx)}
                   title={formatTime(frame.time)}
+                  aria-label={`Go to frame ${idx + 1}: ${formatTime(frame.time)}${frame.isNowcast ? ' (forecast)' : ''}`}
                 />
               ))}
             </div>
