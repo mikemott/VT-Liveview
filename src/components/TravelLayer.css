@@ -443,6 +443,13 @@
   }
 }
 
+/* Last Updated Timestamp */
+.last-updated {
+  padding: 4px 8px;
+  text-align: center;
+  font-style: italic;
+}
+
 /* Mobile Responsive */
 @media (max-width: 640px) {
   .filter-grid {

@@ -83,6 +83,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
     FLOODING: true,
     HAZARD: true
   });
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const markersRef = useRef<MarkerEntry[]>([]);
   const currentPopupRef = useRef<Popup | null>(null);
 
@@ -97,6 +98,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
       try {
         const data = await fetchAllIncidents();
         setIncidents(data);
+        setLastUpdated(new Date());
       } catch (error) {
         if (import.meta.env.DEV) {
           console.error('Error fetching travel incidents:', error);
@@ -450,6 +452,18 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
               <div className="skeleton-item" />
               <div className="skeleton-item" />
               <div className="skeleton-item" />
+            </div>
+          )}
+
+          {/* Last updated timestamp */}
+          {lastUpdated && !loading && (
+            <div className="last-updated" aria-live="polite">
+              <span style={{ fontSize: '11px', opacity: 0.7 }}>
+                Updated {lastUpdated.toLocaleTimeString('en-US', {
+                  hour: 'numeric',
+                  minute: '2-digit'
+                })}
+              </span>
             </div>
           )}
 
