@@ -444,11 +444,12 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
             })}
           </div>
 
-          {/* Loading state */}
+          {/* Loading state with skeleton */}
           {loading && (
-            <div className="incidents-loading">
-              <div className="loading-spinner-small"></div>
-              <span>Updating...</span>
+            <div className="incidents-skeleton" aria-live="polite" aria-busy="true">
+              <div className="skeleton-item" />
+              <div className="skeleton-item" />
+              <div className="skeleton-item" />
             </div>
           )}
 
