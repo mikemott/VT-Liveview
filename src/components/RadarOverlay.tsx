@@ -334,11 +334,13 @@ export default function RadarOverlay({ map, isDark = false }: RadarOverlayProps)
             role="slider"
             aria-label="Radar timeline"
             aria-valuemin={0}
-            aria-valuemax={frames.length - 1}
-            aria-valuenow={currentFrame}
-            aria-valuetext={`Frame ${currentFrame + 1} of ${frames.length}: ${formatTime(currentFrameData?.time)}`}
-            tabIndex={0}
+            aria-valuemax={Math.max(0, frames.length - 1)}
+            aria-valuenow={Math.max(0, Math.min(currentFrame, Math.max(0, frames.length - 1)))}
+            aria-valuetext={frames.length === 0 ? 'No frames available' : `Frame ${currentFrame + 1} of ${frames.length}: ${formatTime(currentFrameData?.time)}`}
+            tabIndex={frames.length === 0 ? -1 : 0}
+            aria-disabled={frames.length === 0}
             onKeyDown={(e) => {
+              if (frames.length === 0) return;
               if (e.key === 'ArrowLeft') {
                 e.preventDefault();
                 prevFrame();
@@ -377,8 +379,8 @@ export default function RadarOverlay({ map, isDark = false }: RadarOverlayProps)
               onChange={handleOpacityChange}
               aria-label="Radar overlay opacity"
               aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={Math.round(opacity * 100)}
+              aria-valuemax={1}
+              aria-valuenow={opacity}
               aria-valuetext={`${Math.round(opacity * 100)} percent`}
             />
             <span aria-live="polite">{Math.round(opacity * 100)}%</span>

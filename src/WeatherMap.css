@@ -737,10 +737,6 @@
 }
 
 /* Improve alert item keyboard navigation */
-.alert-item {
-  transition: background 0.2s ease;
-}
-
 .alert-item:hover,
 .alert-item:focus-visible {
   background: rgba(59, 130, 246, 0.05);

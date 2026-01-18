@@ -495,7 +495,7 @@
 /* Make clickable incidents keyboard accessible */
 .incident-item.clickable {
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background 0.2s ease, transform 0.2s, box-shadow 0.2s;
 }
 
 .incident-item.clickable:hover,
