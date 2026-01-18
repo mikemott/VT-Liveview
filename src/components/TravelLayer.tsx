@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, ReactNode } from 'react';
+import { useState, useEffect, useRef, ReactNode, memo } from 'react';
 import { AlertTriangle, Construction, Ban, Waves, AlertOctagon, ChevronDown, ChevronRight, Thermometer } from 'lucide-react';
 import maplibregl from 'maplibre-gl';
 import { fetchAllIncidents, type TravelIncident } from '../services/travelApi';
@@ -521,4 +521,4 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
   );
 }
 
-export default TravelLayer;
+export default memo(TravelLayer);

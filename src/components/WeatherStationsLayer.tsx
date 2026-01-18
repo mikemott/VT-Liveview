@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import maplibregl from 'maplibre-gl';
 import { graphqlClient } from '../services/graphqlClient';
 import { gql } from 'graphql-request';
@@ -369,4 +369,4 @@ function WeatherStationsLayer({ map, visible, isDark }: WeatherStationsLayerProp
   return null;
 }
 
-export default WeatherStationsLayer;
+export default memo(WeatherStationsLayer);
