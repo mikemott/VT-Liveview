@@ -84,32 +84,36 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
     HAZARD: true
   });
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const markersRef = useRef<MarkerEntry[]>([]);
   const currentPopupRef = useRef<Popup | null>(null);
+
+  // Fetch incidents function (accessible to retry button)
+  const fetchIncidentsData = async (): Promise<void> => {
+    if (!map) return;
+
+    setLoading(true);
+    try {
+      setError(null); // Clear previous errors
+      const data = await fetchAllIncidents();
+      setIncidents(data);
+      setLastUpdated(new Date());
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.error('Error fetching travel incidents:', error);
+      }
+      setError(error instanceof Error ? error.message : 'Failed to load incidents');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Fetch incidents on mount and every 2 minutes
   useEffect(() => {
     if (!map) return;
 
-    const fetchIncidentsData = async (): Promise<void> => {
-      if (!map) return;
-
-      setLoading(true);
-      try {
-        const data = await fetchAllIncidents();
-        setIncidents(data);
-        setLastUpdated(new Date());
-      } catch (error) {
-        if (import.meta.env.DEV) {
-          console.error('Error fetching travel incidents:', error);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchIncidentsData();
-    const interval = setInterval(fetchIncidentsData, INTERVALS.INCIDENTS_REFRESH);
+    void fetchIncidentsData();
+    const interval = setInterval(() => void fetchIncidentsData(), INTERVALS.INCIDENTS_REFRESH);
     return () => clearInterval(interval);
   }, [map]);
 
@@ -464,6 +468,28 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
                   minute: '2-digit'
                 })}
               </span>
+            </div>
+          )}
+
+          {/* Error state with retry */}
+          {error && !loading && (
+            <div className="incidents-error" role="alert" aria-live="assertive">
+              <p style={{ margin: '0 0 8px 0', color: '#ef4444' }}>
+                ⚠️ Failed to load incidents
+              </p>
+              <p style={{ margin: '0 0 8px 0', fontSize: '12px', opacity: 0.8 }}>
+                {error}
+              </p>
+              <button
+                className="retry-button"
+                onClick={() => {
+                  setError(null);
+                  void fetchIncidentsData();
+                }}
+                aria-label="Retry loading incidents"
+              >
+                Retry
+              </button>
             </div>
           )}
 
