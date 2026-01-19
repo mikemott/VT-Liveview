@@ -16,7 +16,7 @@ import type {
   NOAAForecastResponse,
   NOAAAlertsResponse,
 } from '../types/index.js';
-import { getEnv, isDev } from '../types/index.js';
+import { getEnv } from '../types/index.js';
 
 const NOAA_BASE = 'https://api.weather.gov';
 
@@ -299,7 +299,71 @@ export function clearStationsCache(): ClearCacheResult {
 }
 
 /**
+ * Vermont grid points for comprehensive station coverage.
+ * The ?state=VT endpoint misses airport stations (KBTV, KMPV, etc.) because
+ * they don't have state metadata set. Querying by grid points includes them.
+ */
+const VERMONT_GRID_POINTS = [
+  { name: 'Burlington', lat: 44.4759, lon: -73.2121 },
+  { name: 'Montpelier', lat: 44.2601, lon: -72.5754 },
+  { name: 'St. Johnsbury', lat: 44.4195, lon: -72.0151 },
+  { name: 'Rutland', lat: 43.6106, lon: -72.9726 },
+  { name: 'Brattleboro', lat: 42.8509, lon: -72.5579 },
+  { name: 'Newport', lat: 44.9364, lon: -72.2051 },
+];
+
+/**
+ * Logging utility for station fetching diagnostics.
+ * Always logs in production to help debug station availability issues.
+ */
+function logStationDebug(message: string, data?: Record<string, unknown>): void {
+  const timestamp = new Date().toISOString();
+  const logEntry = data
+    ? `[STATIONS ${timestamp}] ${message}: ${JSON.stringify(data)}`
+    : `[STATIONS ${timestamp}] ${message}`;
+  console.log(logEntry);
+}
+
+/**
+ * Fetch station IDs from a grid point's observation stations endpoint.
+ */
+async function fetchStationsFromGridPoint(
+  gridPointName: string,
+  lat: number,
+  lon: number
+): Promise<NOAAStationsResponse['features']> {
+  try {
+    // First get the grid point to find its observation stations URL
+    const pointResponse = await fetch(`${NOAA_BASE}/points/${lat},${lon}`, getFetchOptions());
+    if (!pointResponse.ok) {
+      logStationDebug(`Grid point fetch failed for ${gridPointName}`, { status: pointResponse.status });
+      return [];
+    }
+
+    const pointData = (await pointResponse.json()) as { properties: NOAAGridPointProperties };
+    const stationsUrl = pointData.properties.observationStations;
+
+    // Fetch stations from this grid point
+    const stationsResponse = await fetch(stationsUrl, getFetchOptions());
+    if (!stationsResponse.ok) {
+      logStationDebug(`Stations fetch failed for ${gridPointName}`, { status: stationsResponse.status });
+      return [];
+    }
+
+    const stationsData = (await stationsResponse.json()) as NOAAStationsResponse;
+    return stationsData.features || [];
+  } catch (error) {
+    logStationDebug(`Error fetching stations for ${gridPointName}`, {
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+    return [];
+  }
+}
+
+/**
  * Get all Vermont observation stations with current weather.
+ * Queries multiple grid points across Vermont to capture airport stations
+ * that are missing from the ?state=VT endpoint.
  * Results are cached for 15 minutes.
  */
 export async function getObservationStations(): Promise<ObservationStation[]> {
@@ -307,51 +371,57 @@ export async function getObservationStations(): Promise<ObservationStation[]> {
   if (stationsCache.data && stationsCache.timestamp) {
     const age = Date.now() - stationsCache.timestamp;
     if (age < stationsCache.ttl) {
-      if (isDev()) {
-        console.log(`[Weather Stations] Returning ${stationsCache.data.length} stations from cache (age: ${Math.round(age / 1000)}s)`);
-      }
+      logStationDebug('Returning cached stations', { count: stationsCache.data.length, ageMs: age });
       return stationsCache.data;
     }
   }
 
-  if (isDev()) {
-    console.log('[Weather Stations] Cache miss or expired, fetching fresh data...');
+  logStationDebug('Fetching fresh station data from NOAA grid points');
+
+  // Fetch stations from all Vermont grid points in parallel
+  const stationArrays = await Promise.all(
+    VERMONT_GRID_POINTS.map((point) =>
+      fetchStationsFromGridPoint(point.name, point.lat, point.lon)
+    )
+  );
+
+  // Deduplicate stations by ID (same station appears from multiple grid points)
+  const stationMap = new Map<string, NOAAStationsResponse['features'][0]>();
+  for (const stations of stationArrays) {
+    for (const station of stations) {
+      const id = station.properties.stationIdentifier;
+      if (!stationMap.has(id)) {
+        stationMap.set(id, station);
+      }
+    }
   }
 
-  // Fetch all Vermont observation stations
-  const stationsResponse = await fetch(`${NOAA_BASE}/stations?state=VT&limit=50`, getFetchOptions());
+  const uniqueStations = Array.from(stationMap.values());
+  logStationDebug('Unique stations discovered', {
+    total: uniqueStations.length,
+    byGridPoint: stationArrays.map((arr, i) => ({
+      name: VERMONT_GRID_POINTS[i]?.name ?? 'Unknown',
+      count: arr.length,
+    })),
+  });
 
-  if (!stationsResponse.ok) {
-    throw new Error(`Failed to get stations: ${stationsResponse.status}`);
-  }
+  // Track statistics for logging
+  let fetchErrors = 0;
+  let nullTemperature = 0;
+  let validCount = 0;
 
-  const stationsData = (await stationsResponse.json()) as NOAAStationsResponse;
-  const stations = stationsData.features;
-
-  if (isDev()) {
-    console.log(`[Weather Stations] NOAA returned ${stations.length} stations for Vermont`);
-  }
-
-  // Diagnostic counters
-  let httpFailures = 0;
-  let noTemperature = 0;
-  let errors = 0;
-
-  // Fetch latest observation for each station (in parallel, limited to first 50)
+  // Fetch latest observation for each station (in parallel)
   const stationsWithWeather = await Promise.all(
-    stations.slice(0, 50).map(async (station): Promise<ObservationStation | null> => {
+    uniqueStations.map(async (station): Promise<ObservationStation | null> => {
+      const stationId = station.properties.stationIdentifier;
       try {
-        const stationId = station.properties.stationIdentifier;
         const obsResponse = await fetch(
           `${NOAA_BASE}/stations/${stationId}/observations/latest`,
           getFetchOptions()
         );
 
         if (!obsResponse.ok) {
-          if (isDev()) {
-            httpFailures++;
-            console.log(`[Weather Stations] HTTP ${obsResponse.status} for station ${stationId} (${station.properties.name})`);
-          }
+          fetchErrors++;
           return null;
         }
 
@@ -367,13 +437,11 @@ export async function getObservationStations(): Promise<ObservationStation[]> {
 
         // Only include stations with valid temperature data
         if (tempValue === null || tempValue === undefined) {
-          if (isDev()) {
-            noTemperature++;
-            console.log(`[Weather Stations] No temperature data for ${stationId} (${station.properties.name})`);
-          }
+          nullTemperature++;
           return null;
         }
 
+        validCount++;
         return {
           id: stationId,
           name: station.properties.name,
@@ -408,12 +476,8 @@ export async function getObservationStations(): Promise<ObservationStation[]> {
             timestamp: props.timestamp ?? new Date().toISOString(),
           },
         };
-      } catch (error) {
-        // Skip stations with errors
-        if (isDev()) {
-          errors++;
-          console.error(`[Weather Stations] Error processing station ${station.properties.stationIdentifier}:`, error);
-        }
+      } catch {
+        fetchErrors++;
         return null;
       }
     })
@@ -424,14 +488,13 @@ export async function getObservationStations(): Promise<ObservationStation[]> {
     (s): s is ObservationStation => s !== null
   );
 
-  if (isDev()) {
-    console.log(`[Weather Stations] Summary:
-  - Total fetched from NOAA: ${stations.length}
-  - HTTP failures: ${httpFailures}
-  - Missing temperature: ${noTemperature}
-  - Processing errors: ${errors}
-  - Valid stations returned: ${validStations.length}`);
-  }
+  logStationDebug('Station fetch complete', {
+    discovered: uniqueStations.length,
+    fetchErrors,
+    nullTemperature,
+    valid: validCount,
+    stationIds: validStations.map((s) => s.id),
+  });
 
   stationsCache.data = validStations;
   stationsCache.timestamp = Date.now();
