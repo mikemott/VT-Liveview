@@ -7,8 +7,9 @@ import WeatherStationsLayer from './components/WeatherStationsLayer';
 import CurrentWeather from './components/CurrentWeather';
 import RadarOverlay from './components/RadarOverlay';
 import ThemeToggle from './components/ThemeToggle';
+import DetailPanel from './components/DetailPanel';
 import { getMapStyle, isDarkMode } from './utils/mapStyles';
-import type { MapLibreMap } from './types';
+import type { MapLibreMap, DetailPanelContent, AlertFeature } from './types';
 import { VERMONT, INTERVALS } from './utils/constants';
 import { useIsMobile } from './hooks/useIsMobile';
 import { Menu, X } from 'lucide-react';
@@ -16,24 +17,6 @@ import { Menu, X } from 'lucide-react';
 // =============================================================================
 // Types
 // =============================================================================
-
-interface AlertProperties {
-  event: string;
-  headline: string;
-  severity?: string;
-  areaDesc: string;
-}
-
-interface AlertGeometry {
-  type: 'Polygon';
-  coordinates: number[][][];
-}
-
-interface AlertFeature {
-  type: 'Feature';
-  properties: AlertProperties;
-  geometry: AlertGeometry | null;
-}
 
 interface MapCenterState {
   lat: number;
@@ -73,6 +56,9 @@ function WeatherMap() {
   // Mobile responsiveness
   const isMobile = useIsMobile();
   const [controlsPanelOpen, setControlsPanelOpen] = useState(false); // Collapsed by default on mobile
+
+  // DetailPanel state
+  const [detailPanelContent, setDetailPanelContent] = useState<DetailPanelContent>(null);
 
   // Add alerts to map
   const addAlertsToMap = useCallback((alertFeatures: AlertFeature[]): void => {
@@ -136,26 +122,24 @@ function WeatherMap() {
       }
     });
 
-    // Add click handlers for alerts
+    // Add click handlers for alerts - open DetailPanel
     map.current.on('click', 'alert-fills', (e) => {
-      if (!e.features || e.features.length === 0 || !map.current) return;
+      if (!e.features || e.features.length === 0) return;
 
       const feature = e.features[0];
       if (!feature) return;
-      const alert = feature.properties as AlertProperties;
-      const coordinates = e.lngLat;
 
-      new maplibregl.Popup()
-        .setLngLat(coordinates)
-        .setHTML(`
-          <div style="padding: 8px;">
-            <h3 style="margin: 0 0 8px 0; color: #ff6d00;">${alert.event}</h3>
-            <p style="margin: 0 0 4px 0;"><strong>Severity:</strong> ${alert.severity}</p>
-            <p style="margin: 0 0 4px 0;"><strong>Area:</strong> ${alert.areaDesc}</p>
-            <p style="margin: 0;">${alert.headline}</p>
-          </div>
-        `)
-        .addTo(map.current);
+      // Convert GeoJSON feature to AlertFeature type
+      const alertFeature: AlertFeature = {
+        type: 'Feature',
+        properties: feature.properties as AlertFeature['properties'],
+        geometry: feature.geometry as AlertFeature['geometry'],
+      };
+
+      setDetailPanelContent({
+        type: 'alert',
+        data: alertFeature,
+      });
     });
 
     // Change cursor on hover
@@ -355,33 +339,25 @@ function WeatherMap() {
       }, INTERVALS.MAP_MOVE_DEBOUNCE);
     });
 
-    // Clear alert highlight when clicking elsewhere on map
+    // Map click handler - show historical data or clear alert highlight
     map.current.on('click', (e) => {
       if (!map.current) return;
 
-      // Build list of existing alert layers to query
-      const layersToQuery: string[] = [];
-      if (map.current.getLayer('alert-fills')) {
-        layersToQuery.push('alert-fills');
-      }
-      if (map.current.getLayer('alert-borders')) {
-        layersToQuery.push('alert-borders');
-      }
-      if (map.current.getLayer('alert-highlight-fill')) {
-        layersToQuery.push('alert-highlight-fill');
-      }
+      // Check if clicking on any feature (alerts, incidents, stations)
+      const features = map.current.queryRenderedFeatures(e.point);
+      const clickedOnFeature = features.length > 0;
 
-      // Only query if we have layers to check
-      let clickedOnAlert = false;
-      if (layersToQuery.length > 0) {
-        const features = map.current.queryRenderedFeatures(e.point, {
-          layers: layersToQuery
+      // If clicked on empty map, show historical data
+      if (!clickedOnFeature) {
+        setDetailPanelContent({
+          type: 'historical',
+          coordinates: {
+            lat: e.lngLat.lat,
+            lng: e.lngLat.lng,
+          },
         });
-        clickedOnAlert = features.length > 0;
-      }
 
-      // Only clear highlight if not clicking on an alert
-      if (!clickedOnAlert) {
+        // Clear alert highlight
         if (map.current.getLayer('alert-highlight-border')) {
           map.current.removeLayer('alert-highlight-border');
         }
@@ -595,6 +571,13 @@ function WeatherMap() {
           </div>
         </div>
       </div>
+
+      {/* Detail Panel */}
+      <DetailPanel
+        content={detailPanelContent}
+        onClose={() => setDetailPanelContent(null)}
+        isDark={isDark}
+      />
     </div>
   );
 }

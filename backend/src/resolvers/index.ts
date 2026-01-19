@@ -10,6 +10,7 @@ import {
   getObservationStations,
 } from '../services/noaa.js';
 import { getRadarInfo } from '../services/radar.js';
+import { getHistoricalWeather } from '../services/noaaCDO.js';
 import type {
   WeatherConditions,
   ForecastPeriod,
@@ -33,6 +34,11 @@ interface ForecastArgs {
 
 interface AlertsArgs {
   state: string;
+}
+
+interface HistoricalDataArgs {
+  lat: number;
+  lng: number;
 }
 
 /**
@@ -64,6 +70,10 @@ export const resolvers = {
 
     observationStations: async (): Promise<ObservationStation[]> => {
       return await getObservationStations();
+    },
+
+    historicalData: async (_parent: unknown, { lat, lng }: HistoricalDataArgs) => {
+      return await getHistoricalWeather(lat, lng);
     },
   },
 };
