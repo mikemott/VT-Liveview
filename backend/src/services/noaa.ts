@@ -333,15 +333,9 @@ async function fetchStationsFromGridPoint(
   lon: number
 ): Promise<NOAAStationsResponse['features']> {
   try {
-    // First get the grid point to find its observation stations URL
-    const pointResponse = await fetch(`${NOAA_BASE}/points/${lat},${lon}`, getFetchOptions());
-    if (!pointResponse.ok) {
-      logStationDebug(`Grid point fetch failed for ${gridPointName}`, { status: pointResponse.status });
-      return [];
-    }
-
-    const pointData = (await pointResponse.json()) as { properties: NOAAGridPointProperties };
-    const stationsUrl = pointData.properties.observationStations;
+    // Use cached getGridPoint to avoid duplicate API calls
+    const gridPoint = await getGridPoint(lat, lon);
+    const stationsUrl = gridPoint.observationStations;
 
     // Fetch stations from this grid point
     const stationsResponse = await fetch(stationsUrl, getFetchOptions());
