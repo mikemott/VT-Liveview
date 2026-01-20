@@ -31,7 +31,7 @@ const VT_STATIONS: VTStation[] = [
 // Cache (LRU with max 100 entries, 1-hour TTL)
 // ============================================================================
 
-interface HistoricalWeatherData {
+export interface HistoricalWeatherData {
   weather: WeatherDay[];
   stationName: string;
   stationDistance: number;
@@ -90,11 +90,17 @@ function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: numbe
  * Find nearest weather station to given coordinates
  */
 function findNearestStation(lat: number, lng: number): VTStation & { distance: number } {
-  let nearest = VT_STATIONS[0];
+  const firstStation = VT_STATIONS[0];
+  if (!firstStation) {
+    throw new Error('No Vermont stations configured');
+  }
+
+  let nearest: VTStation = firstStation;
   let minDistance = calculateDistance(lat, lng, nearest.lat, nearest.lng);
 
   for (let i = 1; i < VT_STATIONS.length; i++) {
     const station = VT_STATIONS[i];
+    if (!station) continue;
     const distance = calculateDistance(lat, lng, station.lat, station.lng);
     if (distance < minDistance) {
       minDistance = distance;
@@ -294,7 +300,7 @@ export async function getHistoricalWeather(
     const timeout = setTimeout(() => {
       historicalCache.delete(cacheKey);
       cacheTimeouts.delete(cacheKey);
-    }, CACHE_TTL_MS);
+    }, CACHE_TTL);
 
     cacheTimeouts.set(cacheKey, timeout);
 

@@ -23,6 +23,7 @@ const envSchema = z.object({
 
   // NOAA API configuration
   CONTACT_EMAIL: z.string().email().optional(),
+  NOAA_CDO_TOKEN: z.string().optional(), // Token for NOAA Climate Data Online API
 
   // Sentry configuration (optional)
   SENTRY_DSN: z.string().url().optional(),
