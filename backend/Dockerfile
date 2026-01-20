@@ -10,8 +10,19 @@ WORKDIR /app
 # Copy package files
 COPY package.json package-lock.json* ./
 
-# Install production dependencies only
-RUN npm ci --only=production
+# Install all dependencies (including dev for TypeScript build)
+RUN npm ci
+
+# Build stage - compile TypeScript
+FROM deps AS builder
+WORKDIR /app
+
+# Copy source code and TypeScript config
+COPY src ./src
+COPY tsconfig.json ./
+
+# Build TypeScript
+RUN npm run build
 
 # Production image
 FROM base AS runner
@@ -28,12 +39,15 @@ RUN adduser --system --uid 1001 nodejs
 # Install wget for healthcheck (not in base alpine image)
 RUN apk add --no-cache wget
 
-# Copy dependencies
-COPY --from=deps /app/node_modules ./node_modules
+# Copy package files and install production deps only
+COPY package.json package-lock.json* ./
+RUN npm ci --omit=dev
 
-# Copy source code
-COPY --chown=nodejs:nodejs src ./src
-COPY --chown=nodejs:nodejs package.json ./
+# Copy compiled JavaScript from builder
+COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
+
+# Copy GraphQL schema (needed at runtime)
+COPY --chown=nodejs:nodejs src/schema.graphql ./dist/
 
 # Switch to non-root user
 USER nodejs
@@ -46,4 +60,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
 
 # Start the server
-CMD ["node", "src/server.js"]
+CMD ["node", "dist/server.js"]
