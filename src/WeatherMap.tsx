@@ -351,16 +351,18 @@ function WeatherMap() {
       if (!map.current) return;
 
       // Check if clicking on any interactive feature (alerts, highlights)
-      // Filter to only interactive layers to prevent base map tiles from blocking clicks
+      // Filter to only layers that exist to avoid MapLibre errors
+      const interactiveLayers = [
+        'alert-fills',
+        'alert-borders',
+        'alert-highlight-fill',
+        'alert-highlight-border',
+        'incident-highlight',
+        'incident-highlight-outline',
+      ].filter(layerId => map.current?.getLayer(layerId));
+
       const features = map.current.queryRenderedFeatures(e.point, {
-        layers: [
-          'alert-fills',
-          'alert-borders',
-          'alert-highlight-fill',
-          'alert-highlight-border',
-          'incident-highlight',
-          'incident-highlight-outline',
-        ],
+        layers: interactiveLayers.length > 0 ? interactiveLayers : undefined,
       });
       const clickedOnFeature = features.length > 0;
 
