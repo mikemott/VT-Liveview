@@ -40,6 +40,20 @@ export type {
   RadarConfig,
 } from './radar';
 
+// Historical data types
+export type {
+  WeatherDay,
+  HistoricalData,
+  HistoricalDataResponse,
+} from './historical';
+
+// Detail panel types
+export type {
+  AlertProperties,
+  AlertFeature,
+  DetailPanelContent,
+} from './detailPanel';
+
 // Map types
 export type {
   MapLibreMap,

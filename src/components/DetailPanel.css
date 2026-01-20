@@ -1,0 +1,168 @@
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap');
+
+/* =================================================================
+   DetailPanel - Unified sliding panel for all detail views
+   ================================================================= */
+
+.detail-panel-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(2px);
+  z-index: 999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.detail-panel-backdrop.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.detail-panel {
+  position: fixed;
+  right: 0;
+  top: 0;
+  height: 100vh;
+  width: 400px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border-left: 1.5px solid rgba(139, 119, 85, 0.25);
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+  overflow-y: auto;
+  overflow-x: hidden;
+  font-family: 'Public Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.detail-panel.open {
+  transform: translateX(0);
+}
+
+.detail-panel.dark {
+  background: rgba(30, 30, 30, 0.9);
+  border-left-color: rgba(137, 165, 124, 0.25);
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.5);
+  color: #d4cfc4;
+}
+
+/* Mobile: Full width */
+@media (max-width: 768px) {
+  .detail-panel {
+    width: 100%;
+    border-left: none;
+  }
+}
+
+/* =================================================================
+   Header
+   ================================================================= */
+
+.detail-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1.5px solid rgba(139, 119, 85, 0.2);
+  position: sticky;
+  top: 0;
+  background: inherit;
+  backdrop-filter: inherit;
+  z-index: 10;
+}
+
+.detail-panel.dark .detail-panel-header {
+  border-bottom-color: rgba(137, 165, 124, 0.2);
+}
+
+.detail-panel-header h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #2d4a2b;
+  letter-spacing: 1px;
+}
+
+.detail-panel.dark .detail-panel-header h2 {
+  color: #b8cdb0;
+}
+
+.detail-panel-close {
+  background: rgba(76, 111, 68, 0.08);
+  border: 1px solid rgba(76, 111, 68, 0.2);
+  padding: 8px;
+  cursor: pointer;
+  color: #4a5c47;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.detail-panel-close:hover {
+  background-color: rgba(76, 111, 68, 0.15);
+  border-color: rgba(76, 111, 68, 0.35);
+  transform: translateY(-1px);
+}
+
+.detail-panel.dark .detail-panel-close {
+  color: #a8bda2;
+  background: rgba(137, 165, 124, 0.1);
+  border-color: rgba(137, 165, 124, 0.2);
+}
+
+.detail-panel.dark .detail-panel-close:hover {
+  background-color: rgba(137, 165, 124, 0.2);
+  border-color: rgba(137, 165, 124, 0.35);
+}
+
+.detail-panel-close:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* =================================================================
+   Content Area
+   ================================================================= */
+
+.detail-panel-content {
+  padding: 24px;
+}
+
+/* Scrollbar styling */
+.detail-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.detail-panel::-webkit-scrollbar-track {
+  background: rgba(210, 205, 190, 0.2);
+}
+
+.detail-panel::-webkit-scrollbar-thumb {
+  background: rgba(139, 119, 85, 0.3);
+  border-radius: 4px;
+}
+
+.detail-panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 119, 85, 0.5);
+}
+
+.detail-panel.dark::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.detail-panel.dark::-webkit-scrollbar-thumb {
+  background: rgba(137, 165, 124, 0.3);
+}
+
+.detail-panel.dark::-webkit-scrollbar-thumb:hover {
+  background: rgba(137, 165, 124, 0.5);
+}

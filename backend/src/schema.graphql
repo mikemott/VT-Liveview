@@ -4,6 +4,7 @@ type Query {
   alerts(state: String!): [Alert!]!
   radarInfo: RadarInfo!
   observationStations: [ObservationStation!]!
+  historicalData(lat: Float!, lng: Float!): HistoricalData!
 }
 
 type WeatherConditions {
@@ -86,4 +87,18 @@ type StationWeather {
   dewpoint: Float
   pressure: Int
   timestamp: String!
+}
+
+type HistoricalData {
+  weather: [WeatherDay!]!
+  stationName: String!
+  stationDistance: Float!
+}
+
+type WeatherDay {
+  date: String!
+  tempMin: Float
+  tempMax: Float
+  precipitation: Float
+  snowfall: Float
 }
