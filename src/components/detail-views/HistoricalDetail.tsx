@@ -26,13 +26,32 @@ export default function HistoricalDetail({ coordinates, isDark }: HistoricalDeta
     return `${Math.abs(latitude).toFixed(4)}°${latDir}, ${Math.abs(longitude).toFixed(4)}°${lngDir}`;
   };
 
+  // Parse date string as local date to avoid UTC timezone shifts
+  const parseLocalDate = (dateStr: string): Date => {
+    // Handle YYYY-MM-DD format (most common from NOAA)
+    const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (match) {
+      const [, year, month, day] = match;
+      // Month is 0-indexed in JavaScript Date constructor
+      return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    }
+    // Fallback for other formats (though this may still have UTC issues)
+    return new Date(dateStr);
+  };
+
   const formatDate = (dateStr: string): string => {
-    const date = new Date(dateStr);
+    const date = parseLocalDate(dateStr);
+    if (isNaN(date.getTime())) {
+      return 'Invalid date';
+    }
     return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
   };
 
   const getDayName = (dateStr: string): string => {
-    const date = new Date(dateStr);
+    const date = parseLocalDate(dateStr);
+    if (isNaN(date.getTime())) {
+      return 'Invalid';
+    }
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);

@@ -41,7 +41,7 @@ export default function StationDetail({ station, isDark }: StationDetailProps) {
         <span>{formatCoordinates(location.lat, location.lng)}</span>
       </div>
 
-      {elevation && (
+      {typeof elevation === 'number' && (
         <div className="station-elevation">
           Elevation: {elevation.toLocaleString()} ft
         </div>
@@ -98,7 +98,7 @@ export default function StationDetail({ station, isDark }: StationDetailProps) {
               <Droplets size={24} />
             </div>
             <div className="condition-info">
-              <div className="condition-value">{weather.dewpoint}°F</div>
+              <div className="condition-value">{weather.dewpoint}°{weather.temperatureUnit}</div>
               <div className="condition-label">Dewpoint</div>
             </div>
           </div>

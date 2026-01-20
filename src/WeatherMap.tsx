@@ -64,6 +64,13 @@ function WeatherMap() {
   const addAlertsToMap = useCallback((alertFeatures: AlertFeature[]): void => {
     if (!map.current) return;
 
+    // Remove existing event handlers to prevent memory leak
+    if (map.current.getLayer('alert-fills')) {
+      map.current.off('click', 'alert-fills');
+      map.current.off('mouseenter', 'alert-fills');
+      map.current.off('mouseleave', 'alert-fills');
+    }
+
     // Remove existing alert layers if present
     if (map.current.getLayer('alert-fills')) {
       map.current.removeLayer('alert-fills');
@@ -343,8 +350,18 @@ function WeatherMap() {
     map.current.on('click', (e) => {
       if (!map.current) return;
 
-      // Check if clicking on any feature (alerts, incidents, stations)
-      const features = map.current.queryRenderedFeatures(e.point);
+      // Check if clicking on any interactive feature (alerts, highlights)
+      // Filter to only interactive layers to prevent base map tiles from blocking clicks
+      const features = map.current.queryRenderedFeatures(e.point, {
+        layers: [
+          'alert-fills',
+          'alert-borders',
+          'alert-highlight-fill',
+          'alert-highlight-border',
+          'incident-highlight',
+          'incident-highlight-outline',
+        ],
+      });
       const clickedOnFeature = features.length > 0;
 
       // If clicked on empty map, show historical data

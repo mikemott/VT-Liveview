@@ -228,14 +228,30 @@ export async function getHistoricalWeather(
     console.log(`[Historical Weather] Fetching from NOAA CDO: ${url}`);
   }
 
-  const response = await fetch(url, {
-    headers: {
-      token: token,
-    },
-  });
+  // Add timeout to prevent hanging requests
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-  if (!response.ok) {
-    throw new Error(`NOAA CDO API error: ${response.status} ${response.statusText}`);
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      headers: {
+        token: token,
+      },
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`NOAA CDO API error: ${response.status} ${response.statusText}`);
+    }
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('NOAA CDO API timeout: Request took longer than 10 seconds');
+    }
+    throw error;
   }
 
   const data = (await response.json()) as NOAACDOResponse;
@@ -260,6 +276,28 @@ export async function getHistoricalWeather(
       stationName: station.name,
       stationDistance: station.distance,
     };
+
+    // Cache empty results with LRU eviction to avoid repeated API calls
+    if (historicalCache.size >= MAX_CACHE_SIZE) {
+      const firstKey = historicalCache.keys().next().value as string;
+      historicalCache.delete(firstKey);
+      const timeout = cacheTimeouts.get(firstKey);
+      if (timeout) {
+        clearTimeout(timeout);
+        cacheTimeouts.delete(firstKey);
+      }
+    }
+
+    historicalCache.set(cacheKey, result);
+
+    // Clear cache after 1 hour
+    const timeout = setTimeout(() => {
+      historicalCache.delete(cacheKey);
+      cacheTimeouts.delete(cacheKey);
+    }, CACHE_TTL_MS);
+
+    cacheTimeouts.set(cacheKey, timeout);
+
     return result;
   }
 

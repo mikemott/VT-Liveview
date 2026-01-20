@@ -4,7 +4,7 @@
 
 import { AlertCircle, Construction, X, Droplets, AlertTriangle as Hazard } from 'lucide-react';
 import type { Incident } from '../../types';
-import { getIncidentColors } from '../../utils/incidentColors';
+import { getIncidentColor } from '../../utils/incidentColors';
 import './DetailViews.css';
 
 interface IncidentDetailProps {
@@ -13,7 +13,7 @@ interface IncidentDetailProps {
 }
 
 export default function IncidentDetail({ incident, isDark }: IncidentDetailProps) {
-  const colors = getIncidentColors(incident.type);
+  const colors = getIncidentColor(incident.type);
 
   const getIcon = () => {
     const iconProps = { size: 20, style: { color: colors.primary } };
