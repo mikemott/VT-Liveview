@@ -535,6 +535,36 @@ CMD ["node", "src/server.js"]
 # Clone repo and follow VPS instructions
 ```
 
+**Option 5: Fly.io (Current Production)**
+```bash
+# Install Fly CLI
+curl -L https://fly.io/install.sh | sh
+export PATH="$HOME/.fly/bin:$PATH"
+
+# Login (first time only)
+fly auth login
+
+# Deploy from backend directory
+cd backend
+fly deploy
+
+# Set secrets (first time or when updating)
+fly secrets set CONTACT_EMAIL=your-email@example.com
+fly secrets set ALLOWED_ORIGINS=https://vtliveview.pages.dev
+
+# View logs
+fly logs
+
+# SSH into running machine
+fly ssh console
+```
+
+**Fly.io Configuration** (`backend/fly.toml`):
+- App name: `vt-liveview-api`
+- Region: `bos` (Boston)
+- Auto-stop/start machines enabled
+- Health check: `GET /health`
+
 ### Production Checklist
 
 - [ ] Set `CONTACT_EMAIL` in backend environment (required by NOAA ToS)
