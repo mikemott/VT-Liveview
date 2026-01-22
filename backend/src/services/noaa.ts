@@ -307,30 +307,41 @@ function zonesToMultiPolygon(zones: ZoneBoundary[]): number[][][][] {
  * Get merged weather alerts for a state.
  * Alerts are grouped by event type and merged into single visual boundaries.
  * Only Vermont zones are included in the geometry.
+ * Uses existing alert geometry when available, falls back to zone boundaries.
  */
 export async function getMergedAlerts(state: string): Promise<MergedAlert[]> {
-  const response = await fetch(`${NOAA_BASE}/alerts/active?area=${state}`, getFetchOptions());
+  let data: NOAAAlertsResponse;
 
-  if (!response.ok) {
-    throw new Error(`Failed to get alerts: ${response.status}`);
+  try {
+    const response = await fetch(`${NOAA_BASE}/alerts/active?area=${state}`, getFetchOptions());
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    data = (await response.json()) as NOAAAlertsResponse;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Failed to get merged alerts for ${state}: ${message}`);
   }
 
-  const data = (await response.json()) as NOAAAlertsResponse;
   const features = data.features;
 
   if (features.length === 0) {
     return [];
   }
 
-  // Collect all VT zone URLs that need boundaries
-  const allVtZoneUrls: string[] = [];
+  // Collect VT zone URLs from alerts that lack geometry (need to fetch boundaries)
+  const zoneUrlsNeedingBoundaries: string[] = [];
   for (const feature of features) {
-    const vtZones = filterVermontZones(feature.properties.affectedZones || []);
-    allVtZoneUrls.push(...vtZones);
+    if (!feature.geometry) {
+      const vtZones = filterVermontZones(feature.properties.affectedZones || []);
+      zoneUrlsNeedingBoundaries.push(...vtZones);
+    }
   }
 
-  // Fetch all zone boundaries in parallel
-  const zoneBoundaries = await fetchZoneBoundaries(allVtZoneUrls);
+  // Fetch zone boundaries in parallel (only for alerts without geometry)
+  const zoneBoundaries = await fetchZoneBoundaries(zoneUrlsNeedingBoundaries);
 
   // Group alerts by event type
   const alertsByEvent = new Map<string, typeof features>();
@@ -359,19 +370,40 @@ export async function getMergedAlerts(state: string): Promise<MergedAlert[]> {
       continue;
     }
 
-    // Collect zone boundaries for this event
-    const eventZoneBoundaries: ZoneBoundary[] = [];
-    for (const zoneId of vtZoneIds) {
-      const boundary = zoneBoundaries.get(zoneId);
-      if (boundary) {
-        eventZoneBoundaries.push(boundary);
+    // Build geometry: prefer existing alert polygons, fall back to zone boundaries
+    const geometryParts: number[][][][] = [];
+
+    // First, collect existing geometry from alerts that have it
+    for (const alert of alerts) {
+      if (alert.geometry) {
+        if (alert.geometry.type === 'Polygon') {
+          // Polygon coordinates are number[][][] - wrap in array for MultiPolygon format
+          // Note: NOAA types have coordinates as number[][][][] but Polygon is actually number[][][]
+          const polygonCoords = alert.geometry.coordinates as unknown as number[][][];
+          geometryParts.push(polygonCoords);
+        } else if (alert.geometry.type === 'MultiPolygon') {
+          // MultiPolygon coordinates are number[][][][] - spread to add each polygon
+          geometryParts.push(...alert.geometry.coordinates);
+        }
       }
     }
 
-    // Skip if no boundaries could be fetched
-    if (eventZoneBoundaries.length === 0) {
-      console.warn(`[ALERTS] No zone boundaries found for event: ${event}`);
-      continue;
+    // If no alerts had geometry, fall back to zone boundaries
+    if (geometryParts.length === 0) {
+      const eventZoneBoundaries: ZoneBoundary[] = [];
+      for (const zoneId of vtZoneIds) {
+        const boundary = zoneBoundaries.get(zoneId);
+        if (boundary) {
+          eventZoneBoundaries.push(boundary);
+        }
+      }
+
+      if (eventZoneBoundaries.length === 0) {
+        console.warn(`[ALERTS] No geometry or zone boundaries found for event: ${event}`);
+        continue;
+      }
+
+      geometryParts.push(...zonesToMultiPolygon(eventZoneBoundaries));
     }
 
     // Find the most severe alert in the group
@@ -406,8 +438,17 @@ export async function getMergedAlerts(state: string): Promise<MergedAlert[]> {
     }
 
     // Combine area descriptions (VT zones only)
-    const vtZoneNames = eventZoneBoundaries.map((z) => z.name);
-    const areaDesc = vtZoneNames.join('; ');
+    const vtZoneNames: string[] = [];
+    for (const zoneId of vtZoneIds) {
+      const boundary = zoneBoundaries.get(zoneId);
+      if (boundary) {
+        vtZoneNames.push(boundary.name);
+      }
+    }
+    // If we used existing geometry, zone names might be empty - use areaDesc from primary
+    const areaDesc = vtZoneNames.length > 0
+      ? vtZoneNames.join('; ')
+      : primaryAlert.properties.areaDesc;
 
     // Create merged alert
     const mergedAlert: MergedAlert = {
@@ -424,7 +465,7 @@ export async function getMergedAlerts(state: string): Promise<MergedAlert[]> {
       expires: latestExpires,
       geometry: {
         type: 'MultiPolygon',
-        coordinates: zonesToMultiPolygon(eventZoneBoundaries),
+        coordinates: geometryParts,
       },
       mergedFrom: alerts.map((a) => a.properties.id),
       affectedZoneIds: [...vtZoneIds],
