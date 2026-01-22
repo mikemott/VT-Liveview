@@ -456,6 +456,11 @@ function WeatherMap() {
     setShowWeatherStations(prev => !prev);
   }, []);
 
+  // Handle weather station click - memoized to prevent marker recreation
+  const handleStationClick = useCallback((station: ObservationStation): void => {
+    setDetailPanelContent({ type: 'station', data: station });
+  }, []);
+
   // Handle alert keyboard navigation
   const handleAlertKeyDown = (e: KeyboardEvent<HTMLDivElement>, alert: AlertFeature): void => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -554,9 +559,7 @@ function WeatherMap() {
             <WeatherStationsLayer
               map={map.current}
               visible={showWeatherStations}
-              onStationClick={(station: ObservationStation) => {
-                setDetailPanelContent({ type: 'station', data: station });
-              }}
+              onStationClick={handleStationClick}
             />
           )}
 
