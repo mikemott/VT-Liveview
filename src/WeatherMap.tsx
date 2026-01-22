@@ -9,7 +9,7 @@ import RadarOverlay from './components/RadarOverlay';
 import ThemeToggle from './components/ThemeToggle';
 import DetailPanel from './components/DetailPanel';
 import { getMapStyle, isDarkMode } from './utils/mapStyles';
-import type { MapLibreMap, DetailPanelContent, AlertFeature } from './types';
+import type { MapLibreMap, DetailPanelContent, AlertFeature, ObservationStation } from './types';
 import { VERMONT, INTERVALS } from './utils/constants';
 import { useIsMobile } from './hooks/useIsMobile';
 import { Menu, X } from 'lucide-react';
@@ -292,8 +292,8 @@ function WeatherMap() {
       ]
     });
 
-    map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
-    map.current.addControl(new maplibregl.FullscreenControl(), 'top-right');
+    map.current.addControl(new maplibregl.NavigationControl(), 'bottom-right');
+    map.current.addControl(new maplibregl.FullscreenControl(), 'bottom-right');
 
     // Expose map for debugging
     (window as { map?: MapLibreMap }).map = map.current;
@@ -485,9 +485,6 @@ function WeatherMap() {
         />
       )}
 
-      {/* Theme Toggle */}
-      <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
-
       {/* Mobile Menu Toggle Button */}
       {isMobile && (
         <button
@@ -517,16 +514,19 @@ function WeatherMap() {
             alt="VT LiveView"
             className="app-logo"
           />
-          {/* Close button inside panel on mobile */}
-          {isMobile && (
-            <button
-              className="mobile-panel-close"
-              onClick={() => setControlsPanelOpen(false)}
-              aria-label="Close panel"
-            >
-              <X size={20} />
-            </button>
-          )}
+          <div className="header-actions">
+            <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
+            {/* Close button inside panel on mobile */}
+            {isMobile && (
+              <button
+                className="mobile-panel-close"
+                onClick={() => setControlsPanelOpen(false)}
+                aria-label="Close panel"
+              >
+                <X size={20} />
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="controls-panel-scroll">
@@ -554,7 +554,9 @@ function WeatherMap() {
             <WeatherStationsLayer
               map={map.current}
               visible={showWeatherStations}
-              isDark={isDark}
+              onStationClick={(station: ObservationStation) => {
+                setDetailPanelContent({ type: 'station', data: station });
+              }}
             />
           )}
 
