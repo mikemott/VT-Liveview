@@ -3,38 +3,12 @@ import maplibregl from 'maplibre-gl';
 import { graphqlClient } from '../services/graphqlClient';
 import { gql } from 'graphql-request';
 import { INTERVALS } from '../utils/constants';
-import { escapeHTML } from '../utils/sanitize';
-import type { MapLibreMap, Marker, Popup } from '../types';
+import type { MapLibreMap, Marker, ObservationStation } from '../types';
 import './WeatherStationsLayer.css';
 
 // =============================================================================
 // Types
 // =============================================================================
-
-interface StationLocation {
-  lat: number;
-  lng: number;
-}
-
-interface StationWeather {
-  temperature: number;
-  temperatureUnit: string;
-  description: string;
-  windSpeed: string | null;
-  windDirection: string | null;
-  humidity: number | null;
-  dewpoint: number | null;
-  pressure: number | null;
-  timestamp: string;
-}
-
-interface ObservationStation {
-  id: string;
-  name: string;
-  location: StationLocation;
-  elevation: number | null;
-  weather: StationWeather;
-}
 
 interface StationsResponse {
   observationStations: ObservationStation[];
@@ -49,7 +23,7 @@ interface MarkerEntry {
 interface WeatherStationsLayerProps {
   map: MapLibreMap | null;
   visible: boolean;
-  isDark: boolean;
+  onStationClick?: (station: ObservationStation) => void;
 }
 
 // =============================================================================
@@ -141,11 +115,10 @@ function createWeatherStationMarker(station: ObservationStation): HTMLDivElement
 // Component
 // =============================================================================
 
-function WeatherStationsLayer({ map, visible, isDark }: WeatherStationsLayerProps) {
+function WeatherStationsLayer({ map, visible, onStationClick }: WeatherStationsLayerProps) {
   const [stations, setStations] = useState<ObservationStation[]>([]);
   const [_loading, setLoading] = useState(false);
   const markersRef = useRef<MarkerEntry[]>([]);
-  const currentPopupRef = useRef<Popup | null>(null);
 
   // Fetch stations on mount and every 15 minutes
   useEffect(() => {
@@ -175,7 +148,7 @@ function WeatherStationsLayer({ map, visible, isDark }: WeatherStationsLayerProp
   // Add markers to map when stations change
   useEffect(() => {
     if (!map || !visible) {
-      // Clear existing markers and popups
+      // Clear existing markers
       markersRef.current.forEach(({ marker, element, handler }) => {
         if (element && handler) {
           element.removeEventListener('click', handler as EventListener);
@@ -183,21 +156,8 @@ function WeatherStationsLayer({ map, visible, isDark }: WeatherStationsLayerProp
         marker.remove();
       });
       markersRef.current = [];
-      if (currentPopupRef.current) {
-        currentPopupRef.current.remove();
-        currentPopupRef.current = null;
-      }
       return;
     }
-
-    // Close popup when clicking on map
-    const handleMapClick = (): void => {
-      if (currentPopupRef.current) {
-        currentPopupRef.current.remove();
-        currentPopupRef.current = null;
-      }
-    };
-    map.on('click', handleMapClick);
 
     // Remove old markers
     markersRef.current.forEach(({ marker, element, handler }) => {
@@ -216,124 +176,11 @@ function WeatherStationsLayer({ map, visible, isDark }: WeatherStationsLayerProp
         .setLngLat([station.location.lng, station.location.lat])
         .addTo(map);
 
-      // Theme-aware colors
-      const themeColors = isDark ? {
-        title: '#f5f5f5',
-        text: '#c0c0c0',
-        textSecondary: '#b5b5b5',
-        metadata: '#a5a5a5',
-        border: 'rgba(255, 255, 255, 0.1)',
-        background: '#1a1a1a'
-      } : {
-        title: '#1f2937',
-        text: '#4b5563',
-        textSecondary: '#6b7280',
-        metadata: '#9ca3af',
-        border: '#e5e7eb',
-        background: '#ffffff'
-      };
-
-      // Escape user-controlled content to prevent XSS
-      const safeName = escapeHTML(station.name);
-      const safeDescription = escapeHTML(station.weather.description);
-      const safeWindSpeed = escapeHTML(station.weather.windSpeed);
-      const safeWindDirection = escapeHTML(station.weather.windDirection);
-
-      const popup = new maplibregl.Popup({
-        offset: 25,
-        closeButton: true,
-        closeOnClick: false,
-        maxWidth: '320px'
-      }).setHTML(`
-        <div style="padding: 6px; background: ${themeColors.background}; color: ${themeColors.text};">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
-            <h3 style="margin: 0; color: ${themeColors.title}; font-size: 15px; font-weight: 600;">
-              ${safeName}
-            </h3>
-          </div>
-
-          ${station.elevation ? `
-            <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid ${themeColors.border};">
-              <p style="margin: 0; color: ${themeColors.textSecondary}; font-size: 12px;">
-                📍 Elevation: ${station.elevation} ft
-              </p>
-            </div>
-          ` : ''}
-
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-            <div>
-              <div style="font-size: 11px; color: ${themeColors.metadata}; margin-bottom: 2px;">Temperature</div>
-              <div style="font-size: 28px; font-weight: 700; color: ${themeColors.title};">
-                ${station.weather.temperature}°F
-              </div>
-            </div>
-            <div style="text-align: right;">
-              <div style="font-size: 13px; color: ${themeColors.text}; font-weight: 500;">
-                ${safeDescription}
-              </div>
-            </div>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; margin-bottom: 8px;">
-            ${safeWindSpeed ? `
-              <div style="padding: 6px; background: ${isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)'}; border-radius: 4px;">
-                <div style="color: ${themeColors.metadata}; font-size: 10px; margin-bottom: 2px;">Wind</div>
-                <div style="color: ${themeColors.text}; font-weight: 600;">
-                  ${safeWindDirection} ${safeWindSpeed}
-                </div>
-              </div>
-            ` : ''}
-            ${station.weather.humidity !== null ? `
-              <div style="padding: 6px; background: ${isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)'}; border-radius: 4px;">
-                <div style="color: ${themeColors.metadata}; font-size: 10px; margin-bottom: 2px;">Humidity</div>
-                <div style="color: ${themeColors.text}; font-weight: 600;">
-                  ${Math.round(station.weather.humidity)}%
-                </div>
-              </div>
-            ` : ''}
-            ${station.weather.dewpoint !== null ? `
-              <div style="padding: 6px; background: ${isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)'}; border-radius: 4px;">
-                <div style="color: ${themeColors.metadata}; font-size: 10px; margin-bottom: 2px;">Dewpoint</div>
-                <div style="color: ${themeColors.text}; font-weight: 600;">
-                  ${station.weather.dewpoint}°F
-                </div>
-              </div>
-            ` : ''}
-            ${station.weather.pressure !== null ? `
-              <div style="padding: 6px; background: ${isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)'}; border-radius: 4px;">
-                <div style="color: ${themeColors.metadata}; font-size: 10px; margin-bottom: 2px;">Pressure</div>
-                <div style="color: ${themeColors.text}; font-weight: 600;">
-                  ${station.weather.pressure} mb
-                </div>
-              </div>
-            ` : ''}
-          </div>
-
-          <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid ${themeColors.border}; text-align: center;">
-            <span style="font-size: 10px; color: ${themeColors.metadata}; font-style: italic;">
-              NOAA • Updated ${new Date(station.weather.timestamp).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
-            </span>
-          </div>
-        </div>
-      `);
-
-      // Store click handler for cleanup
+      // Click handler opens DetailPanel
       const handleMarkerClick = (e: MouseEvent): void => {
         e.stopPropagation();
-
-        // Close existing popup if any
-        if (currentPopupRef.current && currentPopupRef.current !== popup) {
-          currentPopupRef.current.remove();
-          currentPopupRef.current = null;
-        }
-
-        // Toggle popup
-        if (currentPopupRef.current === popup) {
-          popup.remove();
-          currentPopupRef.current = null;
-        } else {
-          popup.setLngLat([station.location.lng, station.location.lat]).addTo(map);
-          currentPopupRef.current = popup;
+        if (onStationClick) {
+          onStationClick(station);
         }
       };
 
@@ -355,15 +202,8 @@ function WeatherStationsLayer({ map, visible, isDark }: WeatherStationsLayerProp
         marker.remove();
       });
       markersRef.current = [];
-
-      if (currentPopupRef.current) {
-        currentPopupRef.current.remove();
-        currentPopupRef.current = null;
-      }
-
-      map.off('click', handleMapClick);
     };
-  }, [map, visible, stations, isDark]);
+  }, [map, visible, stations, onStationClick]);
 
   // No UI panel - markers only
   return null;

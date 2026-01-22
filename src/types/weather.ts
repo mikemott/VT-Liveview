@@ -78,27 +78,25 @@ export interface WeatherAlert {
   parameters: Record<string, string[]>;
 }
 
-/** Weather observation station */
+/** Weather observation station (from GraphQL) */
 export interface ObservationStation {
   id: string;
-  type: 'Feature';
-  geometry: {
-    type: 'Point';
-    coordinates: [number, number]; // [longitude, latitude]
+  name: string;
+  location: {
+    lat: number;
+    lng: number;
   };
-  properties: {
-    '@id': string;
-    '@type': 'wx:ObservationStation';
-    elevation: {
-      unitCode: string;
-      value: number;
-    };
-    stationIdentifier: string;
-    name: string;
-    timeZone: string;
-    forecast: string;
-    county: string;
-    fireWeatherZone: string;
+  elevation: number | null;
+  weather: {
+    temperature: number;
+    temperatureUnit: string;
+    description: string;
+    windSpeed: string | null;
+    windDirection: string | null;
+    humidity: number | null;
+    dewpoint: number | null;
+    pressure: number | null;
+    timestamp: string;
   };
 }
 
