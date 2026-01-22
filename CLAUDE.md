@@ -234,6 +234,24 @@ SENTRY_TRACES_SAMPLE_RATE=0.1                 # 10% of transactions
 SENTRY_PROFILES_SAMPLE_RATE=0.1               # 10% of traces
 ```
 
+**Local Secrets for Claude Sessions (.env.local):**
+```bash
+# This file is gitignored and contains tokens for deployments/integrations
+# Claude sessions should read this file for API tokens
+
+FLY_API_TOKEN=...     # Fly.io deploy token (for backend deployments)
+LINEAR_API_KEY=...    # Linear API key (for issue tracking)
+NOAA_CDO_TOKEN=...    # NOAA Climate Data Online token (historical weather)
+```
+
+**Using tokens in Claude sessions:**
+```bash
+# Load Fly.io token for deployments
+source .env.local 2>/dev/null
+export PATH="$HOME/.fly/bin:$PATH"
+fly secrets set KEY=value  # Now authenticated
+```
+
 ---
 
 ## 📂 Project Structure
