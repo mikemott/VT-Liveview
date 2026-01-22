@@ -50,6 +50,7 @@ export type {
 // Detail panel types
 export type {
   AlertProperties,
+  AlertGeometry,
   AlertFeature,
   DetailPanelContent,
 } from './detailPanel';

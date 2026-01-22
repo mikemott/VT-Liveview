@@ -13,6 +13,7 @@ import type { MapLibreMap, DetailPanelContent, AlertFeature, ObservationStation 
 import { VERMONT, INTERVALS } from './utils/constants';
 import { useIsMobile } from './hooks/useIsMobile';
 import { Menu, X } from 'lucide-react';
+import { fetchMergedAlerts, type MergedAlertData } from './services/graphqlClient';
 
 // =============================================================================
 // Types
@@ -224,14 +225,11 @@ function WeatherMap() {
       }
     });
 
-    // Calculate bounding box from polygon coordinates
-    const coords = alert.geometry.coordinates[0];
-    if (!coords || coords.length === 0) return;
-
+    // Calculate bounding box from geometry (handles both Polygon and MultiPolygon)
     let minLng = Infinity, maxLng = -Infinity;
     let minLat = Infinity, maxLat = -Infinity;
 
-    coords.forEach((point) => {
+    const processPoint = (point: number[]): void => {
       const lng = point[0];
       const lat = point[1];
       if (lng !== undefined && lat !== undefined) {
@@ -240,7 +238,28 @@ function WeatherMap() {
         minLat = Math.min(minLat, lat);
         maxLat = Math.max(maxLat, lat);
       }
-    });
+    };
+
+    if (alert.geometry.type === 'MultiPolygon') {
+      // MultiPolygon: coordinates[polygon][ring][point]
+      for (const polygon of alert.geometry.coordinates) {
+        for (const ring of polygon) {
+          for (const point of ring) {
+            processPoint(point);
+          }
+        }
+      }
+    } else {
+      // Polygon: coordinates[ring][point]
+      for (const ring of alert.geometry.coordinates) {
+        for (const point of ring) {
+          processPoint(point);
+        }
+      }
+    }
+
+    // Ensure we have valid bounds
+    if (minLng === Infinity || maxLng === -Infinity) return;
 
     // Fly to bounds with smooth animation
     map.current.fitBounds(
@@ -253,26 +272,45 @@ function WeatherMap() {
     );
   }, [isMobile]);
 
-  // Fetch NOAA weather alerts
-  const fetchAlerts = useCallback(async (): Promise<void> => {
-    try {
-      const response = await fetch('https://api.weather.gov/alerts/active?area=VT', {
-        headers: {
-          'User-Agent': 'VT-Liveview Weather App'
-        }
-      });
-      const data = await response.json();
+  // Convert MergedAlertData to AlertFeature format for map display
+  const mergedAlertToFeature = useCallback((alert: MergedAlertData): AlertFeature => ({
+    type: 'Feature',
+    properties: {
+      id: alert.id,
+      event: alert.event,
+      headline: alert.headline,
+      severity: alert.severity,
+      certainty: alert.certainty,
+      urgency: alert.urgency,
+      areaDesc: alert.areaDesc,
+      description: alert.description,
+      instruction: alert.instruction,
+      effective: alert.effective,
+      expires: alert.expires,
+      mergedFrom: alert.mergedFrom,
+      affectedZoneIds: alert.affectedZoneIds,
+    },
+    geometry: alert.geometry,
+  }), []);
 
-      if (data.features && data.features.length > 0) {
-        setAlerts(data.features as AlertFeature[]);
-        addAlertsToMap(data.features as AlertFeature[]);
+  // Fetch merged weather alerts from backend
+  const fetchAlertsFromBackend = useCallback(async (): Promise<void> => {
+    try {
+      const mergedAlerts = await fetchMergedAlerts('VT');
+
+      if (mergedAlerts.length > 0) {
+        const alertFeatures = mergedAlerts.map(mergedAlertToFeature);
+        setAlerts(alertFeatures);
+        addAlertsToMap(alertFeatures);
+      } else {
+        setAlerts([]);
       }
     } catch (error) {
       if (import.meta.env.DEV) {
-        console.error('Error fetching alerts:', error);
+        console.error('Error fetching merged alerts:', error);
       }
     }
-  }, [addAlertsToMap]);
+  }, [addAlertsToMap, mergedAlertToFeature]);
 
   // Initialize map with Protomaps basemap
   useEffect(() => {
@@ -324,7 +362,7 @@ function WeatherMap() {
 
       setLoading(false);
       setMapLoaded(true);
-      fetchAlerts();
+      fetchAlertsFromBackend();
     });
 
     // Track zoom changes
@@ -395,7 +433,7 @@ function WeatherMap() {
         map.current = null;
       }
     };
-  }, [fetchAlerts, isDark]);
+  }, [fetchAlertsFromBackend, isDark]);
 
   // Check theme based on daylight hours and update automatically (only if user hasn't manually overridden)
   useEffect(() => {
@@ -568,9 +606,9 @@ function WeatherMap() {
             <div className="control-section">
               <h3>Active Alerts ({alerts.length})</h3>
               <div className="alerts-list">
-                {alerts.map((alert, index) => (
+                {alerts.map((alert) => (
                   <div
-                    key={index}
+                    key={alert.properties.id || alert.properties.event}
                     className={`alert-item severity-${alert.properties.severity?.toLowerCase()}`}
                     onClick={() => handleAlertClick(alert)}
                     onKeyDown={(e) => handleAlertKeyDown(e, alert)}
@@ -579,7 +617,7 @@ function WeatherMap() {
                     aria-label={`Zoom to ${alert.properties.event} affected area`}
                   >
                     <div className="alert-event">{alert.properties.event}</div>
-                    <div className="alert-headline">{alert.properties.headline}</div>
+                    <div className="alert-headline">{alert.properties.headline || alert.properties.areaDesc}</div>
                   </div>
                 ))}
               </div>

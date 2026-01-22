@@ -2,6 +2,7 @@ type Query {
   currentWeather(lat: Float!, lon: Float!): WeatherConditions
   forecast(lat: Float!, lon: Float!): [ForecastPeriod!]!
   alerts(state: String!): [Alert!]!
+  mergedAlerts(state: String!): [MergedAlert!]!
   radarInfo: RadarInfo!
   observationStations: [ObservationStation!]!
   historicalData(lat: Float!, lng: Float!): HistoricalData!
@@ -51,6 +52,28 @@ type Alert {
 type AlertGeometry {
   type: String!
   coordinates: [[[[Float!]!]!]!]
+}
+
+type MergedAlert {
+  id: String!
+  event: String!
+  headline: String
+  severity: String!
+  certainty: String!
+  urgency: String!
+  description: String!
+  instruction: String
+  areaDesc: String!
+  effective: String!
+  expires: String!
+  geometry: MergedAlertGeometry!
+  mergedFrom: [String!]!
+  affectedZoneIds: [String!]!
+}
+
+type MergedAlertGeometry {
+  type: String!
+  coordinates: [[[[Float!]!]!]!]!
 }
 
 type RadarInfo {

@@ -60,6 +60,30 @@ export interface AlertData {
   geometry: AlertGeometry | null;
 }
 
+/** Merged alert geometry (always MultiPolygon) */
+export interface MergedAlertGeometry {
+  type: 'MultiPolygon';
+  coordinates: number[][][][];
+}
+
+/** Merged weather alert with zone boundaries */
+export interface MergedAlertData {
+  id: string;
+  event: string;
+  headline: string | null;
+  severity: 'Extreme' | 'Severe' | 'Moderate' | 'Minor' | 'Unknown';
+  certainty: 'Observed' | 'Likely' | 'Possible' | 'Unlikely' | 'Unknown';
+  urgency: 'Immediate' | 'Expected' | 'Future' | 'Past' | 'Unknown';
+  description: string;
+  instruction: string | null;
+  areaDesc: string;
+  effective: string;
+  expires: string;
+  geometry: MergedAlertGeometry;
+  mergedFrom: string[];
+  affectedZoneIds: string[];
+}
+
 /** Radar timestamp entry */
 export interface RadarTimestamp {
   time: string;
@@ -84,6 +108,10 @@ interface ForecastResponse {
 
 interface AlertsResponse {
   alerts: AlertData[];
+}
+
+interface MergedAlertsResponse {
+  mergedAlerts: MergedAlertData[];
 }
 
 interface RadarInfoResponse {
@@ -161,6 +189,30 @@ export const ALERTS_QUERY = `
   }
 `;
 
+export const MERGED_ALERTS_QUERY = `
+  query MergedAlerts($state: String!) {
+    mergedAlerts(state: $state) {
+      id
+      event
+      headline
+      severity
+      certainty
+      urgency
+      description
+      instruction
+      areaDesc
+      effective
+      expires
+      geometry {
+        type
+        coordinates
+      }
+      mergedFrom
+      affectedZoneIds
+    }
+  }
+`;
+
 export const RADAR_INFO_QUERY = `
   query RadarInfo {
     radarInfo {
@@ -228,6 +280,20 @@ export async function fetchAlerts(state = 'VT'): Promise<AlertData[]> {
     state,
   });
   return data.alerts;
+}
+
+/**
+ * Fetch merged weather alerts for a state
+ * Alerts are grouped by event type with zone boundaries merged into MultiPolygons.
+ * Only Vermont zones are included.
+ * @param state - Two-letter state code (defaults to 'VT')
+ * @returns Array of merged alerts with zone boundaries
+ */
+export async function fetchMergedAlerts(state = 'VT'): Promise<MergedAlertData[]> {
+  const data = await graphqlClient.request<MergedAlertsResponse>(MERGED_ALERTS_QUERY, {
+    state,
+  });
+  return data.mergedAlerts;
 }
 
 /**
