@@ -261,15 +261,18 @@ function WeatherMap() {
     // Ensure we have valid bounds
     if (minLng === Infinity || maxLng === -Infinity) return;
 
-    // Fly to bounds with smooth animation
+    // Fly to bounds with smooth animation (backed out for better context)
     map.current.fitBounds(
       [[minLng, minLat], [maxLng, maxLat]],
       {
-        padding: 80,        // 80px buffer on all sides
+        padding: 120,       // 120px buffer on all sides for more context
         duration: 1500,     // 1.5 second smooth animation
-        maxZoom: 15         // Prevent excessive zoom on tiny polygons
+        maxZoom: 11         // Keep zoomed out to see surrounding area
       }
     );
+
+    // Open the detail panel with full alert information
+    setDetailPanelContent({ type: 'alert', data: alert });
   }, [isMobile]);
 
   // Convert MergedAlertData to AlertFeature format for map display
@@ -322,11 +325,11 @@ function WeatherMap() {
       style: getMapStyle(isDark),
       center: [VERMONT_CENTER.lng, VERMONT_CENTER.lat],
       zoom: VERMONT_CENTER.zoom,
-      minZoom: 6.5,  // Allow zooming out to see full state and surrounding areas
+      minZoom: 5.5,  // Allow zooming out to see regional weather patterns
       maxZoom: 18,   // Allow detailed street-level zoom
       maxBounds: [
-        [-75.0, 41.5], // Southwest corner - more generous bounds
-        [-70.0, 46.5]  // Northeast corner - allows viewing all of Vermont
+        [-77.5, 40.5], // Southwest corner - extends into NY for weather context
+        [-68.5, 47.5]  // Northeast corner - includes northern Maine/Quebec border
       ]
     });
 
