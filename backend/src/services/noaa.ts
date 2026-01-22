@@ -15,8 +15,15 @@ import type {
   NOAAObservationResponse,
   NOAAForecastResponse,
   NOAAAlertsResponse,
+  MergedAlert,
+  ZoneBoundary,
 } from '../types/index.js';
 import { getEnv } from '../types/index.js';
+import {
+  fetchZoneBoundaries,
+  filterVermontZones,
+  extractZoneId,
+} from './zones.js';
 
 const NOAA_BASE = 'https://api.weather.gov';
 
@@ -236,6 +243,238 @@ export async function getAlerts(state: string): Promise<Alert[]> {
         : null,
     };
   });
+}
+
+// ============================================================================
+// Merged Alerts (with zone boundary fetching)
+// ============================================================================
+
+/**
+ * Severity ranking for alert prioritization.
+ * Higher number = more severe.
+ */
+const SEVERITY_RANK: Record<string, number> = {
+  Extreme: 4,
+  Severe: 3,
+  Moderate: 2,
+  Minor: 1,
+  Unknown: 0,
+};
+
+/**
+ * Certainty ranking for alert prioritization.
+ */
+const CERTAINTY_RANK: Record<string, number> = {
+  Observed: 4,
+  Likely: 3,
+  Possible: 2,
+  Unlikely: 1,
+  Unknown: 0,
+};
+
+/**
+ * Urgency ranking for alert prioritization.
+ */
+const URGENCY_RANK: Record<string, number> = {
+  Immediate: 4,
+  Expected: 3,
+  Future: 2,
+  Past: 1,
+  Unknown: 0,
+};
+
+/**
+ * Convert zone boundaries to a MultiPolygon coordinate array.
+ */
+function zonesToMultiPolygon(zones: ZoneBoundary[]): number[][][][] {
+  const coordinates: number[][][][] = [];
+
+  for (const zone of zones) {
+    if (zone.geometry.type === 'Polygon') {
+      // Polygon coordinates are number[][][]
+      coordinates.push(zone.geometry.coordinates as number[][][]);
+    } else if (zone.geometry.type === 'MultiPolygon') {
+      // MultiPolygon coordinates are number[][][][]
+      const multiCoords = zone.geometry.coordinates as number[][][][];
+      coordinates.push(...multiCoords);
+    }
+  }
+
+  return coordinates;
+}
+
+/**
+ * Get merged weather alerts for a state.
+ * Alerts are grouped by event type and merged into single visual boundaries.
+ * Only Vermont zones are included in the geometry.
+ * Uses existing alert geometry when available, falls back to zone boundaries.
+ */
+export async function getMergedAlerts(state: string): Promise<MergedAlert[]> {
+  let data: NOAAAlertsResponse;
+
+  try {
+    const response = await fetch(`${NOAA_BASE}/alerts/active?area=${state}`, getFetchOptions());
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    data = (await response.json()) as NOAAAlertsResponse;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Failed to get merged alerts for ${state}: ${message}`);
+  }
+
+  const features = data.features;
+
+  if (features.length === 0) {
+    return [];
+  }
+
+  // Collect VT zone URLs from alerts that lack geometry (need to fetch boundaries)
+  const zoneUrlsNeedingBoundaries: string[] = [];
+  for (const feature of features) {
+    if (!feature.geometry) {
+      const vtZones = filterVermontZones(feature.properties.affectedZones || []);
+      zoneUrlsNeedingBoundaries.push(...vtZones);
+    }
+  }
+
+  // Fetch zone boundaries in parallel (only for alerts without geometry)
+  const zoneBoundaries = await fetchZoneBoundaries(zoneUrlsNeedingBoundaries);
+
+  // Group alerts by event type
+  const alertsByEvent = new Map<string, typeof features>();
+  for (const feature of features) {
+    const event = feature.properties.event;
+    const existing = alertsByEvent.get(event) || [];
+    existing.push(feature);
+    alertsByEvent.set(event, existing);
+  }
+
+  // Merge each group into a single alert
+  const mergedAlerts: MergedAlert[] = [];
+
+  for (const [event, alerts] of alertsByEvent) {
+    // Collect all VT zone IDs for this event group
+    const vtZoneIds = new Set<string>();
+    for (const alert of alerts) {
+      const vtZones = filterVermontZones(alert.properties.affectedZones || []);
+      for (const zoneUrl of vtZones) {
+        vtZoneIds.add(extractZoneId(zoneUrl));
+      }
+    }
+
+    // Skip if no VT zones affected
+    if (vtZoneIds.size === 0) {
+      continue;
+    }
+
+    // Build geometry: prefer existing alert polygons, fall back to zone boundaries
+    const geometryParts: number[][][][] = [];
+
+    // First, collect existing geometry from alerts that have it
+    for (const alert of alerts) {
+      if (alert.geometry) {
+        if (alert.geometry.type === 'Polygon') {
+          // Polygon coordinates are number[][][] - wrap in array for MultiPolygon format
+          // Note: NOAA types have coordinates as number[][][][] but Polygon is actually number[][][]
+          const polygonCoords = alert.geometry.coordinates as unknown as number[][][];
+          geometryParts.push(polygonCoords);
+        } else if (alert.geometry.type === 'MultiPolygon') {
+          // MultiPolygon coordinates are number[][][][] - spread to add each polygon
+          geometryParts.push(...alert.geometry.coordinates);
+        }
+      }
+    }
+
+    // If no alerts had geometry, fall back to zone boundaries
+    if (geometryParts.length === 0) {
+      const eventZoneBoundaries: ZoneBoundary[] = [];
+      for (const zoneId of vtZoneIds) {
+        const boundary = zoneBoundaries.get(zoneId);
+        if (boundary) {
+          eventZoneBoundaries.push(boundary);
+        }
+      }
+
+      if (eventZoneBoundaries.length === 0) {
+        console.warn(`[ALERTS] No geometry or zone boundaries found for event: ${event}`);
+        continue;
+      }
+
+      geometryParts.push(...zonesToMultiPolygon(eventZoneBoundaries));
+    }
+
+    // Find the most severe alert in the group
+    const sortedAlerts = [...alerts].sort((a, b) => {
+      const sevA = SEVERITY_RANK[a.properties.severity] ?? 0;
+      const sevB = SEVERITY_RANK[b.properties.severity] ?? 0;
+      if (sevA !== sevB) return sevB - sevA;
+
+      const certA = CERTAINTY_RANK[a.properties.certainty] ?? 0;
+      const certB = CERTAINTY_RANK[b.properties.certainty] ?? 0;
+      if (certA !== certB) return certB - certA;
+
+      const urgA = URGENCY_RANK[a.properties.urgency] ?? 0;
+      const urgB = URGENCY_RANK[b.properties.urgency] ?? 0;
+      return urgB - urgA;
+    });
+
+    const primaryAlert = sortedAlerts[0];
+    if (!primaryAlert) continue;
+
+    // Find earliest effective and latest expires
+    let earliestEffective = primaryAlert.properties.effective;
+    let latestExpires = primaryAlert.properties.expires;
+
+    for (const alert of alerts) {
+      if (new Date(alert.properties.effective) < new Date(earliestEffective)) {
+        earliestEffective = alert.properties.effective;
+      }
+      if (new Date(alert.properties.expires) > new Date(latestExpires)) {
+        latestExpires = alert.properties.expires;
+      }
+    }
+
+    // Combine area descriptions (VT zones only)
+    const vtZoneNames: string[] = [];
+    for (const zoneId of vtZoneIds) {
+      const boundary = zoneBoundaries.get(zoneId);
+      if (boundary) {
+        vtZoneNames.push(boundary.name);
+      }
+    }
+    // If we used existing geometry, zone names might be empty - use areaDesc from primary
+    const areaDesc = vtZoneNames.length > 0
+      ? vtZoneNames.join('; ')
+      : primaryAlert.properties.areaDesc;
+
+    // Create merged alert
+    const mergedAlert: MergedAlert = {
+      id: `merged-${event.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`,
+      event,
+      headline: primaryAlert.properties.headline,
+      severity: primaryAlert.properties.severity,
+      certainty: primaryAlert.properties.certainty,
+      urgency: primaryAlert.properties.urgency,
+      description: primaryAlert.properties.description,
+      instruction: primaryAlert.properties.instruction,
+      areaDesc,
+      effective: earliestEffective,
+      expires: latestExpires,
+      geometry: {
+        type: 'MultiPolygon',
+        coordinates: geometryParts,
+      },
+      mergedFrom: alerts.map((a) => a.properties.id),
+      affectedZoneIds: [...vtZoneIds],
+    };
+
+    mergedAlerts.push(mergedAlert);
+  }
+
+  return mergedAlerts;
 }
 
 // ============================================================================

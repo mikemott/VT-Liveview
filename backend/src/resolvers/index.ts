@@ -7,6 +7,7 @@ import {
   getCurrentWeather,
   getForecast,
   getAlerts,
+  getMergedAlerts,
   getObservationStations,
 } from '../services/noaa.js';
 import { getRadarInfo } from '../services/radar.js';
@@ -15,6 +16,7 @@ import type {
   WeatherConditions,
   ForecastPeriod,
   Alert,
+  MergedAlert,
   RadarInfo,
   ObservationStation,
 } from '../types/index.js';
@@ -62,6 +64,10 @@ export const resolvers = {
 
     alerts: async (_parent: unknown, { state }: AlertsArgs): Promise<Alert[]> => {
       return await getAlerts(state);
+    },
+
+    mergedAlerts: async (_parent: unknown, { state }: AlertsArgs): Promise<MergedAlert[]> => {
+      return await getMergedAlerts(state);
     },
 
     radarInfo: async (): Promise<RadarInfo> => {

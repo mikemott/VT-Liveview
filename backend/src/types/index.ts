@@ -30,6 +30,12 @@ export type {
   // Cache types
   StationsCache,
   ClearCacheResult,
+  // Zone boundary types
+  ZoneBoundary,
+  ZoneCacheEntry,
+  // Merged alert types
+  MergedAlert,
+  MergedAlertGeometry,
 } from './weather.js';
 
 // Environment types

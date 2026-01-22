@@ -8,23 +8,35 @@ import type { ObservationStation } from './weather';
 
 // Alert feature type (from WeatherMap.tsx)
 export interface AlertProperties {
+  id?: string;
   event: string;
-  headline: string;
+  headline: string | null;
   severity?: string;
+  certainty?: string;
+  urgency?: string;
   areaDesc: string;
   description?: string;
-  instruction?: string;
+  instruction?: string | null;
   effective?: string;
   expires?: string;
+  // Merged alert properties
+  mergedFrom?: string[];
+  affectedZoneIds?: string[];
 }
+
+// Alert geometry - supports both Polygon and MultiPolygon
+export type AlertGeometry = {
+  type: 'Polygon';
+  coordinates: number[][][];
+} | {
+  type: 'MultiPolygon';
+  coordinates: number[][][][];
+};
 
 export interface AlertFeature {
   type: 'Feature';
   properties: AlertProperties;
-  geometry: {
-    type: 'Polygon';
-    coordinates: number[][][];
-  } | null;
+  geometry: AlertGeometry | null;
 }
 
 // Union type for detail panel content
