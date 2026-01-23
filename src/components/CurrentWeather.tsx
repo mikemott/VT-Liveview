@@ -19,8 +19,8 @@ interface CurrentWeatherProps {
 }
 
 export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, isDark = false, isMobile = false }: CurrentWeatherProps) {
-  // Default to collapsed on mobile for better map visibility
-  const [isExpanded, setIsExpanded] = useState(!isMobile);
+  // Default to collapsed for better map visibility
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const { data, isLoading, error } = useQuery<CurrentWeatherData | null>({
     queryKey: ['currentWeather', lat, lon],
