@@ -20,6 +20,7 @@ async function runMigrations() {
   // Create a connection for migrations (separate from app connection)
   const sql = postgres(databaseUrl, { max: 1 });
   const db = drizzle(sql);
+  let exitCode = 0;
 
   try {
     // Run migrations from the migrations folder
@@ -27,12 +28,12 @@ async function runMigrations() {
     console.log('Migrations completed successfully!');
   } catch (error) {
     console.error('Migration failed:', error);
-    process.exit(1);
+    exitCode = 1;
   } finally {
     await sql.end();
   }
 
-  process.exit(0);
+  process.exit(exitCode);
 }
 
 runMigrations();

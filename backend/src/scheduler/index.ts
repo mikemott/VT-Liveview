@@ -72,6 +72,9 @@ function scheduleCollector(
       status.lastError = error instanceof Error ? error.message : 'Unknown error';
 
       console.error(`[Scheduler] ${name} failed:`, status.lastError);
+    } finally {
+      // Update next run time after each execution
+      status.nextRun = getNextRunTime(schedule);
     }
   });
 
@@ -135,9 +138,11 @@ export function startScheduler(): boolean {
   console.log('  - River gauges: every 10 minutes');
 
   // Run initial collection after a short delay
-  setTimeout(async () => {
+  setTimeout(() => {
     console.log('[Scheduler] Running initial data collection...');
-    await runImmediateCollection();
+    runImmediateCollection().catch((error) => {
+      console.error('[Scheduler] Initial collection failed:', error);
+    });
   }, 5000);
 
   return true;

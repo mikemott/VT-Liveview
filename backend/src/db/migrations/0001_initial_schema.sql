@@ -18,8 +18,9 @@ CREATE TABLE IF NOT EXISTS weather_observations (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_weather_obs_station_time
-  ON weather_observations(station_id, observed_at DESC);
+-- Unique constraint for deduplication (also serves as index)
+CREATE UNIQUE INDEX IF NOT EXISTS uq_weather_obs_station_time
+  ON weather_observations(station_id, observed_at);
 CREATE INDEX IF NOT EXISTS idx_weather_obs_observed_at
   ON weather_observations(observed_at DESC);
 

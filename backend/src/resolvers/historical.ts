@@ -135,7 +135,7 @@ export const historicalResolvers = {
         areaDesc: row.areaDesc,
         effectiveAt: row.effectiveAt.toISOString(),
         expiresAt: row.expiresAt.toISOString(),
-        firstSeenAt: row.firstSeenAt?.toISOString() || new Date().toISOString(),
+        firstSeenAt: row.firstSeenAt?.toISOString() || null,
         affectedZones: row.affectedZones || [],
       }));
     },
@@ -187,7 +187,7 @@ export const historicalResolvers = {
         latitude: parseFloat(row.latitude),
         longitude: parseFloat(row.longitude),
         roadName: row.roadName,
-        firstSeenAt: row.firstSeenAt?.toISOString() || new Date().toISOString(),
+        firstSeenAt: row.firstSeenAt?.toISOString() || null,
         resolvedAt: row.resolvedAt?.toISOString() || null,
       }));
     },
@@ -252,10 +252,19 @@ export const historicalResolvers = {
       }
 
       const date = parseDate(args.date);
-      const startOfDay = new Date(date);
-      startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date(date);
-      endOfDay.setHours(23, 59, 59, 999);
+      // Use UTC to ensure consistent day boundaries regardless of server timezone
+      const startOfDay = new Date(Date.UTC(
+        date.getUTCFullYear(),
+        date.getUTCMonth(),
+        date.getUTCDate(),
+        0, 0, 0, 0
+      ));
+      const endOfDay = new Date(Date.UTC(
+        date.getUTCFullYear(),
+        date.getUTCMonth(),
+        date.getUTCDate(),
+        23, 59, 59, 999
+      ));
 
       const conditions = [
         gte(weatherObservations.observedAt, startOfDay),

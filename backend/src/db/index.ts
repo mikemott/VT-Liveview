@@ -11,6 +11,7 @@ import * as schema from './schema.js';
 // Database client singleton
 let db: ReturnType<typeof drizzle<typeof schema>> | null = null;
 let sql: ReturnType<typeof postgres> | null = null;
+let warnedNoDatabaseUrl = false;
 
 /**
  * Get the database connection.
@@ -21,8 +22,9 @@ export function getDb(): ReturnType<typeof drizzle<typeof schema>> | null {
   const env = getEnv();
 
   if (!env.DATABASE_URL) {
-    if (isDev()) {
+    if (isDev() && !warnedNoDatabaseUrl) {
       console.log('[DB] DATABASE_URL not configured, database features disabled');
+      warnedNoDatabaseUrl = true;
     }
     return null;
   }

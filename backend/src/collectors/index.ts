@@ -61,6 +61,51 @@ export interface CollectionResult {
 }
 
 /**
+ * Result wrapper for retry operations.
+ */
+interface RetryResult<T> {
+  value: T | null;
+  error: string | null;
+}
+
+/**
+ * Retry wrapper that returns result with error info instead of throwing.
+ */
+async function withRetryResult<T>(
+  fn: () => Promise<T>,
+  name: string,
+  maxRetries: number = 3,
+  baseDelay: number = 1000
+): Promise<RetryResult<T>> {
+  let lastError: string | null = null;
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const value = await fn();
+      return { value, error: null };
+    } catch (error) {
+      const delay = baseDelay * Math.pow(2, attempt);
+      lastError = error instanceof Error ? error.message : 'Unknown error';
+
+      if (attempt < maxRetries - 1) {
+        if (isDev()) {
+          console.warn(
+            `[Collector:${name}] Attempt ${attempt + 1}/${maxRetries} failed: ${lastError}. Retrying in ${delay}ms...`
+          );
+        }
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      } else {
+        console.error(
+          `[Collector:${name}] All ${maxRetries} attempts failed: ${lastError}`
+        );
+      }
+    }
+  }
+
+  return { value: null, error: lastError };
+}
+
+/**
  * Run all collectors with retry logic.
  * Each collector runs independently - failures don't affect others.
  */
@@ -68,30 +113,23 @@ export async function runAllCollectors(): Promise<CollectionResult> {
   const errors: string[] = [];
   const timestamp = new Date();
 
-  const [weather, alerts, traffic, gauges] = await Promise.all([
-    withRetry(collectWeatherObservations, 'Weather').catch((e) => {
-      errors.push(`Weather: ${e.message}`);
-      return null;
-    }),
-    withRetry(collectWeatherAlerts, 'Alerts').catch((e) => {
-      errors.push(`Alerts: ${e.message}`);
-      return null;
-    }),
-    withRetry(collectTrafficIncidents, 'Traffic').catch((e) => {
-      errors.push(`Traffic: ${e.message}`);
-      return null;
-    }),
-    withRetry(collectRiverGauges, 'Gauges').catch((e) => {
-      errors.push(`Gauges: ${e.message}`);
-      return null;
-    }),
+  const [weatherResult, alertsResult, trafficResult, gaugesResult] = await Promise.all([
+    withRetryResult(collectWeatherObservations, 'Weather'),
+    withRetryResult(collectWeatherAlerts, 'Alerts'),
+    withRetryResult(collectTrafficIncidents, 'Traffic'),
+    withRetryResult(collectRiverGauges, 'Gauges'),
   ]);
 
+  if (weatherResult.error) errors.push(`Weather: ${weatherResult.error}`);
+  if (alertsResult.error) errors.push(`Alerts: ${alertsResult.error}`);
+  if (trafficResult.error) errors.push(`Traffic: ${trafficResult.error}`);
+  if (gaugesResult.error) errors.push(`Gauges: ${gaugesResult.error}`);
+
   return {
-    weather,
-    alerts,
-    traffic,
-    gauges,
+    weather: weatherResult.value,
+    alerts: alertsResult.value,
+    traffic: trafficResult.value,
+    gauges: gaugesResult.value,
     timestamp,
     errors,
   };

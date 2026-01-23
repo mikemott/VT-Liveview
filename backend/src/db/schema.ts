@@ -38,7 +38,7 @@ export const weatherObservations = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   },
   (table) => [
-    index('idx_weather_obs_station_time').on(table.stationId, table.observedAt),
+    unique('uq_weather_obs_station_time').on(table.stationId, table.observedAt),
     index('idx_weather_obs_observed_at').on(table.observedAt),
   ]
 );
@@ -125,7 +125,6 @@ export const riverGauges = pgTable(
   },
   (table) => [
     unique('uq_river_gauges_site_time').on(table.siteCode, table.observedAt),
-    index('idx_gauges_site_time').on(table.siteCode, table.observedAt),
     index('idx_gauges_observed_at').on(table.observedAt),
   ]
 );
