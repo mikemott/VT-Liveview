@@ -12,6 +12,7 @@ import {
 } from '../services/noaa.js';
 import { getRadarInfo } from '../services/radar.js';
 import { getHistoricalWeather } from '../services/noaaCDO.js';
+import { historicalResolvers } from './historical.js';
 import type {
   WeatherConditions,
   ForecastPeriod,
@@ -81,5 +82,8 @@ export const resolvers = {
     historicalData: async (_parent: unknown, { lat, lng }: HistoricalDataArgs) => {
       return await getHistoricalWeather(lat, lng);
     },
+
+    // Historical database queries
+    ...historicalResolvers.Query,
   },
 };
