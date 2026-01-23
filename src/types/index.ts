@@ -81,3 +81,23 @@ export { DEFAULT_LAYER_VISIBILITY } from './map';
 // Environment types
 export type { Env } from './env';
 export { envSchema, getEnv, isDev, isProd } from './env';
+
+// Traffic flow types
+export type {
+  TrafficFlowStatus,
+  TrafficCondition,
+  NetworkNode,
+  NetworkLink,
+  NetworkData,
+  TrafficFlowSegment,
+  TrafficFlowProperties,
+  TrafficFlowFeature,
+  TrafficFlowFeatureCollection,
+  TrafficFlowColor,
+  TrafficFlowColorMap,
+  TrafficFlowSettings,
+} from './traffic';
+export {
+  DEFAULT_TRAFFIC_FLOW_SETTINGS,
+  TRAFFIC_FLOW_COLORS,
+} from './traffic';

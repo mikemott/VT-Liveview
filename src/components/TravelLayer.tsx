@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, ReactNode, memo } from 'react';
-import { AlertTriangle, Construction, Ban, Waves, AlertOctagon, ChevronDown, ChevronRight, Thermometer } from 'lucide-react';
+import { AlertTriangle, Construction, Ban, Waves, AlertOctagon, ChevronDown, ChevronRight, Thermometer, Car } from 'lucide-react';
 import maplibregl from 'maplibre-gl';
 import { fetchAllIncidents, type TravelIncident } from '../services/travelApi';
 import { getIncidentColor, shouldShowIncident } from '../utils/incidentColors';
@@ -29,6 +29,8 @@ interface TravelLayerProps {
   isDark: boolean;
   showWeatherStations: boolean;
   onToggleWeatherStations: () => void;
+  showTrafficFlow: boolean;
+  onToggleTrafficFlow: () => void;
 }
 
 interface IncidentsByType {
@@ -71,7 +73,7 @@ function getTypeLabel(type: IncidentType): string {
 // Component
 // =============================================================================
 
-function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, onToggleWeatherStations }: TravelLayerProps) {
+function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, onToggleWeatherStations, showTrafficFlow, onToggleTrafficFlow }: TravelLayerProps) {
   const [incidents, setIncidents] = useState<TravelIncident[]>([]);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(true);
@@ -428,6 +430,21 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
               </span>
               <span className="checkbox-label">
                 Weather Stations
+              </span>
+            </label>
+
+            {/* Traffic Flow toggle */}
+            <label className="filter-checkbox">
+              <input
+                type="checkbox"
+                checked={showTrafficFlow}
+                onChange={onToggleTrafficFlow}
+              />
+              <span className="checkbox-icon" style={{ color: '#00c853' }}>
+                <Car size={16} strokeWidth={2.5} />
+              </span>
+              <span className="checkbox-label">
+                Traffic Flow
               </span>
             </label>
 
