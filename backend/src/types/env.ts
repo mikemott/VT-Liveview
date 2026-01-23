@@ -25,6 +25,14 @@ const envSchema = z.object({
   CONTACT_EMAIL: z.string().email().optional(),
   NOAA_CDO_TOKEN: z.string().optional(), // Token for NOAA Climate Data Online API
 
+  // Database configuration
+  DATABASE_URL: z.string().url().optional(), // PostgreSQL connection string (Neon/Supabase)
+  DATABASE_MODE: z.enum(['postgres', 'timescale']).default('postgres'),
+  ENABLE_COLLECTOR: z
+    .string()
+    .default('true')
+    .transform((val) => val === 'true'),
+
   // Sentry configuration (optional)
   SENTRY_DSN: z.string().url().optional(),
   SENTRY_ENVIRONMENT: z.string().optional(),

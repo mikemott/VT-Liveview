@@ -15,6 +15,8 @@ import { dirname, join } from 'path';
 import { resolvers } from './resolvers/index.js';
 import { clearStationsCache } from './services/noaa.js';
 import { validateEnv, isProd, isDev } from './types/index.js';
+import { getDb, checkDatabaseHealth, closeDatabase, isDatabaseEnabled } from './db/index.js';
+import { startScheduler, stopScheduler, getCollectorStatus } from './scheduler/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -47,6 +49,21 @@ const typeDefs = loadSchema();
 interface HealthResponse {
   status: string;
   timestamp: string;
+  database?: {
+    enabled: boolean;
+    connected: boolean;
+    latencyMs: number | null;
+    error?: string;
+  };
+  collector?: {
+    enabled: boolean;
+    collectors: Record<string, {
+      lastRun: Date | null;
+      lastResult: number | null;
+      lastError: string | null;
+      nextRun: Date | null;
+    }>;
+  };
 }
 
 /**
@@ -130,7 +147,37 @@ async function start(): Promise<void> {
 
   // Health check endpoint
   fastify.get('/health', async (): Promise<HealthResponse> => {
-    return { status: 'ok', timestamp: new Date().toISOString() };
+    const response: HealthResponse = {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+    };
+
+    // Add database status if configured
+    if (isDatabaseEnabled()) {
+      const dbHealth = await checkDatabaseHealth();
+      response.database = {
+        enabled: true,
+        connected: dbHealth.connected,
+        latencyMs: dbHealth.latencyMs,
+        ...(dbHealth.error && { error: dbHealth.error }),
+      };
+
+      // Mark as degraded if database is down
+      if (!dbHealth.connected) {
+        response.status = 'degraded';
+      }
+    } else {
+      response.database = {
+        enabled: false,
+        connected: false,
+        latencyMs: null,
+      };
+    }
+
+    // Add collector status
+    response.collector = getCollectorStatus();
+
+    return response;
   });
 
   // Admin endpoint to clear weather station cache
@@ -213,6 +260,49 @@ async function start(): Promise<void> {
     }
   );
 
+  // Traffic flow data endpoints
+  fastify.get(
+    '/api/vt511/traffic-conditions',
+    async (_request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+      try {
+        const response = await fetch(
+          `${VT_511_BASE}?networks=Vermont&dataTypes=trafficCondData`,
+          vt511FetchOptions
+        );
+        const xmlText = await response.text();
+        reply.type('text/xml').send(xmlText);
+      } catch {
+        reply.code(500).send({ error: 'Failed to fetch VT 511 traffic condition data' });
+      }
+    }
+  );
+
+  fastify.get(
+    '/api/vt511/network',
+    async (_request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+      try {
+        const response = await fetch(
+          `${VT_511_BASE}?networks=Vermont&dataTypes=networkData`,
+          vt511FetchOptions
+        );
+        const xmlText = await response.text();
+        reply.type('text/xml').send(xmlText);
+      } catch {
+        reply.code(500).send({ error: 'Failed to fetch VT 511 network data' });
+      }
+    }
+  );
+
+  // Initialize database connection (if configured)
+  if (isDatabaseEnabled()) {
+    const db = getDb();
+    if (db) {
+      fastify.log.info('Database connection established');
+    }
+  } else {
+    fastify.log.info('Database not configured, historical data features disabled');
+  }
+
   // Start server
   const port = env.PORT;
   const host = env.HOST;
@@ -224,10 +314,36 @@ async function start(): Promise<void> {
       fastify.log.info(`GraphQL server ready at http://${host}:${port}/graphql`);
       fastify.log.info(`Health check at http://${host}:${port}/health`);
     }
+
+    // Start data collection scheduler after server is ready
+    const schedulerStarted = startScheduler();
+    if (schedulerStarted) {
+      fastify.log.info('Data collection scheduler started');
+    }
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);
   }
+
+  // Graceful shutdown handlers
+  const shutdown = async (signal: string) => {
+    fastify.log.info(`Received ${signal}, shutting down gracefully...`);
+
+    // Stop scheduler first
+    stopScheduler();
+
+    // Close database connection
+    await closeDatabase();
+
+    // Close Fastify server
+    await fastify.close();
+
+    fastify.log.info('Server shut down successfully');
+    process.exit(0);
+  };
+
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
 }
 
 start();

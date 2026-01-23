@@ -6,6 +6,13 @@ type Query {
   radarInfo: RadarInfo!
   observationStations: [ObservationStation!]!
   historicalData(lat: Float!, lng: Float!): HistoricalData!
+
+  # Historical data queries (from database)
+  weatherHistory(stationId: String, startDate: String!, endDate: String!, limit: Int): [WeatherObservation!]!
+  alertHistory(eventType: String, startDate: String!, endDate: String!, limit: Int): [HistoricalAlert!]!
+  incidentHistory(type: String, startDate: String!, endDate: String!, limit: Int): [HistoricalIncident!]!
+  gaugeHistory(siteCode: String!, startDate: String!, endDate: String!, limit: Int): [GaugeReading!]!
+  dailyWeatherStats(stationId: String, date: String!): DailyWeatherStats
 }
 
 type WeatherConditions {
@@ -124,4 +131,66 @@ type WeatherDay {
   tempMax: Float
   precipitation: Float
   snowfall: Float
+}
+
+# Historical data types (from database)
+
+type WeatherObservation {
+  stationId: String!
+  stationName: String!
+  observedAt: String!
+  temperatureF: Float
+  humidity: Float
+  windSpeedMph: Float
+  windDirection: String
+  pressureMb: Int
+  description: String
+}
+
+type HistoricalAlert {
+  id: String!
+  noaaAlertId: String!
+  eventType: String!
+  severity: String!
+  certainty: String!
+  urgency: String!
+  headline: String
+  areaDesc: String
+  effectiveAt: String!
+  expiresAt: String!
+  firstSeenAt: String!
+  affectedZones: [String!]
+}
+
+type HistoricalIncident {
+  id: String!
+  sourceId: String!
+  incidentType: String!
+  severity: String!
+  title: String!
+  description: String
+  latitude: Float!
+  longitude: Float!
+  roadName: String
+  firstSeenAt: String!
+  resolvedAt: String
+}
+
+type GaugeReading {
+  siteCode: String!
+  siteName: String!
+  observedAt: String!
+  gageHeightFt: Float!
+  latitude: Float!
+  longitude: Float!
+}
+
+type DailyWeatherStats {
+  date: String!
+  stationId: String
+  avgTemperature: Float
+  minTemperature: Float
+  maxTemperature: Float
+  avgHumidity: Float
+  totalReadings: Int!
 }
