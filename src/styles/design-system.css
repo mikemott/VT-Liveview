@@ -1,0 +1,392 @@
+/**
+ * VT-LiveView Design System
+ * =========================
+ * Centralized design tokens using CSS Custom Properties.
+ *
+ * Usage: Variables automatically switch between light/dark mode
+ * based on the .dark class on the root HTML element.
+ *
+ * @see docs/design-system.md for full documentation
+ */
+
+/* =================================================================
+   Font Import (consolidated - remove from individual component files)
+   ================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap');
+
+/* =================================================================
+   Light Mode (Default)
+   ================================================================= */
+
+:root {
+  /* -------------------------
+     Color Palette - Backgrounds
+     ------------------------- */
+  --color-bg-primary: rgba(244, 241, 232, 0.95);
+  --color-bg-secondary: #f8f6f0;
+  --color-bg-tertiary: #ede9dd;
+  --color-bg-glass: rgba(255, 255, 255, 0.85);
+  --color-bg-glass-subtle: rgba(255, 255, 255, 0.6);
+  --color-bg-surface: rgba(255, 255, 255, 0.8);
+  --color-bg-surface-hover: rgba(255, 255, 255, 0.9);
+  --color-bg-overlay: rgba(0, 0, 0, 0.3);
+  --color-bg-overlay-heavy: rgba(0, 0, 0, 0.4);
+
+  /* -------------------------
+     Color Palette - Text
+     ------------------------- */
+  --color-text-primary: #333;
+  --color-text-primary-alt: #1f2937;
+  --color-text-secondary: #4b5563;
+  --color-text-tertiary: #6b7280;
+  --color-text-muted: #9ca3af;
+  --color-text-placeholder: #888;
+  --color-text-disabled: #999;
+  --color-text-inverse: #ffffff;
+
+  /* -------------------------
+     Color Palette - Vermont Theme
+     ------------------------- */
+  --color-vermont-green: #2d4a2b;
+  --color-vermont-green-light: rgba(76, 111, 68, 0.8);
+  --color-vermont-green-lighter: rgba(76, 111, 68, 0.4);
+  --color-vermont-green-subtle: rgba(76, 111, 68, 0.15);
+  --color-vermont-green-faint: rgba(76, 111, 68, 0.08);
+  --color-vermont-tan: rgba(139, 119, 85, 0.5);
+  --color-vermont-tan-light: rgba(139, 119, 85, 0.3);
+  --color-vermont-cream: rgba(210, 205, 190, 0.6);
+  --color-vermont-cream-light: rgba(210, 205, 190, 0.3);
+
+  /* -------------------------
+     Color Palette - Accent
+     ------------------------- */
+  --color-accent-primary: #3b82f6;
+  --color-accent-hover: #2563eb;
+  --color-accent-subtle: rgba(59, 130, 246, 0.1);
+  --color-accent-muted: rgba(59, 130, 246, 0.2);
+
+  /* -------------------------
+     Color Palette - Semantic
+     ------------------------- */
+  --color-success: #22c55e;
+  --color-success-subtle: rgba(34, 197, 94, 0.1);
+  --color-warning: #f59e0b;
+  --color-warning-subtle: rgba(245, 158, 11, 0.1);
+  --color-error: #ef4444;
+  --color-error-hover: #dc2626;
+  --color-error-subtle: rgba(239, 68, 68, 0.1);
+  --color-info: #3b82f6;
+  --color-info-subtle: rgba(59, 130, 246, 0.1);
+  --color-nowcast: #9a60d9;
+
+  /* -------------------------
+     Color Palette - Borders
+     ------------------------- */
+  --color-border-primary: rgba(139, 119, 85, 0.25);
+  --color-border-secondary: rgba(139, 119, 85, 0.2);
+  --color-border-subtle: rgba(139, 119, 85, 0.12);
+  --color-border-faint: rgba(139, 119, 85, 0.08);
+  --color-border-divider: rgba(210, 205, 190, 0.6);
+
+  /* -------------------------
+     Alert Severity Colors
+     ------------------------- */
+  --color-alert-extreme-bg: #d9b5a0;
+  --color-alert-extreme-border: #a84632;
+  --color-alert-severe-bg: #d9c4a5;
+  --color-alert-severe-border: #b8753d;
+  --color-alert-moderate-bg: #e5d8b8;
+  --color-alert-moderate-border: #a68b45;
+  --color-alert-minor-bg: #c4d4d0;
+  --color-alert-minor-border: #5a7c78;
+
+  /* -------------------------
+     Gradients
+     ------------------------- */
+  --gradient-surface: linear-gradient(160deg, rgba(255, 255, 255, 0.8) 0%, rgba(245, 243, 237, 0.6) 100%);
+  --gradient-panel: linear-gradient(165deg, #f8f6f0 0%, #ede9dd 100%);
+  --gradient-header: linear-gradient(160deg, rgba(255, 255, 255, 0.8) 0%, rgba(245, 243, 237, 0.6) 100%);
+  --gradient-attribution: linear-gradient(180deg, rgba(230, 227, 218, 0.4) 0%, rgba(220, 215, 205, 0.6) 100%);
+  --gradient-vermont-accent: linear-gradient(90deg, rgba(76, 111, 68, 0) 0%, rgba(76, 111, 68, 0.4) 50%, rgba(76, 111, 68, 0) 100%);
+  --gradient-skeleton: linear-gradient(90deg, rgba(210, 205, 190, 0.6) 25%, rgba(220, 215, 205, 0.8) 50%, rgba(210, 205, 190, 0.6) 75%);
+
+  /* -------------------------
+     Spacing Scale (Condensed)
+     4px base unit
+     ------------------------- */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 6px;
+  --space-3: 8px;
+  --space-4: 10px;
+  --space-5: 12px;
+  --space-6: 14px;
+  --space-7: 16px;
+  --space-8: 20px;
+  --space-9: 24px;
+  --space-10: 32px;
+  --space-11: 40px;
+  --space-12: 48px;
+
+  /* -------------------------
+     Typography Scale (Condensed)
+     ------------------------- */
+  --font-family: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+
+  --font-size-xs: 9px;
+  --font-size-sm: 10px;
+  --font-size-base: 11px;
+  --font-size-md: 12px;
+  --font-size-lg: 13px;
+  --font-size-xl: 14px;
+  --font-size-2xl: 16px;
+  --font-size-3xl: 18px;
+  --font-size-4xl: 20px;
+  --font-size-5xl: 36px;
+  --font-size-6xl: 42px;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.2;
+  --line-height-snug: 1.3;
+  --line-height-normal: 1.4;
+  --line-height-relaxed: 1.5;
+  --line-height-loose: 1.6;
+
+  --letter-spacing-tight: -0.02em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.5px;
+  --letter-spacing-wider: 1px;
+
+  /* -------------------------
+     Border Radius
+     ------------------------- */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-full: 9999px;
+
+  /* -------------------------
+     Shadows
+     ------------------------- */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 8px 32px rgba(0, 0, 0, 0.15);
+  --shadow-2xl: 0 12px 48px rgba(0, 0, 0, 0.2);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  --shadow-glow: 0 0 8px rgba(59, 130, 246, 0.4);
+
+  /* -------------------------
+     Transitions
+     ------------------------- */
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.2s ease;
+  --transition-slow: 0.3s ease;
+  --transition-slower: 0.4s ease;
+  --transition-bounce: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-spring: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* -------------------------
+     Z-Index Scale
+     ------------------------- */
+  --z-base: 1;
+  --z-dropdown: 10;
+  --z-sticky: 50;
+  --z-fixed: 100;
+  --z-overlay: 150;
+  --z-modal-backdrop: 200;
+  --z-modal: 999;
+  --z-popover: 1000;
+  --z-tooltip: 1100;
+
+  /* -------------------------
+     Component-Specific Tokens
+     ------------------------- */
+  /* Controls Panel */
+  --panel-max-width: 340px;
+  --panel-padding: var(--space-8);
+  --panel-border-radius: var(--radius-2xl);
+
+  /* Control Sections */
+  --section-padding: var(--space-6);
+  --section-margin: var(--space-6);
+  --section-border-radius: var(--radius-xl);
+
+  /* Cards */
+  --card-padding: var(--space-4) var(--space-5);
+  --card-border-radius: var(--radius-xl);
+  --card-gap: var(--space-3);
+
+  /* Inputs */
+  --input-height: 36px;
+  --input-padding: var(--space-3) var(--space-4);
+  --input-border-radius: var(--radius-md);
+
+  /* Buttons */
+  --button-height: 36px;
+  --button-padding: var(--space-3) var(--space-5);
+  --button-border-radius: var(--radius-md);
+
+  /* Filter Chips */
+  --chip-height: 28px;
+  --chip-padding: var(--space-1) var(--space-4);
+  --chip-border-radius: var(--radius-full);
+  --chip-gap: var(--space-2);
+}
+
+/* =================================================================
+   Dark Mode Overrides
+   Applied when <html class="dark"> or <body class="dark">
+   ================================================================= */
+
+:root.dark,
+.dark {
+  /* -------------------------
+     Color Palette - Backgrounds
+     ------------------------- */
+  --color-bg-primary: rgba(28, 32, 36, 0.97);
+  --color-bg-secondary: rgba(22, 26, 30, 0.97);
+  --color-bg-tertiary: rgba(18, 22, 26, 0.97);
+  --color-bg-glass: rgba(30, 30, 30, 0.9);
+  --color-bg-glass-subtle: rgba(36, 42, 46, 0.7);
+  --color-bg-surface: rgba(36, 42, 46, 0.7);
+  --color-bg-surface-hover: rgba(45, 52, 58, 0.8);
+  --color-bg-overlay: rgba(0, 0, 0, 0.5);
+  --color-bg-overlay-heavy: rgba(0, 0, 0, 0.6);
+
+  /* -------------------------
+     Color Palette - Text
+     ------------------------- */
+  --color-text-primary: #d4cfc4;
+  --color-text-primary-alt: #f5f5f5;
+  --color-text-secondary: #c0c0c0;
+  --color-text-tertiary: #b5b5b5;
+  --color-text-muted: #a5a5a5;
+  --color-text-placeholder: #909090;
+  --color-text-disabled: #707070;
+  --color-text-inverse: #1f2937;
+
+  /* -------------------------
+     Color Palette - Vermont Theme
+     ------------------------- */
+  --color-vermont-green: #b8cdb0;
+  --color-vermont-green-light: rgba(137, 165, 124, 0.8);
+  --color-vermont-green-lighter: rgba(137, 165, 124, 0.4);
+  --color-vermont-green-subtle: rgba(137, 165, 124, 0.2);
+  --color-vermont-green-faint: rgba(137, 165, 124, 0.1);
+  --color-vermont-tan: rgba(137, 165, 124, 0.5);
+  --color-vermont-tan-light: rgba(137, 165, 124, 0.3);
+  --color-vermont-cream: rgba(255, 255, 255, 0.1);
+  --color-vermont-cream-light: rgba(255, 255, 255, 0.05);
+
+  /* -------------------------
+     Color Palette - Accent
+     ------------------------- */
+  --color-accent-primary: #d5d5d5;
+  --color-accent-hover: #e5e5e5;
+  --color-accent-subtle: rgba(213, 213, 213, 0.1);
+  --color-accent-muted: rgba(213, 213, 213, 0.2);
+
+  /* -------------------------
+     Color Palette - Semantic
+     ------------------------- */
+  --color-success: #60d060;
+  --color-success-subtle: rgba(96, 208, 96, 0.15);
+  --color-warning: #f5d580;
+  --color-warning-subtle: rgba(245, 213, 128, 0.15);
+  --color-error: #ff8080;
+  --color-error-hover: #ff6060;
+  --color-error-subtle: rgba(255, 128, 128, 0.15);
+  --color-info: #6ba3ff;
+  --color-info-subtle: rgba(107, 163, 255, 0.15);
+
+  /* -------------------------
+     Color Palette - Borders
+     ------------------------- */
+  --color-border-primary: rgba(137, 165, 124, 0.25);
+  --color-border-secondary: rgba(137, 165, 124, 0.2);
+  --color-border-subtle: rgba(118, 141, 115, 0.15);
+  --color-border-faint: rgba(255, 255, 255, 0.08);
+  --color-border-divider: rgba(255, 255, 255, 0.1);
+
+  /* -------------------------
+     Alert Severity Colors (Dark)
+     ------------------------- */
+  --color-alert-extreme-bg: rgba(168, 70, 50, 0.25);
+  --color-alert-extreme-border: #d9856d;
+  --color-alert-severe-bg: rgba(184, 117, 61, 0.25);
+  --color-alert-severe-border: #e5a875;
+  --color-alert-moderate-bg: rgba(166, 139, 69, 0.25);
+  --color-alert-moderate-border: #d4ba7d;
+  --color-alert-minor-bg: rgba(90, 124, 120, 0.25);
+  --color-alert-minor-border: #8db5b0;
+
+  /* -------------------------
+     Gradients (Dark)
+     ------------------------- */
+  --gradient-surface: linear-gradient(160deg, rgba(36, 42, 46, 0.7) 0%, rgba(30, 36, 40, 0.5) 100%);
+  --gradient-panel: linear-gradient(165deg, rgba(28, 32, 36, 0.97) 0%, rgba(22, 26, 30, 0.97) 100%);
+  --gradient-header: linear-gradient(160deg, rgba(36, 42, 46, 0.7) 0%, rgba(30, 36, 40, 0.5) 100%);
+  --gradient-attribution: linear-gradient(180deg, rgba(20, 24, 28, 0.3) 0%, rgba(16, 20, 24, 0.5) 100%);
+  --gradient-vermont-accent: linear-gradient(90deg, rgba(137, 165, 124, 0) 0%, rgba(137, 165, 124, 0.3) 50%, rgba(137, 165, 124, 0) 100%);
+  --gradient-skeleton: linear-gradient(90deg, rgba(60, 63, 70, 0.6) 25%, rgba(80, 83, 90, 0.8) 50%, rgba(60, 63, 70, 0.6) 75%);
+
+  /* -------------------------
+     Shadows (Dark)
+     ------------------------- */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --shadow-2xl: 0 12px 48px rgba(0, 0, 0, 0.6);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  --shadow-glow: 0 0 8px rgba(213, 213, 213, 0.4);
+}
+
+/* =================================================================
+   Utility Classes
+   ================================================================= */
+
+/* Screen reader only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Text truncation */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Line clamp (2 lines) */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Focus visible outline */
+.focus-ring:focus-visible {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: 2px;
+}

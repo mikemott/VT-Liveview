@@ -39,8 +39,8 @@ interface IncidentsByType {
 // Helper Functions
 // =============================================================================
 
-function getIcon(type: IncidentType): ReactNode {
-  const iconProps = { size: 16, strokeWidth: 2.5 };
+function getIcon(type: IncidentType, size: number = 16): ReactNode {
+  const iconProps = { size, strokeWidth: 2.5 };
   switch (type) {
     case 'ACCIDENT':
       return <AlertTriangle {...iconProps} />;
@@ -56,12 +56,12 @@ function getIcon(type: IncidentType): ReactNode {
   }
 }
 
-function getTypeLabel(type: IncidentType): string {
+function getTypeLabel(type: IncidentType, short: boolean = false): string {
   const labels: Record<IncidentType, string> = {
-    ACCIDENT: 'Accidents',
+    ACCIDENT: short ? 'Incidents' : 'Accidents',
     CONSTRUCTION: 'Construction',
-    CLOSURE: 'Road Closures',
-    FLOODING: 'Flooding',
+    CLOSURE: short ? 'Closures' : 'Road Closures',
+    FLOODING: short ? 'Floods' : 'Flooding',
     HAZARD: 'Hazards'
   };
   return labels[type] || 'Other';
@@ -414,43 +414,37 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
 
       {expanded && (
         <div className="section-content" id="map-features-content">
-          {/* Filter checkboxes */}
-          <div className="filter-grid">
-            {/* Weather Stations toggle */}
-            <label className="filter-checkbox">
-              <input
-                type="checkbox"
-                checked={showWeatherStations}
-                onChange={onToggleWeatherStations}
-              />
-              <span className="checkbox-icon" style={{ color: '#3b82f6' }}>
-                <Thermometer size={16} strokeWidth={2.5} />
+          {/* Filter chips - compact horizontal layout */}
+          <div className="filter-chips">
+            {/* Weather Stations chip */}
+            <button
+              className={`filter-chip ${showWeatherStations ? 'active' : ''}`}
+              onClick={onToggleWeatherStations}
+              aria-pressed={showWeatherStations}
+            >
+              <span className="chip-icon">
+                <Thermometer size={14} strokeWidth={2.5} />
               </span>
-              <span className="checkbox-label">
-                Weather Stations
-              </span>
-            </label>
+              Stations
+            </button>
 
-            {/* Incident type toggles */}
+            {/* Incident type chips */}
             {(Object.keys(activeFilters) as IncidentType[]).map(type => {
-              const color = getIncidentColor(type);
               const count = incidentsByType[type]?.length || 0;
 
               return (
-                <label key={type} className="filter-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={activeFilters[type]}
-                    onChange={() => toggleFilter(type)}
-                  />
-                  <span className="checkbox-icon" style={{ color: color.primary }}>
-                    {getIcon(type)}
+                <button
+                  key={type}
+                  className={`filter-chip ${activeFilters[type] ? 'active' : ''}`}
+                  onClick={() => toggleFilter(type)}
+                  aria-pressed={activeFilters[type]}
+                >
+                  <span className="chip-icon">
+                    {getIcon(type, 14)}
                   </span>
-                  <span className="checkbox-label">
-                    {getTypeLabel(type)}
-                    {count > 0 && <span className="count">({count})</span>}
-                  </span>
-                </label>
+                  {getTypeLabel(type, true)}
+                  {count > 0 && <span className="chip-count">{count}</span>}
+                </button>
               );
             })}
           </div>
