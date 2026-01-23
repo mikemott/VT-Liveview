@@ -4,6 +4,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import './WeatherMap.css';
 import TravelLayer from './components/TravelLayer';
 import WeatherStationsLayer from './components/WeatherStationsLayer';
+import TrafficFlowLayer from './components/TrafficFlowLayer';
 import CurrentWeather from './components/CurrentWeather';
 import RadarOverlay from './components/RadarOverlay';
 import ThemeToggle from './components/ThemeToggle';
@@ -53,6 +54,7 @@ function WeatherMap() {
     lng: VERMONT_CENTER.lng
   });
   const [showWeatherStations, setShowWeatherStations] = useState(true);
+  const [showTrafficFlow, setShowTrafficFlow] = useState(false);
 
   // Mobile responsiveness
   const isMobile = useIsMobile();
@@ -497,6 +499,11 @@ function WeatherMap() {
     setShowWeatherStations(prev => !prev);
   }, []);
 
+  // Toggle traffic flow visibility
+  const toggleTrafficFlow = useCallback((): void => {
+    setShowTrafficFlow(prev => !prev);
+  }, []);
+
   // Handle weather station click - memoized to prevent marker recreation
   const handleStationClick = useCallback((station: ObservationStation): void => {
     setDetailPanelContent({ type: 'station', data: station });
@@ -592,6 +599,8 @@ function WeatherMap() {
               isDark={isDark}
               showWeatherStations={showWeatherStations}
               onToggleWeatherStations={toggleWeatherStations}
+              showTrafficFlow={showTrafficFlow}
+              onToggleTrafficFlow={toggleTrafficFlow}
             />
           )}
 
@@ -601,6 +610,15 @@ function WeatherMap() {
               map={map.current}
               visible={showWeatherStations}
               onStationClick={handleStationClick}
+            />
+          )}
+
+          {/* Traffic Flow Layer */}
+          {mapLoaded && (
+            <TrafficFlowLayer
+              map={map.current}
+              visible={showTrafficFlow}
+              isDark={isDark}
             />
           )}
 
@@ -631,7 +649,7 @@ function WeatherMap() {
           <div className="attribution">
             <p>Weather: NOAA</p>
             <p>Radar: RainViewer</p>
-            <p>Traffic: VT 511, USGS</p>
+            <p>Traffic: NE 511, USGS</p>
             <p>Map: Protomaps / OSM</p>
           </div>
         </div>

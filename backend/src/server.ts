@@ -213,6 +213,39 @@ async function start(): Promise<void> {
     }
   );
 
+  // Traffic flow data endpoints
+  fastify.get(
+    '/api/vt511/traffic-conditions',
+    async (_request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+      try {
+        const response = await fetch(
+          `${VT_511_BASE}?networks=Vermont&dataTypes=trafficCondData`,
+          vt511FetchOptions
+        );
+        const xmlText = await response.text();
+        reply.type('text/xml').send(xmlText);
+      } catch {
+        reply.code(500).send({ error: 'Failed to fetch VT 511 traffic condition data' });
+      }
+    }
+  );
+
+  fastify.get(
+    '/api/vt511/network',
+    async (_request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+      try {
+        const response = await fetch(
+          `${VT_511_BASE}?networks=Vermont&dataTypes=networkData`,
+          vt511FetchOptions
+        );
+        const xmlText = await response.text();
+        reply.type('text/xml').send(xmlText);
+      } catch {
+        reply.code(500).send({ error: 'Failed to fetch VT 511 network data' });
+      }
+    }
+  );
+
   // Start server
   const port = env.PORT;
   const host = env.HOST;
