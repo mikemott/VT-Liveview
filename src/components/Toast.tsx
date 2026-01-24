@@ -3,7 +3,7 @@
  * Auto-dismisses after a set duration
  */
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react';
 import './Toast.css';
 
@@ -34,13 +34,22 @@ export default function Toast({
   id,
 }: ToastProps) {
   const Icon = icons[type];
+  const dismissRef = useRef(onDismiss);
 
+  // Update ref when onDismiss changes
   useEffect(() => {
-    if (autoDismiss > 0 && onDismiss) {
-      const timer = setTimeout(onDismiss, autoDismiss);
+    dismissRef.current = onDismiss;
+  }, [onDismiss]);
+
+  // Auto-dismiss effect - only depends on autoDismiss to avoid restarting timer
+  useEffect(() => {
+    if (autoDismiss > 0 && dismissRef.current) {
+      const timer = setTimeout(() => {
+        dismissRef.current?.();
+      }, autoDismiss);
       return () => clearTimeout(timer);
     }
-  }, [autoDismiss, onDismiss]);
+  }, [autoDismiss]);
 
   return (
     <div className={`toast toast-${type}`} id={id} role="alert" aria-live="polite">

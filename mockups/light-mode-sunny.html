@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VT-LiveView Light Mode - Sunny</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #87CEEB 0%, #E0F6FF 50%, #FFE5B4 100%);
+      padding: 20px;
+      overflow-x: hidden;
+    }
+
+    /* Adaptive theme colors for sunny weather */
+    :root {
+      --bg-glass: rgba(255, 255, 255, 0.75);
+      --bg-glass-hover: rgba(255, 255, 255, 0.85);
+      --text-primary: #2c3e50;
+      --text-secondary: #546e7a;
+      --accent: #FDB813;
+      --accent-soft: #FFEAA7;
+      --border: rgba(255, 193, 7, 0.2);
+      --shadow: rgba(253, 184, 19, 0.15);
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      position: relative;
+      height: 800px;
+    }
+
+    /* Weather Panel (top-left) */
+    .weather-panel {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      width: 320px;
+      background: var(--bg-glass);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 32px var(--shadow);
+      padding: 24px;
+      transition: all 0.3s ease;
+    }
+
+    .weather-main {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .weather-icon {
+      font-size: 64px;
+    }
+
+    .temperature {
+      font-size: 48px;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1;
+    }
+
+    .temp-unit {
+      font-size: 24px;
+      color: var(--text-secondary);
+    }
+
+    .weather-description {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    .weather-metrics {
+      display: flex;
+      gap: 16px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+
+    .metric {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .forecast-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
+    .forecast-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .forecast-card {
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+
+    .forecast-period {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .forecast-icon {
+      font-size: 32px;
+      margin: 4px 0;
+    }
+
+    .forecast-temp {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    /* Radar Controls Panel (bottom-left) */
+    .radar-panel {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      width: 320px;
+      background: var(--bg-glass);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 32px var(--shadow);
+      padding: 20px;
+    }
+
+    .panel-section {
+      margin-bottom: 16px;
+    }
+
+    .panel-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .radar-controls {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .control-btn {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: var(--text-primary);
+    }
+
+    .control-btn:hover {
+      background: rgba(255, 255, 255, 0.8);
+      transform: translateY(-1px);
+    }
+
+    .control-btn.primary {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .control-btn.primary:hover {
+      background: #e6a812;
+    }
+
+    .slider-container {
+      margin-top: 8px;
+    }
+
+    .slider {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 3px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      background: var(--accent);
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .timeline {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+    }
+
+    .timeline-item {
+      font-size: 10px;
+      color: var(--text-secondary);
+      text-align: center;
+    }
+
+    .timeline-dot {
+      width: 8px;
+      height: 8px;
+      background: rgba(253, 184, 19, 0.4);
+      border-radius: 50%;
+      margin: 0 auto 4px;
+    }
+
+    .timeline-dot.active {
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    /* Alert Banner (top-center) */
+    .alert-banner {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, rgba(255, 193, 7, 0.95), rgba(255, 152, 0, 0.95));
+      backdrop-filter: blur(20px);
+      border-radius: 16px;
+      padding: 12px 24px;
+      border: 1px solid rgba(255, 193, 7, 0.3);
+      box-shadow: 0 4px 16px rgba(255, 152, 0, 0.3);
+      color: #1a1a1a;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .alert-banner:hover {
+      transform: translateX(-50%) translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+    }
+
+    /* Detail Panel (right slide-out) */
+    .detail-panel {
+      position: absolute;
+      top: 0;
+      right: 20px;
+      width: 420px;
+      height: 100%;
+      background: var(--bg-glass);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 32px var(--shadow);
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    .detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .detail-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .close-btn {
+      background: rgba(255, 255, 255, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .close-btn:hover {
+      background: rgba(255, 255, 255, 0.8);
+    }
+
+    .detail-section {
+      margin-bottom: 20px;
+    }
+
+    .detail-section-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .detail-content {
+      background: rgba(255, 255, 255, 0.4);
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .station-metric {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .station-metric:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+
+    .metric-label {
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+
+    .metric-value {
+      color: var(--text-primary);
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    /* Theme Toggle (top-right corner) */
+    .theme-toggle {
+      position: absolute;
+      top: 20px;
+      right: 460px;
+      background: var(--bg-glass);
+      backdrop-filter: blur(20px);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 10px 16px;
+      cursor: pointer;
+      box-shadow: 0 4px 16px var(--shadow);
+      transition: all 0.2s ease;
+      font-size: 20px;
+    }
+
+    .theme-toggle:hover {
+      background: var(--bg-glass-hover);
+      transform: translateY(-2px);
+    }
+
+    .title {
+      text-align: center;
+      margin-bottom: 20px;
+      color: var(--text-primary);
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1 class="title">VT-LiveView Light Mode - Sunny Conditions ☀️</h1>
+  <p class="subtitle">Adaptive UI with warm golden tones for clear, sunny weather</p>
+
+  <div class="container">
+    <!-- Map would be here as background -->
+
+    <!-- Weather Panel (top-left) -->
+    <div class="weather-panel">
+      <div class="weather-main">
+        <div class="weather-icon">☀️</div>
+        <div>
+          <div class="temperature">
+            <span>72</span><span class="temp-unit">°F</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="weather-description">Clear and Sunny</div>
+
+      <div class="weather-metrics">
+        <div class="metric">
+          <span>💨</span>
+          <span>5 mph SW</span>
+        </div>
+        <div class="metric">
+          <span>💧</span>
+          <span>45%</span>
+        </div>
+      </div>
+
+      <div class="forecast-title">Next 3 Days</div>
+      <div class="forecast-cards">
+        <div class="forecast-card">
+          <div class="forecast-period">Tonight</div>
+          <div class="forecast-icon">🌙</div>
+          <div class="forecast-temp">58°</div>
+        </div>
+        <div class="forecast-card">
+          <div class="forecast-period">Tomorrow</div>
+          <div class="forecast-icon">☀️</div>
+          <div class="forecast-temp">75°</div>
+        </div>
+        <div class="forecast-card">
+          <div class="forecast-period">Thu Night</div>
+          <div class="forecast-icon">🌙</div>
+          <div class="forecast-temp">60°</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Radar Controls Panel (bottom-left) -->
+    <div class="radar-panel">
+      <div class="panel-section">
+        <div class="section-title">Radar Animation</div>
+        <div class="radar-controls">
+          <button class="control-btn">⏮</button>
+          <button class="control-btn primary">▶️ Play</button>
+          <button class="control-btn">⏭</button>
+          <button class="control-btn">🔄</button>
+        </div>
+
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div>8:00</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div>8:15</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot active"></div>
+            <div>8:30</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div>8:45</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="section-title">Opacity</div>
+        <input type="range" class="slider" min="0" max="100" value="70">
+      </div>
+
+      <div class="panel-section">
+        <div class="section-title">Layers</div>
+        <button class="control-btn">👁️ Radar Visible</button>
+      </div>
+    </div>
+
+    <!-- Alert Banner (top-center) -->
+    <div class="alert-banner">
+      ⚠️ Heat Advisory in effect until 8:00 PM - Click for details
+    </div>
+
+    <!-- Theme Toggle -->
+    <div class="theme-toggle">
+      🌙
+    </div>
+
+    <!-- Detail Panel (right) -->
+    <div class="detail-panel">
+      <div class="detail-header">
+        <h2 class="detail-title">Weather Station</h2>
+        <button class="close-btn">✕</button>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-title">Station Info</div>
+        <div class="detail-content">
+          <strong>Burlington Airport</strong><br>
+          <small style="color: var(--text-secondary)">KBTV - Burlington, VT</small>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-title">Current Conditions</div>
+        <div class="detail-content">
+          <div class="station-metric">
+            <span class="metric-label">Temperature</span>
+            <span class="metric-value">72°F</span>
+          </div>
+          <div class="station-metric">
+            <span class="metric-label">Dew Point</span>
+            <span class="metric-value">54°F</span>
+          </div>
+          <div class="station-metric">
+            <span class="metric-label">Humidity</span>
+            <span class="metric-value">45%</span>
+          </div>
+          <div class="station-metric">
+            <span class="metric-label">Wind</span>
+            <span class="metric-value">5 mph SW</span>
+          </div>
+          <div class="station-metric">
+            <span class="metric-label">Pressure</span>
+            <span class="metric-value">30.12 in</span>
+          </div>
+          <div class="station-metric">
+            <span class="metric-label">Visibility</span>
+            <span class="metric-value">10 mi</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-title">Last Updated</div>
+        <div class="detail-content">
+          <small>2 minutes ago</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -40,7 +40,7 @@
 }
 
 .alert-title {
-  font-size: var(--text-base);
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--color-text-primary);
   margin-bottom: var(--space-1);
@@ -48,7 +48,7 @@
 }
 
 .alert-message {
-  font-size: var(--text-sm);
+  font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
   line-height: 1.5;
 }
