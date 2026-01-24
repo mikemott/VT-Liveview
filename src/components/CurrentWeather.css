@@ -81,7 +81,7 @@
 }
 
 .weather-icon {
-  color: var(--color-accent-primary);
+  color: var(--color-vermont-green);
   display: flex;
   align-items: center;
   flex-shrink: 0;
@@ -211,7 +211,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-accent-primary);
+  color: var(--color-vermont-green);
 }
 
 .forecast-icon svg {

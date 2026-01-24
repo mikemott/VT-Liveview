@@ -48,43 +48,41 @@
   --color-text-inverse: #ffffff;
 
   /* -------------------------
-     Color Palette - Sky Blue & Sunny Yellow Theme
-     Modern weather-inspired color system
+     Color Palette - Vermont Theme
+     Sophisticated forest green - THE single accent
      ------------------------- */
-  --color-sky-blue: #52C2ED;
-  --color-sky-blue-light: #81E8FF;
-  --color-sky-blue-dark: #3A7AE0;
-  --color-sky-blue-lighter: rgba(82, 194, 237, 0.25);
-  --color-sky-blue-subtle: rgba(82, 194, 237, 0.1);
-  --color-sky-blue-faint: rgba(82, 194, 237, 0.05);
-  --color-sunny-yellow: #FFD700;
-  --color-sunny-yellow-light: #FFED4E;
-  --color-sunny-yellow-subtle: rgba(255, 215, 0, 0.15);
-  --color-sunny-yellow-faint: rgba(255, 215, 0, 0.08);
+  --color-vermont-green: #15803d;
+  --color-vermont-green-light: #22c55e;
+  --color-vermont-green-lighter: rgba(34, 197, 94, 0.25);
+  --color-vermont-green-subtle: rgba(34, 197, 94, 0.1);
+  --color-vermont-green-faint: rgba(34, 197, 94, 0.05);
+  --color-vermont-tan: rgba(100, 116, 139, 0.2);
+  --color-vermont-tan-light: rgba(100, 116, 139, 0.1);
+  --color-vermont-cream: rgba(241, 243, 244, 0.8);
+  --color-vermont-cream-light: rgba(248, 249, 250, 0.5);
 
   /* -------------------------
      Color Palette - Accent
-     Sky blue primary, sunny yellow for highlights
+     Vermont green IS the accent - no competing blue
      ------------------------- */
-  --color-accent-primary: #52C2ED;
-  --color-accent-hover: #3A7AE0;
-  --color-accent-subtle: rgba(82, 194, 237, 0.08);
-  --color-accent-muted: rgba(82, 194, 237, 0.15);
-  --color-accent-highlight: #FFD700;
+  --color-accent-primary: #15803d;
+  --color-accent-hover: #166534;
+  --color-accent-subtle: rgba(21, 128, 61, 0.08);
+  --color-accent-muted: rgba(21, 128, 61, 0.15);
 
   /* -------------------------
      Color Palette - Semantic
-     Using blue for success/info, yellow for warnings
+     Using accent green for success, teal for info
      ------------------------- */
-  --color-success: #52C2ED;
-  --color-success-subtle: rgba(82, 194, 237, 0.08);
-  --color-warning: #FFD700;
-  --color-warning-subtle: rgba(255, 215, 0, 0.1);
+  --color-success: #15803d;
+  --color-success-subtle: rgba(21, 128, 61, 0.08);
+  --color-warning: #d97706;
+  --color-warning-subtle: rgba(217, 119, 6, 0.1);
   --color-error: #dc2626;
   --color-error-hover: #b91c1c;
   --color-error-subtle: rgba(220, 38, 38, 0.08);
-  --color-info: #52C2ED;
-  --color-info-subtle: rgba(82, 194, 237, 0.08);
+  --color-info: #0891b2;
+  --color-info-subtle: rgba(8, 145, 178, 0.08);
   --color-nowcast: #7c3aed;
 
   /* -------------------------
@@ -112,17 +110,13 @@
 
   /* -------------------------
      Gradients
-     Sky blue and sunny yellow gradients
+     Subtle, clean gradients
      ------------------------- */
   --gradient-surface: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 249, 250, 0.9) 100%);
   --gradient-panel: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 249, 250, 0.92) 100%);
   --gradient-header: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.92) 100%);
   --gradient-attribution: linear-gradient(180deg, rgba(248, 249, 250, 0.6) 0%, rgba(241, 243, 244, 0.75) 100%);
-  --gradient-primary: linear-gradient(135deg, #52C2ED 0%, #81E8FF 100%);
-  --gradient-sky: linear-gradient(180deg, #81E8FF 0%, #52C2ED 100%);
-  --gradient-sunny: linear-gradient(90deg, #FFD700 0%, #FDB813 100%);
-  --gradient-sky-to-sun: linear-gradient(135deg, #81E8FF 0%, #52C2ED 50%, #FFD700 100%);
-  --gradient-blue-accent: linear-gradient(90deg, rgba(82, 194, 237, 0) 0%, rgba(82, 194, 237, 0.15) 50%, rgba(82, 194, 237, 0) 100%);
+  --gradient-vermont-accent: linear-gradient(90deg, rgba(46, 125, 70, 0) 0%, rgba(46, 125, 70, 0.15) 50%, rgba(46, 125, 70, 0) 100%);
   --gradient-skeleton: linear-gradient(90deg, #f1f3f4 25%, #f8f9fa 50%, #f1f3f4 75%);
 
   /* -------------------------
@@ -290,51 +284,45 @@
   --color-text-inverse: #1f2937;
 
   /* -------------------------
-     Color Palette - Sky Blue & Sunny Yellow (Dark Mode)
-     Muted blues for dark backgrounds
+     Color Palette - Vermont Theme
      ------------------------- */
-  --color-sky-blue: #81E8FF;
-  --color-sky-blue-light: #A8F0FF;
-  --color-sky-blue-dark: #52C2ED;
-  --color-sky-blue-lighter: rgba(129, 232, 255, 0.3);
-  --color-sky-blue-subtle: rgba(129, 232, 255, 0.15);
-  --color-sky-blue-faint: rgba(129, 232, 255, 0.08);
-  --color-sunny-yellow: #FFED4E;
-  --color-sunny-yellow-light: #FFF59D;
-  --color-sunny-yellow-subtle: rgba(255, 237, 78, 0.2);
-  --color-sunny-yellow-faint: rgba(255, 237, 78, 0.1);
+  --color-vermont-green: #b8cdb0;
+  --color-vermont-green-light: rgba(137, 165, 124, 0.8);
+  --color-vermont-green-lighter: rgba(137, 165, 124, 0.4);
+  --color-vermont-green-subtle: rgba(137, 165, 124, 0.2);
+  --color-vermont-green-faint: rgba(137, 165, 124, 0.1);
+  --color-vermont-tan: rgba(137, 165, 124, 0.5);
+  --color-vermont-tan-light: rgba(137, 165, 124, 0.3);
+  --color-vermont-cream: rgba(255, 255, 255, 0.1);
+  --color-vermont-cream-light: rgba(255, 255, 255, 0.05);
 
   /* -------------------------
      Color Palette - Accent
-     Muted sky blue for dark mode
      ------------------------- */
-  --color-accent-primary: #81E8FF;
-  --color-accent-hover: #A8F0FF;
-  --color-accent-subtle: rgba(129, 232, 255, 0.1);
-  --color-accent-muted: rgba(129, 232, 255, 0.2);
-  --color-accent-highlight: #FFED4E;
+  --color-accent-primary: #d5d5d5;
+  --color-accent-hover: #e5e5e5;
+  --color-accent-subtle: rgba(213, 213, 213, 0.1);
+  --color-accent-muted: rgba(213, 213, 213, 0.2);
 
   /* -------------------------
      Color Palette - Semantic
-     Blue for success/info, yellow for warnings
      ------------------------- */
-  --color-success: #81E8FF;
-  --color-success-subtle: rgba(129, 232, 255, 0.15);
-  --color-warning: #FFED4E;
-  --color-warning-subtle: rgba(255, 237, 78, 0.15);
+  --color-success: #60d060;
+  --color-success-subtle: rgba(96, 208, 96, 0.15);
+  --color-warning: #f5d580;
+  --color-warning-subtle: rgba(245, 213, 128, 0.15);
   --color-error: #ff8080;
   --color-error-hover: #ff6060;
   --color-error-subtle: rgba(255, 128, 128, 0.15);
-  --color-info: #81E8FF;
-  --color-info-subtle: rgba(129, 232, 255, 0.15);
+  --color-info: #6ba3ff;
+  --color-info-subtle: rgba(107, 163, 255, 0.15);
 
   /* -------------------------
      Color Palette - Borders
-     Blue-tinted borders for dark mode
      ------------------------- */
-  --color-border-primary: rgba(129, 232, 255, 0.25);
-  --color-border-secondary: rgba(129, 232, 255, 0.2);
-  --color-border-subtle: rgba(129, 232, 255, 0.15);
+  --color-border-primary: rgba(137, 165, 124, 0.25);
+  --color-border-secondary: rgba(137, 165, 124, 0.2);
+  --color-border-subtle: rgba(118, 141, 115, 0.15);
   --color-border-faint: rgba(255, 255, 255, 0.08);
   --color-border-divider: rgba(255, 255, 255, 0.1);
 
@@ -357,11 +345,7 @@
   --gradient-panel: linear-gradient(165deg, rgba(28, 32, 36, 0.97) 0%, rgba(22, 26, 30, 0.97) 100%);
   --gradient-header: linear-gradient(160deg, rgba(36, 42, 46, 0.7) 0%, rgba(30, 36, 40, 0.5) 100%);
   --gradient-attribution: linear-gradient(180deg, rgba(20, 24, 28, 0.3) 0%, rgba(16, 20, 24, 0.5) 100%);
-  --gradient-primary: linear-gradient(135deg, #81E8FF 0%, #A8F0FF 100%);
-  --gradient-sky: linear-gradient(180deg, #A8F0FF 0%, #81E8FF 100%);
-  --gradient-sunny: linear-gradient(90deg, #FFED4E 0%, #FFF59D 100%);
-  --gradient-sky-to-sun: linear-gradient(135deg, #A8F0FF 0%, #81E8FF 50%, #FFED4E 100%);
-  --gradient-blue-accent: linear-gradient(90deg, rgba(129, 232, 255, 0) 0%, rgba(129, 232, 255, 0.3) 50%, rgba(129, 232, 255, 0) 100%);
+  --gradient-vermont-accent: linear-gradient(90deg, rgba(137, 165, 124, 0) 0%, rgba(137, 165, 124, 0.3) 50%, rgba(137, 165, 124, 0) 100%);
   --gradient-skeleton: linear-gradient(90deg, rgba(60, 63, 70, 0.6) 25%, rgba(80, 83, 90, 0.8) 50%, rgba(60, 63, 70, 0.6) 75%);
 
   /* -------------------------
@@ -374,162 +358,7 @@
   --shadow-xl: 0 8px 32px rgba(0, 0, 0, 0.5);
   --shadow-2xl: 0 12px 48px rgba(0, 0, 0, 0.6);
   --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.03);
-  --shadow-glow: 0 0 8px rgba(129, 232, 255, 0.4);
-}
-
-/* =================================================================
-   Weather-Adaptive Themes (Light Mode Only)
-   These override default light mode colors based on weather conditions
-   ================================================================= */
-
-/* -------------------------
-   Sunny Weather Theme
-   Warm golden tones for clear, sunny conditions
-   ------------------------- */
-:root.weather-sunny:not(.dark) {
-  /* Backgrounds - warm, bright */
-  --color-bg-glass: rgba(255, 255, 255, 0.75);
-  --color-bg-glass-subtle: rgba(255, 255, 255, 0.65);
-  --color-bg-surface: rgba(255, 255, 255, 0.8);
-  --color-bg-surface-hover: rgba(255, 255, 255, 0.9);
-
-  /* Accent - golden yellow */
-  --color-accent-primary: #FDB813;
-  --color-accent-hover: #e6a812;
-  --color-accent-subtle: rgba(253, 184, 19, 0.08);
-  --color-accent-muted: rgba(253, 184, 19, 0.15);
-
-  /* Borders - golden tint */
-  --color-border-primary: rgba(253, 184, 19, 0.2);
-  --color-border-secondary: rgba(253, 184, 19, 0.12);
-  --color-border-subtle: rgba(253, 184, 19, 0.08);
-
-  /* Shadows - warm glow */
-  --shadow-md: 0 2px 8px rgba(253, 184, 19, 0.1);
-  --shadow-lg: 0 4px 16px rgba(253, 184, 19, 0.12);
-  --shadow-xl: 0 8px 32px rgba(253, 184, 19, 0.15);
-  --shadow-glow: 0 0 12px rgba(253, 184, 19, 0.3);
-
-  /* Info color shifts to warm yellow for consistency */
-  --color-info: #FDB813;
-  --color-info-subtle: rgba(253, 184, 19, 0.08);
-}
-
-/* -------------------------
-   Rainy Weather Theme
-   Cool blue-gray tones for wet, rainy conditions
-   ------------------------- */
-:root.weather-rainy:not(.dark) {
-  /* Backgrounds - cooler, muted */
-  --color-bg-glass: rgba(255, 255, 255, 0.7);
-  --color-bg-glass-subtle: rgba(255, 255, 255, 0.6);
-  --color-bg-surface: rgba(255, 255, 255, 0.75);
-  --color-bg-surface-hover: rgba(255, 255, 255, 0.82);
-
-  /* Text - slightly cooler */
-  --color-text-primary: #263238;
-  --color-text-secondary: #546E7A;
-  --color-text-tertiary: #607D8B;
-
-  /* Accent - steel blue */
-  --color-accent-primary: #4A90E2;
-  --color-accent-hover: #3d7bc5;
-  --color-accent-subtle: rgba(74, 144, 226, 0.08);
-  --color-accent-muted: rgba(74, 144, 226, 0.15);
-
-  /* Borders - blue-gray */
-  --color-border-primary: rgba(74, 144, 226, 0.2);
-  --color-border-secondary: rgba(74, 144, 226, 0.12);
-  --color-border-subtle: rgba(74, 144, 226, 0.08);
-
-  /* Shadows - cooler tones */
-  --shadow-md: 0 2px 8px rgba(74, 144, 226, 0.1);
-  --shadow-lg: 0 4px 16px rgba(74, 144, 226, 0.12);
-  --shadow-xl: 0 8px 32px rgba(74, 144, 226, 0.15);
-  --shadow-glow: 0 0 12px rgba(74, 144, 226, 0.3);
-
-  /* Info color uses same blue */
-  --color-info: #4A90E2;
-  --color-info-subtle: rgba(74, 144, 226, 0.08);
-}
-
-/* -------------------------
-   Snowy Weather Theme
-   Cool whites and icy blues for winter conditions
-   ------------------------- */
-:root.weather-snowy:not(.dark) {
-  /* Backgrounds - crisp, high opacity */
-  --color-bg-glass: rgba(255, 255, 255, 0.8);
-  --color-bg-glass-subtle: rgba(255, 255, 255, 0.7);
-  --color-bg-surface: rgba(255, 255, 255, 0.85);
-  --color-bg-surface-hover: rgba(255, 255, 255, 0.9);
-
-  /* Text - cooler grays */
-  --color-text-primary: #37474F;
-  --color-text-secondary: #607D8B;
-  --color-text-tertiary: #78909C;
-
-  /* Accent - ice blue */
-  --color-accent-primary: #64B5F6;
-  --color-accent-hover: #42A5F5;
-  --color-accent-subtle: rgba(100, 181, 246, 0.08);
-  --color-accent-muted: rgba(100, 181, 246, 0.15);
-
-  /* Borders - icy blue */
-  --color-border-primary: rgba(100, 181, 246, 0.25);
-  --color-border-secondary: rgba(100, 181, 246, 0.15);
-  --color-border-subtle: rgba(100, 181, 246, 0.1);
-
-  /* Shadows - cool, crisp */
-  --shadow-md: 0 2px 8px rgba(100, 181, 246, 0.15);
-  --shadow-lg: 0 4px 16px rgba(100, 181, 246, 0.2);
-  --shadow-xl: 0 8px 32px rgba(100, 181, 246, 0.2);
-  --shadow-glow: 0 0 12px rgba(100, 181, 246, 0.4);
-
-  /* Info color uses ice blue */
-  --color-info: #64B5F6;
-  --color-info-subtle: rgba(100, 181, 246, 0.08);
-}
-
-/* -------------------------
-   Severe Weather Theme
-   Urgent red-orange tones for severe conditions
-   ------------------------- */
-:root.weather-severe:not(.dark) {
-  /* Backgrounds - slightly more opaque for urgency */
-  --color-bg-glass: rgba(255, 255, 255, 0.75);
-  --color-bg-glass-subtle: rgba(255, 255, 255, 0.65);
-  --color-bg-surface: rgba(255, 255, 255, 0.8);
-  --color-bg-surface-hover: rgba(255, 255, 255, 0.85);
-
-  /* Text - higher contrast */
-  --color-text-primary: #1a1a1a;
-  --color-text-secondary: #4a4a4a;
-
-  /* Accent - alert red */
-  --color-accent-primary: #EF5350;
-  --color-accent-hover: #E53935;
-  --color-accent-subtle: rgba(239, 83, 80, 0.08);
-  --color-accent-muted: rgba(239, 83, 80, 0.15);
-
-  /* Borders - stronger, more visible */
-  --color-border-primary: rgba(239, 83, 80, 0.25);
-  --color-border-secondary: rgba(239, 83, 80, 0.15);
-  --color-border-subtle: rgba(239, 83, 80, 0.1);
-
-  /* Shadows - urgent glow */
-  --shadow-md: 0 2px 8px rgba(239, 83, 80, 0.15);
-  --shadow-lg: 0 4px 16px rgba(239, 83, 80, 0.2);
-  --shadow-xl: 0 8px 32px rgba(239, 83, 80, 0.2);
-  --shadow-glow: 0 0 12px rgba(239, 83, 80, 0.4);
-
-  /* Warning color shifts to orange for secondary urgency */
-  --color-warning: #FF6F00;
-  --color-warning-subtle: rgba(255, 111, 0, 0.1);
-
-  /* Info uses alert red for consistency */
-  --color-info: #EF5350;
-  --color-info-subtle: rgba(239, 83, 80, 0.08);
+  --shadow-glow: 0 0 8px rgba(213, 213, 213, 0.4);
 }
 
 /* =================================================================
