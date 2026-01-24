@@ -144,6 +144,8 @@
   
   /* Bright gradient backgrounds with white text (like screenshot) */
   --gradient-header: linear-gradient(135deg, #52C2ED 0%, #81E8FF 50%, #FFD700 100%);
+
+  /* Sky Blue & Yellow Gradients */
   --gradient-primary: linear-gradient(135deg, #52C2ED 0%, #81E8FF 100%);
   --gradient-sunny: linear-gradient(135deg, #FFD700 0%, #FFE55C 100%);
   --gradient-sky: linear-gradient(135deg, #52C2ED 0%, #81E8FF 50%, #FFD700 100%);
@@ -494,6 +496,8 @@
   
   /* Bright gradient backgrounds with white text (like screenshot) */
   --gradient-header: linear-gradient(135deg, #6BB6FF 0%, #8FCFFF 50%, #FFD54F 100%);
+
+  /* Sky Blue & Yellow Gradients (Dark Mode) */
   --gradient-primary: linear-gradient(135deg, #6BB6FF 0%, #8FCFFF 100%);
   --gradient-sunny: linear-gradient(135deg, #FFD54F 0%, #FFE082 100%);
   --gradient-sky: linear-gradient(135deg, #6BB6FF 0%, #8FCFFF 50%, #FFD54F 100%);
