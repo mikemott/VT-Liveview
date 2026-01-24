@@ -434,8 +434,13 @@
 
 .mobile-menu-toggle.open {
   background: var(--color-sky-blue-light);
-  color: var(--color-text-inverse);
+  color: var(--color-text-primary);
   border-color: var(--color-sky-blue-light);
+}
+
+/* Dark mode: use white text for better contrast */
+.dark .mobile-menu-toggle.open {
+  color: var(--color-text-inverse);
 }
 
 /* Mobile Controls Panel */

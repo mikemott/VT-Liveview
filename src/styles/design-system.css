@@ -386,7 +386,7 @@
    Sunny Weather Theme
    Warm golden tones for clear, sunny conditions
    ------------------------- */
-:root.weather-sunny {
+:root.weather-sunny:not(.dark) {
   /* Backgrounds - warm, bright */
   --color-bg-glass: rgba(255, 255, 255, 0.75);
   --color-bg-glass-subtle: rgba(255, 255, 255, 0.65);
@@ -419,7 +419,7 @@
    Rainy Weather Theme
    Cool blue-gray tones for wet, rainy conditions
    ------------------------- */
-:root.weather-rainy {
+:root.weather-rainy:not(.dark) {
   /* Backgrounds - cooler, muted */
   --color-bg-glass: rgba(255, 255, 255, 0.7);
   --color-bg-glass-subtle: rgba(255, 255, 255, 0.6);
@@ -457,7 +457,7 @@
    Snowy Weather Theme
    Cool whites and icy blues for winter conditions
    ------------------------- */
-:root.weather-snowy {
+:root.weather-snowy:not(.dark) {
   /* Backgrounds - crisp, high opacity */
   --color-bg-glass: rgba(255, 255, 255, 0.8);
   --color-bg-glass-subtle: rgba(255, 255, 255, 0.7);
@@ -495,7 +495,7 @@
    Severe Weather Theme
    Urgent red-orange tones for severe conditions
    ------------------------- */
-:root.weather-severe {
+:root.weather-severe:not(.dark) {
   /* Backgrounds - slightly more opaque for urgency */
   --color-bg-glass: rgba(255, 255, 255, 0.75);
   --color-bg-glass-subtle: rgba(255, 255, 255, 0.65);
