@@ -169,7 +169,7 @@
 }
 
 .success-icon {
-  font-size: 32px;
+  font-size: var(--font-size-5xl);
   color: var(--color-success);
 }
 

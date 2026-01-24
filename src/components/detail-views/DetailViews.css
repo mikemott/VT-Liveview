@@ -78,7 +78,7 @@
 }
 
 .alert-headline {
-  font-size: 15px;
+  font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-semibold);
   color: var(--color-vermont-green-light);
   margin-bottom: var(--space-8);
@@ -208,7 +208,7 @@
 }
 
 .temperature-card .condition-value {
-  font-size: var(--space-9);
+  font-size: var(--font-size-5xl);
 }
 
 .station-description {
@@ -293,7 +293,7 @@
 }
 
 .day-date {
-  font-size: 15px;
+  font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   color: var(--color-vermont-green);
 }
