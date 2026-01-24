@@ -22,14 +22,15 @@
 :root {
   /* -------------------------
      Color Palette - Backgrounds
+     Matches Protomaps LIGHT theme earth color (#e2dfda)
      ------------------------- */
-  --color-bg-primary: rgba(244, 241, 232, 0.95);
-  --color-bg-secondary: #f8f6f0;
-  --color-bg-tertiary: #ede9dd;
-  --color-bg-glass: rgba(255, 255, 255, 0.85);
-  --color-bg-glass-subtle: rgba(255, 255, 255, 0.6);
-  --color-bg-surface: rgba(255, 255, 255, 0.8);
-  --color-bg-surface-hover: rgba(255, 255, 255, 0.9);
+  --color-bg-primary: #e2dfda;
+  --color-bg-secondary: #e8e5e0;
+  --color-bg-tertiary: #dbd8d3;
+  --color-bg-glass: rgba(226, 223, 218, 0.92);
+  --color-bg-glass-subtle: rgba(226, 223, 218, 0.7);
+  --color-bg-surface: rgba(226, 223, 218, 0.85);
+  --color-bg-surface-hover: rgba(226, 223, 218, 0.95);
   --color-bg-overlay: rgba(0, 0, 0, 0.3);
   --color-bg-overlay-heavy: rgba(0, 0, 0, 0.4);
 
@@ -55,8 +56,8 @@
   --color-vermont-green-faint: rgba(76, 111, 68, 0.08);
   --color-vermont-tan: rgba(139, 119, 85, 0.5);
   --color-vermont-tan-light: rgba(139, 119, 85, 0.3);
-  --color-vermont-cream: rgba(210, 205, 190, 0.6);
-  --color-vermont-cream-light: rgba(210, 205, 190, 0.3);
+  --color-vermont-cream: rgba(219, 216, 211, 0.6);
+  --color-vermont-cream-light: rgba(219, 216, 211, 0.3);
 
   /* -------------------------
      Color Palette - Accent
@@ -105,12 +106,12 @@
   /* -------------------------
      Gradients
      ------------------------- */
-  --gradient-surface: linear-gradient(160deg, rgba(255, 255, 255, 0.8) 0%, rgba(245, 243, 237, 0.6) 100%);
-  --gradient-panel: linear-gradient(165deg, #f8f6f0 0%, #ede9dd 100%);
-  --gradient-header: linear-gradient(160deg, rgba(255, 255, 255, 0.8) 0%, rgba(245, 243, 237, 0.6) 100%);
-  --gradient-attribution: linear-gradient(180deg, rgba(230, 227, 218, 0.4) 0%, rgba(220, 215, 205, 0.6) 100%);
+  --gradient-surface: linear-gradient(160deg, rgba(226, 223, 218, 0.9) 0%, rgba(219, 216, 211, 0.75) 100%);
+  --gradient-panel: linear-gradient(165deg, #e2dfda 0%, #dbd8d3 100%);
+  --gradient-header: linear-gradient(160deg, rgba(226, 223, 218, 0.9) 0%, rgba(219, 216, 211, 0.75) 100%);
+  --gradient-attribution: linear-gradient(180deg, rgba(226, 223, 218, 0.5) 0%, rgba(219, 216, 211, 0.7) 100%);
   --gradient-vermont-accent: linear-gradient(90deg, rgba(76, 111, 68, 0) 0%, rgba(76, 111, 68, 0.4) 50%, rgba(76, 111, 68, 0) 100%);
-  --gradient-skeleton: linear-gradient(90deg, rgba(210, 205, 190, 0.6) 25%, rgba(220, 215, 205, 0.8) 50%, rgba(210, 205, 190, 0.6) 75%);
+  --gradient-skeleton: linear-gradient(90deg, rgba(219, 216, 211, 0.6) 25%, rgba(226, 223, 218, 0.8) 50%, rgba(219, 216, 211, 0.6) 75%);
 
   /* -------------------------
      Spacing Scale (Condensed)
