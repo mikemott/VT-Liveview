@@ -285,62 +285,58 @@
 
   /* -------------------------
      Color Palette - Vermont Theme
-     Light green accent for dark mode
      ------------------------- */
-  --color-vermont-green: #4ade80;
-  --color-vermont-green-light: #86efac;
-  --color-vermont-green-lighter: rgba(134, 239, 172, 0.3);
-  --color-vermont-green-subtle: rgba(134, 239, 172, 0.15);
-  --color-vermont-green-faint: rgba(134, 239, 172, 0.08);
-  --color-vermont-tan: rgba(148, 163, 184, 0.3);
-  --color-vermont-tan-light: rgba(148, 163, 184, 0.15);
-  --color-vermont-cream: rgba(255, 255, 255, 0.08);
-  --color-vermont-cream-light: rgba(255, 255, 255, 0.04);
+  --color-vermont-green: #b8cdb0;
+  --color-vermont-green-light: rgba(137, 165, 124, 0.8);
+  --color-vermont-green-lighter: rgba(137, 165, 124, 0.4);
+  --color-vermont-green-subtle: rgba(137, 165, 124, 0.2);
+  --color-vermont-green-faint: rgba(137, 165, 124, 0.1);
+  --color-vermont-tan: rgba(137, 165, 124, 0.5);
+  --color-vermont-tan-light: rgba(137, 165, 124, 0.3);
+  --color-vermont-cream: rgba(255, 255, 255, 0.1);
+  --color-vermont-cream-light: rgba(255, 255, 255, 0.05);
 
   /* -------------------------
      Color Palette - Accent
-     Vermont green as unified accent
      ------------------------- */
-  --color-accent-primary: #4ade80;
-  --color-accent-hover: #86efac;
-  --color-accent-subtle: rgba(74, 222, 128, 0.12);
-  --color-accent-muted: rgba(74, 222, 128, 0.2);
+  --color-accent-primary: #d5d5d5;
+  --color-accent-hover: #e5e5e5;
+  --color-accent-subtle: rgba(213, 213, 213, 0.1);
+  --color-accent-muted: rgba(213, 213, 213, 0.2);
 
   /* -------------------------
      Color Palette - Semantic
      ------------------------- */
-  --color-success: #4ade80;
-  --color-success-subtle: rgba(74, 222, 128, 0.15);
-  --color-warning: #fbbf24;
-  --color-warning-subtle: rgba(251, 191, 36, 0.15);
-  --color-error: #f87171;
-  --color-error-hover: #fca5a5;
-  --color-error-subtle: rgba(248, 113, 113, 0.15);
-  --color-info: #22d3ee;
-  --color-info-subtle: rgba(34, 211, 238, 0.15);
+  --color-success: #60d060;
+  --color-success-subtle: rgba(96, 208, 96, 0.15);
+  --color-warning: #f5d580;
+  --color-warning-subtle: rgba(245, 213, 128, 0.15);
+  --color-error: #ff8080;
+  --color-error-hover: #ff6060;
+  --color-error-subtle: rgba(255, 128, 128, 0.15);
+  --color-info: #6ba3ff;
+  --color-info-subtle: rgba(107, 163, 255, 0.15);
 
   /* -------------------------
      Color Palette - Borders
-     Neutral borders for dark mode
      ------------------------- */
-  --color-border-primary: rgba(255, 255, 255, 0.15);
-  --color-border-secondary: rgba(255, 255, 255, 0.1);
-  --color-border-subtle: rgba(255, 255, 255, 0.08);
-  --color-border-faint: rgba(255, 255, 255, 0.05);
+  --color-border-primary: rgba(137, 165, 124, 0.25);
+  --color-border-secondary: rgba(137, 165, 124, 0.2);
+  --color-border-subtle: rgba(118, 141, 115, 0.15);
+  --color-border-faint: rgba(255, 255, 255, 0.08);
   --color-border-divider: rgba(255, 255, 255, 0.1);
 
   /* -------------------------
      Alert Severity Colors (Dark)
-     Red → Orange → Yellow → Cyan
      ------------------------- */
-  --color-alert-extreme-bg: rgba(248, 113, 113, 0.2);
-  --color-alert-extreme-border: #f87171;
-  --color-alert-severe-bg: rgba(251, 146, 60, 0.2);
-  --color-alert-severe-border: #fb923c;
-  --color-alert-moderate-bg: rgba(251, 191, 36, 0.18);
-  --color-alert-moderate-border: #fbbf24;
-  --color-alert-minor-bg: rgba(34, 211, 238, 0.15);
-  --color-alert-minor-border: #22d3ee;
+  --color-alert-extreme-bg: rgba(180, 70, 70, 0.2);
+  --color-alert-extreme-border: #d87070;
+  --color-alert-severe-bg: rgba(200, 120, 60, 0.2);
+  --color-alert-severe-border: #e0a060;
+  --color-alert-moderate-bg: rgba(180, 160, 80, 0.18);
+  --color-alert-moderate-border: #d0c070;
+  --color-alert-minor-bg: rgba(90, 140, 90, 0.2);
+  --color-alert-minor-border: #90c090;
 
   /* -------------------------
      Gradients (Dark)
@@ -362,7 +358,7 @@
   --shadow-xl: 0 8px 32px rgba(0, 0, 0, 0.5);
   --shadow-2xl: 0 12px 48px rgba(0, 0, 0, 0.6);
   --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.03);
-  --shadow-glow: 0 0 8px rgba(74, 222, 128, 0.4);
+  --shadow-glow: 0 0 8px rgba(213, 213, 213, 0.4);
 }
 
 /* =================================================================
