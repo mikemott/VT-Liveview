@@ -644,6 +644,9 @@
 }
 
 /* Weather-adaptive gradient backgrounds */
-[data-weather] .gradient-bg {
+/* Support both parent attribute and same-element attribute */
+[data-weather] .gradient-bg,
+.gradient-bg[data-weather],
+[data-weather].gradient-bg {
   background: var(--vt-weather-gradient);
 }

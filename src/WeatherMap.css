@@ -119,7 +119,15 @@
   border-radius: var(--panel-border-radius) var(--panel-border-radius) 0 0;
 }
 
-.logo-container * {
+/* Target specific text and icon elements for white text on gradient */
+.logo-container,
+.logo-container h1,
+.logo-container h2,
+.logo-container h3,
+.logo-container span,
+.logo-container p,
+.logo-container a,
+.logo-container button {
   color: var(--color-text-inverse);
 }
 
