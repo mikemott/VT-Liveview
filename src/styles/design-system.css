@@ -91,15 +91,16 @@
 
   /* -------------------------
      Alert Severity Colors
+     Vermont-themed severity palette
      ------------------------- */
-  --color-alert-extreme-bg: #d9b5a0;
-  --color-alert-extreme-border: #a84632;
-  --color-alert-severe-bg: #d9c4a5;
-  --color-alert-severe-border: #b8753d;
-  --color-alert-moderate-bg: #e5d8b8;
-  --color-alert-moderate-border: #a68b45;
-  --color-alert-minor-bg: #c4d4d0;
-  --color-alert-minor-border: #5a7c78;
+  --color-alert-extreme-bg: rgba(180, 70, 70, 0.15);
+  --color-alert-extreme-border: #a84848;
+  --color-alert-severe-bg: rgba(200, 120, 60, 0.15);
+  --color-alert-severe-border: #c07840;
+  --color-alert-moderate-bg: rgba(180, 160, 80, 0.12);
+  --color-alert-moderate-border: #a89850;
+  --color-alert-minor-bg: rgba(76, 111, 68, 0.12);
+  --color-alert-minor-border: #5a8a58;
 
   /* -------------------------
      Gradients
@@ -321,14 +322,14 @@
   /* -------------------------
      Alert Severity Colors (Dark)
      ------------------------- */
-  --color-alert-extreme-bg: rgba(168, 70, 50, 0.25);
-  --color-alert-extreme-border: #d9856d;
-  --color-alert-severe-bg: rgba(184, 117, 61, 0.25);
-  --color-alert-severe-border: #e5a875;
-  --color-alert-moderate-bg: rgba(166, 139, 69, 0.25);
-  --color-alert-moderate-border: #d4ba7d;
-  --color-alert-minor-bg: rgba(90, 124, 120, 0.25);
-  --color-alert-minor-border: #8db5b0;
+  --color-alert-extreme-bg: rgba(180, 70, 70, 0.2);
+  --color-alert-extreme-border: #d87070;
+  --color-alert-severe-bg: rgba(200, 120, 60, 0.2);
+  --color-alert-severe-border: #e0a060;
+  --color-alert-moderate-bg: rgba(180, 160, 80, 0.18);
+  --color-alert-moderate-border: #d0c070;
+  --color-alert-minor-bg: rgba(90, 140, 90, 0.2);
+  --color-alert-minor-border: #90c090;
 
   /* -------------------------
      Gradients (Dark)
