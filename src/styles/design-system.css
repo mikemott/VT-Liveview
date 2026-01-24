@@ -22,42 +22,44 @@
 :root {
   /* -------------------------
      Color Palette - Backgrounds
-     Glassy cream-to-earth gradient for elevated UI feel
+     Clean, modern white with subtle warmth
      ------------------------- */
-  --color-bg-primary: rgba(250, 248, 244, 0.85);
-  --color-bg-secondary: rgba(245, 243, 238, 0.88);
-  --color-bg-tertiary: rgba(240, 238, 233, 0.9);
-  --color-bg-glass: rgba(252, 250, 247, 0.78);
-  --color-bg-glass-subtle: rgba(248, 246, 242, 0.6);
-  --color-bg-surface: rgba(250, 248, 244, 0.75);
-  --color-bg-surface-hover: rgba(252, 250, 247, 0.85);
-  --color-bg-overlay: rgba(0, 0, 0, 0.3);
+  --color-bg-primary: rgba(255, 255, 255, 0.92);
+  --color-bg-secondary: #f8f9fa;
+  --color-bg-tertiary: #f1f3f4;
+  --color-bg-glass: rgba(255, 255, 255, 0.88);
+  --color-bg-glass-subtle: rgba(255, 255, 255, 0.7);
+  --color-bg-surface: rgba(255, 255, 255, 0.85);
+  --color-bg-surface-hover: rgba(255, 255, 255, 0.95);
+  --color-bg-overlay: rgba(0, 0, 0, 0.25);
   --color-bg-overlay-heavy: rgba(0, 0, 0, 0.4);
 
   /* -------------------------
      Color Palette - Text
+     High contrast for readability
      ------------------------- */
-  --color-text-primary: #333;
-  --color-text-primary-alt: #1f2937;
-  --color-text-secondary: #4b5563;
-  --color-text-tertiary: #6b7280;
-  --color-text-muted: #9ca3af;
-  --color-text-placeholder: #888;
-  --color-text-disabled: #999;
+  --color-text-primary: #1a1a1a;
+  --color-text-primary-alt: #111827;
+  --color-text-secondary: #374151;
+  --color-text-tertiary: #4b5563;
+  --color-text-muted: #6b7280;
+  --color-text-placeholder: #9ca3af;
+  --color-text-disabled: #d1d5db;
   --color-text-inverse: #ffffff;
 
   /* -------------------------
      Color Palette - Vermont Theme
+     Fresh forest green as hero accent
      ------------------------- */
-  --color-vermont-green: #2d4a2b;
-  --color-vermont-green-light: rgba(76, 111, 68, 0.8);
-  --color-vermont-green-lighter: rgba(76, 111, 68, 0.4);
-  --color-vermont-green-subtle: rgba(76, 111, 68, 0.15);
-  --color-vermont-green-faint: rgba(76, 111, 68, 0.08);
-  --color-vermont-tan: rgba(139, 119, 85, 0.5);
-  --color-vermont-tan-light: rgba(139, 119, 85, 0.3);
-  --color-vermont-cream: rgba(235, 232, 226, 0.6);
-  --color-vermont-cream-light: rgba(240, 238, 233, 0.35);
+  --color-vermont-green: #1e5631;
+  --color-vermont-green-light: #2e7d46;
+  --color-vermont-green-lighter: rgba(46, 125, 70, 0.35);
+  --color-vermont-green-subtle: rgba(46, 125, 70, 0.12);
+  --color-vermont-green-faint: rgba(46, 125, 70, 0.06);
+  --color-vermont-tan: rgba(100, 116, 139, 0.3);
+  --color-vermont-tan-light: rgba(100, 116, 139, 0.15);
+  --color-vermont-cream: rgba(241, 243, 244, 0.8);
+  --color-vermont-cream-light: rgba(248, 249, 250, 0.5);
 
   /* -------------------------
      Color Palette - Accent
@@ -83,35 +85,37 @@
 
   /* -------------------------
      Color Palette - Borders
+     Clean neutral borders
      ------------------------- */
-  --color-border-primary: rgba(139, 119, 85, 0.25);
-  --color-border-secondary: rgba(139, 119, 85, 0.2);
-  --color-border-subtle: rgba(139, 119, 85, 0.12);
-  --color-border-faint: rgba(139, 119, 85, 0.08);
-  --color-border-divider: rgba(210, 205, 190, 0.6);
+  --color-border-primary: rgba(0, 0, 0, 0.12);
+  --color-border-secondary: rgba(0, 0, 0, 0.08);
+  --color-border-subtle: rgba(0, 0, 0, 0.06);
+  --color-border-faint: rgba(0, 0, 0, 0.04);
+  --color-border-divider: rgba(0, 0, 0, 0.08);
 
   /* -------------------------
      Alert Severity Colors
-     Vermont-themed severity palette
+     Clear, accessible severity indicators
      ------------------------- */
-  --color-alert-extreme-bg: rgba(180, 70, 70, 0.15);
-  --color-alert-extreme-border: #a84848;
-  --color-alert-severe-bg: rgba(200, 120, 60, 0.15);
-  --color-alert-severe-border: #c07840;
-  --color-alert-moderate-bg: rgba(180, 160, 80, 0.12);
-  --color-alert-moderate-border: #a89850;
-  --color-alert-minor-bg: rgba(76, 111, 68, 0.12);
-  --color-alert-minor-border: #5a8a58;
+  --color-alert-extreme-bg: rgba(220, 38, 38, 0.1);
+  --color-alert-extreme-border: #dc2626;
+  --color-alert-severe-bg: rgba(234, 88, 12, 0.1);
+  --color-alert-severe-border: #ea580c;
+  --color-alert-moderate-bg: rgba(202, 138, 4, 0.1);
+  --color-alert-moderate-border: #ca8a04;
+  --color-alert-minor-bg: rgba(22, 163, 74, 0.08);
+  --color-alert-minor-border: #16a34a;
 
   /* -------------------------
      Gradients
+     Subtle, clean gradients
      ------------------------- */
-  --gradient-surface: linear-gradient(160deg, rgba(252, 250, 247, 0.8) 0%, rgba(238, 235, 230, 0.7) 100%);
-  --gradient-panel: linear-gradient(165deg, rgba(252, 250, 247, 0.88) 0%, rgba(235, 232, 226, 0.82) 100%);
-  --gradient-header: linear-gradient(160deg, rgba(252, 250, 247, 0.85) 0%, rgba(240, 238, 232, 0.75) 100%);
-  --gradient-attribution: linear-gradient(180deg, rgba(248, 246, 242, 0.5) 0%, rgba(235, 232, 226, 0.65) 100%);
-  --gradient-vermont-accent: linear-gradient(90deg, rgba(76, 111, 68, 0) 0%, rgba(76, 111, 68, 0.4) 50%, rgba(76, 111, 68, 0) 100%);
-  --gradient-skeleton: linear-gradient(90deg, rgba(235, 232, 226, 0.5) 25%, rgba(245, 243, 238, 0.7) 50%, rgba(235, 232, 226, 0.5) 75%);
+  --gradient-surface: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 249, 250, 0.9) 100%);
+  --gradient-panel: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 249, 250, 0.92) 100%);
+  --gradient-header: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.92) 100%);
+  --gradient-attribution: linear-gradient(180deg, rgba(248, 249, 250, 0.6) 0%, rgba(241, 243, 244, 0.75) 100%);
+  --gradient-vermont-accent: linear-gradient(90deg, rgba(46, 125, 70, 0) 0%, rgba(46, 125, 70, 0.15) 50%, rgba(46, 125, 70, 0) 100%);
+  --gradient-skeleton: linear-gradient(90deg, #f1f3f4 25%, #f8f9fa 50%, #f1f3f4 75%);
 
   /* -------------------------
      Spacing Scale (Condensed)
