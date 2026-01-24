@@ -27,6 +27,7 @@
   --color-bg-primary: rgba(255, 255, 255, 0.92);
   --color-bg-secondary: #f8f9fa;
   --color-bg-tertiary: #f1f3f4;
+  --color-bg-elevated: rgba(255, 255, 255, 0.98);
   --color-bg-glass: rgba(255, 255, 255, 0.88);
   --color-bg-glass-subtle: rgba(255, 255, 255, 0.7);
   --color-bg-surface: rgba(255, 255, 255, 0.85);
@@ -116,6 +117,7 @@
      ------------------------- */
   --color-border-primary: rgba(0, 0, 0, 0.12);
   --color-border-secondary: rgba(0, 0, 0, 0.08);
+  --color-border-light: rgba(0, 0, 0, 0.08);
   --color-border-subtle: rgba(0, 0, 0, 0.06);
   --color-border-faint: rgba(0, 0, 0, 0.04);
   --color-border-divider: rgba(0, 0, 0, 0.08);
@@ -387,6 +389,7 @@
   --color-bg-primary: rgba(28, 32, 36, 0.97);
   --color-bg-secondary: rgba(22, 26, 30, 0.97);
   --color-bg-tertiary: rgba(18, 22, 26, 0.97);
+  --color-bg-elevated: rgba(30, 35, 40, 0.98);
   --color-bg-glass: rgba(30, 30, 30, 0.9);
   --color-bg-glass-subtle: rgba(36, 42, 46, 0.7);
   --color-bg-surface: rgba(36, 42, 46, 0.7);
@@ -470,6 +473,7 @@
      ------------------------- */
   --color-border-primary: rgba(107, 182, 255, 0.25);
   --color-border-secondary: rgba(107, 182, 255, 0.2);
+  --color-border-light: rgba(255, 255, 255, 0.1);
   --color-border-subtle: rgba(107, 182, 255, 0.15);
   --color-border-faint: rgba(255, 255, 255, 0.08);
   --color-border-divider: rgba(255, 255, 255, 0.1);
