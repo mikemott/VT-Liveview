@@ -8,13 +8,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-vermont-green);
+  color: var(--color-accent-primary);
   transition: var(--transition-base);
 }
 
 .theme-toggle:hover {
-  background: var(--color-vermont-green-faint);
-  border-color: var(--color-vermont-green-lighter);
+  background: var(--color-sky-blue-faint);
+  border-color: var(--color-sky-blue-lighter);
   transform: translateY(-1px);
 }
 
