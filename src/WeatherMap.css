@@ -32,7 +32,7 @@
 .loading-spinner {
   width: 50px;
   height: 50px;
-  border: 5px solid var(--color-vermont-cream);
+  border: 5px solid var(--color-bg-secondary);
   border-top-color: var(--color-accent-primary);
   border-radius: var(--radius-full);
   animation: spin 1s linear infinite;
@@ -78,7 +78,7 @@
   overflow-x: hidden;
   padding: var(--space-9);
   scrollbar-width: thin;
-  scrollbar-color: var(--color-vermont-tan-light) transparent;
+  scrollbar-color: var(--color-border-subtle) transparent;
   flex: 1;
 }
 
@@ -91,12 +91,12 @@
 }
 
 .controls-panel-scroll::-webkit-scrollbar-thumb {
-  background: var(--color-vermont-tan-light);
+  background: var(--color-border-subtle);
   border-radius: var(--radius-sm);
 }
 
 .controls-panel-scroll::-webkit-scrollbar-thumb:hover {
-  background: var(--color-vermont-tan);
+  background: var(--color-border-secondary);
 }
 
 .logo-container {
@@ -109,9 +109,9 @@
   border-bottom: 3px solid transparent;
   border-image: linear-gradient(90deg,
     transparent 0%,
-    var(--color-vermont-green-lighter) 20%,
-    var(--color-vermont-green-light) 50%,
-    var(--color-vermont-green-lighter) 80%,
+    var(--color-sky-blue-lighter) 20%,
+    var(--color-sky-blue-light) 50%,
+    var(--color-sky-blue-lighter) 80%,
     transparent 100%
   ) 1;
   position: relative;
@@ -132,7 +132,7 @@
   transform: translateX(-50%);
   width: 80px;
   height: 3px;
-  background: radial-gradient(ellipse at center, var(--color-vermont-green-lighter) 0%, transparent 70%);
+  background: radial-gradient(ellipse at center, var(--color-sky-blue-lighter) 0%, transparent 70%);
 }
 
 .app-logo {
@@ -150,7 +150,7 @@
 
 .controls-panel h2 {
   margin: 0 0 var(--space-8) 0;
-  color: var(--color-vermont-green);
+  color: var(--color-accent-primary);
   font-family: var(--font-family);
   font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-bold);
@@ -181,7 +181,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: var(--gradient-vermont-accent);
+  background: var(--gradient-blue-accent);
 }
 
 .control-section:hover {
@@ -198,7 +198,7 @@
 
 .control-section h3 {
   margin: 0 0 var(--space-7) 0;
-  color: var(--color-vermont-green);
+  color: var(--color-accent-primary);
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
   text-transform: uppercase;
@@ -215,7 +215,7 @@
   left: 0;
   width: 40px;
   height: 2px;
-  background: linear-gradient(90deg, var(--color-vermont-green-light) 0%, transparent 100%);
+  background: linear-gradient(90deg, var(--color-sky-blue-light) 0%, transparent 100%);
 }
 
 .toggle-control {
@@ -254,7 +254,7 @@
   width: 100%;
   height: 6px;
   border-radius: var(--radius-sm);
-  background: var(--color-vermont-cream);
+  background: var(--color-bg-secondary);
   outline: none;
   cursor: pointer;
 }
@@ -366,7 +366,7 @@
   transform: translateX(-50%);
   width: 100px;
   height: 2px;
-  background: radial-gradient(ellipse at center, var(--color-vermont-tan-light) 0%, transparent 70%);
+  background: radial-gradient(ellipse at center, var(--color-border-subtle) 0%, transparent 70%);
 }
 
 .attribution p {
@@ -420,7 +420,7 @@
   cursor: pointer;
   z-index: var(--z-fixed);
   transition: var(--transition-slow);
-  color: var(--color-vermont-green);
+  color: var(--color-accent-primary);
 }
 
 .mobile-menu-toggle:hover {
@@ -433,9 +433,14 @@
 }
 
 .mobile-menu-toggle.open {
-  background: var(--color-vermont-green-light);
+  background: var(--color-sky-blue-light);
+  color: var(--color-text-primary);
+  border-color: var(--color-sky-blue-light);
+}
+
+/* Dark mode: use white text for better contrast */
+.dark .mobile-menu-toggle.open {
   color: var(--color-text-inverse);
-  border-color: var(--color-vermont-green-light);
 }
 
 /* Mobile Controls Panel */
@@ -477,7 +482,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: var(--color-vermont-green);
+  color: var(--color-accent-primary);
   transition: var(--transition-base);
 }
 
@@ -538,7 +543,7 @@
 
 .dark-popup .maplibregl-popup-close-button:hover {
   color: var(--color-text-primary);
-  background: var(--color-vermont-cream);
+  background: var(--color-bg-secondary);
 }
 
 /* Keyboard Focus Styles */
@@ -584,11 +589,11 @@
 }
 
 .maplibregl-ctrl-group button:hover {
-  background-color: var(--color-vermont-green-faint) !important;
+  background-color: var(--color-sky-blue-faint) !important;
 }
 
 .maplibregl-ctrl-group button:active {
-  background-color: var(--color-vermont-green-subtle) !important;
+  background-color: var(--color-sky-blue-subtle) !important;
 }
 
 .maplibregl-ctrl-group button + button {
