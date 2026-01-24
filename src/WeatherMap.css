@@ -106,16 +106,34 @@
   align-items: center;
   padding: var(--space-7) var(--space-8);
   background: var(--gradient-header);
+  color: var(--color-text-inverse); /* White text on gradient background */
   border-bottom: 3px solid transparent;
   border-image: linear-gradient(90deg,
     transparent 0%,
-    var(--color-vermont-green-lighter) 20%,
-    var(--color-vermont-green-light) 50%,
-    var(--color-vermont-green-lighter) 80%,
+    rgba(255, 255, 255, 0.3) 20%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0.3) 80%,
     transparent 100%
   ) 1;
   position: relative;
   border-radius: var(--panel-border-radius) var(--panel-border-radius) 0 0;
+}
+
+/* Target specific text and icon elements for white text on gradient */
+.logo-container,
+.logo-container h1,
+.logo-container h2,
+.logo-container h3,
+.logo-container span,
+.logo-container p,
+.logo-container a,
+.logo-container button {
+  color: var(--color-text-inverse);
+}
+
+.logo-container svg {
+  color: var(--color-text-inverse);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
 }
 
 .header-actions {
