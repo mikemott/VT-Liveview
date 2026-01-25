@@ -148,18 +148,18 @@
 
 /* Weather Stations - Blue (matches station markers) */
 .filter-chip.active[data-chip-type="weather"] {
-  background: linear-gradient(135deg, rgba(91, 139, 174, 0.12) 0%, rgba(91, 139, 174, 0.08) 100%);
-  border-color: rgba(91, 139, 174, 0.3);
-  color: #4A7A9D;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.08) 100%);
+  border-color: rgba(59, 130, 246, 0.3);
+  color: #2563EB;
 }
 
 .filter-chip.active[data-chip-type="weather"]::before {
-  background: #5B8BAE;
+  background: #3b82f6;
 }
 
 .filter-chip.active[data-chip-type="weather"] .chip-icon {
-  background: rgba(91, 139, 174, 0.15);
-  color: #4A7A9D;
+  background: rgba(59, 130, 246, 0.15);
+  color: #2563EB;
 }
 
 /* Accident - Purple */
@@ -324,13 +324,13 @@
 }
 
 .dark .filter-chip.active[data-chip-type="weather"] {
-  background: linear-gradient(135deg, rgba(91, 139, 174, 0.18) 0%, rgba(91, 139, 174, 0.12) 100%);
-  border-color: rgba(91, 139, 174, 0.4);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18) 0%, rgba(59, 130, 246, 0.12) 100%);
+  border-color: rgba(59, 130, 246, 0.4);
   color: #93C5FD;
 }
 
 .dark .filter-chip.active[data-chip-type="weather"] .chip-icon {
-  background: rgba(91, 139, 174, 0.25);
+  background: rgba(59, 130, 246, 0.25);
   color: #93C5FD;
 }
 
