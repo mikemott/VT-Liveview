@@ -48,41 +48,41 @@
   --color-text-inverse: #ffffff;
 
   /* -------------------------
-     Color Palette - Vermont Theme
-     Sophisticated forest green - THE single accent
+     Color Palette - Dusty Blue Theme
+     Soft, muted blue - THE single accent
      ------------------------- */
-  --color-vermont-green: #15803d;
-  --color-vermont-green-light: #22c55e;
-  --color-vermont-green-lighter: rgba(34, 197, 94, 0.25);
-  --color-vermont-green-subtle: rgba(34, 197, 94, 0.1);
-  --color-vermont-green-faint: rgba(34, 197, 94, 0.05);
-  --color-vermont-tan: rgba(100, 116, 139, 0.2);
-  --color-vermont-tan-light: rgba(100, 116, 139, 0.1);
+  --color-vermont-green: #5B8BAE;
+  --color-vermont-green-light: #7BA5C7;
+  --color-vermont-green-lighter: rgba(91, 139, 174, 0.25);
+  --color-vermont-green-subtle: rgba(91, 139, 174, 0.1);
+  --color-vermont-green-faint: rgba(91, 139, 174, 0.05);
+  --color-vermont-tan: rgba(91, 139, 174, 0.2);
+  --color-vermont-tan-light: rgba(91, 139, 174, 0.1);
   --color-vermont-cream: rgba(241, 243, 244, 0.8);
   --color-vermont-cream-light: rgba(248, 249, 250, 0.5);
 
   /* -------------------------
      Color Palette - Accent
-     Vermont green IS the accent - no competing blue
+     Dusty blue IS the accent
      ------------------------- */
-  --color-accent-primary: #15803d;
-  --color-accent-hover: #166534;
-  --color-accent-subtle: rgba(21, 128, 61, 0.08);
-  --color-accent-muted: rgba(21, 128, 61, 0.15);
+  --color-accent-primary: #5B8BAE;
+  --color-accent-hover: #4A7A9D;
+  --color-accent-subtle: rgba(91, 139, 174, 0.08);
+  --color-accent-muted: rgba(91, 139, 174, 0.15);
 
   /* -------------------------
      Color Palette - Semantic
-     Using accent green for success, teal for info
+     Using dusty blue for success and info
      ------------------------- */
-  --color-success: #15803d;
-  --color-success-subtle: rgba(21, 128, 61, 0.08);
+  --color-success: #5B8BAE;
+  --color-success-subtle: rgba(91, 139, 174, 0.08);
   --color-warning: #d97706;
   --color-warning-subtle: rgba(217, 119, 6, 0.1);
   --color-error: #dc2626;
   --color-error-hover: #b91c1c;
   --color-error-subtle: rgba(220, 38, 38, 0.08);
-  --color-info: #0891b2;
-  --color-info-subtle: rgba(8, 145, 178, 0.08);
+  --color-info: #5B8BAE;
+  --color-info-subtle: rgba(91, 139, 174, 0.08);
   --color-nowcast: #7c3aed;
 
   /* -------------------------
@@ -97,7 +97,7 @@
 
   /* -------------------------
      Alert Severity Colors
-     Red → Orange → Yellow → Teal (no green - reserved for accent)
+     Red → Orange → Yellow → Dusty Blue
      ------------------------- */
   --color-alert-extreme-bg: rgba(185, 28, 28, 0.1);
   --color-alert-extreme-border: #b91c1c;
@@ -105,8 +105,8 @@
   --color-alert-severe-border: #c2410c;
   --color-alert-moderate-bg: rgba(161, 98, 7, 0.1);
   --color-alert-moderate-border: #a16207;
-  --color-alert-minor-bg: rgba(8, 145, 178, 0.08);
-  --color-alert-minor-border: #0891b2;
+  --color-alert-minor-bg: rgba(91, 139, 174, 0.08);
+  --color-alert-minor-border: #5B8BAE;
 
   /* -------------------------
      Gradients
@@ -116,7 +116,7 @@
   --gradient-panel: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 249, 250, 0.92) 100%);
   --gradient-header: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.92) 100%);
   --gradient-attribution: linear-gradient(180deg, rgba(248, 249, 250, 0.6) 0%, rgba(241, 243, 244, 0.75) 100%);
-  --gradient-vermont-accent: linear-gradient(90deg, rgba(46, 125, 70, 0) 0%, rgba(46, 125, 70, 0.15) 50%, rgba(46, 125, 70, 0) 100%);
+  --gradient-vermont-accent: linear-gradient(90deg, rgba(91, 139, 174, 0) 0%, rgba(91, 139, 174, 0.15) 50%, rgba(91, 139, 174, 0) 100%);
   --gradient-skeleton: linear-gradient(90deg, #f1f3f4 25%, #f8f9fa 50%, #f1f3f4 75%);
 
   /* -------------------------
