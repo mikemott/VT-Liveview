@@ -382,7 +382,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
             </div>
             <h3 style="
               margin: 0;
-              color: ${themeColors.title};
+              color: ${themeColors.badgeText};
               font-size: 14px;
               font-weight: 600;
               line-height: 1.3;
