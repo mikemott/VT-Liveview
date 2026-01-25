@@ -528,6 +528,43 @@
   cursor: pointer;
 }
 
+/* Incident Popup Styles - Remove default MapLibre borders and style */
+.incident-popup .maplibregl-popup-content {
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 12px !important;
+}
+
+.incident-popup .maplibregl-popup-tip {
+  border-top-color: rgba(23, 23, 23, 0.95) !important;
+}
+
+.dark .incident-popup .maplibregl-popup-tip {
+  border-top-color: rgba(23, 23, 23, 0.95) !important;
+}
+
+/* Light mode popup tip */
+:not(.dark) .incident-popup .maplibregl-popup-tip {
+  border-top-color: rgba(255, 255, 255, 0.98) !important;
+}
+
+.incident-popup .maplibregl-popup-close-button {
+  color: var(--color-text-secondary);
+  font-size: 20px;
+  padding: 4px 8px;
+  right: 8px;
+  top: 8px;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.incident-popup .maplibregl-popup-close-button:hover {
+  background: transparent;
+  opacity: 1;
+  color: var(--color-text-primary-alt);
+}
+
 /* Skeleton Loader */
 .incidents-skeleton {
   display: flex;
