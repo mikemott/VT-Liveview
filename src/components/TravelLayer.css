@@ -77,34 +77,61 @@
 .filter-chip {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--space-2);
   height: var(--chip-height);
   padding: 0 var(--space-4);
   border-radius: var(--radius-full);
   background: var(--color-bg-surface);
-  border: 1px solid var(--color-border-subtle);
+  border: 1.5px solid var(--color-border-subtle);
   cursor: pointer;
   transition: var(--transition-fast);
   user-select: none;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--color-text-secondary);
+  position: relative;
+  overflow: hidden;
+}
+
+.filter-chip::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  transition: width var(--transition-fast);
 }
 
 .filter-chip:hover {
   background: var(--color-bg-surface-hover);
   border-color: var(--color-border-secondary);
+  transform: translateY(-1px);
 }
 
+.filter-chip:hover::before {
+  width: 3px;
+}
+
+/* Active state colors matching incident types */
 .filter-chip.active {
-  background: var(--color-vermont-green-subtle);
-  border-color: var(--color-vermont-green-lighter);
-  color: var(--color-vermont-green);
+  border-width: 1.5px;
+}
+
+.filter-chip.active::before {
+  width: 3px;
 }
 
 .filter-chip .chip-icon {
   display: flex;
   align-items: center;
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.filter-chip.active .chip-icon {
+  transform: scale(1.05);
 }
 
 .filter-chip .chip-count {
@@ -117,8 +144,194 @@
   text-align: center;
 }
 
-.filter-chip.active .chip-count {
-  background: var(--color-vermont-green-lighter);
+/* Type-specific chip colors matching incident colors */
+
+/* Weather Stations - Green (matches site theme) */
+.filter-chip.active[data-chip-type="weather"] {
+  background: linear-gradient(135deg, rgba(76, 120, 98, 0.12) 0%, rgba(76, 120, 98, 0.08) 100%);
+  border-color: rgba(76, 120, 98, 0.3);
+  color: var(--color-vermont-green);
+}
+
+.filter-chip.active[data-chip-type="weather"]::before {
+  background: var(--color-vermont-green);
+}
+
+.filter-chip.active[data-chip-type="weather"] .chip-icon {
+  background: rgba(76, 120, 98, 0.15);
+  color: var(--color-vermont-green);
+}
+
+/* Accident - Purple */
+.filter-chip.active[data-chip-type="accident"] {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(139, 92, 246, 0.08) 100%);
+  border-color: rgba(139, 92, 246, 0.3);
+  color: #7C3AED;
+}
+
+.filter-chip.active[data-chip-type="accident"]::before {
+  background: #8B5CF6;
+}
+
+.filter-chip.active[data-chip-type="accident"] .chip-icon {
+  background: rgba(139, 92, 246, 0.15);
+  color: #7C3AED;
+}
+
+.filter-chip.active[data-chip-type="accident"] .chip-count {
+  background: rgba(139, 92, 246, 0.2);
+  color: #6D28D9;
+}
+
+/* Construction - Orange */
+.filter-chip.active[data-chip-type="construction"] {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.12) 0%, rgba(249, 115, 22, 0.08) 100%);
+  border-color: rgba(249, 115, 22, 0.3);
+  color: #EA580C;
+}
+
+.filter-chip.active[data-chip-type="construction"]::before {
+  background: #F97316;
+}
+
+.filter-chip.active[data-chip-type="construction"] .chip-icon {
+  background: rgba(249, 115, 22, 0.15);
+  color: #EA580C;
+}
+
+.filter-chip.active[data-chip-type="construction"] .chip-count {
+  background: rgba(249, 115, 22, 0.2);
+  color: #C2410C;
+}
+
+/* Closure - Blue */
+.filter-chip.active[data-chip-type="closure"] {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.08) 100%);
+  border-color: rgba(59, 130, 246, 0.3);
+  color: #2563EB;
+}
+
+.filter-chip.active[data-chip-type="closure"]::before {
+  background: #3B82F6;
+}
+
+.filter-chip.active[data-chip-type="closure"] .chip-icon {
+  background: rgba(59, 130, 246, 0.15);
+  color: #2563EB;
+}
+
+.filter-chip.active[data-chip-type="closure"] .chip-count {
+  background: rgba(59, 130, 246, 0.2);
+  color: #1D4ED8;
+}
+
+/* Flooding - Teal */
+.filter-chip.active[data-chip-type="flooding"] {
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.12) 0%, rgba(20, 184, 166, 0.08) 100%);
+  border-color: rgba(20, 184, 166, 0.3);
+  color: #0D9488;
+}
+
+.filter-chip.active[data-chip-type="flooding"]::before {
+  background: #14B8A6;
+}
+
+.filter-chip.active[data-chip-type="flooding"] .chip-icon {
+  background: rgba(20, 184, 166, 0.15);
+  color: #0D9488;
+}
+
+.filter-chip.active[data-chip-type="flooding"] .chip-count {
+  background: rgba(20, 184, 166, 0.2);
+  color: #0F766E;
+}
+
+/* Hazard - Amber */
+.filter-chip.active[data-chip-type="hazard"] {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(245, 158, 11, 0.08) 100%);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #D97706;
+}
+
+.filter-chip.active[data-chip-type="hazard"]::before {
+  background: #F59E0B;
+}
+
+.filter-chip.active[data-chip-type="hazard"] .chip-icon {
+  background: rgba(245, 158, 11, 0.15);
+  color: #D97706;
+}
+
+.filter-chip.active[data-chip-type="hazard"] .chip-count {
+  background: rgba(245, 158, 11, 0.2);
+  color: #B45309;
+}
+
+/* Dark mode chip adjustments */
+.dark .filter-chip.active[data-chip-type="accident"] {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.18) 0%, rgba(139, 92, 246, 0.12) 100%);
+  border-color: rgba(139, 92, 246, 0.4);
+  color: #C4B5FD;
+}
+
+.dark .filter-chip.active[data-chip-type="accident"] .chip-icon {
+  background: rgba(139, 92, 246, 0.25);
+  color: #C4B5FD;
+}
+
+.dark .filter-chip.active[data-chip-type="construction"] {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.18) 0%, rgba(249, 115, 22, 0.12) 100%);
+  border-color: rgba(249, 115, 22, 0.4);
+  color: #FDBA74;
+}
+
+.dark .filter-chip.active[data-chip-type="construction"] .chip-icon {
+  background: rgba(249, 115, 22, 0.25);
+  color: #FDBA74;
+}
+
+.dark .filter-chip.active[data-chip-type="closure"] {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18) 0%, rgba(59, 130, 246, 0.12) 100%);
+  border-color: rgba(59, 130, 246, 0.4);
+  color: #93C5FD;
+}
+
+.dark .filter-chip.active[data-chip-type="closure"] .chip-icon {
+  background: rgba(59, 130, 246, 0.25);
+  color: #93C5FD;
+}
+
+.dark .filter-chip.active[data-chip-type="flooding"] {
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.18) 0%, rgba(20, 184, 166, 0.12) 100%);
+  border-color: rgba(20, 184, 166, 0.4);
+  color: #5EEAD4;
+}
+
+.dark .filter-chip.active[data-chip-type="flooding"] .chip-icon {
+  background: rgba(20, 184, 166, 0.25);
+  color: #5EEAD4;
+}
+
+.dark .filter-chip.active[data-chip-type="hazard"] {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.18) 0%, rgba(245, 158, 11, 0.12) 100%);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #FCD34D;
+}
+
+.dark .filter-chip.active[data-chip-type="hazard"] .chip-icon {
+  background: rgba(245, 158, 11, 0.25);
+  color: #FCD34D;
+}
+
+.dark .filter-chip.active[data-chip-type="weather"] {
+  background: linear-gradient(135deg, rgba(76, 120, 98, 0.18) 0%, rgba(76, 120, 98, 0.12) 100%);
+  border-color: rgba(118, 169, 135, 0.4);
+  color: #A3D9B8;
+}
+
+.dark .filter-chip.active[data-chip-type="weather"] .chip-icon {
+  background: rgba(118, 169, 135, 0.25);
+  color: #A3D9B8;
 }
 
 /* Legacy filter-grid support (deprecated) */
