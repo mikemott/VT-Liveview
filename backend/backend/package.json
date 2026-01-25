@@ -1,5 +1,0 @@
-{
-  "dependencies": {
-    "@fastify/rate-limit": "^9.1.0"
-  }
-}

@@ -1,7 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import WeatherMap from './WeatherMap'
 import ErrorBoundary from './components/ErrorBoundary'
-import ToastContainer from './components/ToastContainer'
 import { getEnv } from './types'
 import './App.css'
 
@@ -27,7 +26,6 @@ function App(): React.ReactNode {
       <QueryClientProvider client={queryClient}>
         <div className="App">
           <WeatherMap />
-          <ToastContainer />
         </div>
       </QueryClientProvider>
     </ErrorBoundary>
