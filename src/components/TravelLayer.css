@@ -67,10 +67,10 @@
   gap: var(--space-5);
 }
 
-/* Filter Chips - Horizontal compact layout */
+/* Filter Chips - 2 rows of 3 layout */
 .filter-chips {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--space-2);
 }
 
@@ -146,20 +146,20 @@
 
 /* Type-specific chip colors matching incident colors */
 
-/* Weather Stations - Green (matches site theme) */
+/* Weather Stations - Blue (matches station markers) */
 .filter-chip.active[data-chip-type="weather"] {
-  background: linear-gradient(135deg, rgba(76, 120, 98, 0.12) 0%, rgba(76, 120, 98, 0.08) 100%);
-  border-color: rgba(76, 120, 98, 0.3);
-  color: var(--color-vermont-green);
+  background: linear-gradient(135deg, rgba(91, 139, 174, 0.12) 0%, rgba(91, 139, 174, 0.08) 100%);
+  border-color: rgba(91, 139, 174, 0.3);
+  color: #4A7A9D;
 }
 
 .filter-chip.active[data-chip-type="weather"]::before {
-  background: var(--color-vermont-green);
+  background: #5B8BAE;
 }
 
 .filter-chip.active[data-chip-type="weather"] .chip-icon {
-  background: rgba(76, 120, 98, 0.15);
-  color: var(--color-vermont-green);
+  background: rgba(91, 139, 174, 0.15);
+  color: #4A7A9D;
 }
 
 /* Accident - Purple */
@@ -204,25 +204,25 @@
   color: #C2410C;
 }
 
-/* Closure - Blue */
+/* Closure - Red */
 .filter-chip.active[data-chip-type="closure"] {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.08) 100%);
-  border-color: rgba(59, 130, 246, 0.3);
-  color: #2563EB;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(239, 68, 68, 0.08) 100%);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #DC2626;
 }
 
 .filter-chip.active[data-chip-type="closure"]::before {
-  background: #3B82F6;
+  background: #EF4444;
 }
 
 .filter-chip.active[data-chip-type="closure"] .chip-icon {
-  background: rgba(59, 130, 246, 0.15);
-  color: #2563EB;
+  background: rgba(239, 68, 68, 0.15);
+  color: #DC2626;
 }
 
 .filter-chip.active[data-chip-type="closure"] .chip-count {
-  background: rgba(59, 130, 246, 0.2);
-  color: #1D4ED8;
+  background: rgba(239, 68, 68, 0.2);
+  color: #B91C1C;
 }
 
 /* Flooding - Teal */
@@ -291,14 +291,14 @@
 }
 
 .dark .filter-chip.active[data-chip-type="closure"] {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18) 0%, rgba(59, 130, 246, 0.12) 100%);
-  border-color: rgba(59, 130, 246, 0.4);
-  color: #93C5FD;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.18) 0%, rgba(239, 68, 68, 0.12) 100%);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #FCA5A5;
 }
 
 .dark .filter-chip.active[data-chip-type="closure"] .chip-icon {
-  background: rgba(59, 130, 246, 0.25);
-  color: #93C5FD;
+  background: rgba(239, 68, 68, 0.25);
+  color: #FCA5A5;
 }
 
 .dark .filter-chip.active[data-chip-type="flooding"] {
@@ -324,14 +324,14 @@
 }
 
 .dark .filter-chip.active[data-chip-type="weather"] {
-  background: linear-gradient(135deg, rgba(76, 120, 98, 0.18) 0%, rgba(76, 120, 98, 0.12) 100%);
-  border-color: rgba(118, 169, 135, 0.4);
-  color: #A3D9B8;
+  background: linear-gradient(135deg, rgba(91, 139, 174, 0.18) 0%, rgba(91, 139, 174, 0.12) 100%);
+  border-color: rgba(91, 139, 174, 0.4);
+  color: #93C5FD;
 }
 
 .dark .filter-chip.active[data-chip-type="weather"] .chip-icon {
-  background: rgba(118, 169, 135, 0.25);
-  color: #A3D9B8;
+  background: rgba(91, 139, 174, 0.25);
+  color: #93C5FD;
 }
 
 /* Legacy filter-grid support (deprecated) */
@@ -615,6 +615,10 @@
 
 /* Mobile Responsive */
 @media (max-width: 640px) {
+  .filter-chips {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .filter-grid {
     grid-template-columns: 1fr;
   }

@@ -18,9 +18,9 @@ export const INCIDENT_COLORS: IncidentColorMap = {
     name: 'orange',
   },
   CLOSURE: {
-    primary: '#3B82F6',
-    background: '#3B82F620',
-    name: 'blue',
+    primary: '#EF4444',
+    background: '#EF444420',
+    name: 'red',
   },
   FLOODING: {
     primary: '#14B8A6',
