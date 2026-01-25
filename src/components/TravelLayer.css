@@ -147,168 +147,190 @@
 /* Type-specific chip colors matching incident colors */
 
 /* Weather Stations - Green (matches site theme) */
-.filter-chip:has(.chip-icon svg[data-lucide="thermometer"]),
-.filter-chip[aria-label*="Weather Stations"] {
-  /* Use site's Vermont green */
-}
-
-.filter-chip.active:has(.chip-icon svg[data-lucide="thermometer"]),
-.filter-chip.active[aria-label*="Weather Stations"] {
+.filter-chip.active[data-chip-type="weather"] {
   background: linear-gradient(135deg, rgba(76, 120, 98, 0.12) 0%, rgba(76, 120, 98, 0.08) 100%);
   border-color: rgba(76, 120, 98, 0.3);
   color: var(--color-vermont-green);
 }
 
-.filter-chip.active:has(.chip-icon svg[data-lucide="thermometer"])::before,
-.filter-chip.active[aria-label*="Weather Stations"]::before {
+.filter-chip.active[data-chip-type="weather"]::before {
   background: var(--color-vermont-green);
 }
 
-.filter-chip.active:has(.chip-icon svg[data-lucide="thermometer"]) .chip-icon,
-.filter-chip.active[aria-label*="Weather Stations"] .chip-icon {
+.filter-chip.active[data-chip-type="weather"] .chip-icon {
   background: rgba(76, 120, 98, 0.15);
   color: var(--color-vermont-green);
 }
 
 /* Accident - Purple */
-.filter-chip.active:has(svg[data-lucide="alert-triangle"]) {
+.filter-chip.active[data-chip-type="accident"] {
   background: linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(139, 92, 246, 0.08) 100%);
   border-color: rgba(139, 92, 246, 0.3);
   color: #7C3AED;
 }
 
-.filter-chip.active:has(svg[data-lucide="alert-triangle"])::before {
+.filter-chip.active[data-chip-type="accident"]::before {
   background: #8B5CF6;
 }
 
-.filter-chip.active:has(svg[data-lucide="alert-triangle"]) .chip-icon {
+.filter-chip.active[data-chip-type="accident"] .chip-icon {
   background: rgba(139, 92, 246, 0.15);
   color: #7C3AED;
 }
 
-.filter-chip.active:has(svg[data-lucide="alert-triangle"]) .chip-count {
+.filter-chip.active[data-chip-type="accident"] .chip-count {
   background: rgba(139, 92, 246, 0.2);
   color: #6D28D9;
 }
 
 /* Construction - Orange */
-.filter-chip.active:has(svg[data-lucide="construction"]) {
+.filter-chip.active[data-chip-type="construction"] {
   background: linear-gradient(135deg, rgba(249, 115, 22, 0.12) 0%, rgba(249, 115, 22, 0.08) 100%);
   border-color: rgba(249, 115, 22, 0.3);
   color: #EA580C;
 }
 
-.filter-chip.active:has(svg[data-lucide="construction"])::before {
+.filter-chip.active[data-chip-type="construction"]::before {
   background: #F97316;
 }
 
-.filter-chip.active:has(svg[data-lucide="construction"]) .chip-icon {
+.filter-chip.active[data-chip-type="construction"] .chip-icon {
   background: rgba(249, 115, 22, 0.15);
   color: #EA580C;
 }
 
-.filter-chip.active:has(svg[data-lucide="construction"]) .chip-count {
+.filter-chip.active[data-chip-type="construction"] .chip-count {
   background: rgba(249, 115, 22, 0.2);
   color: #C2410C;
 }
 
 /* Closure - Blue */
-.filter-chip.active:has(svg[data-lucide="ban"]) {
+.filter-chip.active[data-chip-type="closure"] {
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.08) 100%);
   border-color: rgba(59, 130, 246, 0.3);
   color: #2563EB;
 }
 
-.filter-chip.active:has(svg[data-lucide="ban"])::before {
+.filter-chip.active[data-chip-type="closure"]::before {
   background: #3B82F6;
 }
 
-.filter-chip.active:has(svg[data-lucide="ban"]) .chip-icon {
+.filter-chip.active[data-chip-type="closure"] .chip-icon {
   background: rgba(59, 130, 246, 0.15);
   color: #2563EB;
 }
 
-.filter-chip.active:has(svg[data-lucide="ban"]) .chip-count {
+.filter-chip.active[data-chip-type="closure"] .chip-count {
   background: rgba(59, 130, 246, 0.2);
   color: #1D4ED8;
 }
 
 /* Flooding - Teal */
-.filter-chip.active:has(svg[data-lucide="waves"]) {
+.filter-chip.active[data-chip-type="flooding"] {
   background: linear-gradient(135deg, rgba(20, 184, 166, 0.12) 0%, rgba(20, 184, 166, 0.08) 100%);
   border-color: rgba(20, 184, 166, 0.3);
   color: #0D9488;
 }
 
-.filter-chip.active:has(svg[data-lucide="waves"])::before {
+.filter-chip.active[data-chip-type="flooding"]::before {
   background: #14B8A6;
 }
 
-.filter-chip.active:has(svg[data-lucide="waves"]) .chip-icon {
+.filter-chip.active[data-chip-type="flooding"] .chip-icon {
   background: rgba(20, 184, 166, 0.15);
   color: #0D9488;
 }
 
-.filter-chip.active:has(svg[data-lucide="waves"]) .chip-count {
+.filter-chip.active[data-chip-type="flooding"] .chip-count {
   background: rgba(20, 184, 166, 0.2);
   color: #0F766E;
 }
 
 /* Hazard - Amber */
-.filter-chip.active:has(svg[data-lucide="alert-octagon"]) {
+.filter-chip.active[data-chip-type="hazard"] {
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(245, 158, 11, 0.08) 100%);
   border-color: rgba(245, 158, 11, 0.3);
   color: #D97706;
 }
 
-.filter-chip.active:has(svg[data-lucide="alert-octagon"])::before {
+.filter-chip.active[data-chip-type="hazard"]::before {
   background: #F59E0B;
 }
 
-.filter-chip.active:has(svg[data-lucide="alert-octagon"]) .chip-icon {
+.filter-chip.active[data-chip-type="hazard"] .chip-icon {
   background: rgba(245, 158, 11, 0.15);
   color: #D97706;
 }
 
-.filter-chip.active:has(svg[data-lucide="alert-octagon"]) .chip-count {
+.filter-chip.active[data-chip-type="hazard"] .chip-count {
   background: rgba(245, 158, 11, 0.2);
   color: #B45309;
 }
 
 /* Dark mode chip adjustments */
-.dark .filter-chip.active:has(svg[data-lucide="alert-triangle"]) {
+.dark .filter-chip.active[data-chip-type="accident"] {
   background: linear-gradient(135deg, rgba(139, 92, 246, 0.18) 0%, rgba(139, 92, 246, 0.12) 100%);
   border-color: rgba(139, 92, 246, 0.4);
   color: #C4B5FD;
 }
 
-.dark .filter-chip.active:has(svg[data-lucide="construction"]) {
+.dark .filter-chip.active[data-chip-type="accident"] .chip-icon {
+  background: rgba(139, 92, 246, 0.25);
+  color: #C4B5FD;
+}
+
+.dark .filter-chip.active[data-chip-type="construction"] {
   background: linear-gradient(135deg, rgba(249, 115, 22, 0.18) 0%, rgba(249, 115, 22, 0.12) 100%);
   border-color: rgba(249, 115, 22, 0.4);
   color: #FDBA74;
 }
 
-.dark .filter-chip.active:has(svg[data-lucide="ban"]) {
+.dark .filter-chip.active[data-chip-type="construction"] .chip-icon {
+  background: rgba(249, 115, 22, 0.25);
+  color: #FDBA74;
+}
+
+.dark .filter-chip.active[data-chip-type="closure"] {
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.18) 0%, rgba(59, 130, 246, 0.12) 100%);
   border-color: rgba(59, 130, 246, 0.4);
   color: #93C5FD;
 }
 
-.dark .filter-chip.active:has(svg[data-lucide="waves"]) {
+.dark .filter-chip.active[data-chip-type="closure"] .chip-icon {
+  background: rgba(59, 130, 246, 0.25);
+  color: #93C5FD;
+}
+
+.dark .filter-chip.active[data-chip-type="flooding"] {
   background: linear-gradient(135deg, rgba(20, 184, 166, 0.18) 0%, rgba(20, 184, 166, 0.12) 100%);
   border-color: rgba(20, 184, 166, 0.4);
   color: #5EEAD4;
 }
 
-.dark .filter-chip.active:has(svg[data-lucide="alert-octagon"]) {
+.dark .filter-chip.active[data-chip-type="flooding"] .chip-icon {
+  background: rgba(20, 184, 166, 0.25);
+  color: #5EEAD4;
+}
+
+.dark .filter-chip.active[data-chip-type="hazard"] {
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.18) 0%, rgba(245, 158, 11, 0.12) 100%);
   border-color: rgba(245, 158, 11, 0.4);
   color: #FCD34D;
 }
 
-.dark .filter-chip.active:has(.chip-icon svg[data-lucide="thermometer"]) {
+.dark .filter-chip.active[data-chip-type="hazard"] .chip-icon {
+  background: rgba(245, 158, 11, 0.25);
+  color: #FCD34D;
+}
+
+.dark .filter-chip.active[data-chip-type="weather"] {
   background: linear-gradient(135deg, rgba(76, 120, 98, 0.18) 0%, rgba(76, 120, 98, 0.12) 100%);
   border-color: rgba(118, 169, 135, 0.4);
+  color: #A3D9B8;
+}
+
+.dark .filter-chip.active[data-chip-type="weather"] .chip-icon {
+  background: rgba(118, 169, 135, 0.25);
   color: #A3D9B8;
 }
 

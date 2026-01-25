@@ -767,15 +767,22 @@
 /* Keyboard Focus Styles */
 .mobile-menu-toggle:focus-visible,
 .mobile-panel-close:focus-visible,
-.alert-item:focus-visible {
+.alert-card:focus-visible {
   outline: 2px solid var(--color-accent-primary);
   outline-offset: 2px;
 }
 
-/* Improve alert item keyboard navigation */
-.alert-item:hover,
-.alert-item:focus-visible {
+/* Improve alert card keyboard navigation */
+.alert-card:hover,
+.alert-card:focus-visible {
   background: var(--color-accent-subtle);
+}
+
+/* Dismiss button keyboard focus */
+.alert-dismiss:focus-visible {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: 2px;
+  opacity: 1;
 }
 
 /* =============================================================================

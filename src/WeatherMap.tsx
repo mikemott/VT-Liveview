@@ -35,6 +35,24 @@ const VERMONT_CENTER = {
 };
 
 // =============================================================================
+// Helper Functions
+// =============================================================================
+
+// Get Lucide icon based on severity - defined outside component for performance
+function getSeverityIcon(severity: string): React.ReactNode {
+  switch (severity) {
+    case 'Extreme':
+    case 'Severe':
+      return <AlertTriangle size={16} strokeWidth={2.5} />;
+    case 'Moderate':
+      return <AlertCircle size={16} strokeWidth={2.5} />;
+    case 'Minor':
+    default:
+      return <Info size={16} strokeWidth={2.5} />;
+  }
+}
+
+// =============================================================================
 // Component
 // =============================================================================
 
@@ -609,19 +627,7 @@ function WeatherMap() {
             <div className="control-section">
               <h3>Active Alerts ({alerts.length})</h3>
               <div className="alerts-list">
-                {alerts.map((alert) => {
-                  // Get Lucide icon based on severity
-                  const getSeverityIcon = (severity: string) => {
-                    switch (severity) {
-                      case 'Extreme': return <AlertTriangle size={16} strokeWidth={2.5} />;
-                      case 'Severe': return <AlertTriangle size={16} strokeWidth={2.5} />;
-                      case 'Moderate': return <AlertCircle size={16} strokeWidth={2.5} />;
-                      case 'Minor': return <Info size={16} strokeWidth={2.5} />;
-                      default: return <Info size={16} strokeWidth={2.5} />;
-                    }
-                  };
-
-                  return (
+                {alerts.map((alert) => (
                     <div
                       key={alert.properties.id || alert.properties.event}
                       className={`alert-card severity-${alert.properties.severity?.toLowerCase()} ${isDark ? 'dark' : ''}`}
@@ -649,8 +655,7 @@ function WeatherMap() {
                         <X size={14} />
                       </button>
                     </div>
-                  );
-                })}
+                ))}
               </div>
             </div>
           )}

@@ -421,6 +421,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
               className={`filter-chip ${showWeatherStations ? 'active' : ''}`}
               onClick={onToggleWeatherStations}
               aria-pressed={showWeatherStations}
+              data-chip-type="weather"
             >
               <span className="chip-icon">
                 <Thermometer size={14} strokeWidth={2.5} />
@@ -438,6 +439,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
                   className={`filter-chip ${activeFilters[type] ? 'active' : ''}`}
                   onClick={() => toggleFilter(type)}
                   aria-pressed={activeFilters[type]}
+                  data-chip-type={type.toLowerCase()}
                 >
                   <span className="chip-icon">
                     {getIcon(type, 14)}
