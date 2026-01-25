@@ -48,66 +48,41 @@
   --color-text-inverse: #ffffff;
 
   /* -------------------------
-     Color Palette - Sky Blue & Sunny Yellow Theme
-     Bright sky blue and sunny yellow - weather-inspired
+     Color Palette - Vermont Theme
+     Sophisticated forest green - THE single accent
      ------------------------- */
-  /* Sky Blue (Primary) */
-  --color-sky-blue: #52C2ED;
-  --color-sky-blue-light: #81E8FF;
-  --color-sky-blue-dark: #3A7AE0;
-  --color-sky-blue-darker: #2B5FC7;
-  --color-sky-blue-lighter: rgba(82, 194, 237, 0.25);
-  --color-sky-blue-subtle: rgba(82, 194, 237, 0.1);
-  --color-sky-blue-faint: rgba(82, 194, 237, 0.05);
-  
-  /* Sunny Yellow (Accent) */
-  --color-sunny-yellow: #FFD700;
-  --color-yellow-light: #FFE55C;
-  --color-yellow-dark: #FFC107;
-  --color-yellow-lighter: rgba(255, 215, 0, 0.25);
-  --color-yellow-subtle: rgba(255, 215, 0, 0.1);
-  --color-yellow-faint: rgba(255, 215, 0, 0.05);
-  
-  /* Legacy Vermont names for backward compatibility */
-  --color-vermont-green: #52C2ED;
-  --color-vermont-green-light: #81E8FF;
-  --color-vermont-green-lighter: rgba(82, 194, 237, 0.25);
-  --color-vermont-green-subtle: rgba(82, 194, 237, 0.1);
-  --color-vermont-green-faint: rgba(82, 194, 237, 0.05);
-  --color-vermont-tan: rgba(255, 215, 0, 0.2);
-  --color-vermont-tan-light: rgba(255, 215, 0, 0.1);
+  --color-vermont-green: #15803d;
+  --color-vermont-green-light: #22c55e;
+  --color-vermont-green-lighter: rgba(34, 197, 94, 0.25);
+  --color-vermont-green-subtle: rgba(34, 197, 94, 0.1);
+  --color-vermont-green-faint: rgba(34, 197, 94, 0.05);
+  --color-vermont-tan: rgba(100, 116, 139, 0.2);
+  --color-vermont-tan-light: rgba(100, 116, 139, 0.1);
   --color-vermont-cream: rgba(241, 243, 244, 0.8);
   --color-vermont-cream-light: rgba(248, 249, 250, 0.5);
 
   /* -------------------------
      Color Palette - Accent
-     Sky blue as primary accent, yellow for highlights
+     Vermont green IS the accent - no competing blue
      ------------------------- */
-  --color-accent-primary: #52C2ED;
-  --color-accent-hover: #3A7AE0;
-  --color-accent-active: #2B5FC7;
-  --color-accent-subtle: rgba(82, 194, 237, 0.08);
-  --color-accent-muted: rgba(82, 194, 237, 0.15);
-  
-  /* Accent Yellow */
-  --color-accent-yellow: #FFD700;
-  --color-accent-yellow-hover: #FFC107;
-  --color-accent-yellow-subtle: rgba(255, 215, 0, 0.08);
-  --color-accent-yellow-muted: rgba(255, 215, 0, 0.15);
+  --color-accent-primary: #15803d;
+  --color-accent-hover: #166534;
+  --color-accent-subtle: rgba(21, 128, 61, 0.08);
+  --color-accent-muted: rgba(21, 128, 61, 0.15);
 
   /* -------------------------
      Color Palette - Semantic
-     Using sky blue for info, yellow for warnings, updated success/error
+     Using accent green for success, teal for info
      ------------------------- */
-  --color-success: #4CAF50;
-  --color-success-subtle: rgba(76, 175, 80, 0.08);
-  --color-warning: #FFD700;
-  --color-warning-subtle: rgba(255, 215, 0, 0.1);
-  --color-error: #F44336;
-  --color-error-hover: #D32F2F;
-  --color-error-subtle: rgba(244, 67, 54, 0.08);
-  --color-info: #3A7AE0;
-  --color-info-subtle: rgba(58, 122, 224, 0.08);
+  --color-success: #15803d;
+  --color-success-subtle: rgba(21, 128, 61, 0.08);
+  --color-warning: #d97706;
+  --color-warning-subtle: rgba(217, 119, 6, 0.1);
+  --color-error: #dc2626;
+  --color-error-hover: #b91c1c;
+  --color-error-subtle: rgba(220, 38, 38, 0.08);
+  --color-info: #0891b2;
+  --color-info-subtle: rgba(8, 145, 178, 0.08);
   --color-nowcast: #7c3aed;
 
   /* -------------------------
@@ -122,35 +97,26 @@
 
   /* -------------------------
      Alert Severity Colors
-     Red → Orange → Yellow → Sky Blue
+     Red → Orange → Yellow → Teal (no green - reserved for accent)
      ------------------------- */
-  --color-alert-extreme-bg: rgba(244, 67, 54, 0.1);
-  --color-alert-extreme-border: #F44336;
-  --color-alert-severe-bg: rgba(255, 152, 0, 0.1);
-  --color-alert-severe-border: #FF9800;
-  --color-alert-moderate-bg: rgba(255, 215, 0, 0.1);
-  --color-alert-moderate-border: #FFD700;
-  --color-alert-minor-bg: rgba(82, 194, 237, 0.08);
-  --color-alert-minor-border: #52C2ED;
+  --color-alert-extreme-bg: rgba(185, 28, 28, 0.1);
+  --color-alert-extreme-border: #b91c1c;
+  --color-alert-severe-bg: rgba(194, 65, 12, 0.1);
+  --color-alert-severe-border: #c2410c;
+  --color-alert-moderate-bg: rgba(161, 98, 7, 0.1);
+  --color-alert-moderate-border: #a16207;
+  --color-alert-minor-bg: rgba(8, 145, 178, 0.08);
+  --color-alert-minor-border: #0891b2;
 
   /* -------------------------
      Gradients
-     Sky blue and sunny yellow gradients
+     Subtle, clean gradients
      ------------------------- */
-  /* Subtle backgrounds (for panels with dark text) */
   --gradient-surface: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 249, 250, 0.9) 100%);
   --gradient-panel: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 249, 250, 0.92) 100%);
+  --gradient-header: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.92) 100%);
   --gradient-attribution: linear-gradient(180deg, rgba(248, 249, 250, 0.6) 0%, rgba(241, 243, 244, 0.75) 100%);
-  
-  /* Bright gradient backgrounds with white text (like screenshot) */
-  --gradient-header: linear-gradient(135deg, #52C2ED 0%, #81E8FF 50%, #FFD700 100%);
-  --gradient-primary: linear-gradient(135deg, #52C2ED 0%, #81E8FF 100%);
-  --gradient-sunny: linear-gradient(135deg, #FFD700 0%, #FFE55C 100%);
-  --gradient-sky: linear-gradient(135deg, #52C2ED 0%, #81E8FF 50%, #FFD700 100%);
-  --gradient-accent: linear-gradient(90deg, rgba(82, 194, 237, 0) 0%, rgba(82, 194, 237, 0.15) 50%, rgba(82, 194, 237, 0) 100%);
-  
-  /* Legacy gradient name for backward compatibility */
-  --gradient-vermont-accent: var(--gradient-accent);
+  --gradient-vermont-accent: linear-gradient(90deg, rgba(46, 125, 70, 0) 0%, rgba(46, 125, 70, 0.15) 50%, rgba(46, 125, 70, 0) 100%);
   --gradient-skeleton: linear-gradient(90deg, #f1f3f4 25%, #f8f9fa 50%, #f1f3f4 75%);
 
   /* -------------------------
@@ -225,8 +191,7 @@
   --shadow-xl: 0 8px 32px rgba(0, 0, 0, 0.15);
   --shadow-2xl: 0 12px 48px rgba(0, 0, 0, 0.2);
   --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.5);
-  --shadow-glow: 0 0 8px rgba(82, 194, 237, 0.4);
-  --shadow-glow-yellow: 0 0 8px rgba(255, 215, 0, 0.4);
+  --shadow-glow: 0 0 8px rgba(59, 130, 246, 0.4);
 
   /* -------------------------
      Transitions
@@ -284,92 +249,6 @@
   --chip-padding: var(--space-1) var(--space-4);
   --chip-border-radius: var(--radius-full);
   --chip-gap: var(--space-2);
-  
-  /* -------------------------
-     Weather-Adaptive Colors (Default: Sunny)
-     These adapt based on [data-weather] attribute
-     ------------------------- */
-  --vt-weather-primary: #52C2ED;      /* Sky blue */
-  --vt-weather-accent: #FFD700;       /* Sunny yellow */
-  --vt-weather-light: #81E8FF;        /* Light blue */
-  --vt-weather-dark: #3A7AE0;         /* Dark blue */
-  --vt-weather-gradient: linear-gradient(135deg, #52C2ED 0%, #81E8FF 50%, #FFD700 100%);
-}
-
-/* =================================================================
-   Weather-Adaptive Theme Overrides
-   Applied via [data-weather] attribute on root element
-   ================================================================= */
-
-/* Sunny/Clear (Default) */
-[data-weather="sunny"],
-[data-weather="clear"] {
-  --vt-weather-primary: #52C2ED;      /* Sky blue */
-  --vt-weather-accent: #FFD700;       /* Sunny yellow */
-  --vt-weather-light: #81E8FF;        /* Light blue */
-  --vt-weather-dark: #3A7AE0;         /* Dark blue */
-  --vt-weather-gradient: linear-gradient(135deg, #52C2ED 0%, #81E8FF 50%, #FFD700 100%);
-}
-
-/* Snowing */
-[data-weather="snow"],
-[data-weather="snowing"] {
-  --vt-weather-primary: #B3E5FC;      /* Frosty light blue */
-  --vt-weather-accent: #E1F5FE;       /* Icy white-blue */
-  --vt-weather-light: #E3F2FD;        /* Very light blue */
-  --vt-weather-dark: #81D4FA;         /* Soft blue */
-  --vt-weather-gradient: linear-gradient(135deg, #B3E5FC 0%, #E1F5FE 100%);
-}
-
-/* Cloudy/Overcast */
-[data-weather="cloudy"],
-[data-weather="overcast"] {
-  --vt-weather-primary: #90A4AE;      /* Cloudy grey-blue */
-  --vt-weather-accent: #CFD8DC;       /* Light grey-white */
-  --vt-weather-light: #ECEFF1;        /* Very light grey */
-  --vt-weather-dark: #78909C;         /* Darker grey-blue */
-  --vt-weather-gradient: linear-gradient(135deg, #90A4AE 0%, #CFD8DC 100%);
-}
-
-/* Rainy */
-[data-weather="rain"],
-[data-weather="rainy"],
-[data-weather="drizzle"] {
-  --vt-weather-primary: #546E7A;      /* Dark grey-blue */
-  --vt-weather-accent: #78909C;      /* Medium grey-blue */
-  --vt-weather-light: #90A4AE;        /* Lighter grey-blue */
-  --vt-weather-dark: #455A64;         /* Darker grey-blue */
-  --vt-weather-gradient: linear-gradient(135deg, #546E7A 0%, #78909C 100%);
-}
-
-/* Stormy/Thunderstorm */
-[data-weather="storm"],
-[data-weather="thunderstorm"],
-[data-weather="severe"] {
-  --vt-weather-primary: #37474F;      /* Very dark grey-blue */
-  --vt-weather-accent: #546E7A;       /* Medium grey-blue */
-  --vt-weather-light: #607D8B;        /* Lighter grey-blue */
-  --vt-weather-dark: #263238;         /* Almost black-blue */
-  --vt-weather-gradient: linear-gradient(135deg, #37474F 0%, #546E7A 100%);
-}
-
-/* Foggy */
-[data-weather="fog"],
-[data-weather="foggy"] {
-  --vt-weather-primary: #B0BEC5;      /* Misty grey */
-  --vt-weather-accent: #CFD8DC;       /* Light grey */
-  --vt-weather-light: #ECEFF1;         /* Very light grey */
-  --vt-weather-dark: #90A4AE;          /* Medium grey */
-  --vt-weather-gradient: linear-gradient(135deg, #B0BEC5 0%, #CFD8DC 100%);
-}
-
-/* Partly Cloudy */
-[data-weather="partly-cloudy"] {
-  --vt-weather-primary: #64B5F6;      /* Light blue */
-  --vt-weather-accent: #FFD700;       /* Sunny yellow (mixed) */
-  --vt-weather-light: #90CAF9;        /* Lighter blue */
-  --vt-weather-dark: #42A5F5;         /* Medium blue */
-  --vt-weather-gradient: linear-gradient(135deg, #64B5F6 0%, #90CAF9 50%, #FFD700 100%);
 }
 
 /* =================================================================
@@ -405,102 +284,68 @@
   --color-text-inverse: #1f2937;
 
   /* -------------------------
-     Color Palette - Sky Blue & Sunny Yellow Theme (Dark Mode)
+     Color Palette - Vermont Theme
      ------------------------- */
-  /* Sky Blue (Primary) - Dark Mode */
-  --color-sky-blue: #6BB6FF;
-  --color-sky-blue-light: #8FCFFF;
-  --color-sky-blue-dark: #4A90E2;
-  --color-sky-blue-darker: #3A7AE0;
-  --color-sky-blue-lighter: rgba(107, 182, 255, 0.3);
-  --color-sky-blue-subtle: rgba(107, 182, 255, 0.15);
-  --color-sky-blue-faint: rgba(107, 182, 255, 0.08);
-  
-  /* Sunny Yellow (Accent) - Dark Mode */
-  --color-sunny-yellow: #FFD54F;
-  --color-yellow-light: #FFE082;
-  --color-yellow-dark: #FFC107;
-  --color-yellow-lighter: rgba(255, 213, 79, 0.3);
-  --color-yellow-subtle: rgba(255, 213, 79, 0.15);
-  --color-yellow-faint: rgba(255, 213, 79, 0.08);
-  
-  /* Legacy Vermont names for backward compatibility */
-  --color-vermont-green: #6BB6FF;
-  --color-vermont-green-light: #8FCFFF;
-  --color-vermont-green-lighter: rgba(107, 182, 255, 0.3);
-  --color-vermont-green-subtle: rgba(107, 182, 255, 0.15);
-  --color-vermont-green-faint: rgba(107, 182, 255, 0.08);
-  --color-vermont-tan: rgba(255, 213, 79, 0.3);
-  --color-vermont-tan-light: rgba(255, 213, 79, 0.15);
+  --color-vermont-green: #b8cdb0;
+  --color-vermont-green-light: rgba(137, 165, 124, 0.8);
+  --color-vermont-green-lighter: rgba(137, 165, 124, 0.4);
+  --color-vermont-green-subtle: rgba(137, 165, 124, 0.2);
+  --color-vermont-green-faint: rgba(137, 165, 124, 0.1);
+  --color-vermont-tan: rgba(137, 165, 124, 0.5);
+  --color-vermont-tan-light: rgba(137, 165, 124, 0.3);
   --color-vermont-cream: rgba(255, 255, 255, 0.1);
   --color-vermont-cream-light: rgba(255, 255, 255, 0.05);
 
   /* -------------------------
-     Color Palette - Accent (Dark Mode)
+     Color Palette - Accent
      ------------------------- */
-  --color-accent-primary: #6BB6FF;
-  --color-accent-hover: #8FCFFF;
-  --color-accent-active: #4A90E2;
-  --color-accent-subtle: rgba(107, 182, 255, 0.15);
-  --color-accent-muted: rgba(107, 182, 255, 0.25);
-  
-  /* Accent Yellow - Dark Mode */
-  --color-accent-yellow: #FFD54F;
-  --color-accent-yellow-hover: #FFE082;
-  --color-accent-yellow-subtle: rgba(255, 213, 79, 0.15);
-  --color-accent-yellow-muted: rgba(255, 213, 79, 0.25);
+  --color-accent-primary: #d5d5d5;
+  --color-accent-hover: #e5e5e5;
+  --color-accent-subtle: rgba(213, 213, 213, 0.1);
+  --color-accent-muted: rgba(213, 213, 213, 0.2);
 
   /* -------------------------
-     Color Palette - Semantic (Dark Mode)
+     Color Palette - Semantic
      ------------------------- */
-  --color-success: #66BB6A;
-  --color-success-subtle: rgba(102, 187, 106, 0.15);
-  --color-warning: #FFD54F;
-  --color-warning-subtle: rgba(255, 213, 79, 0.15);
-  --color-error: #EF5350;
-  --color-error-hover: #E53935;
-  --color-error-subtle: rgba(239, 83, 80, 0.15);
-  --color-info: #42A5F5;
-  --color-info-subtle: rgba(66, 165, 245, 0.15);
+  --color-success: #60d060;
+  --color-success-subtle: rgba(96, 208, 96, 0.15);
+  --color-warning: #f5d580;
+  --color-warning-subtle: rgba(245, 213, 128, 0.15);
+  --color-error: #ff8080;
+  --color-error-hover: #ff6060;
+  --color-error-subtle: rgba(255, 128, 128, 0.15);
+  --color-info: #6ba3ff;
+  --color-info-subtle: rgba(107, 163, 255, 0.15);
 
   /* -------------------------
-     Color Palette - Borders (Dark Mode)
+     Color Palette - Borders
      ------------------------- */
-  --color-border-primary: rgba(107, 182, 255, 0.25);
-  --color-border-secondary: rgba(107, 182, 255, 0.2);
-  --color-border-subtle: rgba(107, 182, 255, 0.15);
+  --color-border-primary: rgba(137, 165, 124, 0.25);
+  --color-border-secondary: rgba(137, 165, 124, 0.2);
+  --color-border-subtle: rgba(118, 141, 115, 0.15);
   --color-border-faint: rgba(255, 255, 255, 0.08);
   --color-border-divider: rgba(255, 255, 255, 0.1);
 
   /* -------------------------
-     Alert Severity Colors (Dark Mode)
+     Alert Severity Colors (Dark)
      ------------------------- */
-  --color-alert-extreme-bg: rgba(239, 83, 80, 0.2);
-  --color-alert-extreme-border: #EF5350;
-  --color-alert-severe-bg: rgba(255, 183, 77, 0.2);
-  --color-alert-severe-border: #FFB74D;
-  --color-alert-moderate-bg: rgba(255, 213, 79, 0.18);
-  --color-alert-moderate-border: #FFD54F;
-  --color-alert-minor-bg: rgba(107, 182, 255, 0.2);
-  --color-alert-minor-border: #6BB6FF;
+  --color-alert-extreme-bg: rgba(180, 70, 70, 0.2);
+  --color-alert-extreme-border: #d87070;
+  --color-alert-severe-bg: rgba(200, 120, 60, 0.2);
+  --color-alert-severe-border: #e0a060;
+  --color-alert-moderate-bg: rgba(180, 160, 80, 0.18);
+  --color-alert-moderate-border: #d0c070;
+  --color-alert-minor-bg: rgba(90, 140, 90, 0.2);
+  --color-alert-minor-border: #90c090;
 
   /* -------------------------
-     Gradients (Dark Mode)
+     Gradients (Dark)
      ------------------------- */
-  /* Subtle backgrounds (for panels with light text) */
   --gradient-surface: linear-gradient(160deg, rgba(36, 42, 46, 0.7) 0%, rgba(30, 36, 40, 0.5) 100%);
   --gradient-panel: linear-gradient(165deg, rgba(28, 32, 36, 0.97) 0%, rgba(22, 26, 30, 0.97) 100%);
+  --gradient-header: linear-gradient(160deg, rgba(36, 42, 46, 0.7) 0%, rgba(30, 36, 40, 0.5) 100%);
   --gradient-attribution: linear-gradient(180deg, rgba(20, 24, 28, 0.3) 0%, rgba(16, 20, 24, 0.5) 100%);
-  
-  /* Bright gradient backgrounds with white text (like screenshot) */
-  --gradient-header: linear-gradient(135deg, #6BB6FF 0%, #8FCFFF 50%, #FFD54F 100%);
-  --gradient-primary: linear-gradient(135deg, #6BB6FF 0%, #8FCFFF 100%);
-  --gradient-sunny: linear-gradient(135deg, #FFD54F 0%, #FFE082 100%);
-  --gradient-sky: linear-gradient(135deg, #6BB6FF 0%, #8FCFFF 50%, #FFD54F 100%);
-  --gradient-accent: linear-gradient(90deg, rgba(107, 182, 255, 0) 0%, rgba(107, 182, 255, 0.3) 50%, rgba(107, 182, 255, 0) 100%);
-  
-  /* Legacy gradient name for backward compatibility */
-  --gradient-vermont-accent: var(--gradient-accent);
+  --gradient-vermont-accent: linear-gradient(90deg, rgba(137, 165, 124, 0) 0%, rgba(137, 165, 124, 0.3) 50%, rgba(137, 165, 124, 0) 100%);
   --gradient-skeleton: linear-gradient(90deg, rgba(60, 63, 70, 0.6) 25%, rgba(80, 83, 90, 0.8) 50%, rgba(60, 63, 70, 0.6) 75%);
 
   /* -------------------------
@@ -513,82 +358,7 @@
   --shadow-xl: 0 8px 32px rgba(0, 0, 0, 0.5);
   --shadow-2xl: 0 12px 48px rgba(0, 0, 0, 0.6);
   --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.03);
-  --shadow-glow: 0 0 8px rgba(107, 182, 255, 0.4);
-  --shadow-glow-yellow: 0 0 8px rgba(255, 213, 79, 0.4);
-  
-  /* -------------------------
-     Weather-Adaptive Colors (Dark Mode - Default: Sunny)
-     ------------------------- */
-  --vt-weather-primary: #6BB6FF;      /* Bright sky blue */
-  --vt-weather-accent: #FFD54F;       /* Bright yellow */
-  --vt-weather-light: #8FCFFF;        /* Light blue */
-  --vt-weather-dark: #4A90E2;         /* Dark blue */
-  --vt-weather-gradient: linear-gradient(135deg, #6BB6FF 0%, #8FCFFF 50%, #FFD54F 100%);
-}
-
-/* Weather-Adaptive Theme Overrides (Dark Mode) */
-.dark[data-weather="sunny"],
-.dark[data-weather="clear"] {
-  --vt-weather-primary: #6BB6FF;
-  --vt-weather-accent: #FFD54F;
-  --vt-weather-light: #8FCFFF;
-  --vt-weather-dark: #4A90E2;
-  --vt-weather-gradient: linear-gradient(135deg, #6BB6FF 0%, #8FCFFF 50%, #FFD54F 100%);
-}
-
-.dark[data-weather="snow"],
-.dark[data-weather="snowing"] {
-  --vt-weather-primary: #B3E5FC;
-  --vt-weather-accent: #E1F5FE;
-  --vt-weather-light: #E3F2FD;
-  --vt-weather-dark: #81D4FA;
-  --vt-weather-gradient: linear-gradient(135deg, #B3E5FC 0%, #E1F5FE 100%);
-}
-
-.dark[data-weather="cloudy"],
-.dark[data-weather="overcast"] {
-  --vt-weather-primary: #90A4AE;
-  --vt-weather-accent: #CFD8DC;
-  --vt-weather-light: #ECEFF1;
-  --vt-weather-dark: #78909C;
-  --vt-weather-gradient: linear-gradient(135deg, #90A4AE 0%, #CFD8DC 100%);
-}
-
-.dark[data-weather="rain"],
-.dark[data-weather="rainy"],
-.dark[data-weather="drizzle"] {
-  --vt-weather-primary: #546E7A;
-  --vt-weather-accent: #78909C;
-  --vt-weather-light: #90A4AE;
-  --vt-weather-dark: #455A64;
-  --vt-weather-gradient: linear-gradient(135deg, #546E7A 0%, #78909C 100%);
-}
-
-.dark[data-weather="storm"],
-.dark[data-weather="thunderstorm"],
-.dark[data-weather="severe"] {
-  --vt-weather-primary: #37474F;
-  --vt-weather-accent: #546E7A;
-  --vt-weather-light: #607D8B;
-  --vt-weather-dark: #263238;
-  --vt-weather-gradient: linear-gradient(135deg, #37474F 0%, #546E7A 100%);
-}
-
-.dark[data-weather="fog"],
-.dark[data-weather="foggy"] {
-  --vt-weather-primary: #B0BEC5;
-  --vt-weather-accent: #CFD8DC;
-  --vt-weather-light: #ECEFF1;
-  --vt-weather-dark: #90A4AE;
-  --vt-weather-gradient: linear-gradient(135deg, #B0BEC5 0%, #CFD8DC 100%);
-}
-
-.dark[data-weather="partly-cloudy"] {
-  --vt-weather-primary: #64B5F6;
-  --vt-weather-accent: #FFD54F;
-  --vt-weather-light: #90CAF9;
-  --vt-weather-dark: #42A5F5;
-  --vt-weather-gradient: linear-gradient(135deg, #64B5F6 0%, #90CAF9 50%, #FFD54F 100%);
+  --shadow-glow: 0 0 8px rgba(213, 213, 213, 0.4);
 }
 
 /* =================================================================
@@ -627,26 +397,4 @@
 .focus-ring:focus-visible {
   outline: 2px solid var(--color-accent-primary);
   outline-offset: 2px;
-}
-
-/* Gradient background with white text utility */
-.gradient-bg {
-  background: var(--gradient-header);
-  color: var(--color-text-inverse);
-}
-
-.gradient-bg * {
-  color: var(--color-text-inverse);
-}
-
-.gradient-bg svg {
-  color: var(--color-text-inverse);
-}
-
-/* Weather-adaptive gradient backgrounds */
-/* Support both parent attribute and same-element attribute */
-[data-weather] .gradient-bg,
-.gradient-bg[data-weather],
-[data-weather].gradient-bg {
-  background: var(--vt-weather-gradient);
 }
