@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, ReactNode, memo } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, ReactNode, memo } from 'react';
 import { AlertTriangle, Construction, Ban, Waves, AlertOctagon, ChevronDown, ChevronRight, Thermometer } from 'lucide-react';
 import maplibregl from 'maplibre-gl';
 import { fetchAllIncidents, type TravelIncident } from '../services/travelApi';
@@ -220,11 +220,14 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
   };
 
   // Filter incidents by active filters and zoom level
-  const visibleIncidents = incidents.filter(incident => {
-    const typeMatch = activeFilters[incident.type as keyof ActiveFilters];
-    const zoomMatch = shouldShowIncident(incident, currentZoom);
-    return typeMatch && zoomMatch;
-  });
+  // Memoize to prevent unnecessary marker recreation
+  const visibleIncidents = useMemo(() => {
+    return incidents.filter(incident => {
+      const typeMatch = activeFilters[incident.type as keyof ActiveFilters];
+      const zoomMatch = shouldShowIncident(incident, currentZoom);
+      return typeMatch && zoomMatch;
+    });
+  }, [incidents, activeFilters, currentZoom]);
 
   // Add markers to map when incidents or filters change
   useEffect(() => {
@@ -484,7 +487,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
       // Clean up map click handler
       map.off('click', handleMapClick);
     };
-  }, [map, visible, visibleIncidents, activeFilters, currentZoom, isDark]);
+  }, [map, visible, visibleIncidents, isDark]);
 
   // Group incidents by type
   const incidentsByType: IncidentsByType = visibleIncidents.reduce((acc, incident) => {
