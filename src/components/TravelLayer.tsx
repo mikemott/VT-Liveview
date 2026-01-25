@@ -625,11 +625,17 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
                         key={incident.id}
                         className={`incident-item ${selectedIncident?.id === incident.id ? 'selected' : ''} ${(incident.geometry || incident.location) ? 'clickable' : ''}`}
                         style={{
-                          borderLeftColor: getIncidentColor(incident.type).primary
+                          borderLeftColor: getIncidentColor(incident.type).primary,
+                          background: isDark
+                            ? `linear-gradient(135deg, ${getIncidentColor(incident.type).primary}15 0%, ${getIncidentColor(incident.type).primary}08 100%)`
+                            : `linear-gradient(135deg, ${getIncidentColor(incident.type).primary}0A 0%, ${getIncidentColor(incident.type).primary}05 100%)`
                         }}
                         onClick={() => (incident.geometry || incident.location) && handleIncidentClick(incident)}
                       >
-                        <div className="incident-title">
+                        <div
+                          className="incident-title"
+                          style={{ color: getIncidentColor(incident.type).primary }}
+                        >
                           {incident.title}
                           {(incident.geometry || incident.location) && selectedIncident?.id === incident.id && (
                             <span style={{ marginLeft: '8px', fontSize: '12px' }}>📍</span>
