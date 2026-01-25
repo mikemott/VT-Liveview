@@ -263,22 +263,77 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
         .setLngLat([incident.location.lng, incident.location.lat])
         .addTo(map);
 
-      // Create popup with theme-aware colors
+      // Create popup with theme-aware colors matching chip design
       const color = getIncidentColor(incident.type);
+
+      // Get gradient and colors based on incident type (matching chip styles)
+      const getPopupGradient = (type: IncidentType, dark: boolean) => {
+        const gradients: Record<IncidentType, { light: string; dark: string; textLight: string; textDark: string; accentLight: string; accentDark: string }> = {
+          ACCIDENT: {
+            light: 'linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(139, 92, 246, 0.08) 100%)',
+            dark: 'linear-gradient(135deg, rgba(139, 92, 246, 0.18) 0%, rgba(139, 92, 246, 0.12) 100%)',
+            textLight: '#7C3AED',
+            textDark: '#C4B5FD',
+            accentLight: '#8B5CF6',
+            accentDark: '#A78BFA'
+          },
+          CONSTRUCTION: {
+            light: 'linear-gradient(135deg, rgba(249, 115, 22, 0.12) 0%, rgba(249, 115, 22, 0.08) 100%)',
+            dark: 'linear-gradient(135deg, rgba(249, 115, 22, 0.18) 0%, rgba(249, 115, 22, 0.12) 100%)',
+            textLight: '#EA580C',
+            textDark: '#FDBA74',
+            accentLight: '#F97316',
+            accentDark: '#FB923C'
+          },
+          CLOSURE: {
+            light: 'linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(239, 68, 68, 0.08) 100%)',
+            dark: 'linear-gradient(135deg, rgba(239, 68, 68, 0.18) 0%, rgba(239, 68, 68, 0.12) 100%)',
+            textLight: '#DC2626',
+            textDark: '#FCA5A5',
+            accentLight: '#EF4444',
+            accentDark: '#F87171'
+          },
+          FLOODING: {
+            light: 'linear-gradient(135deg, rgba(20, 184, 166, 0.12) 0%, rgba(20, 184, 166, 0.08) 100%)',
+            dark: 'linear-gradient(135deg, rgba(20, 184, 166, 0.18) 0%, rgba(20, 184, 166, 0.12) 100%)',
+            textLight: '#0D9488',
+            textDark: '#5EEAD4',
+            accentLight: '#14B8A6',
+            accentDark: '#2DD4BF'
+          },
+          HAZARD: {
+            light: 'linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(245, 158, 11, 0.08) 100%)',
+            dark: 'linear-gradient(135deg, rgba(245, 158, 11, 0.18) 0%, rgba(245, 158, 11, 0.12) 100%)',
+            textLight: '#D97706',
+            textDark: '#FCD34D',
+            accentLight: '#F59E0B',
+            accentDark: '#FBBF24'
+          }
+        };
+        return gradients[type] || gradients.HAZARD;
+      };
+
+      const gradient = getPopupGradient(incident.type, isDark);
       const themeColors = isDark ? {
         title: '#f5f5f5',
-        text: '#c0c0c0',
-        textSecondary: '#b5b5b5',
-        metadata: '#a5a5a5',
+        text: '#e5e5e5',
+        textSecondary: '#d1d1d1',
+        metadata: '#a3a3a3',
         border: 'rgba(255, 255, 255, 0.1)',
-        background: '#1a1a1a'
+        background: 'rgba(23, 23, 23, 0.95)',
+        badgeText: gradient.textDark,
+        badgeAccent: gradient.accentDark,
+        gradient: gradient.dark
       } : {
         title: '#1f2937',
-        text: '#6b7280',
+        text: '#4b5563',
         textSecondary: '#6b7280',
         metadata: '#9ca3af',
-        border: '#e5e7eb',
-        background: '#ffffff'
+        border: 'rgba(0, 0, 0, 0.1)',
+        background: 'rgba(255, 255, 255, 0.98)',
+        badgeText: gradient.textLight,
+        badgeAccent: gradient.accentLight,
+        gradient: gradient.light
       };
 
       // Escape user-controlled content to prevent XSS
@@ -287,51 +342,98 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
       const safeDescription = escapeHTML(incident.description);
       const safeSource = escapeHTML(incident.source);
 
+      // Location pin SVG icon (replaces emoji)
+      const pinIcon = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${themeColors.badgeAccent}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`;
+
       const popup = new maplibregl.Popup({
         offset: 25,
         closeButton: true,
         closeOnClick: false,
-        maxWidth: '320px'
+        maxWidth: '320px',
+        className: 'incident-popup'
       }).setHTML(`
-        <div style="padding: 4px; background: ${themeColors.background}; color: ${themeColors.text};">
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-            <span style="
-              background: ${color.background};
-              color: ${color.primary};
-              padding: 4px 8px;
-              border-radius: 4px;
-              font-size: 11px;
-              font-weight: 700;
-              text-transform: uppercase;
-              letter-spacing: 0.5px;
-            ">${incident.type}</span>
+        <div style="
+          padding: 12px;
+          background: ${themeColors.background};
+          backdrop-filter: blur(12px);
+          border-radius: 12px;
+          border: 1px solid ${themeColors.border};
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        ">
+          <div style="
+            background: ${themeColors.gradient};
+            border: 1.5px solid ${themeColors.badgeAccent}40;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+          ">
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+              <span style="
+                background: ${themeColors.badgeAccent}25;
+                color: ${themeColors.badgeText};
+                padding: 3px 8px;
+                border-radius: 6px;
+                font-size: 10px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.8px;
+              ">${incident.type}</span>
+            </div>
+            <h3 style="
+              margin: 0;
+              color: ${themeColors.title};
+              font-size: 14px;
+              font-weight: 600;
+              line-height: 1.3;
+            ">${safeTitle}</h3>
           </div>
-          <h3 style="margin: 0 0 8px 0; color: ${themeColors.title}; font-size: 15px; font-weight: 600;">
-            ${safeTitle}
-          </h3>
           ${safeRoadName ? `
-            <p style="margin: 0 0 6px 0; color: ${themeColors.text}; font-size: 13px; font-weight: 500;">
-              📍 ${safeRoadName}
-            </p>
+            <div style="
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              margin-bottom: 8px;
+              color: ${themeColors.text};
+              font-size: 12px;
+              font-weight: 500;
+            ">
+              ${pinIcon}
+              <span>${safeRoadName}</span>
+            </div>
           ` : ''}
           ${safeDescription ? `
-            <p style="margin: 0 0 8px 0; color: ${themeColors.textSecondary}; font-size: 13px; line-height: 1.4;">
-              ${safeDescription}
-            </p>
+            <p style="
+              margin: 0 0 10px 0;
+              color: ${themeColors.textSecondary};
+              font-size: 12px;
+              line-height: 1.5;
+            ">${safeDescription}</p>
           ` : ''}
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 8px; border-top: 1px solid ${themeColors.border};">
-            <span style="font-size: 11px; color: ${themeColors.metadata}; font-style: italic;">
-              ${safeSource}
-            </span>
+          <div style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 8px;
+            border-top: 1px solid ${themeColors.border};
+          ">
+            <span style="
+              font-size: 10px;
+              color: ${themeColors.metadata};
+              font-style: italic;
+              font-weight: 500;
+            ">${safeSource}</span>
             ${incident.startTime ? `
-              <span style="font-size: 11px; color: ${themeColors.metadata};">
-                ${new Date(incident.startTime).toLocaleString('en-US', {
-                  month: 'short',
-                  day: 'numeric',
-                  hour: 'numeric',
-                  minute: '2-digit'
-                })}
-              </span>
+              <span style="
+                font-size: 10px;
+                color: ${themeColors.metadata};
+                font-weight: 500;
+              ">${new Date(incident.startTime).toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit'
+              })}</span>
             ` : ''}
           </div>
         </div>

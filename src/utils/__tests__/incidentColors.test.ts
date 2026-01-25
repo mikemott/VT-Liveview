@@ -49,8 +49,8 @@ describe('getIncidentColor', () => {
 
   it('should return correct color for CLOSURE', () => {
     const color = getIncidentColor('CLOSURE');
-    expect(color.primary).toBe('#3B82F6');
-    expect(color.name).toBe('blue');
+    expect(color.primary).toBe('#EF4444');
+    expect(color.name).toBe('red');
   });
 
   it('should return correct color for FLOODING', () => {
