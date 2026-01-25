@@ -64,12 +64,14 @@ HOST=0.0.0.0
 NODE_ENV=development
 
 # NOAA API User-Agent (required by NOAA ToS)
+# ⚠️ WARNING: Update CONTACT_EMAIL with a real email address before making NOAA API requests
 CONTACT_EMAIL=test@example.com
 
 # CORS (allows frontend to connect)
 ALLOWED_ORIGINS=http://localhost:5173
 EOF
     echo -e "${GREEN}✅ Created backend/.env${NC}"
+    echo -e "${YELLOW}⚠️  IMPORTANT: Update CONTACT_EMAIL in backend/.env with a real email address before making NOAA API requests${NC}"
 else
     echo -e "${GREEN}✅ backend/.env exists${NC}"
 fi

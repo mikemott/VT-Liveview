@@ -58,6 +58,11 @@ export function getWeatherTheme(
     return 'rainy';
   }
 
+  // Partly cloudy defaults to sunny (check before cloudy to avoid shadowing)
+  if (desc.includes('partly')) {
+    return 'sunny';
+  }
+
   // Cloudy/overcast (use rainy theme with muted colors)
   if (
     desc.includes('cloudy') ||
@@ -77,11 +82,6 @@ export function getWeatherTheme(
     return 'sunny';
   }
 
-  // Partly cloudy defaults to sunny
-  if (desc.includes('partly')) {
-    return 'sunny';
-  }
-
   return 'default';
 }
 
@@ -90,6 +90,11 @@ export function getWeatherTheme(
  * @param theme - Weather theme to apply
  */
 export function applyWeatherTheme(theme: WeatherTheme): void {
+  // Guard against DOM unavailability (e.g., SSR, Node.js contexts)
+  if (typeof document === 'undefined' || !document.documentElement) {
+    return;
+  }
+
   const root = document.documentElement;
 
   // Remove all weather theme classes

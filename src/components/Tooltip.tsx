@@ -2,7 +2,7 @@
  * Tooltip - Contextual help tooltip
  */
 
-import { useState, useId } from 'react';
+import { useState, useId, isValidElement, cloneElement } from 'react';
 import type { ReactNode } from 'react';
 import { Info } from 'lucide-react';
 import './Tooltip.css';
@@ -28,6 +28,19 @@ export default function Tooltip({
   const handleFocus = () => setIsVisible(true);
   const handleBlur = () => setIsVisible(false);
 
+  // Check if children are already focusable
+  const isFocusable = (child: ReactNode): boolean => {
+    if (!isValidElement(child)) return false;
+    const props = child.props as Record<string, unknown>;
+    return !!(
+      props.tabIndex !== undefined ||
+      props.href ||
+      props.role === 'button' ||
+      typeof child.type === 'string' &&
+        ['button', 'input', 'select', 'textarea', 'a'].includes(child.type)
+    );
+  };
+
   return (
     <div
       className={`tooltip-wrapper ${className} ${isVisible ? 'tooltip-visible' : ''}`}
@@ -37,13 +50,20 @@ export default function Tooltip({
       onBlur={handleBlur}
     >
       {children ? (
-        <div
-          className="tooltip-trigger-wrapper"
-          tabIndex={0}
-          aria-describedby={tooltipId}
-        >
-          {children}
-        </div>
+        isFocusable(children) ? (
+          cloneElement(children as React.ReactElement, {
+            'aria-describedby': tooltipId,
+            tabIndex: (children as React.ReactElement).props.tabIndex ?? 0,
+          })
+        ) : (
+          <div
+            className="tooltip-trigger-wrapper"
+            tabIndex={0}
+            aria-describedby={tooltipId}
+          >
+            {children}
+          </div>
+        )
       ) : (
         <Info
           className="tooltip-trigger"
@@ -57,6 +77,7 @@ export default function Tooltip({
         id={tooltipId}
         className={`tooltip tooltip-${position}`}
         role="tooltip"
+        aria-hidden={!isVisible}
       >
         {content}
       </div>
