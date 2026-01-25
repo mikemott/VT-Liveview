@@ -290,25 +290,32 @@
 .alerts-list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-4);
 }
 
 .alert-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
   padding: var(--space-5);
-  border-radius: var(--radius-lg);
-  border-left: 4px solid;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--radius-xl);
   cursor: pointer;
-  transition: transform var(--transition-base), box-shadow var(--transition-base), background-color var(--transition-base);
+  transition: all var(--transition-base);
   outline: none;
+  position: relative;
 }
 
 .alert-item:hover {
-  transform: translateX(4px);
   box-shadow: var(--shadow-md);
+  border-color: var(--color-border-primary);
+  transform: translateY(-1px);
 }
 
 .alert-item:active {
-  transform: scale(0.98) translateX(4px);
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
 }
 
 .alert-item:focus-visible {
@@ -316,38 +323,131 @@
   outline-offset: 2px;
 }
 
-.alert-item.severity-extreme {
-  background: var(--color-alert-extreme-bg);
-  border-left-color: var(--color-alert-extreme-border);
+/* Alert icon circle */
+.alert-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-3xl);
 }
 
-.alert-item.severity-severe {
-  background: var(--color-alert-severe-bg);
-  border-left-color: var(--color-alert-severe-border);
-}
-
-.alert-item.severity-moderate {
-  background: var(--color-alert-moderate-bg);
-  border-left-color: var(--color-alert-moderate-border);
-}
-
-.alert-item.severity-minor {
-  background: var(--color-alert-minor-bg);
-  border-left-color: var(--color-alert-minor-border);
+/* Alert content */
+.alert-content {
+  flex: 1;
+  min-width: 0;
 }
 
 .alert-event {
   font-weight: var(--font-weight-semibold);
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-lg);
   color: var(--color-text-primary-alt);
   margin-bottom: var(--space-1);
+  line-height: var(--line-height-tight);
 }
 
 .alert-headline {
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-normal);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-secondary);
   line-height: var(--line-height-normal);
+}
+
+/* Close button */
+.alert-close {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  font-size: var(--font-size-lg);
+  line-height: 1;
+  padding: 0;
+}
+
+.alert-close:hover {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+}
+
+/* Severity/Type Colors */
+.alert-item.severity-extreme .alert-icon {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.alert-item.severity-severe .alert-icon {
+  background: #FED7AA;
+  color: #EA580C;
+}
+
+.alert-item.severity-moderate .alert-icon {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.alert-item.severity-minor .alert-icon {
+  background: #DBEAFE;
+  color: #2563EB;
+}
+
+/* Travel incident type colors */
+.alert-item.type-accident .alert-icon {
+  background: #EDE9FE;
+  color: #8B5CF6;
+}
+
+.alert-item.type-construction .alert-icon {
+  background: #FED7AA;
+  color: #F97316;
+}
+
+.alert-item.type-closure .alert-icon {
+  background: #DBEAFE;
+  color: #3B82F6;
+}
+
+.alert-item.type-flooding .alert-icon {
+  background: #CCFBF1;
+  color: #14B8A6;
+}
+
+.alert-item.type-hazard .alert-icon {
+  background: #FEF3C7;
+  color: #F59E0B;
+}
+
+/* Dark mode adjustments */
+.alert-item.dark {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-border-faint);
+}
+
+.alert-item.dark:hover {
+  background: var(--color-bg-tertiary);
+  border-color: var(--color-border-subtle);
+}
+
+.alert-item.dark .alert-event {
+  color: var(--color-text-primary);
+}
+
+.alert-item.dark .alert-headline {
+  color: var(--color-text-tertiary);
+}
+
+.alert-item.dark .alert-close:hover {
+  background: var(--color-bg-surface);
 }
 
 .attribution {
