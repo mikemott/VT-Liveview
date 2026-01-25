@@ -1,0 +1,74 @@
+/**
+ * ToastContainer - Container for managing toast positioning
+ */
+
+.toast-container {
+  position: fixed;
+  z-index: var(--z-overlay);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  pointer-events: none;
+}
+
+.toast-container > * {
+  pointer-events: auto;
+}
+
+/* Position variants */
+.toast-container-top-right {
+  top: var(--space-7);
+  right: var(--space-7);
+  align-items: flex-end;
+}
+
+.toast-container-top-left {
+  top: var(--space-7);
+  left: var(--space-7);
+  align-items: flex-start;
+}
+
+.toast-container-bottom-right {
+  bottom: var(--space-7);
+  right: var(--space-7);
+  align-items: flex-end;
+}
+
+.toast-container-bottom-left {
+  bottom: var(--space-7);
+  left: var(--space-7);
+  align-items: flex-start;
+}
+
+.toast-container-top-center {
+  top: var(--space-7);
+  left: 50%;
+  transform: translateX(-50%);
+  align-items: center;
+}
+
+.toast-container-bottom-center {
+  bottom: var(--space-7);
+  left: 50%;
+  transform: translateX(-50%);
+  align-items: center;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .toast-container-top-right,
+  .toast-container-top-left,
+  .toast-container-bottom-right,
+  .toast-container-bottom-left {
+    left: var(--space-4);
+    right: var(--space-4);
+    align-items: stretch;
+  }
+
+  .toast-container-top-center,
+.toast-container-bottom-center {
+    left: var(--space-4);
+    right: var(--space-4);
+    transform: none;
+  }
+}

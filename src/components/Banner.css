@@ -1,0 +1,136 @@
+/**
+ * Banner - Full-width alert banner styles
+ * System-level messages displayed at top of page
+ */
+
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-7);
+  background: var(--gradient-header);
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-md);
+  animation: banner-slide-down 0.3s ease-out;
+  position: relative;
+  z-index: var(--z-fixed);
+}
+
+@keyframes banner-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.banner-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1;
+  min-width: 0;
+}
+
+.banner-icon {
+  flex-shrink: 0;
+  color: var(--color-text-inverse);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+}
+
+.banner-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.banner-title {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text-inverse);
+  margin-bottom: var(--space-1);
+  line-height: 1.4;
+}
+
+.banner-message {
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.5;
+}
+
+.banner-dismiss {
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: var(--color-text-inverse);
+  cursor: pointer;
+  padding: var(--space-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.banner-dismiss:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.banner-dismiss:focus-visible {
+  outline: 2px solid var(--color-text-inverse);
+  outline-offset: 2px;
+}
+
+/* Banner Variants */
+
+.banner-warning {
+  background: linear-gradient(135deg, #FFD700 0%, #FFC107 100%);
+}
+
+.banner-info {
+  background: var(--gradient-header);
+}
+
+.banner-system {
+  background: linear-gradient(135deg, #52C2ED 0%, #3A7AE0 100%);
+}
+
+/* Weather-adaptive banners */
+[data-weather] .banner {
+  background: var(--vt-weather-gradient);
+}
+
+/* Dark Mode */
+.dark .banner {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.dark .banner-dismiss {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.dark .banner-dismiss:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .banner {
+    padding: var(--space-3) var(--space-4);
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .banner-content {
+    width: 100%;
+  }
+
+  .banner-dismiss {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-4);
+  }
+}
