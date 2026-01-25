@@ -12,7 +12,7 @@ import { getMapStyle, isDarkMode } from './utils/mapStyles';
 import type { MapLibreMap, DetailPanelContent, AlertFeature, ObservationStation } from './types';
 import { VERMONT, INTERVALS } from './utils/constants';
 import { useIsMobile } from './hooks/useIsMobile';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, AlertTriangle, AlertCircle, Info } from 'lucide-react';
 import { fetchMergedAlerts, type MergedAlertData } from './services/graphqlClient';
 
 // =============================================================================
@@ -610,43 +610,43 @@ function WeatherMap() {
               <h3>Active Alerts ({alerts.length})</h3>
               <div className="alerts-list">
                 {alerts.map((alert) => {
-                  // Get icon based on severity
-                  const getAlertIcon = (severity: string) => {
+                  // Get Lucide icon based on severity
+                  const getSeverityIcon = (severity: string) => {
                     switch (severity) {
-                      case 'Extreme': return '🚨';
-                      case 'Severe': return '⚠️';
-                      case 'Moderate': return '⚡';
-                      case 'Minor': return 'ℹ️';
-                      default: return 'ℹ️';
+                      case 'Extreme': return <AlertTriangle size={16} strokeWidth={2.5} />;
+                      case 'Severe': return <AlertTriangle size={16} strokeWidth={2.5} />;
+                      case 'Moderate': return <AlertCircle size={16} strokeWidth={2.5} />;
+                      case 'Minor': return <Info size={16} strokeWidth={2.5} />;
+                      default: return <Info size={16} strokeWidth={2.5} />;
                     }
                   };
 
                   return (
                     <div
                       key={alert.properties.id || alert.properties.event}
-                      className={`alert-item severity-${alert.properties.severity?.toLowerCase()}`}
+                      className={`alert-card severity-${alert.properties.severity?.toLowerCase()} ${isDark ? 'dark' : ''}`}
                       onClick={() => handleAlertClick(alert)}
                       onKeyDown={(e) => handleAlertKeyDown(e, alert)}
                       role="button"
                       tabIndex={0}
                       aria-label={`Zoom to ${alert.properties.event} affected area`}
                     >
-                      <div className="alert-icon">
-                        {getAlertIcon(alert.properties.severity || 'Minor')}
+                      <div className="alert-icon-container">
+                        {getSeverityIcon(alert.properties.severity || 'Minor')}
                       </div>
-                      <div className="alert-content">
+                      <div className="alert-body">
                         <div className="alert-event">{alert.properties.event}</div>
                         <div className="alert-headline">{alert.properties.headline || alert.properties.areaDesc}</div>
                       </div>
                       <button
-                        className="alert-close"
+                        className="alert-dismiss"
                         onClick={(e) => {
                           e.stopPropagation();
                           // Close button functionality - could dismiss alert
                         }}
                         aria-label="Dismiss alert"
                       >
-                        ×
+                        <X size={14} />
                       </button>
                     </div>
                   );
