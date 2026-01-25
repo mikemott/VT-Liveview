@@ -609,20 +609,48 @@ function WeatherMap() {
             <div className="control-section">
               <h3>Active Alerts ({alerts.length})</h3>
               <div className="alerts-list">
-                {alerts.map((alert) => (
-                  <div
-                    key={alert.properties.id || alert.properties.event}
-                    className={`alert-item severity-${alert.properties.severity?.toLowerCase()}`}
-                    onClick={() => handleAlertClick(alert)}
-                    onKeyDown={(e) => handleAlertKeyDown(e, alert)}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Zoom to ${alert.properties.event} affected area`}
-                  >
-                    <div className="alert-event">{alert.properties.event}</div>
-                    <div className="alert-headline">{alert.properties.headline || alert.properties.areaDesc}</div>
-                  </div>
-                ))}
+                {alerts.map((alert) => {
+                  // Get icon based on severity
+                  const getAlertIcon = (severity: string) => {
+                    switch (severity) {
+                      case 'Extreme': return '🚨';
+                      case 'Severe': return '⚠️';
+                      case 'Moderate': return '⚡';
+                      case 'Minor': return 'ℹ️';
+                      default: return 'ℹ️';
+                    }
+                  };
+
+                  return (
+                    <div
+                      key={alert.properties.id || alert.properties.event}
+                      className={`alert-item severity-${alert.properties.severity?.toLowerCase()}`}
+                      onClick={() => handleAlertClick(alert)}
+                      onKeyDown={(e) => handleAlertKeyDown(e, alert)}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Zoom to ${alert.properties.event} affected area`}
+                    >
+                      <div className="alert-icon">
+                        {getAlertIcon(alert.properties.severity || 'Minor')}
+                      </div>
+                      <div className="alert-content">
+                        <div className="alert-event">{alert.properties.event}</div>
+                        <div className="alert-headline">{alert.properties.headline || alert.properties.areaDesc}</div>
+                      </div>
+                      <button
+                        className="alert-close"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Close button functionality - could dismiss alert
+                        }}
+                        aria-label="Dismiss alert"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
