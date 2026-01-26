@@ -109,6 +109,9 @@ export async function fetchSkiConditions(): Promise<SkiResort[]> {
     const cards = $('.widget_resort_conditions .card');
     console.log(`[SKI] Found ${cards.length} resort cards`);
 
+    // Track which resorts we've already added (to skip duplicates like "Stowe" and "Stowe Cross Country")
+    const processedResorts = new Set<string>();
+
     cards.each((_, elem) => {
       const $elem = $(elem);
 
@@ -128,7 +131,14 @@ export async function fetchSkiConditions(): Promise<SkiResort[]> {
         return;
       }
 
+      // Skip duplicates (e.g., "Stowe" downhill and "Stowe Cross Country" both match "Stowe")
+      if (processedResorts.has(matchedKey)) {
+        console.log(`[SKI] Skipping: "${extractedName}" → "${matchedKey}" (duplicate)`);
+        return;
+      }
+
       const name = matchedKey;
+      processedResorts.add(name);
       console.log(`[SKI] Processing: "${extractedName}" → "${name}"`);
 
       // Parse all .item elements
