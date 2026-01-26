@@ -62,12 +62,28 @@ export async function fetchSkiConditions(): Promise<SkiResort[]> {
     const resorts: SkiResort[] = [];
 
     // Parse each resort card from widget_resort_conditions section
-    $('.widget_resort_conditions .card').each((_, elem) => {
+    const cards = $('.widget_resort_conditions .card');
+    console.log(`[SKI] Found ${cards.length} resort cards`);
+
+    cards.each((_, elem) => {
       const $elem = $(elem);
 
       // Extract resort name from .name a element
       const name = $elem.find('.name a').first().text().trim();
-      if (!name || !RESORT_COORDS[name]) return; // Skip if name not found or not in our list
+      console.log(`[SKI] Extracted name: "${name}"`);
+
+      if (!name) {
+        console.log('[SKI] Skipping: empty name');
+        return;
+      }
+
+      if (!RESORT_COORDS[name]) {
+        console.log(`[SKI] Skipping: "${name}" not found in RESORT_COORDS`);
+        console.log('[SKI] Available keys:', Object.keys(RESORT_COORDS).join(', '));
+        return;
+      }
+
+      console.log(`[SKI] Processing: "${name}"`);
 
       // Parse all .item elements
       const items = $elem.find('.mtn_info .item');
@@ -173,6 +189,8 @@ export async function fetchSkiConditions(): Promise<SkiResort[]> {
       resorts.push(resort);
     });
 
+    console.log(`[SKI] Parsed ${resorts.length} resorts successfully`);
+
     // Validate: should have at least 15 resorts
     if (resorts.length < 15) {
       throw new Error(`Only parsed ${resorts.length} resorts - HTML structure may have changed`);
@@ -194,19 +212,18 @@ export async function fetchSkiConditions(): Promise<SkiResort[]> {
     return resorts;
 
   } catch (error) {
-    // Log error (will be captured by Sentry if configured)
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Ski conditions fetch failed:', error);
-    }
+    // Always log errors (including production) to help debug issues
+    console.error('[SKI] Ski conditions fetch failed:', error);
 
     // Return stale cache if available
     const staleCache = skiConditionsCache.get('resorts');
     if (staleCache) {
-      console.warn('Using stale ski conditions cache');
+      console.warn('[SKI] Using stale ski conditions cache');
       return staleCache.resorts;
     }
 
     // Last resort: return empty array
+    console.error('[SKI] No cache available, returning empty array');
     return [];
   }
 }
