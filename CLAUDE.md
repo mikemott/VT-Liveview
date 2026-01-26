@@ -356,6 +356,7 @@ const queryClient = new QueryClient({
 | **IEM** | Radar tiles | N/A | Real-time | `https://mesonet.agron.iastate.edu` |
 | **VT 511** | Traffic incidents | 5 min | 2 minutes | `https://511vt.com/map/Cctv/data` |
 | **USGS** | River gauges | 5 min | Real-time | `https://waterservices.usgs.gov` |
+| **Ski Vermont** | Resort conditions | 6 hr | Twice daily | `https://skivermont.com/conditions` |
 | **Protomaps** | Vector map tiles | Browser | Real-time | `https://api.protomaps.com` |
 
 ### Backend Caching (NOAA Grid Points)
@@ -493,6 +494,25 @@ npm run build
 cd backend
 npm start  # Production mode
 ```
+
+### 7. Ski Conditions Layer
+
+**Location:** `src/components/SkiLayer.tsx`
+**Backend:** `backend/src/services/skiConditions.ts`
+**Update frequency:** Twice daily via GitHub Actions (6 AM & 2 PM ET)
+**Color coding:** Green (powder + operations), Yellow (decent), Red (limited)
+
+**Architecture:**
+- Backend scrapes skivermont.com with Cheerio
+- 12-hour cache with LRU eviction
+- GraphQL endpoint: `skiResorts`
+- Frontend: MapLibre markers with Mountain icons
+- Popups show: snow depth, lifts, trails, temperature
+
+**Maintenance:**
+- HTML structure changes may break scraper (defensive selectors used)
+- Logo URLs may change (graceful fallback to Mountain icon)
+- GitHub Actions cron: `.github/workflows/ski-conditions-cron.yml`
 
 ---
 

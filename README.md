@@ -15,6 +15,7 @@ VT-Liveview provides Vermonters with real-time access to:
 - 🚗 Traffic incidents (accidents, road closures, construction)
 - 🌊 Flood monitoring via USGS river gauges
 - 🚧 VTrans construction projects
+- ⛷️ Live ski resort conditions with color-coded markers
 
 All in one beautiful, easy-to-use map interface.
 
@@ -124,6 +125,7 @@ All data sources are free and publicly available:
 | [Iowa Mesonet (IEM)](https://mesonet.agron.iastate.edu/) | Radar imagery | Real-time | Free |
 | [Vermont 511](https://511vt.com/) | Traffic incidents & construction | 2 minutes | Free |
 | [USGS Water](https://waterservices.usgs.gov/) | River gauges | Real-time | Free |
+| [Ski Vermont](https://skivermont.com/conditions) | Ski resort conditions | Twice daily (6 AM & 2 PM ET) | Free |
 | [Protomaps](https://protomaps.com/) | Vector map tiles | Real-time | Free (1M views/month) |
 
 ## Tech Stack
