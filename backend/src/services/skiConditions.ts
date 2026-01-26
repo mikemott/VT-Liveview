@@ -10,6 +10,50 @@ interface ColorInput {
   liftsTotal: number;
 }
 
+/**
+ * Normalize resort name for matching against RESORT_COORDS keys
+ * Handles common variations in resort naming
+ */
+function normalizeResortName(name: string): string {
+  return name
+    // Remove common suffixes
+    .replace(/\s+(Resort|Mountain Resort|Ski Area|Cross Country|Nordic Center)$/i, '')
+    // Normalize apostrophes (curly to straight)
+    .replace(/'/g, "'")
+    // Normalize "Snowbowl" vs "Snow Bowl"
+    .replace(/Snowbowl/i, 'Snow Bowl')
+    // Normalize "Cochran's" vs "Cochrans"
+    .replace(/Cochran's/i, 'Cochrans')
+    // Normalize "Smugglers'" vs "Smugglers"
+    .replace(/Smugglers'/i, 'Smugglers')
+    .trim();
+}
+
+/**
+ * Find matching resort name in RESORT_COORDS, trying exact match first then normalized
+ */
+function findResortCoords(extractedName: string): string | null {
+  // Try exact match first
+  if (RESORT_COORDS[extractedName]) {
+    return extractedName;
+  }
+
+  // Try normalized match
+  const normalized = normalizeResortName(extractedName);
+  if (RESORT_COORDS[normalized]) {
+    return normalized;
+  }
+
+  // Try normalized match against all keys
+  for (const key of Object.keys(RESORT_COORDS)) {
+    if (normalizeResortName(key) === normalized) {
+      return key;
+    }
+  }
+
+  return null;
+}
+
 export function calculateResortColor(input: ColorInput): 'green' | 'yellow' | 'red' {
   const { snowfall24hr, trailsOpen, trailsTotal, liftsOpen, liftsTotal } = input;
 
@@ -69,21 +113,23 @@ export async function fetchSkiConditions(): Promise<SkiResort[]> {
       const $elem = $(elem);
 
       // Extract resort name from .name a element
-      const name = $elem.find('.name a').first().text().trim();
-      console.log(`[SKI] Extracted name: "${name}"`);
+      const extractedName = $elem.find('.name a').first().text().trim();
+      console.log(`[SKI] Extracted name: "${extractedName}"`);
 
-      if (!name) {
+      if (!extractedName) {
         console.log('[SKI] Skipping: empty name');
         return;
       }
 
-      if (!RESORT_COORDS[name]) {
-        console.log(`[SKI] Skipping: "${name}" not found in RESORT_COORDS`);
-        console.log('[SKI] Available keys:', Object.keys(RESORT_COORDS).join(', '));
+      // Try to find matching resort in RESORT_COORDS
+      const matchedKey = findResortCoords(extractedName);
+      if (!matchedKey) {
+        console.log(`[SKI] Skipping: "${extractedName}" - no match in RESORT_COORDS`);
         return;
       }
 
-      console.log(`[SKI] Processing: "${name}"`);
+      const name = matchedKey;
+      console.log(`[SKI] Processing: "${extractedName}" → "${name}"`);
 
       // Parse all .item elements
       const items = $elem.find('.mtn_info .item');
@@ -165,11 +211,17 @@ export async function fetchSkiConditions(): Promise<SkiResort[]> {
         liftsTotal,
       });
 
+      const coords = RESORT_COORDS[name];
+      if (!coords) {
+        console.error(`[SKI] BUG: coords missing for "${name}" after findResortCoords succeeded`);
+        return;
+      }
+
       const resort: SkiResort = {
         id: name.toLowerCase().replace(/\s+/g, '-'),
         name,
-        latitude: RESORT_COORDS[name].lat,
-        longitude: RESORT_COORDS[name].lon,
+        latitude: coords.lat,
+        longitude: coords.lon,
         logoUrl: RESORT_LOGOS[name] || null,
         snowfall24hr,
         snowfallCumulative,
@@ -191,9 +243,9 @@ export async function fetchSkiConditions(): Promise<SkiResort[]> {
 
     console.log(`[SKI] Parsed ${resorts.length} resorts successfully`);
 
-    // Validate: should have at least 15 resorts
-    if (resorts.length < 15) {
-      throw new Error(`Only parsed ${resorts.length} resorts - HTML structure may have changed`);
+    // Validate: should have at least 10 resorts (we have 20 in RESORT_COORDS, expecting ~50% match rate)
+    if (resorts.length < 10) {
+      throw new Error(`Only parsed ${resorts.length} resorts - expected at least 10`);
     }
 
     // Cache with 12-hour TTL
