@@ -90,7 +90,7 @@ export async function fetchSkiConditions(): Promise<SkiResort[]> {
         if (text.includes('Last 24hr Snowfall')) {
           if (!span.includes('No Update')) {
             const match = span.match(/(\d+\.?\d*)\s*-\s*(\d+\.?\d*)/);
-            if (match) {
+            if (match && match[1] && match[2]) {
               snowfall24hr = parseFloat(match[1]);
               snowfallCumulative = parseFloat(match[2]);
             }
@@ -100,7 +100,7 @@ export async function fetchSkiConditions(): Promise<SkiResort[]> {
         // Last Snowfall
         else if (text.includes('Last Snowfall') && !text.includes('24hr')) {
           const match = span.match(/(\d+\.?\d*)/);
-          if (match && snowfallCumulative === null) {
+          if (match && match[1] && snowfallCumulative === null) {
             snowfallCumulative = parseFloat(match[1]);
           }
         }
@@ -108,7 +108,7 @@ export async function fetchSkiConditions(): Promise<SkiResort[]> {
         // Lifts
         else if (text.includes('Lifts')) {
           const match = span.match(/(\d+)\s*\/\s*(\d+)/);
-          if (match) {
+          if (match && match[1] && match[2]) {
             liftsOpen = parseInt(match[1]);
             liftsTotal = parseInt(match[2]);
           }
@@ -117,7 +117,7 @@ export async function fetchSkiConditions(): Promise<SkiResort[]> {
         // Trails
         else if (text.includes('Trails')) {
           const match = span.match(/(\d+)\s*\/\s*(\d+)/);
-          if (match) {
+          if (match && match[1] && match[2]) {
             trailsOpen = parseInt(match[1]);
             trailsTotal = parseInt(match[2]);
           }
@@ -126,7 +126,7 @@ export async function fetchSkiConditions(): Promise<SkiResort[]> {
         // Today's Low/High
         else if (text.includes('Low/High')) {
           const match = span.match(/(-?\d+)[^\/]*\/\s*(-?\d+)/);
-          if (match) {
+          if (match && match[1] && match[2]) {
             tempLow = parseInt(match[1]);
             tempHigh = parseInt(match[2]);
           }
