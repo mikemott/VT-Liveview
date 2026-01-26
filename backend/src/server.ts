@@ -14,6 +14,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { resolvers } from './resolvers/index.js';
 import { clearStationsCache } from './services/noaa.js';
+import { fetchSkiConditions } from './services/skiConditions.js';
 import { validateEnv, isProd, isDev } from './types/index.js';
 import { getDb, checkDatabaseHealth, closeDatabase, isDatabaseEnabled } from './db/index.js';
 import { startScheduler, stopScheduler, getCollectorStatus } from './scheduler/index.js';
@@ -289,6 +290,28 @@ async function start(): Promise<void> {
         reply.type('text/xml').send(xmlText);
       } catch {
         reply.code(500).send({ error: 'Failed to fetch VT 511 network data' });
+      }
+    }
+  );
+
+  // Ski conditions cache refresh endpoint
+  fastify.post(
+    '/api/ski-conditions/refresh',
+    async (_request: FastifyRequest, reply: FastifyReply) => {
+      try {
+        const resorts = await fetchSkiConditions();
+        return {
+          success: true,
+          updated: new Date().toISOString(),
+          resortCount: resorts.length,
+        };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        reply.code(500);
+        return {
+          success: false,
+          error: errorMessage,
+        };
       }
     }
   );
