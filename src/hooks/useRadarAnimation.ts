@@ -130,17 +130,35 @@ export function useRadarAnimation(
   const [error, setError] = useState<string | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Fetch radar frames from RainViewer
-  const fetchFrames = useCallback(async (signal?: AbortSignal) => {
+  // Fetch radar frames from RainViewer with retry logic
+  const fetchFrames = useCallback(async (signal?: AbortSignal, retryCount = 0) => {
+    const maxRetries = 2;
+
     try {
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch(
-        RAINVIEWER_API,
-        signal ? { signal } : undefined
-      );
-      if (!response.ok) throw new Error('Failed to fetch radar data');
+      // Create timeout controller for 10-second limit
+      const timeoutController = new AbortController();
+      const timeoutId = setTimeout(() => {
+        timeoutController.abort();
+        if (import.meta.env.DEV) {
+          console.warn(`[RADAR] RainViewer API timeout after 10 seconds (attempt ${retryCount + 1})`);
+        }
+      }, 10000);
+
+      // Combine parent signal with timeout signal (both can abort)
+      const fetchSignal = signal
+        ? AbortSignal.any([signal, timeoutController.signal])
+        : timeoutController.signal;
+
+      const response = await fetch(RAINVIEWER_API, { signal: fetchSignal });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`RainViewer API returned ${response.status}`);
+      }
 
       const data: RainViewerResponse = await response.json();
       const radarData = data.radar;
@@ -170,21 +188,43 @@ export function useRadarAnimation(
           isNowcast: true,
         }));
 
-      setFrames([...pastFrames, ...nowcastFrames]);
+      const allFrames = [...pastFrames, ...nowcastFrames];
+
+      setFrames(allFrames);
       setCurrentFrame(pastFrames.length - 1); // Start at most recent past frame
     } catch (err) {
-      // Don't set error if aborted
-      if (err instanceof Error && err.name === 'AbortError') {
+      // Don't set error if aborted by parent
+      if (err instanceof Error && err.name === 'AbortError' && signal?.aborted) {
         return;
       }
 
-      if (import.meta.env.DEV) {
-        console.error('Error fetching radar frames:', err);
+      // Retry logic for transient failures
+      if (retryCount < maxRetries) {
+        if (import.meta.env.DEV) {
+          console.warn(`[RADAR] Retry ${retryCount + 1}/${maxRetries} after error:`, err instanceof Error ? err.message : err);
+        }
+
+        // Exponential backoff: wait 1s, then 2s before retry
+        const delay = Math.pow(2, retryCount) * 1000;
+        await new Promise(resolve => setTimeout(resolve, delay));
+
+        // Check if aborted during backoff
+        if (signal?.aborted) {
+          return;
+        }
+
+        // Retry recursively
+        return fetchFrames(signal, retryCount + 1);
       }
+
+      // All retries exhausted - log error and fallback
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      console.error('[RADAR] Failed to fetch radar frames after', maxRetries + 1, 'attempts:', errorMessage);
+
       setError(errorMessage);
 
-      // Fallback to static IEM tile
+      // Fallback to static IEM tile (but IEM is unreliable with 503s)
+      console.warn('[RADAR] Using fallback IEM radar (may be unreliable)');
       setFrames([
         {
           time: new Date().toISOString(),
@@ -263,6 +303,8 @@ export function useRadarAnimation(
     setCurrentFrame((prev) => (prev - 1 + frames.length) % frames.length);
   }, [frames.length]);
 
+  const refresh = useCallback(() => fetchFrames(), [fetchFrames]);
+
   return {
     frames,
     currentFrame,
@@ -276,6 +318,6 @@ export function useRadarAnimation(
     goToFrame,
     nextFrame,
     prevFrame,
-    refresh: fetchFrames,
+    refresh,
   };
 }
