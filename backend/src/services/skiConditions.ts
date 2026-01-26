@@ -61,50 +61,80 @@ export async function fetchSkiConditions(): Promise<SkiResort[]> {
     const $ = cheerio.load(html);
     const resorts: SkiResort[] = [];
 
-    // Parse each resort entry
-    // Note: HTML structure may vary - this is a best-effort parser
-    $('.resort-conditions-item, .resort-item, [data-resort]').each((_, elem) => {
+    // Parse each resort card from widget_resort_conditions section
+    $('.widget_resort_conditions .card').each((_, elem) => {
       const $elem = $(elem);
 
-      // Extract resort name
-      const name = $elem.find('.resort-name, h3, h4').first().text().trim();
+      // Extract resort name from .name a element
+      const name = $elem.find('.name a').first().text().trim();
       if (!name || !RESORT_COORDS[name]) return; // Skip if name not found or not in our list
 
-      // Parse snowfall (format: "2 - 1" means 2" last 24hr, 1" previous)
-      const snowfallText = $elem.find('.snowfall, [data-snowfall]').text().trim();
-      const snowMatch = snowfallText.match(/(\d+\.?\d*)\s*-/);
-      const snowfall24hr = snowMatch?.[1] ? parseFloat(snowMatch[1]) : null;
+      // Parse all .item elements
+      const items = $elem.find('.mtn_info .item');
 
-      // Parse cumulative snowfall
-      const cumulativeMatch = snowfallText.match(/-\s*(\d+\.?\d*)/);
-      const snowfallCumulative = cumulativeMatch?.[1] ? parseFloat(cumulativeMatch[1]) : null;
+      let snowfall24hr: number | null = null;
+      let snowfallCumulative: number | null = null;
+      let liftsOpen = 0;
+      let liftsTotal = 1;
+      let trailsOpen = 0;
+      let trailsTotal = 1;
+      let tempLow: number | null = null;
+      let tempHigh: number | null = null;
 
-      // Parse lifts "14/20"
-      const liftsText = $elem.find('.lifts, [data-lifts]').text().trim();
-      const liftsMatch = liftsText.match(/(\d+)\s*\/\s*(\d+)/);
-      const liftsOpen = liftsMatch?.[1] ? parseInt(liftsMatch[1]) : 0;
-      const liftsTotal = liftsMatch?.[2] ? parseInt(liftsMatch[2]) : 1;
+      items.each((_, item) => {
+        const $item = $(item);
+        const text = $item.text().trim();
+        const span = $item.find('span').text().trim();
 
-      // Parse trails "147/155"
-      const trailsText = $elem.find('.trails, [data-trails]').text().trim();
-      const trailsMatch = trailsText.match(/(\d+)\s*\/\s*(\d+)/);
-      const trailsOpen = trailsMatch?.[1] ? parseInt(trailsMatch[1]) : 0;
-      const trailsTotal = trailsMatch?.[2] ? parseInt(trailsMatch[2]) : 1;
+        // Last 24hr Snowfall
+        if (text.includes('Last 24hr Snowfall')) {
+          if (!span.includes('No Update')) {
+            const match = span.match(/(\d+\.?\d*)\s*-\s*(\d+\.?\d*)/);
+            if (match) {
+              snowfall24hr = parseFloat(match[1]);
+              snowfallCumulative = parseFloat(match[2]);
+            }
+          }
+        }
 
-      // Parse temperatures
-      const tempText = $elem.find('.temperature, [data-temp]').text().trim();
-      const tempCurrentMatch = tempText.match(/(-?\d+)\s*°?F?/);
-      const tempCurrent = tempCurrentMatch?.[1] ? parseInt(tempCurrentMatch[1]) : null;
+        // Last Snowfall
+        else if (text.includes('Last Snowfall') && !text.includes('24hr')) {
+          const match = span.match(/(\d+\.?\d*)/);
+          if (match && snowfallCumulative === null) {
+            snowfallCumulative = parseFloat(match[1]);
+          }
+        }
 
-      // Parse temp range if available
-      const tempRangeMatch = tempText.match(/(-?\d+)\s*\/\s*(-?\d+)/);
-      const tempLow = tempRangeMatch?.[1] ? parseInt(tempRangeMatch[1]) : null;
-      const tempHigh = tempRangeMatch?.[2] ? parseInt(tempRangeMatch[2]) : null;
+        // Lifts
+        else if (text.includes('Lifts')) {
+          const match = span.match(/(\d+)\s*\/\s*(\d+)/);
+          if (match) {
+            liftsOpen = parseInt(match[1]);
+            liftsTotal = parseInt(match[2]);
+          }
+        }
 
-      // Parse base depth
-      const baseText = $elem.find('.base-depth, [data-base]').text().trim();
-      const baseMatch = baseText.match(/(\d+)\s*"/);
-      const baseDepth = baseMatch?.[1] ? parseInt(baseMatch[1]) : null;
+        // Trails
+        else if (text.includes('Trails')) {
+          const match = span.match(/(\d+)\s*\/\s*(\d+)/);
+          if (match) {
+            trailsOpen = parseInt(match[1]);
+            trailsTotal = parseInt(match[2]);
+          }
+        }
+
+        // Today's Low/High
+        else if (text.includes('Low/High')) {
+          const match = span.match(/(-?\d+)[^\/]*\/\s*(-?\d+)/);
+          if (match) {
+            tempLow = parseInt(match[1]);
+            tempHigh = parseInt(match[2]);
+          }
+        }
+      });
+
+      const tempCurrent = tempLow; // Use low temp as current if no current available
+      const baseDepth: number | null = null; // Not provided in this format
 
       // Determine status
       const status = liftsOpen === 0 ? 'closed' :
