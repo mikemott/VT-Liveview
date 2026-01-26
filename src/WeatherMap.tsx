@@ -4,6 +4,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import './WeatherMap.css';
 import TravelLayer from './components/TravelLayer';
 import WeatherStationsLayer from './components/WeatherStationsLayer';
+import SkiLayer from './components/SkiLayer';
 import CurrentWeather from './components/CurrentWeather';
 import RadarOverlay from './components/RadarOverlay';
 import ThemeToggle from './components/ThemeToggle';
@@ -71,6 +72,7 @@ function WeatherMap() {
     lng: VERMONT_CENTER.lng
   });
   const [showWeatherStations, setShowWeatherStations] = useState(true);
+  const [showSkiResorts, setShowSkiResorts] = useState(true);
 
   // Mobile responsiveness
   const isMobile = useIsMobile();
@@ -515,6 +517,11 @@ function WeatherMap() {
     setShowWeatherStations(prev => !prev);
   }, []);
 
+  // Toggle ski resorts visibility
+  const toggleSkiResorts = useCallback((): void => {
+    setShowSkiResorts(prev => !prev);
+  }, []);
+
   // Handle weather station click - memoized to prevent marker recreation
   const handleStationClick = useCallback((station: ObservationStation): void => {
     setDetailPanelContent({ type: 'station', data: station });
@@ -601,7 +608,7 @@ function WeatherMap() {
             </div>
           )}
 
-          {/* Map Features (Travel Layer with Weather Stations toggle) */}
+          {/* Map Features (Travel Layer with Weather Stations and Ski Resorts toggles) */}
           {mapLoaded && (
             <TravelLayer
               map={map.current}
@@ -610,6 +617,8 @@ function WeatherMap() {
               isDark={isDark}
               showWeatherStations={showWeatherStations}
               onToggleWeatherStations={toggleWeatherStations}
+              showSkiResorts={showSkiResorts}
+              onToggleSkiResorts={toggleSkiResorts}
             />
           )}
 
@@ -619,6 +628,14 @@ function WeatherMap() {
               map={map.current}
               visible={showWeatherStations}
               onStationClick={handleStationClick}
+            />
+          )}
+
+          {/* Ski Resorts Layer */}
+          {mapLoaded && (
+            <SkiLayer
+              map={map.current}
+              visible={showSkiResorts}
             />
           )}
 
@@ -665,6 +682,7 @@ function WeatherMap() {
             <p>Weather: NOAA</p>
             <p>Radar: RainViewer</p>
             <p>Traffic: VT 511, USGS</p>
+            <p>Ski: Ski Vermont</p>
             <p>Map: Protomaps / OSM</p>
           </div>
         </div>
