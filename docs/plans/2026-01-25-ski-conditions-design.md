@@ -31,7 +31,7 @@ Click marker to see:
 
 ## Architecture & Data Flow
 
-```
+```text
 GitHub Actions (6 AM & 2 PM ET)
   ↓ POST request
 Backend /api/ski-conditions/refresh
@@ -182,16 +182,17 @@ export async function fetchSkiConditions() {
 
       // ... parse trails, temps, etc.
 
-      resorts.push({
+      const resort = {
         id: name.toLowerCase().replace(/\s+/g, '-'),
         name,
         ...RESORT_COORDS[name],
         logoUrl: RESORT_LOGOS[name],
         snowfall24hr,
         // ... other fields
-        color: calculateResortColor(data),
+        color: calculateResortColor({ snowfall24hr, trailsOpen, trailsTotal, liftsOpen, liftsTotal }),
         lastUpdated: new Date().toISOString()
-      });
+      };
+      resorts.push(resort);
     });
 
     // Validate: should have at least 15 resorts
@@ -299,7 +300,7 @@ function createSkiResortMarker(resort) {
   });
 
   el.addEventListener('mouseleave', () => {
-    el.style.boxSadow = '0 2px 6px rgba(0, 0, 0, 0.25)';
+    el.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.25)';
     el.style.borderWidth = '2px';
   });
 
@@ -410,7 +411,7 @@ jobs:
 1. **Scraping fails** → Return stale cache (up to 12 hours old)
 2. **Cache empty** → Return empty array (frontend shows "no data")
 3. **Partial parse** → Validate minimum 15 resorts before caching
-4. **GitHub Actions fail** → Email notification to repo owner
+4. **GitHub Actions fail** → Failure logged in GitHub Actions UI
 5. **Sentry enabled** → All exceptions logged to dashboard
 
 **Frontend Handling:**
