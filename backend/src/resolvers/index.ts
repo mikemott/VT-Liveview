@@ -13,6 +13,7 @@ import {
 import { getRadarInfo } from '../services/radar.js';
 import { getHistoricalWeather } from '../services/noaaCDO.js';
 import { historicalResolvers } from './historical.js';
+import { fetchSkiConditions } from '../services/skiConditions.js';
 import type {
   WeatherConditions,
   ForecastPeriod,
@@ -81,6 +82,10 @@ export const resolvers = {
 
     historicalData: async (_parent: unknown, { lat, lng }: HistoricalDataArgs) => {
       return await getHistoricalWeather(lat, lng);
+    },
+
+    skiResorts: async () => {
+      return await fetchSkiConditions();
     },
 
     // Historical database queries

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo, ReactNode, memo } from 'react';
-import { AlertTriangle, Construction, Ban, Waves, AlertOctagon, ChevronDown, ChevronRight, Thermometer } from 'lucide-react';
+import { AlertTriangle, Construction, Ban, Waves, AlertOctagon, ChevronDown, ChevronRight, Thermometer, Mountain } from 'lucide-react';
 import maplibregl from 'maplibre-gl';
 import { fetchAllIncidents, type TravelIncident } from '../services/travelApi';
 import { getIncidentColor, shouldShowIncident } from '../utils/incidentColors';
@@ -29,6 +29,8 @@ interface TravelLayerProps {
   isDark: boolean;
   showWeatherStations: boolean;
   onToggleWeatherStations: () => void;
+  showSkiResorts: boolean;
+  onToggleSkiResorts: () => void;
 }
 
 interface IncidentsByType {
@@ -71,7 +73,7 @@ function getTypeLabel(type: IncidentType, short: boolean = false): string {
 // Component
 // =============================================================================
 
-function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, onToggleWeatherStations }: TravelLayerProps) {
+function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, onToggleWeatherStations, showSkiResorts, onToggleSkiResorts }: TravelLayerProps) {
   const [incidents, setIncidents] = useState<TravelIncident[]>([]);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(true);
@@ -532,6 +534,19 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
                 <Thermometer size={14} strokeWidth={2.5} />
               </span>
               Stations
+            </button>
+
+            {/* Ski Resorts chip */}
+            <button
+              className={`filter-chip ${showSkiResorts ? 'active' : ''}`}
+              onClick={onToggleSkiResorts}
+              aria-pressed={showSkiResorts}
+              data-chip-type="ski"
+            >
+              <span className="chip-icon">
+                <Mountain size={14} strokeWidth={2.5} />
+              </span>
+              Ski Resorts
             </button>
 
             {/* Incident type chips */}

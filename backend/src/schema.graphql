@@ -194,3 +194,30 @@ type DailyWeatherStats {
   avgHumidity: Float
   totalReadings: Int!
 }
+
+# Ski resort types
+
+type SkiResort {
+  id: ID!
+  name: String!
+  latitude: Float!
+  longitude: Float!
+  logoUrl: String
+  snowfall24hr: Float
+  snowfallCumulative: Float
+  liftsOpen: Int!
+  liftsTotal: Int!
+  trailsOpen: Int!
+  trailsTotal: Int!
+  tempCurrent: Int
+  tempHigh: Int
+  tempLow: Int
+  baseDepth: Int
+  lastUpdated: String!
+  status: String!
+  color: String!
+}
+
+extend type Query {
+  skiResorts: [SkiResort!]!
+}
