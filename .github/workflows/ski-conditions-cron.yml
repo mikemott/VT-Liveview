@@ -1,0 +1,22 @@
+name: Update Ski Conditions
+on:
+  schedule:
+    # 6 AM ET = 11 AM UTC (EST) or 10 AM UTC (EDT)
+    - cron: '0 11 * * *'
+    # 2 PM ET = 7 PM UTC (EST) or 6 PM UTC (EDT)
+    - cron: '0 19 * * *'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  update-ski-conditions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger backend refresh endpoint
+        run: |
+          response=$(curl -f -X POST https://vt-liveview-api.fly.dev/api/ski-conditions/refresh)
+          echo "Response: $response"
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "::error::Ski conditions update failed"
