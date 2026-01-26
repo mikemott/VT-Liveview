@@ -107,7 +107,6 @@ export async function fetchSkiConditions(): Promise<SkiResort[]> {
 
     // Parse each resort card from widget_resort_conditions section
     const cards = $('.widget_resort_conditions .card');
-    console.log(`[SKI] Found ${cards.length} resort cards`);
 
     // Track which resorts we've already added (to skip duplicates like "Stowe" and "Stowe Cross Country")
     const processedResorts = new Set<string>();
@@ -117,29 +116,24 @@ export async function fetchSkiConditions(): Promise<SkiResort[]> {
 
       // Extract resort name from .name a element
       const extractedName = $elem.find('.name a').first().text().trim();
-      console.log(`[SKI] Extracted name: "${extractedName}"`);
 
       if (!extractedName) {
-        console.log('[SKI] Skipping: empty name');
         return;
       }
 
       // Try to find matching resort in RESORT_COORDS
       const matchedKey = findResortCoords(extractedName);
       if (!matchedKey) {
-        console.log(`[SKI] Skipping: "${extractedName}" - no match in RESORT_COORDS`);
         return;
       }
 
       // Skip duplicates (e.g., "Stowe" downhill and "Stowe Cross Country" both match "Stowe")
       if (processedResorts.has(matchedKey)) {
-        console.log(`[SKI] Skipping: "${extractedName}" → "${matchedKey}" (duplicate)`);
         return;
       }
 
       const name = matchedKey;
       processedResorts.add(name);
-      console.log(`[SKI] Processing: "${extractedName}" → "${name}"`);
 
       // Parse all .item elements
       const items = $elem.find('.mtn_info .item');
@@ -223,7 +217,7 @@ export async function fetchSkiConditions(): Promise<SkiResort[]> {
 
       const coords = RESORT_COORDS[name];
       if (!coords) {
-        console.error(`[SKI] BUG: coords missing for "${name}" after findResortCoords succeeded`);
+        // This should never happen due to findResortCoords validation
         return;
       }
 
@@ -251,8 +245,6 @@ export async function fetchSkiConditions(): Promise<SkiResort[]> {
       resorts.push(resort);
     });
 
-    console.log(`[SKI] Parsed ${resorts.length} resorts successfully`);
-
     // Validate: should have at least 10 resorts (we have 20 in RESORT_COORDS, expecting ~50% match rate)
     if (resorts.length < 10) {
       throw new Error(`Only parsed ${resorts.length} resorts - expected at least 10`);
@@ -274,18 +266,17 @@ export async function fetchSkiConditions(): Promise<SkiResort[]> {
     return resorts;
 
   } catch (error) {
-    // Always log errors (including production) to help debug issues
-    console.error('[SKI] Ski conditions fetch failed:', error);
+    // Log errors (will be captured by Sentry if configured)
+    console.error('Ski conditions fetch failed:', error);
 
     // Return stale cache if available
     const staleCache = skiConditionsCache.get('resorts');
     if (staleCache) {
-      console.warn('[SKI] Using stale ski conditions cache');
+      console.warn('Using stale ski conditions cache');
       return staleCache.resorts;
     }
 
     // Last resort: return empty array
-    console.error('[SKI] No cache available, returning empty array');
     return [];
   }
 }
