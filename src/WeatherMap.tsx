@@ -72,7 +72,7 @@ function WeatherMap() {
     lng: VERMONT_CENTER.lng
   });
   const [showWeatherStations, setShowWeatherStations] = useState(true);
-  const [showSkiResorts, setShowSkiResorts] = useState(true);
+  const [showSkiResorts, setShowSkiResorts] = useState(false);
 
   // Mobile responsiveness
   const isMobile = useIsMobile();

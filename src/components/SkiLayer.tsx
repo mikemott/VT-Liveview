@@ -158,7 +158,7 @@ function SkiLayer({ map, visible }: SkiLayerProps) {
 
         const popup = new maplibregl.Popup({
           closeButton: true,
-          closeOnClick: false,
+          closeOnClick: true,
           className: 'ski-popup',
           maxWidth: '320px',
         })
