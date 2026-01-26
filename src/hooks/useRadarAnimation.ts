@@ -142,11 +142,15 @@ export function useRadarAnimation(
       const timeoutController = new AbortController();
       const timeoutId = setTimeout(() => {
         timeoutController.abort();
-        console.warn(`[RADAR] RainViewer API timeout after 10 seconds (attempt ${retryCount + 1})`);
+        if (import.meta.env.DEV) {
+          console.warn(`[RADAR] RainViewer API timeout after 10 seconds (attempt ${retryCount + 1})`);
+        }
       }, 10000);
 
-      // Combine parent signal with timeout signal
-      const fetchSignal = signal || timeoutController.signal;
+      // Combine parent signal with timeout signal (both can abort)
+      const fetchSignal = signal
+        ? AbortSignal.any([signal, timeoutController.signal])
+        : timeoutController.signal;
 
       const response = await fetch(RAINVIEWER_API, { signal: fetchSignal });
 
@@ -196,11 +200,18 @@ export function useRadarAnimation(
 
       // Retry logic for transient failures
       if (retryCount < maxRetries) {
-        console.warn(`[RADAR] Retry ${retryCount + 1}/${maxRetries} after error:`, err instanceof Error ? err.message : err);
+        if (import.meta.env.DEV) {
+          console.warn(`[RADAR] Retry ${retryCount + 1}/${maxRetries} after error:`, err instanceof Error ? err.message : err);
+        }
 
         // Exponential backoff: wait 1s, then 2s before retry
         const delay = Math.pow(2, retryCount) * 1000;
         await new Promise(resolve => setTimeout(resolve, delay));
+
+        // Check if aborted during backoff
+        if (signal?.aborted) {
+          return;
+        }
 
         // Retry recursively
         return fetchFrames(signal, retryCount + 1);
@@ -292,6 +303,8 @@ export function useRadarAnimation(
     setCurrentFrame((prev) => (prev - 1 + frames.length) % frames.length);
   }, [frames.length]);
 
+  const refresh = useCallback(() => fetchFrames(), [fetchFrames]);
+
   return {
     frames,
     currentFrame,
@@ -305,6 +318,6 @@ export function useRadarAnimation(
     goToFrame,
     nextFrame,
     prevFrame,
-    refresh: fetchFrames,
+    refresh,
   };
 }
