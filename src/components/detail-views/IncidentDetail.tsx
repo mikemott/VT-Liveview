@@ -16,7 +16,7 @@ export default function IncidentDetail({ incident, isDark }: IncidentDetailProps
   const colors = getIncidentColor(incident.type);
 
   const getIcon = () => {
-    const iconProps = { size: 20, style: { color: colors.primary } };
+    const iconProps = { size: 20 };
 
     switch (incident.type) {
       case 'ACCIDENT':
@@ -57,22 +57,21 @@ export default function IncidentDetail({ incident, isDark }: IncidentDetailProps
     return severity.charAt(0).toUpperCase() + severity.slice(1).toLowerCase();
   };
 
+  const incidentType = incident.type.toLowerCase();
+
   return (
-    <div className={`detail-view incident-detail ${isDark ? 'dark' : ''}`}>
+    <div className={`detail-view incident-detail ${isDark ? 'dark' : ''}`} data-incident-type={incidentType}>
       {/* Type badge */}
       <div
         className="incident-type-badge"
-        style={{
-          backgroundColor: colors.background,
-          borderColor: colors.primary,
-        }}
+        data-incident-type={incidentType}
       >
         {getIcon()}
-        <span style={{ color: colors.primary }}>{colors.name}</span>
+        <span>{colors.name}</span>
       </div>
 
       {/* Title */}
-      <div className="incident-title">{incident.title}</div>
+      <div className="incident-title" data-incident-type={incidentType}>{incident.title}</div>
 
       {/* Severity */}
       <div className="incident-severity-label">

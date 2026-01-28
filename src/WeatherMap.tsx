@@ -60,6 +60,7 @@ function getSeverityIcon(severity: string): React.ReactNode {
 function WeatherMap() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<MapLibreMap | null>(null);
+  const globalPopupRef = useRef<maplibregl.Popup | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [currentZoom, setCurrentZoom] = useState(VERMONT_CENTER.zoom);
@@ -577,27 +578,29 @@ function WeatherMap() {
         />
       )}
 
+      {/* Standalone Theme Toggle */}
+      <div className="standalone-theme-toggle">
+        <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
+      </div>
+
       {/* Controls Panel - hidden on mobile unless toggled open */}
       <div className={`controls-panel ${isDark ? 'dark' : ''} ${isMobile ? 'mobile' : ''} ${isMobile && !controlsPanelOpen ? 'hidden' : ''}`}>
         <div className="logo-container">
           <img
-            src={isDark ? '/assets/vt-liveview-dark.svg' : '/assets/vt-liveview-light.svg'}
+            src="/assets/vt-liveview-vintage.svg"
             alt="VT LiveView"
             className="app-logo"
           />
-          <div className="header-actions">
-            <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
-            {/* Close button inside panel on mobile */}
-            {isMobile && (
-              <button
-                className="mobile-panel-close"
-                onClick={() => setControlsPanelOpen(false)}
-                aria-label="Close panel"
-              >
-                <X size={20} />
-              </button>
-            )}
-          </div>
+          {/* Close button inside panel on mobile */}
+          {isMobile && (
+            <button
+              className="mobile-panel-close"
+              onClick={() => setControlsPanelOpen(false)}
+              aria-label="Close panel"
+            >
+              <X size={20} />
+            </button>
+          )}
         </div>
 
         <div className="controls-panel-scroll">
@@ -619,6 +622,7 @@ function WeatherMap() {
               onToggleWeatherStations={toggleWeatherStations}
               showSkiResorts={showSkiResorts}
               onToggleSkiResorts={toggleSkiResorts}
+              globalPopupRef={globalPopupRef}
             />
           )}
 
@@ -628,6 +632,7 @@ function WeatherMap() {
               map={map.current}
               visible={showWeatherStations}
               onStationClick={handleStationClick}
+              globalPopupRef={globalPopupRef}
             />
           )}
 
@@ -676,15 +681,6 @@ function WeatherMap() {
               </div>
             </div>
           )}
-
-          {/* Attribution */}
-          <div className="attribution">
-            <p>Weather: NOAA</p>
-            <p>Radar: RainViewer</p>
-            <p>Traffic: VT 511, USGS</p>
-            <p>Ski: Ski Vermont</p>
-            <p>Map: Protomaps / OSM</p>
-          </div>
         </div>
       </div>
 

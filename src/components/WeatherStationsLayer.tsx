@@ -24,6 +24,7 @@ interface WeatherStationsLayerProps {
   map: MapLibreMap | null;
   visible: boolean;
   onStationClick?: (station: ObservationStation) => void;
+  globalPopupRef: React.MutableRefObject<maplibregl.Popup | null>;
 }
 
 // =============================================================================
@@ -63,49 +64,44 @@ function createWeatherStationMarker(station: ObservationStation): HTMLDivElement
   const el = document.createElement('div');
   el.className = 'weather-station-marker';
 
-  // Color based on temperature
-  const temp = station.weather.temperature;
-  let color: string;
-  if (temp < 32) {
-    color = '#3b82f6'; // Blue for freezing
-  } else if (temp < 50) {
-    color = '#06b6d4'; // Cyan for cold
-  } else if (temp < 70) {
-    color = '#10b981'; // Green for mild
-  } else if (temp < 85) {
-    color = '#f59e0b'; // Amber for warm
-  } else {
-    color = '#ef4444'; // Red for hot
-  }
+  // Weather station colors - vibrant and eye-catching
+  const stationColors = {
+    bg: '#588bae', // Vibrant soft blue
+    border: '#ffffff', // White border for contrast
+    shadow: 'rgba(0, 0, 0, 0.3)',
+    text: '#ffffff' // White text
+  };
 
   el.style.cssText = `
-    width: 28px;
-    height: 28px;
-    background: ${color};
-    border: 2px solid white;
+    width: 34px;
+    height: 34px;
+    background: ${stationColors.bg};
+    border: 3px solid ${stationColors.border};
     border-radius: 50%;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 3px 8px ${stationColors.shadow};
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: box-shadow 0.2s ease, border-width 0.2s ease;
+    transition: all 0.2s ease;
     font-size: 10px;
     font-weight: 700;
-    color: white;
+    color: ${stationColors.text};
+    transform-origin: center center;
+    will-change: transform;
   `;
 
   el.textContent = `${Math.round(station.weather.temperature)}°`;
 
-  // Use box-shadow glow effect on hover instead of transform
+  // Add hover effect
   el.addEventListener('mouseenter', () => {
-    el.style.boxShadow = `0 0 12px ${color}, 0 2px 8px rgba(0, 0, 0, 0.3)`;
-    el.style.borderWidth = '3px';
+    el.style.transform = 'translateY(-2px) scale(1.1)';
+    el.style.boxShadow = `0 5px 12px ${stationColors.shadow}`;
   });
 
   el.addEventListener('mouseleave', () => {
-    el.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.25)';
-    el.style.borderWidth = '2px';
+    el.style.transform = 'translateY(0) scale(1)';
+    el.style.boxShadow = `0 3px 8px ${stationColors.shadow}`;
   });
 
   return el;
@@ -115,7 +111,7 @@ function createWeatherStationMarker(station: ObservationStation): HTMLDivElement
 // Component
 // =============================================================================
 
-function WeatherStationsLayer({ map, visible, onStationClick }: WeatherStationsLayerProps) {
+function WeatherStationsLayer({ map, visible, onStationClick, globalPopupRef }: WeatherStationsLayerProps) {
   const [stations, setStations] = useState<ObservationStation[]>([]);
   const [_loading, setLoading] = useState(false);
   const markersRef = useRef<MarkerEntry[]>([]);
@@ -148,7 +144,7 @@ function WeatherStationsLayer({ map, visible, onStationClick }: WeatherStationsL
   // Add markers to map when stations change
   useEffect(() => {
     if (!map || !visible) {
-      // Clear existing markers
+      // Clear existing markers and popup
       markersRef.current.forEach(({ marker, element, handler }) => {
         if (element && handler) {
           element.removeEventListener('click', handler as EventListener);
@@ -156,6 +152,10 @@ function WeatherStationsLayer({ map, visible, onStationClick }: WeatherStationsL
         marker.remove();
       });
       markersRef.current = [];
+      if (globalPopupRef.current) {
+        globalPopupRef.current.remove();
+        globalPopupRef.current = null;
+      }
       return;
     }
 
@@ -168,6 +168,15 @@ function WeatherStationsLayer({ map, visible, onStationClick }: WeatherStationsL
     });
     markersRef.current = [];
 
+    // Close popup on map click
+    const handleMapClick = (): void => {
+      if (globalPopupRef.current) {
+        globalPopupRef.current.remove();
+        globalPopupRef.current = null;
+      }
+    };
+    map.on('click', handleMapClick);
+
     // Add new markers for stations
     stations.forEach((station) => {
       const el = createWeatherStationMarker(station);
@@ -176,11 +185,138 @@ function WeatherStationsLayer({ map, visible, onStationClick }: WeatherStationsL
         .setLngLat([station.location.lng, station.location.lat])
         .addTo(map);
 
-      // Click handler opens DetailPanel
+      // Weather station colors (soft blue from style guide) - solid cream background
+      const stationColors = {
+        bg: '#fbfdf4',
+        border: 'rgba(88, 139, 174, 0.4)',
+        text: '#2c5368',
+        badgeBg: 'rgba(88, 139, 174, 0.2)',
+        badgeBorder: 'rgba(88, 139, 174, 0.4)',
+        secondary: '#7a9576',
+        metadata: '#7a9576'
+      };
+
+      // Escape HTML
+      const escapeHTML = (str: string): string => {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      };
+
+      const safeName = escapeHTML(station.name);
+      const temp = station.weather?.temperature ? `${Math.round(station.weather.temperature)}°F` : 'N/A';
+      const wind = station.weather?.windSpeed ? station.weather.windSpeed : 'N/A';
+      const humidity = station.weather?.humidity ? `${Math.round(station.weather.humidity)}%` : 'N/A';
+      const pressure = station.weather?.pressure ? `${(station.weather.pressure / 100).toFixed(2)} mb` : 'N/A';
+
+      // Create popup
+      const popup = new maplibregl.Popup({
+        offset: 25,
+        closeButton: true,
+        closeOnClick: false,
+        maxWidth: '280px',
+        className: 'station-popup'
+      }).setHTML(`
+        <div style="
+          padding: var(--space-7, 16px);
+          background: ${stationColors.bg};
+          border-radius: var(--radius-xl, 12px);
+          border: 1px solid rgba(93, 124, 90, 0.12);
+          box-shadow: 0 6px 16px rgba(150, 150, 140, 0.12);
+          font-family: 'Public Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        ">
+          <div style="
+            background: ${stationColors.badgeBg};
+            border: 2px solid ${stationColors.badgeBorder};
+            border-radius: var(--radius-lg, 8px);
+            padding: var(--space-2, 6px) var(--space-4, 10px);
+            margin-bottom: var(--space-5, 12px);
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2, 6px);
+          ">
+            <span style="
+              color: ${stationColors.text};
+              font-size: var(--font-size-sm, 10px);
+              font-weight: 600;
+              text-transform: uppercase;
+              letter-spacing: 0.05em;
+            ">Weather Station</span>
+          </div>
+          <h3 style="
+            margin: 0 0 var(--space-5, 12px) 0;
+            color: ${stationColors.text};
+            font-size: var(--font-size-2xl, 16px);
+            font-weight: 700;
+            line-height: 1.2;
+          ">${safeName}</h3>
+          <div style="
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-4, 10px);
+            margin-bottom: var(--space-3, 8px);
+          ">
+            <div style="
+              font-size: var(--font-size-sm, 10px);
+              color: ${stationColors.secondary};
+            ">
+              <div style="font-weight: 600; margin-bottom: 2px;">Temperature</div>
+              <div style="font-size: var(--font-size-xl, 14px); color: ${stationColors.text}; font-weight: 700;">${temp}</div>
+            </div>
+            <div style="
+              font-size: var(--font-size-sm, 10px);
+              color: ${stationColors.secondary};
+            ">
+              <div style="font-weight: 600; margin-bottom: 2px;">Wind</div>
+              <div style="font-size: var(--font-size-lg, 13px); color: ${stationColors.text}; font-weight: 600;">${wind}</div>
+            </div>
+            <div style="
+              font-size: var(--font-size-sm, 10px);
+              color: ${stationColors.secondary};
+            ">
+              <div style="font-weight: 600; margin-bottom: 2px;">Humidity</div>
+              <div style="font-size: var(--font-size-lg, 13px); color: ${stationColors.text}; font-weight: 600;">${humidity}</div>
+            </div>
+            <div style="
+              font-size: var(--font-size-sm, 10px);
+              color: ${stationColors.secondary};
+            ">
+              <div style="font-weight: 600; margin-bottom: 2px;">Pressure</div>
+              <div style="font-size: var(--font-size-lg, 13px); color: ${stationColors.text}; font-weight: 600;">${pressure}</div>
+            </div>
+          </div>
+          ${station.elevation ? `
+            <div style="
+              padding-top: var(--space-3, 8px);
+              border-top: 1px solid rgba(93, 124, 90, 0.12);
+              font-size: var(--font-size-sm, 10px);
+              color: ${stationColors.metadata};
+              font-weight: 500;
+            ">
+              Elevation: ${station.elevation.toLocaleString()} ft
+            </div>
+          ` : ''}
+        </div>
+      `);
+
+      // Click handler opens popup
       const handleMarkerClick = (e: MouseEvent): void => {
         e.stopPropagation();
-        if (onStationClick) {
-          onStationClick(station);
+
+        // Close existing popup if any (atomic operation)
+        if (globalPopupRef.current && globalPopupRef.current !== popup) {
+          globalPopupRef.current.remove();
+          globalPopupRef.current = null;
+        }
+
+        // Toggle popup: close if clicking same marker, open if different
+        if (globalPopupRef.current === popup) {
+          popup.remove();
+          globalPopupRef.current = null;
+        } else {
+          popup.setLngLat([station.location.lng, station.location.lat]).addTo(map);
+          globalPopupRef.current = popup;
         }
       };
 
@@ -202,8 +338,15 @@ function WeatherStationsLayer({ map, visible, onStationClick }: WeatherStationsL
         marker.remove();
       });
       markersRef.current = [];
+
+      // Clean up popup and map click handler
+      if (globalPopupRef.current) {
+        globalPopupRef.current.remove();
+        globalPopupRef.current = null;
+      }
+      map.off('click', handleMapClick);
     };
-  }, [map, visible, stations, onStationClick]);
+  }, [map, visible, stations]);
 
   // No UI panel - markers only
   return null;

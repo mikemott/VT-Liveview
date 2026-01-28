@@ -7,6 +7,12 @@
   color: var(--color-text-primary);
 }
 
+.incident-detail {
+  padding: var(--space-7);
+  border-radius: var(--radius-xl);
+  transition: background var(--transition-base);
+}
+
 /* Section */
 .detail-section,
 .alert-section,
@@ -105,6 +111,87 @@
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   margin-bottom: var(--space-7);
+}
+
+.incident-type-badge svg {
+  color: currentColor;
+}
+
+/* Incident Type Colors - Match Filter Chips */
+
+/* Accident - Terracotta Red */
+.incident-detail[data-incident-type="accident"] {
+  background: rgba(204, 102, 82, 0.08);
+}
+
+.incident-type-badge[data-incident-type="accident"] {
+  background: rgba(204, 102, 82, 0.2);
+  border-color: rgba(204, 102, 82, 0.4);
+  color: #6b3528;
+}
+
+.incident-title[data-incident-type="accident"] {
+  color: #6b3528;
+}
+
+/* Construction - Goldenrod */
+.incident-detail[data-incident-type="construction"] {
+  background: rgba(218, 165, 32, 0.08);
+}
+
+.incident-type-badge[data-incident-type="construction"] {
+  background: rgba(218, 165, 32, 0.2);
+  border-color: rgba(218, 165, 32, 0.4);
+  color: #6b5210;
+}
+
+.incident-title[data-incident-type="construction"] {
+  color: #6b5210;
+}
+
+/* Closure - Rose Pink */
+.incident-detail[data-incident-type="closure"] {
+  background: rgba(219, 112, 147, 0.08);
+}
+
+.incident-type-badge[data-incident-type="closure"] {
+  background: rgba(219, 112, 147, 0.2);
+  border-color: rgba(219, 112, 147, 0.4);
+  color: #6d3849;
+}
+
+.incident-title[data-incident-type="closure"] {
+  color: #6d3849;
+}
+
+/* Flooding - Teal */
+.incident-detail[data-incident-type="flooding"] {
+  background: rgba(72, 157, 153, 0.08);
+}
+
+.incident-type-badge[data-incident-type="flooding"] {
+  background: rgba(72, 157, 153, 0.2);
+  border-color: rgba(72, 157, 153, 0.4);
+  color: #254d4b;
+}
+
+.incident-title[data-incident-type="flooding"] {
+  color: #254d4b;
+}
+
+/* Hazard - Burnt Orange */
+.incident-detail[data-incident-type="hazard"] {
+  background: rgba(214, 126, 44, 0.08);
+}
+
+.incident-type-badge[data-incident-type="hazard"] {
+  background: rgba(214, 126, 44, 0.2);
+  border-color: rgba(214, 126, 44, 0.4);
+  color: #6a3e16;
+}
+
+.incident-title[data-incident-type="hazard"] {
+  color: #6a3e16;
 }
 
 .incident-title {

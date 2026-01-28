@@ -3,12 +3,11 @@
   top: var(--space-7);
   right: 60px;
   background: var(--gradient-panel);
-  backdrop-filter: blur(12px);
   border-radius: var(--radius-2xl);
-  padding: var(--space-7) var(--space-8);
+  padding: var(--space-5) var(--space-6);
   min-width: 160px;
   box-shadow: var(--shadow-lg);
-  border: 1px solid var(--color-border-divider);
+  border: 1px solid var(--color-vermont-green-subtle);
   z-index: var(--z-fixed);
   font-family: var(--font-family);
   transition: var(--transition-slow);
@@ -19,7 +18,7 @@
 .current-weather.collapsed {
   min-width: 160px;
   height: auto;
-  padding-bottom: var(--space-10);
+  padding-bottom: var(--space-8);
 }
 
 .current-weather.expanded {
@@ -101,64 +100,70 @@
 
 .temp-value {
   font-size: var(--font-size-6xl);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-bold);
   line-height: 1;
-  color: var(--color-text-primary-alt);
+  color: var(--color-vermont-green);
+  font-family: 'Space Mono', monospace;
+  letter-spacing: -0.02em;
 }
 
 .temp-unit {
   font-size: var(--font-size-4xl);
   font-weight: var(--font-weight-normal);
   margin-top: var(--space-1);
-  color: var(--color-text-tertiary);
+  color: var(--color-vermont-green-light);
+  font-family: 'Space Mono', monospace;
 }
 
 .weather-metrics {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  font-size: var(--font-size-lg);
-  color: var(--color-text-tertiary);
+  font-size: var(--font-size-md);
+  color: var(--color-vermont-green);
   font-weight: var(--font-weight-medium);
 }
 
 .weather-metrics svg {
-  color: var(--color-text-muted);
+  color: var(--color-vermont-green-light);
   flex-shrink: 0;
 }
 
 .metric-separator {
-  color: var(--color-text-disabled);
+  color: var(--color-vermont-green-lighter);
   font-weight: var(--font-weight-normal);
   margin: 0 var(--space-1);
 }
 
 .weather-description {
-  font-size: var(--font-size-2xl);
-  color: var(--color-text-secondary);
-  margin-bottom: var(--space-5);
+  font-size: var(--font-size-xl);
+  color: var(--color-vermont-green);
+  margin-bottom: var(--space-4);
   text-transform: capitalize;
+  font-weight: var(--font-weight-medium);
 }
 
 /* Forecast Section */
 .forecast-section {
-  margin-top: var(--space-5);
-  padding-top: var(--space-5);
-  border-top: 1px solid var(--color-border-divider);
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-vermont-green-subtle);
 }
 
 .forecast-title {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
-  color: var(--color-text-tertiary);
-  margin-bottom: var(--space-4);
+  color: var(--color-vermont-green);
+  margin-bottom: var(--space-3);
   text-transform: uppercase;
-  letter-spacing: var(--letter-spacing-wide);
+  letter-spacing: 0.10em;
+  font-family: 'Space Mono', monospace;
 }
 
 .forecast-cards {
   display: flex;
-  gap: var(--space-4);
+  justify-content: center;
+  gap: var(--space-3);
   overflow-x: auto;
   overflow-y: hidden;
   padding: 2px;
@@ -173,38 +178,39 @@
 }
 
 .forecast-card {
-  flex: 0 0 76px;
+  flex: 0 0 70px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-4) var(--space-3);
-  background: var(--color-bg-glass-subtle);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--color-border-divider);
-  box-shadow: var(--shadow-sm);
+  padding: var(--space-3) var(--space-2);
+  background: var(--color-vermont-green-faint);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-vermont-green-subtle);
+  box-shadow: 0 2px 4px rgba(93, 124, 90, 0.08);
   scroll-snap-align: start;
-  transition: transform var(--transition-base), box-shadow var(--transition-base);
+  transition: all var(--transition-base);
 }
 
 .forecast-card:hover {
-  transform: scale(1.02);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+  background: var(--color-vermont-green-subtle);
+  border-color: var(--color-vermont-green-lighter);
 }
 
 .forecast-period-label {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  color: var(--color-text-tertiary);
+  color: var(--color-vermont-green-light);
   text-align: center;
   line-height: var(--line-height-tight);
 }
 
 .forecast-card:first-child .forecast-period-label,
 .forecast-card:nth-child(2) .forecast-period-label {
-  color: var(--color-info);
+  color: var(--color-vermont-green);
 }
 
 .forecast-icon {
@@ -215,23 +221,25 @@
 }
 
 .forecast-icon svg {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
 }
 
 .forecast-temperature {
-  font-size: var(--font-size-3xl);
+  font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
-  color: var(--color-text-primary-alt);
+  color: var(--color-vermont-green);
+  font-family: 'Space Mono', monospace;
 }
 
 .station-name {
-  margin-top: var(--space-4);
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--color-border-divider);
-  font-size: var(--font-size-base);
-  color: var(--color-text-disabled);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-vermont-green-subtle);
+  font-size: var(--font-size-sm);
+  color: var(--color-vermont-green-light);
   text-align: center;
+  font-weight: var(--font-weight-medium);
 }
 
 /* Expand/Collapse Indicator */
@@ -243,9 +251,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-text-tertiary);
-  transition: transform var(--transition-spring), color var(--transition-base);
-  animation: bounce 2s ease-in-out infinite;
+  color: var(--color-vermont-green-light);
+  transition: transform var(--transition-base), color var(--transition-base);
+  animation: subtle-bounce 3s ease-in-out infinite;
   pointer-events: none;
 }
 
@@ -255,19 +263,19 @@
 }
 
 .current-weather:hover .expand-indicator {
-  color: var(--color-info);
+  color: var(--color-vermont-green);
   animation-play-state: paused;
 }
 
-@keyframes bounce {
+@keyframes subtle-bounce {
   0%, 20%, 50%, 80%, 100% {
     transform: translateX(-50%) translateY(0);
   }
   40% {
-    transform: translateX(-50%) translateY(-4px);
+    transform: translateX(-50%) translateY(-2px);
   }
   60% {
-    transform: translateX(-50%) translateY(-2px);
+    transform: translateX(-50%) translateY(-1px);
   }
 }
 
@@ -276,12 +284,12 @@
   .current-weather {
     top: var(--space-3);
     right: var(--space-3);
-    padding: var(--space-5) var(--space-7);
+    padding: var(--space-4) var(--space-5);
     min-width: 140px;
   }
 
   .current-weather.collapsed {
-    padding-bottom: 28px;
+    padding-bottom: 26px;
   }
 
   .temp-value {
@@ -294,7 +302,7 @@
   }
 
   .weather-metrics {
-    font-size: var(--font-size-md);
+    font-size: var(--font-size-sm);
     gap: var(--space-1);
   }
 
@@ -307,12 +315,12 @@
 /* Mobile-specific minimal collapsed state */
 .current-weather.mobile.collapsed {
   min-width: auto;
-  padding: var(--space-4) var(--space-6) var(--space-9) var(--space-6);
+  padding: var(--space-3) var(--space-5) var(--space-7) var(--space-5);
   border-radius: var(--radius-xl);
 }
 
 .current-weather.mobile.collapsed .weather-main {
-  gap: var(--space-3);
+  gap: var(--space-2);
   margin-bottom: 0;
 }
 

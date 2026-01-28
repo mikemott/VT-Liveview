@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo, ReactNode, memo } from 'react';
-import { AlertTriangle, Construction, Ban, Waves, AlertOctagon, ChevronDown, ChevronRight, Thermometer, Mountain } from 'lucide-react';
+import { AlertTriangle, Construction, Ban, Waves, AlertOctagon, ChevronDown, ChevronRight, Thermometer, Mountain, ZoomIn } from 'lucide-react';
 import maplibregl from 'maplibre-gl';
 import { fetchAllIncidents, type TravelIncident } from '../services/travelApi';
 import { getIncidentColor, shouldShowIncident } from '../utils/incidentColors';
@@ -31,6 +31,7 @@ interface TravelLayerProps {
   onToggleWeatherStations: () => void;
   showSkiResorts: boolean;
   onToggleSkiResorts: () => void;
+  globalPopupRef: React.MutableRefObject<maplibregl.Popup | null>;
 }
 
 interface IncidentsByType {
@@ -60,7 +61,7 @@ function getIcon(type: IncidentType, size: number = 16): ReactNode {
 
 function getTypeLabel(type: IncidentType, short: boolean = false): string {
   const labels: Record<IncidentType, string> = {
-    ACCIDENT: short ? 'Incidents' : 'Accidents',
+    ACCIDENT: 'Accidents',
     CONSTRUCTION: 'Construction',
     CLOSURE: short ? 'Closures' : 'Road Closures',
     FLOODING: short ? 'Floods' : 'Flooding',
@@ -73,7 +74,7 @@ function getTypeLabel(type: IncidentType, short: boolean = false): string {
 // Component
 // =============================================================================
 
-function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, onToggleWeatherStations, showSkiResorts, onToggleSkiResorts }: TravelLayerProps) {
+function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, onToggleWeatherStations, showSkiResorts, onToggleSkiResorts, globalPopupRef }: TravelLayerProps) {
   const [incidents, setIncidents] = useState<TravelIncident[]>([]);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(true);
@@ -88,7 +89,6 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
   const markersRef = useRef<MarkerEntry[]>([]);
-  const currentPopupRef = useRef<Popup | null>(null);
 
   // Fetch incidents function (accessible to retry button)
   const fetchIncidentsData = useCallback(async (): Promise<void> => {
@@ -236,18 +236,18 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
     if (!map || !visible) {
       // Clear existing markers, event listeners, and popup
       cleanupMarkers(markersRef.current);
-      if (currentPopupRef.current) {
-        currentPopupRef.current.remove();
-        currentPopupRef.current = null;
+      if (globalPopupRef.current) {
+        globalPopupRef.current.remove();
+        globalPopupRef.current = null;
       }
       return;
     }
 
     // Close popup when clicking on map
     const handleMapClick = (): void => {
-      if (currentPopupRef.current) {
-        currentPopupRef.current.remove();
-        currentPopupRef.current = null;
+      if (globalPopupRef.current) {
+        globalPopupRef.current.remove();
+        globalPopupRef.current = null;
       }
     };
     map.on('click', handleMapClick);
@@ -318,27 +318,58 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
         return gradients[type] || gradients.HAZARD;
       };
 
-      const gradient = getPopupGradient(incident.type, isDark);
-      const themeColors = isDark ? {
-        title: '#f5f5f5',
-        text: '#e5e5e5',
-        textSecondary: '#d1d1d1',
-        metadata: '#a3a3a3',
-        border: 'rgba(255, 255, 255, 0.1)',
-        background: 'rgba(23, 23, 23, 0.95)',
-        badgeText: gradient.textDark,
-        badgeAccent: gradient.accentDark,
-        gradient: gradient.dark
-      } : {
-        title: '#1f2937',
-        text: '#4b5563',
-        textSecondary: '#6b7280',
-        metadata: '#9ca3af',
-        border: 'rgba(0, 0, 0, 0.1)',
-        background: 'rgba(255, 255, 255, 0.98)',
-        badgeText: gradient.textLight,
-        badgeAccent: gradient.accentLight,
-        gradient: gradient.light
+      // Vintage topographic colors matching detail cards - solid cream background
+      const categoryColors: Record<IncidentType, { bg: string; border: string; text: string; badgeBg: string; badgeBorder: string }> = {
+        ACCIDENT: {
+          bg: '#fbfdf4',
+          border: 'rgba(204, 102, 82, 0.4)',
+          text: '#6b3528',
+          badgeBg: 'rgba(204, 102, 82, 0.2)',
+          badgeBorder: 'rgba(204, 102, 82, 0.4)'
+        },
+        CONSTRUCTION: {
+          bg: '#fbfdf4',
+          border: 'rgba(218, 165, 32, 0.4)',
+          text: '#6b5210',
+          badgeBg: 'rgba(218, 165, 32, 0.2)',
+          badgeBorder: 'rgba(218, 165, 32, 0.4)'
+        },
+        CLOSURE: {
+          bg: '#fbfdf4',
+          border: 'rgba(219, 112, 147, 0.4)',
+          text: '#6d3849',
+          badgeBg: 'rgba(219, 112, 147, 0.2)',
+          badgeBorder: 'rgba(219, 112, 147, 0.4)'
+        },
+        FLOODING: {
+          bg: '#fbfdf4',
+          border: 'rgba(72, 157, 153, 0.4)',
+          text: '#254d4b',
+          badgeBg: 'rgba(72, 157, 153, 0.2)',
+          badgeBorder: 'rgba(72, 157, 153, 0.4)'
+        },
+        HAZARD: {
+          bg: '#fbfdf4',
+          border: 'rgba(214, 126, 44, 0.4)',
+          text: '#6a3e16',
+          badgeBg: 'rgba(214, 126, 44, 0.2)',
+          badgeBorder: 'rgba(214, 126, 44, 0.4)'
+        }
+      };
+
+      const catColors = categoryColors[incident.type];
+      const themeColors = {
+        title: catColors.text,
+        text: '#5d7c5a',
+        textSecondary: '#7a9576',
+        metadata: '#7a9576',
+        border: 'rgba(93, 124, 90, 0.12)',
+        background: '#fbfdf4',
+        categoryBg: catColors.bg,
+        categoryBorder: catColors.border,
+        categoryText: catColors.text,
+        badgeBg: catColors.badgeBg,
+        badgeBorder: catColors.badgeBorder
       };
 
       // Escape user-controlled content to prevent XSS
@@ -347,8 +378,8 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
       const safeDescription = escapeHTML(incident.description);
       const safeSource = escapeHTML(incident.source);
 
-      // Location pin SVG icon (replaces emoji)
-      const pinIcon = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${themeColors.badgeAccent}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`;
+      // Location pin SVG icon
+      const pinIcon = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${themeColors.textSecondary}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`;
 
       const popup = new maplibregl.Popup({
         offset: 25,
@@ -358,41 +389,38 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
         className: 'incident-popup'
       }).setHTML(`
         <div style="
-          padding: 12px;
-          background: ${themeColors.background};
-          backdrop-filter: blur(12px);
-          border-radius: 12px;
+          padding: var(--space-7, 16px);
+          background: ${themeColors.categoryBg};
+          border-radius: var(--radius-xl, 12px);
           border: 1px solid ${themeColors.border};
-          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          box-shadow: 0 6px 16px rgba(150, 150, 140, 0.12);
+          font-family: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         ">
           <div style="
-            background: ${themeColors.gradient};
-            border: 1.5px solid ${themeColors.badgeAccent}40;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 10px;
+            background: ${themeColors.badgeBg};
+            border: 2px solid ${themeColors.badgeBorder};
+            border-radius: var(--radius-lg, 8px);
+            padding: var(--space-3, 8px) var(--space-6, 14px);
+            margin-bottom: var(--space-7, 16px);
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-3, 8px);
           ">
-            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
-              <span style="
-                background: ${themeColors.badgeAccent}25;
-                color: ${themeColors.badgeText};
-                padding: 3px 8px;
-                border-radius: 6px;
-                font-size: 10px;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 0.8px;
-              ">${incident.type}</span>
-            </div>
-            <h3 style="
-              margin: 0;
-              color: ${themeColors.badgeText};
-              font-size: 14px;
+            <span style="
+              color: ${themeColors.categoryText};
+              font-size: var(--font-size-lg, 13px);
               font-weight: 600;
-              line-height: 1.3;
-            ">${safeTitle}</h3>
+              text-transform: uppercase;
+              letter-spacing: 0.05em;
+            ">${incident.type}</span>
           </div>
+          <h3 style="
+            margin: 0 0 var(--space-3, 8px) 0;
+            color: ${themeColors.title};
+            font-size: var(--font-size-3xl, 18px);
+            font-weight: 700;
+            line-height: 1.2;
+          ">${safeTitle}</h3>
           ${safeRoadName ? `
             <div style="
               display: flex;
@@ -449,18 +477,18 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
         e.stopPropagation(); // Prevent map click from closing immediately
 
         // Close existing popup if any (atomic operation)
-        if (currentPopupRef.current && currentPopupRef.current !== popup) {
-          currentPopupRef.current.remove();
-          currentPopupRef.current = null;
+        if (globalPopupRef.current && globalPopupRef.current !== popup) {
+          globalPopupRef.current.remove();
+          globalPopupRef.current = null;
         }
 
         // Toggle popup: close if clicking same marker, open if different
-        if (currentPopupRef.current === popup) {
+        if (globalPopupRef.current === popup) {
           popup.remove();
-          currentPopupRef.current = null;
+          globalPopupRef.current = null;
         } else {
           popup.setLngLat([incident.location.lng, incident.location.lat]).addTo(map);
-          currentPopupRef.current = popup;
+          globalPopupRef.current = popup;
         }
       };
 
@@ -481,9 +509,9 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
       cleanupMarkers(markersRef.current);
 
       // Clean up popup
-      if (currentPopupRef.current) {
-        currentPopupRef.current.remove();
-        currentPopupRef.current = null;
+      if (globalPopupRef.current) {
+        globalPopupRef.current.remove();
+        globalPopupRef.current = null;
       }
 
       // Clean up map click handler
@@ -642,18 +670,10 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
                       <div
                         key={incident.id}
                         className={`incident-item ${selectedIncident?.id === incident.id ? 'selected' : ''} ${(incident.geometry || incident.location) ? 'clickable' : ''}`}
-                        style={{
-                          borderLeftColor: getIncidentColor(incident.type).primary,
-                          background: isDark
-                            ? `linear-gradient(135deg, ${getIncidentColor(incident.type).primary}15 0%, ${getIncidentColor(incident.type).primary}08 100%)`
-                            : `linear-gradient(135deg, ${getIncidentColor(incident.type).primary}0A 0%, ${getIncidentColor(incident.type).primary}05 100%)`
-                        }}
+                        data-incident-type={incident.type.toLowerCase()}
                         onClick={() => (incident.geometry || incident.location) && handleIncidentClick(incident)}
                       >
-                        <div
-                          className="incident-title"
-                          style={{ color: getIncidentColor(incident.type).primary }}
-                        >
+                        <div className="incident-title">
                           {incident.title}
                           {(incident.geometry || incident.location) && selectedIncident?.id === incident.id && (
                             <span style={{ marginLeft: '8px', fontSize: '12px' }}>📍</span>
@@ -679,7 +699,8 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
           {/* Zoom hint */}
           {currentZoom < 8 && (
             <div className="zoom-hint">
-              <span>🔍 Zoom in to see more incidents</span>
+              <ZoomIn size={16} />
+              <span>Zoom in to see more incidents</span>
             </div>
           )}
         </div>

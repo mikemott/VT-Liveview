@@ -14,6 +14,8 @@
    ================================================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
 
 /* =================================================================
    Light Mode (Default)
@@ -22,17 +24,17 @@
 :root {
   /* -------------------------
      Color Palette - Backgrounds
-     Clean, modern white with subtle warmth
+     UI elements: soft greenish-cream, Page: complementary gradient
      ------------------------- */
-  --color-bg-primary: rgba(255, 255, 255, 0.92);
-  --color-bg-secondary: #f8f9fa;
-  --color-bg-tertiary: #f1f3f4;
-  --color-bg-glass: rgba(255, 255, 255, 0.88);
-  --color-bg-glass-subtle: rgba(255, 255, 255, 0.7);
-  --color-bg-surface: rgba(255, 255, 255, 0.85);
-  --color-bg-surface-hover: rgba(255, 255, 255, 0.95);
-  --color-bg-overlay: rgba(0, 0, 0, 0.25);
-  --color-bg-overlay-heavy: rgba(0, 0, 0, 0.4);
+  --color-bg-primary: #f8faf0;
+  --color-bg-secondary: #f5f8ec;
+  --color-bg-tertiary: #f2f5e8;
+  --color-bg-glass: rgba(248, 250, 240, 0.88);
+  --color-bg-glass-subtle: rgba(245, 248, 236, 0.7);
+  --color-bg-surface: #fbfdf4;
+  --color-bg-surface-hover: #fdfef8;
+  --color-bg-overlay: rgba(150, 150, 140, 0.15);
+  --color-bg-overlay-heavy: rgba(150, 150, 140, 0.25);
 
   /* -------------------------
      Color Palette - Text
@@ -48,18 +50,18 @@
   --color-text-inverse: #ffffff;
 
   /* -------------------------
-     Color Palette - Dusty Blue Theme
-     Soft, muted blue - THE single accent
+     Color Palette - Hazy Topographic Pastels
+     Darker olive-sage green for readability (inspired by vintage USGS maps)
      ------------------------- */
-  --color-vermont-green: #5B8BAE;
-  --color-vermont-green-light: #7BA5C7;
-  --color-vermont-green-lighter: rgba(91, 139, 174, 0.25);
-  --color-vermont-green-subtle: rgba(91, 139, 174, 0.1);
-  --color-vermont-green-faint: rgba(91, 139, 174, 0.05);
-  --color-vermont-tan: rgba(91, 139, 174, 0.2);
-  --color-vermont-tan-light: rgba(91, 139, 174, 0.1);
-  --color-vermont-cream: rgba(241, 243, 244, 0.8);
-  --color-vermont-cream-light: rgba(248, 249, 250, 0.5);
+  --color-vermont-green: #5d7c5a;
+  --color-vermont-green-light: #7a9576;
+  --color-vermont-green-lighter: rgba(93, 124, 90, 0.25);
+  --color-vermont-green-subtle: rgba(93, 124, 90, 0.12);
+  --color-vermont-green-faint: rgba(93, 124, 90, 0.06);
+  --color-vermont-tan: rgba(232, 228, 194, 0.3);
+  --color-vermont-tan-light: rgba(232, 228, 194, 0.15);
+  --color-vermont-cream: rgba(251, 253, 244, 0.9);
+  --color-vermont-cream-light: rgba(251, 253, 244, 0.7);
 
   /* -------------------------
      Color Palette - Accent
@@ -96,28 +98,35 @@
   --color-border-divider: rgba(0, 0, 0, 0.08);
 
   /* -------------------------
-     Alert Severity Colors
-     Red → Orange → Yellow → Dusty Blue
+     Alert Severity Colors - Soft Pastels
+     Matching framed alert cards reference
      ------------------------- */
-  --color-alert-extreme-bg: rgba(185, 28, 28, 0.1);
-  --color-alert-extreme-border: #b91c1c;
-  --color-alert-severe-bg: rgba(194, 65, 12, 0.1);
-  --color-alert-severe-border: #c2410c;
-  --color-alert-moderate-bg: rgba(161, 98, 7, 0.1);
-  --color-alert-moderate-border: #a16207;
-  --color-alert-minor-bg: rgba(91, 139, 174, 0.08);
-  --color-alert-minor-border: #5B8BAE;
+  --color-alert-extreme-bg: rgba(245, 197, 192, 0.08);
+  --color-alert-extreme-border: #f5c5c0;
+  --color-alert-extreme-glow: rgba(245, 197, 192, 0.25);
+
+  --color-alert-severe-bg: rgba(245, 213, 176, 0.08);
+  --color-alert-severe-border: #f5d5b0;
+  --color-alert-severe-glow: rgba(245, 213, 176, 0.25);
+
+  --color-alert-moderate-bg: rgba(245, 230, 179, 0.08);
+  --color-alert-moderate-border: #f5e6b3;
+  --color-alert-moderate-glow: rgba(245, 230, 179, 0.25);
+
+  --color-alert-minor-bg: rgba(197, 216, 240, 0.08);
+  --color-alert-minor-border: #c5d8f0;
+  --color-alert-minor-glow: rgba(197, 216, 240, 0.25);
 
   /* -------------------------
      Gradients
-     Subtle, clean gradients
+     UI elements use #fbfdf4, backgrounds use complementary sage-cream tones
      ------------------------- */
-  --gradient-surface: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 249, 250, 0.9) 100%);
-  --gradient-panel: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 249, 250, 0.92) 100%);
-  --gradient-header: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.92) 100%);
-  --gradient-attribution: linear-gradient(180deg, rgba(248, 249, 250, 0.6) 0%, rgba(241, 243, 244, 0.75) 100%);
-  --gradient-vermont-accent: linear-gradient(90deg, rgba(91, 139, 174, 0) 0%, rgba(91, 139, 174, 0.15) 50%, rgba(91, 139, 174, 0) 100%);
-  --gradient-skeleton: linear-gradient(90deg, #f1f3f4 25%, #f8f9fa 50%, #f1f3f4 75%);
+  --gradient-surface: linear-gradient(180deg, #fbfdf4 0%, #f9fbf2 100%);
+  --gradient-panel: linear-gradient(180deg, #fbfdf4 0%, #f9fbf2 100%);
+  --gradient-header: linear-gradient(180deg, rgba(251, 253, 244, 0.4) 0%, rgba(245, 248, 236, 0.3) 100%);
+  --gradient-attribution: linear-gradient(180deg, rgba(248, 250, 240, 0.6) 0%, rgba(245, 248, 236, 0.75) 100%);
+  --gradient-vermont-accent: linear-gradient(90deg, rgba(184, 212, 176, 0) 0%, rgba(184, 212, 176, 0.15) 50%, rgba(184, 212, 176, 0) 100%);
+  --gradient-skeleton: linear-gradient(90deg, #f5f8ec 25%, #f8faf0 50%, #f5f8ec 75%);
 
   /* -------------------------
      Spacing Scale (Condensed)
@@ -182,16 +191,16 @@
   --radius-full: 9999px;
 
   /* -------------------------
-     Shadows
+     Shadows - Soft, diffused (matching smooth chips reference)
      ------------------------- */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
-  --shadow-xl: 0 8px 32px rgba(0, 0, 0, 0.15);
-  --shadow-2xl: 0 12px 48px rgba(0, 0, 0, 0.2);
-  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.5);
-  --shadow-glow: 0 0 8px rgba(59, 130, 246, 0.4);
+  --shadow-xs: 0 1px 3px rgba(150, 150, 140, 0.06);
+  --shadow-sm: 0 2px 4px rgba(150, 150, 140, 0.08);
+  --shadow-md: 0 4px 8px rgba(150, 150, 140, 0.1);
+  --shadow-lg: 0 6px 16px rgba(150, 150, 140, 0.12);
+  --shadow-xl: 0 8px 24px rgba(150, 150, 140, 0.14);
+  --shadow-2xl: 0 12px 32px rgba(150, 150, 140, 0.16);
+  --shadow-inset: inset 0 1px 2px rgba(184, 212, 176, 0.15);
+  --shadow-glow: 0 0 20px rgba(184, 212, 176, 0.3);
 
   /* -------------------------
      Transitions
