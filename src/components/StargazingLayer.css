@@ -1,0 +1,442 @@
+/* StargazingLayer.css - Stargazing feature styles */
+
+.stargazing-layer {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(139, 119, 85, 0.15);
+}
+
+.stargazing-layer .section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  margin-bottom: 12px;
+  padding: 4px 0;
+}
+
+.stargazing-layer .section-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #2d4a2b;
+}
+
+.stargazing-layer .section-icon {
+  color: #f59e0b;
+}
+
+.stargazing-layer .expand-toggle {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: #6b7280;
+  border-radius: 4px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.stargazing-layer .expand-toggle:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #374151;
+}
+
+.stargazing-layer .section-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Tonight's Conditions */
+.stargazing-conditions {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.condition-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.condition-row svg {
+  color: #6366f1;
+  flex-shrink: 0;
+}
+
+.condition-label {
+  color: #4b5c47;
+  flex: 1;
+}
+
+.condition-value {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.quality-badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  color: white;
+  font-weight: 600;
+}
+
+/* Toggle Row */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.stargazing-layer .toggle-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #4b5c47;
+}
+
+.stargazing-layer .toggle-control input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #6366f1;
+  cursor: pointer;
+}
+
+.stargazing-layer .toggle-control svg {
+  color: #6366f1;
+}
+
+.stargazing-layer .visibility-toggle {
+  background: none;
+  border: none;
+  padding: 6px;
+  cursor: pointer;
+  color: #6b7280;
+  border-radius: 6px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.stargazing-layer .visibility-toggle:hover {
+  background-color: rgba(99, 102, 241, 0.1);
+  color: #6366f1;
+}
+
+/* Opacity Control */
+.stargazing-layer .opacity-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.stargazing-layer .opacity-control label {
+  font-size: 12px;
+  color: #6b7280;
+  min-width: 50px;
+}
+
+.stargazing-layer .opacity-control input[type="range"] {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(99, 102, 241, 0.2);
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.stargazing-layer .opacity-control input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background: #6366f1;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.stargazing-layer .opacity-control input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: #6366f1;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.stargazing-layer .opacity-control span {
+  font-size: 12px;
+  color: #888;
+  min-width: 35px;
+  text-align: right;
+}
+
+/* Bortle Legend */
+.bortle-legend {
+  margin-top: 8px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 8px;
+}
+
+.bortle-legend .legend-title {
+  font-size: 11px;
+  color: #888;
+  text-align: center;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.bortle-legend .legend-gradient {
+  display: flex;
+  height: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.bortle-legend .legend-segment {
+  flex: 1;
+  cursor: help;
+  transition: transform 0.15s ease;
+}
+
+.bortle-legend .legend-segment:hover {
+  transform: scaleY(1.5);
+}
+
+.bortle-legend .legend-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-size: 10px;
+  color: #999;
+}
+
+/* Dark Sky Site Markers */
+.dark-sky-marker {
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.dark-sky-marker:hover {
+  transform: scale(1.2);
+}
+
+.dark-sky-marker.bortle-2,
+.dark-sky-marker.bortle-3 {
+  color: #ffd700;
+}
+
+.dark-sky-marker.bortle-4,
+.dark-sky-marker.bortle-5 {
+  color: #ffa500;
+}
+
+.dark-sky-marker.bortle-6,
+.dark-sky-marker.bortle-7 {
+  color: #888888;
+}
+
+/* Popup Styles */
+.stargazing-popup {
+  padding: 12px;
+  font-family: 'Public Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  max-width: 300px;
+}
+
+.stargazing-popup .popup-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.stargazing-popup .popup-star {
+  color: #f59e0b;
+  font-size: 18px;
+}
+
+.stargazing-popup h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.stargazing-popup .bortle-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.stargazing-popup .popup-description {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.stargazing-popup .popup-facilities {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.stargazing-popup .facility-tag {
+  font-size: 11px;
+  background: rgba(0, 0, 0, 0.06);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.stargazing-popup .popup-notes {
+  margin: 0;
+  font-size: 11px;
+  color: #9ca3af;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+/* Dark Mode Popup */
+.stargazing-popup.dark {
+  background: #1a1a1a;
+}
+
+.stargazing-popup.dark h3 {
+  color: #f5f5f5;
+}
+
+.stargazing-popup.dark .popup-description {
+  color: #a5a5a5;
+}
+
+.stargazing-popup.dark .popup-notes {
+  color: #808080;
+}
+
+.stargazing-popup.dark .facility-tag {
+  background: rgba(255, 255, 255, 0.1);
+  color: #c5c5c5;
+}
+
+/* Dark Mode Styles */
+.stargazing-layer.dark {
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+.stargazing-layer.dark .section-header h3 {
+  color: #b8cdb0;
+}
+
+.stargazing-layer.dark .expand-toggle {
+  color: #a5a5a5;
+}
+
+.stargazing-layer.dark .expand-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #d5d5d5;
+}
+
+.stargazing-layer.dark .stargazing-conditions {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
+}
+
+.stargazing-layer.dark .condition-row svg {
+  color: #818cf8;
+}
+
+.stargazing-layer.dark .condition-label {
+  color: #a5a5a5;
+}
+
+.stargazing-layer.dark .condition-value {
+  color: #e5e5e5;
+}
+
+.stargazing-layer.dark .toggle-control {
+  color: #c5c5c5;
+}
+
+.stargazing-layer.dark .toggle-control input[type="checkbox"] {
+  accent-color: #818cf8;
+}
+
+.stargazing-layer.dark .toggle-control svg {
+  color: #818cf8;
+}
+
+.stargazing-layer.dark .visibility-toggle {
+  color: #a5a5a5;
+}
+
+.stargazing-layer.dark .visibility-toggle:hover {
+  background-color: rgba(99, 102, 241, 0.2);
+  color: #818cf8;
+}
+
+.stargazing-layer.dark .opacity-control label {
+  color: #a5a5a5;
+}
+
+.stargazing-layer.dark .opacity-control input[type="range"] {
+  background: rgba(99, 102, 241, 0.3);
+}
+
+.stargazing-layer.dark .opacity-control input[type="range"]::-webkit-slider-thumb {
+  background: #818cf8;
+}
+
+.stargazing-layer.dark .opacity-control input[type="range"]::-moz-range-thumb {
+  background: #818cf8;
+}
+
+.stargazing-layer.dark .opacity-control span {
+  color: #a5a5a5;
+}
+
+.stargazing-layer.dark .bortle-legend {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.stargazing-layer.dark .bortle-legend .legend-title {
+  color: #a5a5a5;
+}
+
+.stargazing-layer.dark .bortle-legend .legend-labels {
+  color: #808080;
+}
+
+/* MapLibre Popup Override for Stargazing */
+.maplibregl-popup-content:has(.stargazing-popup) {
+  padding: 0;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.maplibregl-popup-content:has(.stargazing-popup.dark) {
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}

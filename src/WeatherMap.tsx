@@ -5,6 +5,7 @@ import './WeatherMap.css';
 import TravelLayer from './components/TravelLayer';
 import WeatherStationsLayer from './components/WeatherStationsLayer';
 import SkiLayer from './components/SkiLayer';
+import StargazingLayer from './components/StargazingLayer';
 import CurrentWeather from './components/CurrentWeather';
 import RadarOverlay from './components/RadarOverlay';
 import ThemeToggle from './components/ThemeToggle';
@@ -641,6 +642,15 @@ function WeatherMap() {
             <SkiLayer
               map={map.current}
               visible={showSkiResorts}
+            />
+          )}
+
+          {/* Stargazing Layer */}
+          {mapLoaded && (
+            <StargazingLayer
+              map={map.current}
+              isDark={isDark}
+              key={mapStyleVersion}
             />
           )}
 
