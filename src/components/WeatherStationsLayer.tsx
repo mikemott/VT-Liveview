@@ -72,7 +72,10 @@ function createWeatherStationMarker(station: ObservationStation): HTMLDivElement
     text: '#ffffff' // White text
   };
 
-  el.style.cssText = `
+  // Create inner element for content and hover effects
+  // This prevents conflicts with MapLibre's positioning transform
+  const inner = document.createElement('div');
+  inner.style.cssText = `
     width: 34px;
     height: 34px;
     background: ${stationColors.bg};
@@ -91,19 +94,20 @@ function createWeatherStationMarker(station: ObservationStation): HTMLDivElement
     will-change: transform;
   `;
 
-  el.textContent = `${Math.round(station.weather.temperature)}°`;
+  inner.textContent = `${Math.round(station.weather.temperature)}°`;
 
-  // Add hover effect
-  el.addEventListener('mouseenter', () => {
-    el.style.transform = 'translateY(-2px) scale(1.1)';
-    el.style.boxShadow = `0 5px 12px ${stationColors.shadow}`;
+  // Add hover effect to inner element only
+  inner.addEventListener('mouseenter', () => {
+    inner.style.transform = 'translateY(-2px) scale(1.1)';
+    inner.style.boxShadow = `0 5px 12px ${stationColors.shadow}`;
   });
 
-  el.addEventListener('mouseleave', () => {
-    el.style.transform = 'translateY(0) scale(1)';
-    el.style.boxShadow = `0 3px 8px ${stationColors.shadow}`;
+  inner.addEventListener('mouseleave', () => {
+    inner.style.transform = 'translateY(0) scale(1)';
+    inner.style.boxShadow = `0 3px 8px ${stationColors.shadow}`;
   });
 
+  el.appendChild(inner);
   return el;
 }
 
