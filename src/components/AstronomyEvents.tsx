@@ -18,7 +18,7 @@ export default function AstronomyEvents({ isDark = false }: AstronomyEventsProps
 
   // Format date
   const formatDate = (month: number, day: number): string => {
-    const date = new Date(2024, month - 1, day);
+    const date = new Date(new Date().getFullYear(), month - 1, day);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
@@ -38,7 +38,7 @@ export default function AstronomyEvents({ isDark = false }: AstronomyEventsProps
 
   return (
     <div className={`astronomy-events ${isDark ? 'dark' : ''}`}>
-      <div className="section-header" onClick={() => setExpanded(!expanded)}>
+      <div className="section-header">
         <h4>
           <Sparkles size={14} className="section-icon" />
           <span>Sky Events</span>
@@ -46,6 +46,7 @@ export default function AstronomyEvents({ isDark = false }: AstronomyEventsProps
         </h4>
         <button
           className="expand-toggle"
+          onClick={() => setExpanded(!expanded)}
           aria-expanded={expanded}
           aria-label={expanded ? 'Collapse events' : 'Expand events'}
         >

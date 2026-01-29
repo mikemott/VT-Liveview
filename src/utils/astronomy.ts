@@ -58,9 +58,7 @@ export function calculateMoonPhase(date: Date = new Date()): MoonPhaseInfo {
   const isWaxing = phase < 0.5;
 
   // Days until next new moon
-  const daysUntilNew = phase < 0.5
-    ? Math.round(synodicMonth * (1 - phase))
-    : Math.round(synodicMonth * (1 - phase));
+  const daysUntilNew = Math.round(synodicMonth * (1 - phase));
 
   // Days until next full moon
   const daysUntilFull = phase < 0.5
