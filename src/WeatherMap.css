@@ -113,16 +113,16 @@
   border-bottom: 3px solid transparent;
   border-image: linear-gradient(90deg,
     transparent 0%,
-    rgba(206, 243, 230, 0.4) 20%,
-    rgba(206, 243, 230, 0.8) 50%,
-    rgba(206, 243, 230, 0.4) 80%,
+    var(--color-accent-cyan-glow-soft) 20%,
+    var(--color-accent-cyan-glow) 50%,
+    var(--color-accent-cyan-glow-soft) 80%,
     transparent 100%
   ) 1;
   position: relative;
   border-radius: var(--panel-border-radius) var(--panel-border-radius) 0 0;
   overflow: visible;
   min-height: 80px;
-  box-shadow: 0 3px 20px rgba(206, 243, 230, 0.35);
+  box-shadow: 0 3px 20px var(--color-accent-cyan-glow-very-soft);
 }
 
 .header-actions {
@@ -139,7 +139,7 @@
   transform: translateX(-50%);
   width: 120px;
   height: 4px;
-  background: radial-gradient(ellipse at center, rgba(206, 243, 230, 0.6) 0%, transparent 70%);
+  background: radial-gradient(ellipse at center, var(--color-accent-cyan-glow) 0%, transparent 70%);
   filter: blur(3px);
 }
 
@@ -269,31 +269,31 @@
   width: 18px;
   height: 18px;
   border-radius: var(--radius-full);
-  background: #cef3e6 !important;
+  background: var(--color-accent-cyan) !important;
   cursor: pointer;
   transition: background var(--transition-base);
-  box-shadow: 0 0 8px rgba(206, 243, 230, 0.4) !important;
+  box-shadow: 0 0 8px var(--color-accent-cyan-glow-soft) !important;
 }
 
 .slider-control input[type="range"]::-webkit-slider-thumb:hover {
-  background: #cef3e6 !important;
-  box-shadow: 0 0 12px rgba(206, 243, 230, 0.6) !important;
+  background: var(--color-accent-cyan) !important;
+  box-shadow: 0 0 12px var(--color-accent-cyan-glow) !important;
 }
 
 .slider-control input[type="range"]::-moz-range-thumb {
   width: 18px;
   height: 18px;
   border-radius: var(--radius-full);
-  background: #cef3e6 !important;
+  background: var(--color-accent-cyan) !important;
   cursor: pointer;
   border: none;
   transition: background var(--transition-base);
-  box-shadow: 0 0 8px rgba(206, 243, 230, 0.4) !important;
+  box-shadow: 0 0 8px var(--color-accent-cyan-glow-soft) !important;
 }
 
 .slider-control input[type="range"]::-moz-range-thumb:hover {
-  background: #cef3e6 !important;
-  box-shadow: 0 0 12px rgba(206, 243, 230, 0.6) !important;
+  background: var(--color-accent-cyan) !important;
+  box-shadow: 0 0 12px var(--color-accent-cyan-glow) !important;
 }
 
 .alerts-list {

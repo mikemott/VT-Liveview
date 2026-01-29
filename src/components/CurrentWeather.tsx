@@ -146,7 +146,7 @@ export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, i
             </div>
           )}
 
-          {data.stationName && (
+          {data?.stationName && (
             <div className="station-name">
               {data.stationName}
             </div>

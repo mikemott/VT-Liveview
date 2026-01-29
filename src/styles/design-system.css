@@ -88,6 +88,16 @@
   --color-nowcast: #7c3aed;
 
   /* -------------------------
+     Color Palette - Cyan Accent
+     Reserved for special interactive elements (radar, sliders, success)
+     ------------------------- */
+  --color-accent-cyan: #cef3e6;
+  --color-accent-cyan-glow: rgba(206, 243, 230, 0.6);
+  --color-accent-cyan-glow-soft: rgba(206, 243, 230, 0.4);
+  --color-accent-cyan-glow-very-soft: rgba(206, 243, 230, 0.3);
+  --color-accent-cyan-border: rgba(55, 65, 81, 0.2);
+
+  /* -------------------------
      Color Palette - Borders
      Clean neutral borders
      ------------------------- */
@@ -325,6 +335,16 @@
   --color-error-subtle: rgba(255, 128, 128, 0.15);
   --color-info: #6ba3ff;
   --color-info-subtle: rgba(107, 163, 255, 0.15);
+
+  /* -------------------------
+     Color Palette - Cyan Accent (Dark Mode)
+     Dimmed for dark theme visibility
+     ------------------------- */
+  --color-accent-cyan: #a0d8c8;
+  --color-accent-cyan-glow: rgba(160, 216, 200, 0.4);
+  --color-accent-cyan-glow-soft: rgba(160, 216, 200, 0.25);
+  --color-accent-cyan-glow-very-soft: rgba(160, 216, 200, 0.15);
+  --color-accent-cyan-border: rgba(160, 216, 200, 0.3);
 
   /* -------------------------
      Color Palette - Borders

@@ -373,14 +373,14 @@
 
 .success-icon {
   font-size: var(--font-size-5xl);
-  color: #cef3e6;
+  color: var(--color-accent-cyan);
   text-shadow:
     -1px -1px 0 rgba(55, 65, 81, 0.4),
     1px -1px 0 rgba(55, 65, 81, 0.4),
     -1px 1px 0 rgba(55, 65, 81, 0.4),
     1px 1px 0 rgba(55, 65, 81, 0.4),
     0 2px 4px rgba(55, 65, 81, 0.3),
-    0 0 12px rgba(206, 243, 230, 0.6);
+    0 0 12px var(--color-accent-cyan-glow);
 }
 
 .no-incidents p {
