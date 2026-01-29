@@ -5,7 +5,6 @@ import './WeatherMap.css';
 import TravelLayer from './components/TravelLayer';
 import WeatherStationsLayer from './components/WeatherStationsLayer';
 import SkiLayer from './components/SkiLayer';
-import StargazingLayer from './components/StargazingLayer';
 import CurrentWeather from './components/CurrentWeather';
 import RadarOverlay from './components/RadarOverlay';
 import ThemeToggle from './components/ThemeToggle';
@@ -75,6 +74,7 @@ function WeatherMap() {
   });
   const [showWeatherStations, setShowWeatherStations] = useState(true);
   const [showSkiResorts, setShowSkiResorts] = useState(false);
+  const [showStargazing, setShowStargazing] = useState(false);
 
   // Mobile responsiveness
   const isMobile = useIsMobile();
@@ -524,6 +524,11 @@ function WeatherMap() {
     setShowSkiResorts(prev => !prev);
   }, []);
 
+  // Toggle stargazing visibility
+  const toggleStargazing = useCallback((): void => {
+    setShowStargazing(prev => !prev);
+  }, []);
+
   // Handle weather station click - memoized to prevent marker recreation
   const handleStationClick = useCallback((station: ObservationStation): void => {
     setDetailPanelContent({ type: 'station', data: station });
@@ -608,7 +613,7 @@ function WeatherMap() {
           {/* Radar Controls */}
           {mapLoaded && (
             <div className="control-section">
-              <RadarOverlay map={map.current} isDark={isDark} key={mapStyleVersion} />
+              <RadarOverlay map={map.current} isDark={isDark} key={mapStyleVersion} collapsed={showStargazing} />
             </div>
           )}
 
@@ -623,7 +628,10 @@ function WeatherMap() {
               onToggleWeatherStations={toggleWeatherStations}
               showSkiResorts={showSkiResorts}
               onToggleSkiResorts={toggleSkiResorts}
+              showStargazing={showStargazing}
+              onToggleStargazing={toggleStargazing}
               globalPopupRef={globalPopupRef}
+              mapStyleVersion={mapStyleVersion}
             />
           )}
 
@@ -642,15 +650,6 @@ function WeatherMap() {
             <SkiLayer
               map={map.current}
               visible={showSkiResorts}
-            />
-          )}
-
-          {/* Stargazing Layer */}
-          {mapLoaded && (
-            <StargazingLayer
-              map={map.current}
-              isDark={isDark}
-              key={mapStyleVersion}
             />
           )}
 

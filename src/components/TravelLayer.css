@@ -213,6 +213,34 @@
   color: #6a3e16;
 }
 
+/* Stargazing - Indigo/Purple (night sky) */
+.filter-chip.active[data-chip-type="stargazing"] {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: #3730a3;
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.1),
+    0 2px 4px rgba(99, 102, 241, 0.18);
+}
+
+.filter-chip.active[data-chip-type="stargazing"] .chip-icon {
+  color: #6366f1;
+}
+
+/* Ski Resorts - Cool Blue */
+.filter-chip.active[data-chip-type="ski"] {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: rgba(56, 189, 248, 0.4);
+  color: #0369a1;
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.1),
+    0 2px 4px rgba(56, 189, 248, 0.18);
+}
+
+.filter-chip.active[data-chip-type="ski"] .chip-icon {
+  color: #0ea5e9;
+}
+
 /* =============================================================================
    Map Popup Styling - Vintage Topographic Theme
    ============================================================================= */
@@ -322,6 +350,28 @@
 .dark .filter-chip.active[data-chip-type="weather"] .chip-icon {
   background: rgba(59, 130, 246, 0.25);
   color: #93C5FD;
+}
+
+.dark .filter-chip.active[data-chip-type="stargazing"] {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.22) 0%, rgba(139, 92, 246, 0.18) 100%);
+  border-color: rgba(139, 92, 246, 0.5);
+  color: #c4b5fd;
+}
+
+.dark .filter-chip.active[data-chip-type="stargazing"] .chip-icon {
+  background: rgba(139, 92, 246, 0.25);
+  color: #a78bfa;
+}
+
+.dark .filter-chip.active[data-chip-type="ski"] {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.18) 0%, rgba(56, 189, 248, 0.12) 100%);
+  border-color: rgba(56, 189, 248, 0.4);
+  color: #7dd3fc;
+}
+
+.dark .filter-chip.active[data-chip-type="ski"] .chip-icon {
+  background: rgba(56, 189, 248, 0.25);
+  color: #7dd3fc;
 }
 
 /* Legacy filter-grid support (deprecated) */

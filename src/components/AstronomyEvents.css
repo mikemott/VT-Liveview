@@ -1,9 +1,10 @@
 /* AstronomyEvents.css - Sky events calendar styles */
+/* Uses CSS variables from design-system.css */
 
 .astronomy-events {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(139, 119, 85, 0.1);
+  margin-top: var(--space-4, 10px);
+  padding-top: var(--space-4, 10px);
+  border-top: 1px solid var(--color-border-subtle, rgba(0, 0, 0, 0.06));
 }
 
 .astronomy-events .section-header {
@@ -11,19 +12,19 @@
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
-  padding: 4px 0;
+  padding: var(--space-1, 4px) 0;
 }
 
 .astronomy-events .section-header h4 {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-2, 6px);
   margin: 0;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--font-size-sm, 10px);
+  font-weight: var(--font-weight-semibold, 600);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #4b5c47;
+  color: var(--color-text-secondary, #374151);
 }
 
 .astronomy-events .section-icon {
@@ -46,10 +47,10 @@
 .astronomy-events .expand-toggle {
   background: none;
   border: none;
-  padding: 4px;
+  padding: var(--space-1, 4px);
   cursor: pointer;
-  color: #6b7280;
-  border-radius: 4px;
+  color: var(--color-text-muted, #6b7280);
+  border-radius: var(--radius-sm, 4px);
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
@@ -59,20 +60,20 @@
 }
 
 .events-content {
-  margin-top: 8px;
+  margin-top: var(--space-3, 8px);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-4, 10px);
 }
 
 .events-section h5 {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin: 0 0 8px 0;
-  font-size: 11px;
-  font-weight: 600;
-  color: #6b7280;
+  gap: var(--space-2, 6px);
+  margin: 0 0 var(--space-3, 8px) 0;
+  font-size: var(--font-size-xs, 9px);
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--color-text-tertiary, #4b5563);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -85,13 +86,13 @@
 .showers-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-2, 6px);
 }
 
 .shower-card {
   background: rgba(139, 92, 246, 0.05);
-  border-radius: 8px;
-  padding: 8px 10px;
+  border-radius: var(--radius-md, 6px);
+  padding: var(--space-3, 8px) var(--space-4, 10px);
   cursor: pointer;
   transition: background-color 0.15s ease, transform 0.15s ease;
   border: 1px solid transparent;
@@ -99,45 +100,46 @@
 
 .shower-card:hover {
   background: rgba(139, 92, 246, 0.1);
+  transform: translateY(-1px);
 }
 
 .shower-card.active {
-  background: rgba(34, 197, 94, 0.1);
-  border-color: rgba(34, 197, 94, 0.3);
+  background: rgba(34, 197, 94, 0.08);
+  border-color: rgba(34, 197, 94, 0.25);
 }
 
 .shower-card.peak {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(234, 88, 12, 0.15) 100%);
-  border-color: rgba(245, 158, 11, 0.4);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(234, 88, 12, 0.12) 100%);
+  border-color: rgba(245, 158, 11, 0.35);
 }
 
 .shower-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 4px;
+  margin-bottom: var(--space-1, 4px);
 }
 
 .shower-name {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #1f2937;
+  gap: var(--space-2, 6px);
+  font-size: var(--font-size-md, 12px);
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--color-text-primary, #1a1a1a);
 }
 
 .shower-rate {
-  font-size: 11px;
+  font-size: var(--font-size-sm, 10px);
   color: #8b5cf6;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium, 500);
 }
 
 .shower-meta {
   display: flex;
   justify-content: space-between;
-  font-size: 11px;
-  color: #6b7280;
+  font-size: var(--font-size-sm, 10px);
+  color: var(--color-text-tertiary, #4b5563);
 }
 
 .shower-meta .constellation {
@@ -146,10 +148,10 @@
 
 /* Badges */
 .badge {
-  font-size: 9px;
+  font-size: 8px;
   padding: 2px 6px;
-  border-radius: 10px;
-  font-weight: 600;
+  border-radius: var(--radius-full, 9999px);
+  font-weight: var(--font-weight-bold, 700);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -176,75 +178,78 @@
 }
 
 .badge.upcoming {
-  background: rgba(107, 114, 128, 0.2);
-  color: #6b7280;
+  background: var(--color-bg-overlay, rgba(150, 150, 140, 0.15));
+  color: var(--color-text-tertiary, #4b5563);
 }
 
 /* Shower Details */
 .shower-details {
-  margin-top: 8px;
-  padding-top: 8px;
+  margin-top: var(--space-3, 8px);
+  padding-top: var(--space-3, 8px);
   border-top: 1px solid rgba(139, 92, 246, 0.1);
 }
 
 .shower-description {
-  margin: 0 0 6px 0;
-  font-size: 11px;
-  color: #4b5563;
-  line-height: 1.4;
+  margin: 0 0 var(--space-2, 6px) 0;
+  font-size: var(--font-size-sm, 10px);
+  color: var(--color-text-secondary, #374151);
+  line-height: var(--line-height-relaxed, 1.5);
 }
 
 .shower-tips {
   margin: 0;
-  font-size: 11px;
-  color: #6b7280;
+  font-size: var(--font-size-sm, 10px);
+  color: var(--color-text-tertiary, #4b5563);
   font-style: italic;
-  line-height: 1.4;
+  line-height: var(--line-height-relaxed, 1.5);
 }
 
 /* Planets List */
 .planets-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-1, 4px);
 }
 
 .planet-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
+  gap: var(--space-3, 8px);
+  padding: var(--space-2, 6px) var(--space-3, 8px);
   background: rgba(139, 92, 246, 0.05);
-  border-radius: 6px;
-  font-size: 12px;
+  border-radius: var(--radius-md, 6px);
+  font-size: var(--font-size-sm, 10px);
 }
 
 .planet-name {
-  font-weight: 600;
-  color: #1f2937;
-  min-width: 60px;
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--color-text-primary, #1a1a1a);
+  min-width: 56px;
 }
 
 .planet-period {
-  color: #6b7280;
+  color: var(--color-text-tertiary, #4b5563);
   flex: 1;
   text-transform: capitalize;
 }
 
 .planet-mag {
-  font-size: 10px;
+  font-size: var(--font-size-xs, 9px);
   color: #8b5cf6;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium, 500);
 }
 
 .no-events {
   margin: 0;
-  font-size: 11px;
-  color: #9ca3af;
+  font-size: var(--font-size-sm, 10px);
+  color: var(--color-text-muted, #6b7280);
   font-style: italic;
 }
 
-/* Dark Mode */
+/* =============================================================================
+   Dark Mode
+   ============================================================================= */
+
 .astronomy-events.dark {
   border-top-color: rgba(255, 255, 255, 0.1);
 }
@@ -275,13 +280,13 @@
 }
 
 .astronomy-events.dark .shower-card.active {
-  background: rgba(34, 197, 94, 0.15);
-  border-color: rgba(34, 197, 94, 0.4);
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.35);
 }
 
 .astronomy-events.dark .shower-card.peak {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(234, 88, 12, 0.2) 100%);
-  border-color: rgba(245, 158, 11, 0.5);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.18) 0%, rgba(234, 88, 12, 0.18) 100%);
+  border-color: rgba(245, 158, 11, 0.45);
 }
 
 .astronomy-events.dark .shower-name {

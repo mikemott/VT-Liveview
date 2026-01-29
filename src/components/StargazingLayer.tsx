@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback, ChangeEvent } from 'react';
 import { createRoot } from 'react-dom/client';
 import maplibregl from 'maplibre-gl';
-import { Star, Eye, EyeOff, MapPin, Moon, ChevronDown, ChevronRight } from 'lucide-react';
+import { Star, Eye, EyeOff, MapPin, Moon } from 'lucide-react';
 import { LIGHT_POLLUTION_DATA, VERMONT_DARK_SKY_ZONES } from '../data/lightPollution';
 import { DARK_SKY_SITES } from '../data/darkSkySites';
 import { BORTLE_COLORS, BORTLE_DESCRIPTIONS } from '../types/stargazing';
@@ -44,10 +44,9 @@ export default function StargazingLayer({
   onSiteClick,
   cloudCoverPercent = 20,
 }: StargazingLayerProps) {
-  const [visible, setVisible] = useState(false); // Off by default
+  const [visible, setVisible] = useState(true); // On by default when stargazing mode is active
   const [showSites, setShowSites] = useState(true);
   const [opacity, setOpacity] = useState(0.5);
-  const [expanded, setExpanded] = useState(true);
   const layersInitialized = useRef(false);
   const markersRef = useRef<MarkerEntry[]>([]);
   const currentPopupRef = useRef<maplibregl.Popup | null>(null);
@@ -333,43 +332,64 @@ export default function StargazingLayer({
     }
   };
 
-  // Suppress unused variable warning
-  void qualityScore;
+  // Get moon phase CSS class
+  const getMoonPhaseClass = (phaseName: string): string => {
+    const normalized = phaseName.toLowerCase().replace(/\s+/g, '-');
+    return normalized;
+  };
+
+  // Calculate quality meter stroke
+  const meterRadius = 18;
+  const meterCircumference = 2 * Math.PI * meterRadius;
+  const meterOffset = meterCircumference - (qualityScore / 100) * meterCircumference;
 
   return (
     <div className={`stargazing-layer ${isDark ? 'dark' : ''}`}>
-      <div className="section-header" onClick={() => setExpanded(!expanded)}>
-        <h3>
-          <Star size={16} className="section-icon" />
-          <span>Stargazing</span>
-        </h3>
-        <button
-          className="expand-toggle"
-          aria-expanded={expanded}
-          aria-label={expanded ? 'Collapse stargazing section' : 'Expand stargazing section'}
-        >
-          {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-        </button>
-      </div>
-
-      {expanded && (
-        <div className="section-content">
-          {/* Tonight's Conditions Quick View */}
+      <div className="section-content">
+          {/* Tonight's Conditions - Hero Card */}
           <div className="stargazing-conditions">
-            <div className="condition-row">
-              <Moon size={14} />
-              <span className="condition-label">{moonPhase.phaseName}</span>
-              <span className="condition-value">{moonPhase.illumination}% lit</span>
-            </div>
-            <div className="condition-row">
-              <Star size={14} />
-              <span className="condition-label">Tonight</span>
-              <span
-                className="condition-value quality-badge"
-                style={{ backgroundColor: getQualityColor(qualityRating) }}
-              >
-                {qualityRating}
-              </span>
+            <div className="conditions-header">
+              {/* Moon Phase Display */}
+              <div className="moon-display">
+                <div className={`moon-icon ${getMoonPhaseClass(moonPhase.phaseName)}`} />
+                <div className="moon-info">
+                  <span className="moon-phase-name">{moonPhase.phaseName}</span>
+                  <span className="moon-illumination">{moonPhase.illumination}% illuminated</span>
+                </div>
+              </div>
+
+              {/* Quality Score Meter */}
+              <div className="quality-display">
+                <div className="quality-meter">
+                  <svg width="44" height="44" viewBox="0 0 44 44">
+                    <circle
+                      className="quality-meter-bg"
+                      cx="22"
+                      cy="22"
+                      r={meterRadius}
+                    />
+                    <circle
+                      className="quality-meter-fill"
+                      cx="22"
+                      cy="22"
+                      r={meterRadius}
+                      stroke={getQualityColor(qualityRating)}
+                      strokeDasharray={meterCircumference}
+                      strokeDashoffset={meterOffset}
+                    />
+                  </svg>
+                  <span className="quality-meter-text">{qualityScore}</span>
+                </div>
+                <div className="quality-info">
+                  <span
+                    className="quality-rating"
+                    style={{ backgroundColor: getQualityColor(qualityRating) }}
+                  >
+                    {qualityRating}
+                  </span>
+                  <span className="quality-label">Tonight</span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -446,10 +466,9 @@ export default function StargazingLayer({
             </>
           )}
 
-          {/* Astronomy Events (always visible when expanded) */}
+          {/* Astronomy Events */}
           <AstronomyEvents isDark={isDark} />
         </div>
-      )}
     </div>
   );
 }
