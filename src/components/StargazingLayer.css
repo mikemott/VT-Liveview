@@ -13,6 +13,13 @@
   gap: var(--space-5);
 }
 
+.stargazing-layer .dark-sky-description {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  line-height: var(--line-height-relaxed);
+}
+
 /* =============================================================================
    Tonight's Conditions Card - Hero Element
    ============================================================================= */
@@ -302,6 +309,13 @@
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
+.bortle-legend .legend-gradient.dark-sky-gradient {
+  height: 14px;
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.2),
+    0 0 8px rgba(99, 102, 241, 0.3);
+}
+
 .bortle-legend .legend-segment {
   flex: 1;
   cursor: help;
@@ -317,9 +331,40 @@
   border-radius: 0 var(--radius-full) var(--radius-full) 0;
 }
 
-.bortle-legend .legend-segment:hover {
-  transform: scaleY(1.4);
+.bortle-legend .legend-segment:hover,
+.bortle-legend .legend-segment.active {
+  transform: scaleY(1.6);
   z-index: 1;
+}
+
+.bortle-legend .legend-segment-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 8px;
+  font-weight: var(--font-weight-bold);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  color: inherit;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.bortle-legend .legend-segment:hover .legend-segment-label {
+  opacity: 1;
+}
+
+/* Bortle class text colors for readability */
+.bortle-legend .legend-segment:nth-child(1) .legend-segment-label,
+.bortle-legend .legend-segment:nth-child(2) .legend-segment-label,
+.bortle-legend .legend-segment:nth-child(3) .legend-segment-label {
+  color: #fff;
+}
+
+.bortle-legend .legend-segment:nth-child(4) .legend-segment-label,
+.bortle-legend .legend-segment:nth-child(5) .legend-segment-label,
+.bortle-legend .legend-segment:nth-child(6) .legend-segment-label {
+  color: #1a1a2e;
 }
 
 .bortle-legend .legend-labels {
@@ -328,6 +373,64 @@
   margin-top: var(--space-2);
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
+}
+
+/* Bortle Detail Tooltip */
+.bortle-detail {
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  background: var(--color-vermont-green-faint);
+  border: 1px solid var(--color-vermont-green-subtle);
+  border-radius: var(--radius-md);
+  animation: fadeIn 0.15s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.bortle-detail-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.bortle-detail-badge {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.bortle-detail-name {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.bortle-detail-list {
+  font-size: var(--font-size-sm);
+}
+
+.bortle-detail-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: var(--space-2);
+}
+
+.bortle-detail ul {
+  margin: 0;
+  padding-left: var(--space-5);
+  color: var(--color-text-secondary);
+}
+
+.bortle-detail li {
+  margin-bottom: 2px;
+  line-height: var(--line-height-normal);
 }
 
 /* =============================================================================
@@ -515,6 +618,27 @@
 
 .stargazing-layer.dark .bortle-legend .legend-labels {
   color: #808080;
+}
+
+.stargazing-layer.dark .bortle-detail {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.stargazing-layer.dark .bortle-detail-name {
+  color: #c5c5c5;
+}
+
+.stargazing-layer.dark .bortle-detail-label {
+  color: #808080;
+}
+
+.stargazing-layer.dark .bortle-detail ul {
+  color: #a5a5a5;
+}
+
+.stargazing-layer.dark .dark-sky-description {
+  color: #a5a5a5;
 }
 
 /* Dark Mode Popup */

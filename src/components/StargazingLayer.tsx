@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState, useCallback, ChangeEvent } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
 import maplibregl from 'maplibre-gl';
-import { Star, Eye, EyeOff, MapPin, Moon } from 'lucide-react';
-import { LIGHT_POLLUTION_DATA, VERMONT_DARK_SKY_ZONES } from '../data/lightPollution';
+import { Star } from 'lucide-react';
+import { VERMONT_DARK_SKY_ZONES } from '../data/lightPollution';
 import { DARK_SKY_SITES } from '../data/darkSkySites';
 import { BORTLE_COLORS, BORTLE_DESCRIPTIONS } from '../types/stargazing';
 import { calculateMoonPhase, calculateStargazingScore } from '../utils/astronomy';
@@ -44,9 +44,7 @@ export default function StargazingLayer({
   onSiteClick,
   cloudCoverPercent = 20,
 }: StargazingLayerProps) {
-  const [visible, setVisible] = useState(true); // On by default when stargazing mode is active
-  const [showSites, setShowSites] = useState(true);
-  const [opacity, setOpacity] = useState(0.5);
+  const [hoveredBortle, setHoveredBortle] = useState<BortleClass | null>(null);
   const layersInitialized = useRef(false);
   const markersRef = useRef<MarkerEntry[]>([]);
   const currentPopupRef = useRef<maplibregl.Popup | null>(null);
@@ -104,13 +102,15 @@ export default function StargazingLayer({
     // Only initialize once
     if (layersInitialized.current) return;
 
-    // Add dark sky base zones (Bortle 2-3 areas)
+    // Dark sky zones - show WHERE the dark skies are (the goal)
+    // Rich blue/purple colors = excellent stargazing areas
     if (!hasSource('dark-sky-zones')) {
       map.addSource('dark-sky-zones', {
         type: 'geojson',
         data: VERMONT_DARK_SKY_ZONES,
       });
 
+      // Fill layer with night-sky colors based on Bortle class
       map.addLayer({
         id: 'dark-sky-zones-fill',
         type: 'fill',
@@ -119,52 +119,44 @@ export default function StargazingLayer({
           'fill-color': [
             'match',
             ['get', 'bortleClass'],
-            2, BORTLE_COLORS[2],
-            3, BORTLE_COLORS[3],
-            BORTLE_COLORS[3], // default
+            2, '#1a1a4e',  // Deepest blue-purple (best skies)
+            3, '#2d2d6b',  // Rich blue (excellent skies)
+            '#2d2d6b',
           ],
           'fill-opacity': 0,
         },
       });
-    }
 
-    // Add light pollution zones (population centers)
-    if (!hasSource('light-pollution')) {
-      map.addSource('light-pollution', {
-        type: 'geojson',
-        data: LIGHT_POLLUTION_DATA,
-      });
-
+      // Subtle glow outline to make zones feel special
       map.addLayer({
-        id: 'light-pollution-fill',
-        type: 'fill',
-        source: 'light-pollution',
+        id: 'dark-sky-zones-outline',
+        type: 'line',
+        source: 'dark-sky-zones',
         paint: {
-          'fill-color': [
+          'line-color': [
             'match',
             ['get', 'bortleClass'],
-            4, BORTLE_COLORS[4],
-            5, BORTLE_COLORS[5],
-            6, BORTLE_COLORS[6],
-            7, BORTLE_COLORS[7],
-            8, BORTLE_COLORS[8],
-            9, BORTLE_COLORS[9],
-            BORTLE_COLORS[5], // default
+            2, '#6366f1',  // Indigo glow for class 2
+            3, '#818cf8',  // Lighter indigo for class 3
+            '#818cf8',
           ],
-          'fill-opacity': 0,
+          'line-width': 2,
+          'line-opacity': 0,
+          'line-blur': 2,
         },
       });
+
+      // Set initial opacity immediately (80% visibility)
+      map.setPaintProperty('dark-sky-zones-fill', 'fill-opacity', 0.4);
+      map.setPaintProperty('dark-sky-zones-outline', 'line-opacity', 0.56);
     }
 
     layersInitialized.current = true;
 
     return () => {
-      // Cleanup layers
-      if (hasLayer('light-pollution-fill')) {
-        map.removeLayer('light-pollution-fill');
-      }
-      if (hasSource('light-pollution')) {
-        map.removeSource('light-pollution');
+      // Cleanup dark sky layers
+      if (hasLayer('dark-sky-zones-outline')) {
+        map.removeLayer('dark-sky-zones-outline');
       }
       if (hasLayer('dark-sky-zones-fill')) {
         map.removeLayer('dark-sky-zones-fill');
@@ -176,23 +168,25 @@ export default function StargazingLayer({
     };
   }, [map, hasLayer, hasSource]);
 
-  // Update layer visibility and opacity
+  // Set layer opacity (fixed at 80% for clear visibility)
   useEffect(() => {
     if (!map || !layersInitialized.current) return;
 
-    const targetOpacity = visible ? opacity : 0;
+    const targetOpacity = 0.8;
 
+    // Dark sky zone fills
     if (hasLayer('dark-sky-zones-fill')) {
-      map.setPaintProperty('dark-sky-zones-fill', 'fill-opacity', targetOpacity * 0.6);
+      map.setPaintProperty('dark-sky-zones-fill', 'fill-opacity', targetOpacity * 0.5);
     }
-    if (hasLayer('light-pollution-fill')) {
-      map.setPaintProperty('light-pollution-fill', 'fill-opacity', targetOpacity);
+    // Dark sky zone outlines (glowing border)
+    if (hasLayer('dark-sky-zones-outline')) {
+      map.setPaintProperty('dark-sky-zones-outline', 'line-opacity', targetOpacity * 0.7);
     }
-  }, [map, visible, opacity, hasLayer]);
+  }, [map, hasLayer]);
 
-  // Create dark sky site markers
+  // Create dark sky site markers (always shown when stargazing is active)
   useEffect(() => {
-    if (!map || !visible || !showSites) {
+    if (!map) {
       cleanupMarkers();
       return;
     }
@@ -315,11 +309,7 @@ export default function StargazingLayer({
       cleanupMarkers();
       map.off('click', handleMapClick);
     };
-  }, [map, visible, showSites, isDark, onSiteClick, cleanupMarkers]);
-
-  const handleOpacityChange = (e: ChangeEvent<HTMLInputElement>): void => {
-    setOpacity(parseFloat(e.target.value));
-  };
+  }, [map, isDark, onSiteClick, cleanupMarkers]);
 
   // Get quality color
   const getQualityColor = (rating: string): string => {
@@ -393,78 +383,61 @@ export default function StargazingLayer({
             </div>
           </div>
 
-          {/* Layer Toggle */}
-          <div className="toggle-row">
-            <label className="toggle-control">
-              <input
-                type="checkbox"
-                checked={visible}
-                onChange={() => setVisible(!visible)}
-              />
-              <span>Light Pollution</span>
-            </label>
-            <button
-              className="visibility-toggle"
-              onClick={() => setVisible(!visible)}
-              title={visible ? 'Hide layer' : 'Show layer'}
-              aria-label={visible ? 'Hide light pollution layer' : 'Show light pollution layer'}
-              aria-pressed={visible}
-            >
-              {visible ? <Eye size={16} /> : <EyeOff size={16} />}
-            </button>
-          </div>
+          {/* Dark Sky Sites Description */}
+          <p className="dark-sky-description">
+            Shaded zones show Vermont's darkest skies. Star markers indicate accessible viewing sites with parking.
+          </p>
 
-          {visible && (
-            <>
-              {/* Opacity Slider */}
-              <div className="opacity-control">
-                <label htmlFor="stargazing-opacity">Opacity</label>
-                <input
-                  id="stargazing-opacity"
-                  type="range"
-                  min="0.1"
-                  max="0.8"
-                  step="0.1"
-                  value={opacity}
-                  onChange={handleOpacityChange}
-                  aria-label="Light pollution overlay opacity"
-                />
-                <span>{Math.round(opacity * 100)}%</span>
-              </div>
-
-              {/* Sites Toggle */}
-              <div className="toggle-row">
-                <label className="toggle-control">
-                  <input
-                    type="checkbox"
-                    checked={showSites}
-                    onChange={() => setShowSites(!showSites)}
-                  />
-                  <MapPin size={14} />
-                  <span>Dark Sky Sites ({DARK_SKY_SITES.length})</span>
-                </label>
-              </div>
-
-              {/* Bortle Scale Legend */}
+          {/* Dark Sky Quality Legend */}
               <div className="bortle-legend">
-                <div className="legend-title">Light Pollution (Bortle Scale)</div>
-                <div className="legend-gradient">
-                  {([2, 3, 4, 5, 6, 7] as BortleClass[]).map((bortle) => (
+                <div className="legend-title">Dark Sky Quality (Bortle Scale)</div>
+                <div className="legend-gradient dark-sky-gradient">
+                  {([2, 3] as BortleClass[]).map((bortle) => (
                     <div
                       key={bortle}
-                      className="legend-segment"
-                      style={{ backgroundColor: BORTLE_COLORS[bortle] }}
+                      className={`legend-segment ${hoveredBortle === bortle ? 'active' : ''}`}
+                      style={{ backgroundColor: bortle === 2 ? '#1a1a4e' : '#2d2d6b' }}
+                      onMouseEnter={() => setHoveredBortle(bortle)}
+                      onMouseLeave={() => setHoveredBortle(null)}
                       title={`Class ${bortle}: ${BORTLE_DESCRIPTIONS[bortle].description}`}
-                    />
+                    >
+                      <span className="legend-segment-label">{bortle}</span>
+                    </div>
                   ))}
                 </div>
                 <div className="legend-labels">
-                  <span>Darkest</span>
-                  <span>Brightest</span>
+                  <span>Excellent</span>
+                  <span>Very Good</span>
                 </div>
+
+                {/* Expanded detail on hover */}
+                {hoveredBortle && (
+                  <div className="bortle-detail">
+                    <div className="bortle-detail-header">
+                      <span
+                        className="bortle-detail-badge"
+                        style={{
+                          backgroundColor: hoveredBortle === 2 ? '#1a1a4e' : '#2d2d6b',
+                          color: '#fff'
+                        }}
+                      >
+                        Bortle {hoveredBortle}
+                      </span>
+                      <span className="bortle-detail-name">
+                        {BORTLE_DESCRIPTIONS[hoveredBortle].description}
+                      </span>
+                    </div>
+                    <div className="bortle-detail-list">
+                      <span className="bortle-detail-label">What you can see:</span>
+                      <ul>
+                        {BORTLE_DESCRIPTIONS[hoveredBortle].canSee.slice(0, 3).map((item, idx) => (
+                          <li key={idx}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
               </div>
-            </>
-          )}
 
           {/* Astronomy Events */}
           <AstronomyEvents isDark={isDark} />

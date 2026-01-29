@@ -10,7 +10,7 @@ interface AstronomyEventsProps {
 }
 
 export default function AstronomyEvents({ isDark = false }: AstronomyEventsProps) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true); // Expanded by default
 
   const upcomingShowers = getUpcomingShowers(90); // Next 90 days
   const activeShower = getActiveShowerTonight();
