@@ -81,3 +81,15 @@ export { DEFAULT_LAYER_VISIBILITY } from './map';
 // Environment types
 export type { Env } from './env';
 export { envSchema, getEnv, isDev, isProd } from './env';
+
+// Stargazing types
+export type {
+  BortleClass,
+  StargazingConditions,
+  DarkSkySite,
+  MeteorShower,
+  LightPollutionZone,
+  PlanetVisibility,
+  AstronomyEvent,
+} from './stargazing';
+export { BORTLE_DESCRIPTIONS, BORTLE_COLORS } from './stargazing';

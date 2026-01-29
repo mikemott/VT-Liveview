@@ -16,9 +16,10 @@ import './RadarOverlay.css';
 interface RadarOverlayProps {
   map: MapLibreMap | null;
   isDark?: boolean;
+  collapsed?: boolean;
 }
 
-export default function RadarOverlay({ map, isDark = false }: RadarOverlayProps) {
+export default function RadarOverlay({ map, isDark = false, collapsed = false }: RadarOverlayProps) {
   const [visible, setVisible] = useState(true);
   const [opacity, setOpacity] = useState(0.7);
   const [tilesLoaded, setTilesLoaded] = useState(false);
@@ -267,6 +268,18 @@ export default function RadarOverlay({ map, isDark = false }: RadarOverlayProps)
   const handleOpacityChange = (e: ChangeEvent<HTMLInputElement>): void => {
     setOpacity(parseFloat(e.target.value));
   };
+
+  // When collapsed (stargazing mode), show minimal UI
+  if (collapsed) {
+    return (
+      <div className={`radar-overlay ${isDark ? 'dark' : ''} collapsed`}>
+        <div className="radar-header collapsed">
+          <h3>Weather Radar</h3>
+          <span className="collapsed-hint">Hidden for stargazing</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`radar-overlay ${isDark ? 'dark' : ''}`}>

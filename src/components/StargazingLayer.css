@@ -1,0 +1,671 @@
+/* StargazingLayer.css - Stargazing feature styles */
+/* Rendered inline within TravelLayer when stargazing chip is active */
+/* Uses CSS variables from design-system.css */
+
+.stargazing-layer {
+  margin-top: var(--space-5);
+  font-family: var(--font-family);
+}
+
+.stargazing-layer .section-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.stargazing-layer .dark-sky-description {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  line-height: var(--line-height-relaxed);
+}
+
+/* =============================================================================
+   Tonight's Conditions Card - Hero Element
+   ============================================================================= */
+
+.stargazing-conditions {
+  background: linear-gradient(135deg,
+    rgba(99, 102, 241, 0.08) 0%,
+    rgba(139, 92, 246, 0.06) 50%,
+    rgba(99, 102, 241, 0.04) 100%
+  );
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.conditions-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Moon Phase Display */
+.moon-display {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.moon-icon {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e8e4c9 0%, #d4d0b5 100%);
+  box-shadow:
+    inset -3px -2px 6px rgba(0, 0, 0, 0.15),
+    0 0 12px rgba(255, 250, 220, 0.3);
+  overflow: hidden;
+}
+
+.moon-icon::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: var(--moon-shadow-width, 50%);
+  height: 100%;
+  background: rgba(30, 30, 50, 0.85);
+  border-radius: 0 50% 50% 0;
+  transition: width 0.3s ease;
+}
+
+/* Moon phase shadows based on illumination */
+.moon-icon.new::before { width: 100%; border-radius: 50%; }
+.moon-icon.waxing-crescent::before { width: 75%; }
+.moon-icon.first-quarter::before { width: 50%; }
+.moon-icon.waxing-gibbous::before { width: 25%; }
+.moon-icon.full::before { width: 0%; }
+.moon-icon.waning-gibbous::before {
+  width: 25%;
+  right: auto;
+  left: 0;
+  border-radius: 50% 0 0 50%;
+}
+.moon-icon.last-quarter::before {
+  width: 50%;
+  right: auto;
+  left: 0;
+  border-radius: 50% 0 0 50%;
+}
+.moon-icon.waning-crescent::before {
+  width: 75%;
+  right: auto;
+  left: 0;
+  border-radius: 50% 0 0 50%;
+}
+
+.moon-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.moon-phase-name {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.moon-illumination {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+}
+
+/* Quality Score Display */
+.quality-display {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.quality-meter {
+  position: relative;
+  width: 44px;
+  height: 44px;
+}
+
+.quality-meter svg {
+  transform: rotate(-90deg);
+}
+
+.quality-meter-bg {
+  fill: none;
+  stroke: rgba(99, 102, 241, 0.15);
+  stroke-width: 4;
+}
+
+.quality-meter-fill {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.5s ease, stroke 0.3s ease;
+}
+
+.quality-meter-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+
+.quality-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.quality-rating {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  color: white;
+}
+
+.quality-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* =============================================================================
+   Layer Controls
+   ============================================================================= */
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.stargazing-layer .toggle-control {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  cursor: pointer;
+  font-size: var(--font-size-md);
+  color: var(--color-text-secondary);
+}
+
+.stargazing-layer .toggle-control input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: #6366f1;
+  cursor: pointer;
+}
+
+.stargazing-layer .toggle-control svg {
+  color: #6366f1;
+  flex-shrink: 0;
+}
+
+.stargazing-layer .visibility-toggle {
+  background: var(--color-vermont-green-faint);
+  border: 1px solid var(--color-vermont-green-subtle);
+  padding: var(--space-2);
+  cursor: pointer;
+  color: var(--color-text-tertiary);
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-md);
+  transition: var(--transition-base);
+}
+
+.stargazing-layer .visibility-toggle:hover {
+  background-color: rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.3);
+  color: #6366f1;
+}
+
+/* Opacity Control */
+.stargazing-layer .opacity-control {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.stargazing-layer .opacity-control label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  min-width: 44px;
+}
+
+.stargazing-layer .opacity-control input[type="range"] {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(99, 102, 241, 0.2);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+}
+
+.stargazing-layer .opacity-control input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background: #6366f1;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+.stargazing-layer .opacity-control input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: #6366f1;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+.stargazing-layer .opacity-control span {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  min-width: 32px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* =============================================================================
+   Bortle Scale Legend
+   ============================================================================= */
+
+.bortle-legend {
+  background: var(--color-vermont-green-faint);
+  border: 1px solid var(--color-vermont-green-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+.bortle-legend .legend-title {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  text-align: center;
+  margin-bottom: var(--space-3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: var(--font-weight-medium);
+}
+
+.bortle-legend .legend-gradient {
+  display: flex;
+  height: 10px;
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.bortle-legend .legend-gradient.dark-sky-gradient {
+  height: 14px;
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.2),
+    0 0 8px rgba(99, 102, 241, 0.3);
+}
+
+.bortle-legend .legend-segment {
+  flex: 1;
+  cursor: help;
+  transition: transform 0.15s ease;
+  position: relative;
+}
+
+.bortle-legend .legend-segment:first-child {
+  border-radius: var(--radius-full) 0 0 var(--radius-full);
+}
+
+.bortle-legend .legend-segment:last-child {
+  border-radius: 0 var(--radius-full) var(--radius-full) 0;
+}
+
+.bortle-legend .legend-segment:hover,
+.bortle-legend .legend-segment.active {
+  transform: scaleY(1.6);
+  z-index: 1;
+}
+
+.bortle-legend .legend-segment-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 8px;
+  font-weight: var(--font-weight-bold);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  color: inherit;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.bortle-legend .legend-segment:hover .legend-segment-label {
+  opacity: 1;
+}
+
+/* Bortle class text colors for readability */
+.bortle-legend .legend-segment:nth-child(1) .legend-segment-label,
+.bortle-legend .legend-segment:nth-child(2) .legend-segment-label,
+.bortle-legend .legend-segment:nth-child(3) .legend-segment-label {
+  color: #fff;
+}
+
+.bortle-legend .legend-segment:nth-child(4) .legend-segment-label,
+.bortle-legend .legend-segment:nth-child(5) .legend-segment-label,
+.bortle-legend .legend-segment:nth-child(6) .legend-segment-label {
+  color: #1a1a2e;
+}
+
+.bortle-legend .legend-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* Bortle Detail Tooltip */
+.bortle-detail {
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  background: var(--color-vermont-green-faint);
+  border: 1px solid var(--color-vermont-green-subtle);
+  border-radius: var(--radius-md);
+  animation: fadeIn 0.15s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.bortle-detail-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.bortle-detail-badge {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.bortle-detail-name {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.bortle-detail-list {
+  font-size: var(--font-size-sm);
+}
+
+.bortle-detail-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: var(--space-2);
+}
+
+.bortle-detail ul {
+  margin: 0;
+  padding-left: var(--space-5);
+  color: var(--color-text-secondary);
+}
+
+.bortle-detail li {
+  margin-bottom: 2px;
+  line-height: var(--line-height-normal);
+}
+
+/* =============================================================================
+   Dark Sky Site Markers
+   ============================================================================= */
+
+.dark-sky-marker {
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.dark-sky-marker:hover {
+  transform: scale(1.25);
+}
+
+/* =============================================================================
+   Popup Styles
+   ============================================================================= */
+
+.stargazing-popup {
+  padding: var(--space-5);
+  font-family: var(--font-family);
+  max-width: 280px;
+  background: var(--gradient-panel);
+  border-radius: var(--radius-lg);
+}
+
+.stargazing-popup .popup-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.stargazing-popup .popup-star {
+  color: #f59e0b;
+  font-size: 16px;
+}
+
+.stargazing-popup h3 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.stargazing-popup .bortle-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  margin-bottom: var(--space-3);
+}
+
+.stargazing-popup .popup-description {
+  margin: 0 0 var(--space-3) 0;
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+}
+
+.stargazing-popup .popup-facilities {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-3);
+}
+
+.stargazing-popup .facility-tag {
+  font-size: var(--font-size-sm);
+  background: var(--color-vermont-green-faint);
+  border: 1px solid var(--color-vermont-green-subtle);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+}
+
+.stargazing-popup .popup-notes {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  font-style: italic;
+  line-height: var(--line-height-relaxed);
+}
+
+/* MapLibre Popup Override for Stargazing */
+.maplibregl-popup-content:has(.stargazing-popup) {
+  padding: 0;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-border-secondary);
+}
+
+/* =============================================================================
+   Dark Mode Styles
+   ============================================================================= */
+
+.stargazing-layer.dark .stargazing-conditions {
+  background: linear-gradient(135deg,
+    rgba(99, 102, 241, 0.15) 0%,
+    rgba(139, 92, 246, 0.12) 50%,
+    rgba(99, 102, 241, 0.08) 100%
+  );
+  border-color: rgba(99, 102, 241, 0.25);
+}
+
+.stargazing-layer.dark .moon-phase-name {
+  color: #e5e5e5;
+}
+
+.stargazing-layer.dark .moon-illumination {
+  color: #a5a5a5;
+}
+
+.stargazing-layer.dark .moon-icon {
+  background: linear-gradient(135deg, #d4d0b5 0%, #c0bca0 100%);
+}
+
+.stargazing-layer.dark .quality-meter-bg {
+  stroke: rgba(99, 102, 241, 0.25);
+}
+
+.stargazing-layer.dark .quality-meter-text {
+  color: #e5e5e5;
+}
+
+.stargazing-layer.dark .quality-label {
+  color: #a5a5a5;
+}
+
+.stargazing-layer.dark .toggle-control {
+  color: #c5c5c5;
+}
+
+.stargazing-layer.dark .toggle-control input[type="checkbox"] {
+  accent-color: #818cf8;
+}
+
+.stargazing-layer.dark .toggle-control svg {
+  color: #818cf8;
+}
+
+.stargazing-layer.dark .visibility-toggle {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #a5a5a5;
+}
+
+.stargazing-layer.dark .visibility-toggle:hover {
+  background-color: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: #818cf8;
+}
+
+.stargazing-layer.dark .opacity-control label {
+  color: #a5a5a5;
+}
+
+.stargazing-layer.dark .opacity-control input[type="range"] {
+  background: rgba(99, 102, 241, 0.3);
+}
+
+.stargazing-layer.dark .opacity-control input[type="range"]::-webkit-slider-thumb {
+  background: #818cf8;
+}
+
+.stargazing-layer.dark .opacity-control input[type="range"]::-moz-range-thumb {
+  background: #818cf8;
+}
+
+.stargazing-layer.dark .opacity-control span {
+  color: #a5a5a5;
+}
+
+.stargazing-layer.dark .bortle-legend {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.stargazing-layer.dark .bortle-legend .legend-title {
+  color: #a5a5a5;
+}
+
+.stargazing-layer.dark .bortle-legend .legend-labels {
+  color: #808080;
+}
+
+.stargazing-layer.dark .bortle-detail {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.stargazing-layer.dark .bortle-detail-name {
+  color: #c5c5c5;
+}
+
+.stargazing-layer.dark .bortle-detail-label {
+  color: #808080;
+}
+
+.stargazing-layer.dark .bortle-detail ul {
+  color: #a5a5a5;
+}
+
+.stargazing-layer.dark .dark-sky-description {
+  color: #a5a5a5;
+}
+
+/* Dark Mode Popup */
+.stargazing-popup.dark {
+  background: linear-gradient(180deg, #1f1f23 0%, #18181b 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stargazing-popup.dark h3 {
+  color: #f5f5f5;
+}
+
+.stargazing-popup.dark .popup-description {
+  color: #a5a5a5;
+}
+
+.stargazing-popup.dark .popup-notes {
+  color: #808080;
+}
+
+.stargazing-popup.dark .facility-tag {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #c5c5c5;
+}
+
+.maplibregl-popup-content:has(.stargazing-popup.dark) {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.15);
+}

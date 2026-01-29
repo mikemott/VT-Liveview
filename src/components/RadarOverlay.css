@@ -349,3 +349,27 @@ input[type="range"]:focus-visible {
   outline: 2px solid var(--color-accent-primary);
   outline-offset: 2px;
 }
+
+/* Collapsed state (stargazing mode) */
+.radar-overlay.collapsed {
+  opacity: 0.6;
+}
+
+.radar-overlay.collapsed .radar-header {
+  margin-bottom: 0;
+}
+
+.radar-overlay.collapsed .radar-header h3 {
+  font-size: var(--font-size-base);
+  padding-bottom: 0;
+}
+
+.radar-overlay.collapsed .radar-header h3::after {
+  display: none;
+}
+
+.collapsed-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  font-style: italic;
+}

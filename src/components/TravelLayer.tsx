@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo, ReactNode, memo } from 'react';
-import { AlertTriangle, Construction, Ban, Waves, AlertOctagon, ChevronDown, ChevronRight, Thermometer, Mountain, ZoomIn } from 'lucide-react';
+import { AlertTriangle, Construction, Ban, Waves, AlertOctagon, ChevronDown, ChevronRight, Thermometer, Mountain, Star, ZoomIn } from 'lucide-react';
 import maplibregl from 'maplibre-gl';
 import { fetchAllIncidents, type TravelIncident } from '../services/travelApi';
 import { getIncidentColor, shouldShowIncident } from '../utils/incidentColors';
@@ -8,6 +8,7 @@ import { INTERVALS } from '../utils/constants';
 import { escapeHTML } from '../utils/sanitize';
 import { cleanupMarkers, type MarkerEntry } from '../utils/markerCleanup';
 import type { MapLibreMap, Popup, IncidentType } from '../types';
+import StargazingLayer from './StargazingLayer';
 import './TravelLayer.css';
 
 // =============================================================================
@@ -31,7 +32,10 @@ interface TravelLayerProps {
   onToggleWeatherStations: () => void;
   showSkiResorts: boolean;
   onToggleSkiResorts: () => void;
+  showStargazing: boolean;
+  onToggleStargazing: () => void;
   globalPopupRef: React.MutableRefObject<maplibregl.Popup | null>;
+  mapStyleVersion: number;
 }
 
 interface IncidentsByType {
@@ -74,7 +78,7 @@ function getTypeLabel(type: IncidentType, short: boolean = false): string {
 // Component
 // =============================================================================
 
-function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, onToggleWeatherStations, showSkiResorts, onToggleSkiResorts, globalPopupRef }: TravelLayerProps) {
+function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, onToggleWeatherStations, showSkiResorts, onToggleSkiResorts, showStargazing, onToggleStargazing, globalPopupRef, mapStyleVersion }: TravelLayerProps) {
   const [incidents, setIncidents] = useState<TravelIncident[]>([]);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(true);
@@ -577,6 +581,19 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
               Ski Resorts
             </button>
 
+            {/* Stargazing chip */}
+            <button
+              className={`filter-chip ${showStargazing ? 'active' : ''}`}
+              onClick={onToggleStargazing}
+              aria-pressed={showStargazing}
+              data-chip-type="stargazing"
+            >
+              <span className="chip-icon">
+                <Star size={14} strokeWidth={2.5} />
+              </span>
+              Stargazing
+            </button>
+
             {/* Incident type chips */}
             {(Object.keys(activeFilters) as IncidentType[]).map(type => {
               const count = incidentsByType[type]?.length || 0;
@@ -599,6 +616,18 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
             })}
           </div>
 
+          {/* Stargazing content - shown when stargazing chip is active */}
+          {showStargazing && (
+            <StargazingLayer
+              map={map}
+              isDark={isDark}
+              key={mapStyleVersion}
+            />
+          )}
+
+          {/* Incidents content - hidden when stargazing is active */}
+          {!showStargazing && (
+            <>
           {/* Loading state with skeleton */}
           {loading && (
             <div className="incidents-skeleton" aria-live="polite" aria-busy="true">
@@ -702,6 +731,8 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
               <ZoomIn size={16} />
               <span>Zoom in to see more incidents</span>
             </div>
+          )}
+            </>
           )}
         </div>
       )}
