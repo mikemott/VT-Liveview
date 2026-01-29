@@ -1,0 +1,334 @@
+/* AstronomyEvents.css - Sky events calendar styles */
+
+.astronomy-events {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(139, 119, 85, 0.1);
+}
+
+.astronomy-events .section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.astronomy-events .section-header h4 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #4b5c47;
+}
+
+.astronomy-events .section-icon {
+  color: #8b5cf6;
+}
+
+.astronomy-events .active-indicator {
+  width: 6px;
+  height: 6px;
+  background: #22c55e;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.2); }
+}
+
+.astronomy-events .expand-toggle {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: #6b7280;
+  border-radius: 4px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.astronomy-events .expand-toggle:hover {
+  background-color: rgba(139, 92, 246, 0.1);
+  color: #8b5cf6;
+}
+
+.events-content {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.events-section h5 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.events-section h5 svg {
+  color: #8b5cf6;
+}
+
+/* Meteor Shower Cards */
+.showers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.shower-card {
+  background: rgba(139, 92, 246, 0.05);
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+  border: 1px solid transparent;
+}
+
+.shower-card:hover {
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.shower-card.active {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.shower-card.peak {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(234, 88, 12, 0.15) 100%);
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.shower-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.shower-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.shower-rate {
+  font-size: 11px;
+  color: #8b5cf6;
+  font-weight: 500;
+}
+
+.shower-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.shower-meta .constellation {
+  font-style: italic;
+}
+
+/* Badges */
+.badge {
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.badge.peak {
+  background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+  color: white;
+  animation: glow 1.5s ease-in-out infinite;
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 4px rgba(245, 158, 11, 0.5); }
+  50% { box-shadow: 0 0 8px rgba(245, 158, 11, 0.8); }
+}
+
+.badge.active {
+  background: #22c55e;
+  color: white;
+}
+
+.badge.soon {
+  background: #8b5cf6;
+  color: white;
+}
+
+.badge.upcoming {
+  background: rgba(107, 114, 128, 0.2);
+  color: #6b7280;
+}
+
+/* Shower Details */
+.shower-details {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(139, 92, 246, 0.1);
+}
+
+.shower-description {
+  margin: 0 0 6px 0;
+  font-size: 11px;
+  color: #4b5563;
+  line-height: 1.4;
+}
+
+.shower-tips {
+  margin: 0;
+  font-size: 11px;
+  color: #6b7280;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+/* Planets List */
+.planets-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.planet-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: rgba(139, 92, 246, 0.05);
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.planet-name {
+  font-weight: 600;
+  color: #1f2937;
+  min-width: 60px;
+}
+
+.planet-period {
+  color: #6b7280;
+  flex: 1;
+  text-transform: capitalize;
+}
+
+.planet-mag {
+  font-size: 10px;
+  color: #8b5cf6;
+  font-weight: 500;
+}
+
+.no-events {
+  margin: 0;
+  font-size: 11px;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* Dark Mode */
+.astronomy-events.dark {
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+.astronomy-events.dark .section-header h4 {
+  color: #a5b4a0;
+}
+
+.astronomy-events.dark .expand-toggle {
+  color: #a5a5a5;
+}
+
+.astronomy-events.dark .expand-toggle:hover {
+  background-color: rgba(139, 92, 246, 0.2);
+  color: #a78bfa;
+}
+
+.astronomy-events.dark .events-section h5 {
+  color: #a5a5a5;
+}
+
+.astronomy-events.dark .shower-card {
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.astronomy-events.dark .shower-card:hover {
+  background: rgba(139, 92, 246, 0.15);
+}
+
+.astronomy-events.dark .shower-card.active {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: rgba(34, 197, 94, 0.4);
+}
+
+.astronomy-events.dark .shower-card.peak {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(234, 88, 12, 0.2) 100%);
+  border-color: rgba(245, 158, 11, 0.5);
+}
+
+.astronomy-events.dark .shower-name {
+  color: #e5e5e5;
+}
+
+.astronomy-events.dark .shower-rate {
+  color: #a78bfa;
+}
+
+.astronomy-events.dark .shower-meta {
+  color: #a5a5a5;
+}
+
+.astronomy-events.dark .shower-details {
+  border-top-color: rgba(139, 92, 246, 0.2);
+}
+
+.astronomy-events.dark .shower-description {
+  color: #c5c5c5;
+}
+
+.astronomy-events.dark .shower-tips {
+  color: #a5a5a5;
+}
+
+.astronomy-events.dark .planet-item {
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.astronomy-events.dark .planet-name {
+  color: #e5e5e5;
+}
+
+.astronomy-events.dark .planet-period {
+  color: #a5a5a5;
+}
+
+.astronomy-events.dark .planet-mag {
+  color: #a78bfa;
+}
+
+.astronomy-events.dark .no-events {
+  color: #808080;
+}
+
+.astronomy-events.dark .badge.upcoming {
+  background: rgba(165, 165, 165, 0.2);
+  color: #a5a5a5;
+}

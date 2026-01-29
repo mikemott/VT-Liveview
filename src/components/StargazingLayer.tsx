@@ -6,6 +6,7 @@ import { LIGHT_POLLUTION_DATA, VERMONT_DARK_SKY_ZONES } from '../data/lightPollu
 import { DARK_SKY_SITES } from '../data/darkSkySites';
 import { BORTLE_COLORS, BORTLE_DESCRIPTIONS } from '../types/stargazing';
 import { calculateMoonPhase, calculateStargazingScore } from '../utils/astronomy';
+import AstronomyEvents from './AstronomyEvents';
 import type { MapLibreMap } from '../types';
 import type { DarkSkySite, BortleClass } from '../types/stargazing';
 import './StargazingLayer.css';
@@ -444,6 +445,9 @@ export default function StargazingLayer({
               </div>
             </>
           )}
+
+          {/* Astronomy Events (always visible when expanded) */}
+          <AstronomyEvents isDark={isDark} />
         </div>
       )}
     </div>

@@ -306,3 +306,112 @@ export function getNextBestNights(count: number = 5): Date[] {
 
   return nights;
 }
+
+/**
+ * Simplified planet visibility data
+ * In production, this would use proper ephemeris calculations
+ * For now, we provide approximate seasonal visibility
+ */
+export interface PlanetInfo {
+  name: string;
+  isVisible: boolean;
+  visibilityPeriod: 'evening' | 'morning' | 'all-night' | 'not-visible';
+  magnitude: number;
+  description: string;
+}
+
+/**
+ * Get approximate planet visibility for tonight
+ * This is a simplified approximation based on typical seasonal patterns
+ * Real implementation would use orbital mechanics calculations
+ */
+export function getPlanetVisibility(date: Date = new Date()): PlanetInfo[] {
+  const month = date.getMonth() + 1; // 1-12
+
+  // Simplified seasonal visibility patterns
+  // These are approximations and won't be accurate for specific dates
+  const planets: PlanetInfo[] = [
+    {
+      name: 'Venus',
+      isVisible: month >= 1 && month <= 5 || month >= 9 && month <= 12,
+      visibilityPeriod: month <= 5 ? 'morning' : 'evening',
+      magnitude: -4.0,
+      description: 'Brightest planet, impossible to miss when visible'
+    },
+    {
+      name: 'Mars',
+      isVisible: true, // Mars is usually visible somewhere in the sky
+      visibilityPeriod: month >= 6 && month <= 12 ? 'evening' : 'morning',
+      magnitude: 0.5,
+      description: 'Reddish color, brightness varies with distance from Earth'
+    },
+    {
+      name: 'Jupiter',
+      isVisible: true, // Jupiter is usually visible
+      visibilityPeriod: month >= 3 && month <= 9 ? 'evening' : 'morning',
+      magnitude: -2.5,
+      description: 'Second brightest planet, steady white light'
+    },
+    {
+      name: 'Saturn',
+      isVisible: true,
+      visibilityPeriod: month >= 5 && month <= 11 ? 'evening' : 'morning',
+      magnitude: 0.5,
+      description: 'Yellowish color, rings visible through small telescope'
+    },
+    {
+      name: 'Mercury',
+      isVisible: month === 3 || month === 4 || month === 9 || month === 10,
+      visibilityPeriod: month <= 6 ? 'evening' : 'morning',
+      magnitude: 0.0,
+      description: 'Difficult to spot, low on horizon just after sunset or before sunrise'
+    }
+  ];
+
+  return planets.filter(p => p.isVisible);
+}
+
+/**
+ * Get a summary of what's visible tonight
+ */
+export function getTonightSummary(
+  lat: number,
+  lng: number,
+  cloudCoverPercent: number = 20,
+  date: Date = new Date()
+): {
+  moonPhase: MoonPhaseInfo;
+  quality: { score: number; rating: 'Excellent' | 'Good' | 'Fair' | 'Poor' };
+  sunTimes: ReturnType<typeof calculateSunTimes>;
+  visiblePlanets: PlanetInfo[];
+  recommendation: string;
+} {
+  const moonPhase = calculateMoonPhase(date);
+  const quality = calculateStargazingScore(cloudCoverPercent, moonPhase.illumination);
+  const sunTimes = calculateSunTimes(lat, lng, date);
+  const visiblePlanets = getPlanetVisibility(date);
+
+  // Generate recommendation
+  let recommendation: string;
+  if (quality.rating === 'Excellent') {
+    recommendation = 'Perfect night for stargazing! Dark moon and clear skies expected.';
+  } else if (quality.rating === 'Good') {
+    recommendation = 'Good conditions for observing bright objects and planets.';
+  } else if (quality.rating === 'Fair') {
+    recommendation = 'Partial clouds or bright moon may limit deep-sky viewing.';
+  } else {
+    recommendation = 'Not ideal for stargazing. Consider waiting for better conditions.';
+  }
+
+  if (moonPhase.illumination > 75) {
+    recommendation += ' The bright moon will wash out fainter objects.';
+  }
+
+  return {
+    moonPhase,
+    quality,
+    sunTimes,
+    visiblePlanets,
+    recommendation
+  };
+}
