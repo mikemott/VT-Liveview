@@ -2,8 +2,9 @@
   width: var(--button-height);
   height: var(--button-height);
   border-radius: var(--radius-lg);
-  border: 1.5px solid var(--color-border-secondary);
-  background: var(--color-bg-glass-subtle);
+  border: 1px solid var(--color-vermont-green-subtle);
+  background: var(--gradient-panel);
+  box-shadow: var(--shadow-lg);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -13,8 +14,9 @@
 }
 
 .theme-toggle:hover {
-  background: var(--color-vermont-green-faint);
+  background: var(--gradient-panel);
   border-color: var(--color-vermont-green-lighter);
+  box-shadow: var(--shadow-xl);
   transform: translateY(-1px);
 }
 

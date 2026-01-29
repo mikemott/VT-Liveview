@@ -5,11 +5,6 @@
   font-family: var(--font-family);
   margin-bottom: var(--space-9);
   padding-bottom: var(--space-7);
-  border-bottom: 1px solid var(--color-border-divider);
-}
-
-.travel-section:last-child {
-  border-bottom: none;
 }
 
 .section-header {
@@ -25,24 +20,42 @@
   margin: 0;
   color: var(--color-vermont-green);
   font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: var(--letter-spacing-wider);
-  font-family: var(--font-family);
+  letter-spacing: 0.08em;
+  font-family: 'Montserrat', sans-serif;
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  position: relative;
+  padding-bottom: var(--space-3);
+}
+
+.section-header h3::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg,
+    rgba(93, 124, 90, 0.4) 0%,
+    rgba(93, 124, 90, 0.15) 85%,
+    transparent 100%
+  );
 }
 
 .incident-badge {
-  background: var(--color-error);
-  color: var(--color-text-inverse);
+  background: var(--color-vermont-green-faint);
+  color: var(--color-vermont-green);
+  border: 1px solid var(--color-vermont-green-subtle);
   padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-xl);
   font-size: var(--font-size-md);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-bold);
   min-width: 20px;
   text-align: center;
+  box-shadow: 0 2px 4px rgba(75, 85, 99, 0.15);
 }
 
 .expand-toggle {
@@ -81,57 +94,26 @@
   height: var(--chip-height);
   padding: 0 var(--space-4);
   border-radius: var(--radius-full);
-  background: var(--color-bg-surface);
-  border: 1.5px solid var(--color-border-subtle);
+  background: var(--color-vermont-green-faint);
+  border: 1px solid var(--color-vermont-green-subtle);
   cursor: pointer;
-  transition: var(--transition-fast);
+  transition: all 0.25s ease-out;
   user-select: none;
   font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-vermont-green);
   position: relative;
-  overflow: hidden;
-}
-
-.filter-chip::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 0;
-  transition: width var(--transition-fast);
 }
 
 .filter-chip:hover {
-  background: var(--color-bg-surface-hover);
-  border-color: var(--color-border-secondary);
+  background: var(--color-vermont-green-subtle);
+  border-color: var(--color-vermont-green-lighter);
   transform: translateY(-1px);
-}
-
-.filter-chip:hover::before {
-  width: 3px;
-}
-
-/* Active state colors matching incident types */
-.filter-chip.active {
-  border-width: 1.5px;
-}
-
-.filter-chip.active::before {
-  width: 3px;
 }
 
 .filter-chip .chip-icon {
   display: flex;
   align-items: center;
-  padding: var(--space-1);
-  border-radius: var(--radius-sm);
-  transition: all var(--transition-fast);
-}
-
-.filter-chip.active .chip-icon {
-  transform: scale(1.05);
 }
 
 .filter-chip .chip-count {
@@ -146,125 +128,133 @@
 
 /* Type-specific chip colors matching incident colors */
 
-/* Weather Stations - Blue (matches station markers) */
+/* Weather Stations - Soft Blue */
 .filter-chip.active[data-chip-type="weather"] {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.08) 100%);
-  border-color: rgba(59, 130, 246, 0.3);
-  color: #2563EB;
+  background: rgba(88, 139, 174, 0.2);
+  border-color: rgba(88, 139, 174, 0.4);
+  color: #2d4a5e;
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.1),
+    0 2px 4px rgba(88, 139, 174, 0.18);
 }
 
-.filter-chip.active[data-chip-type="weather"]::before {
-  background: #3b82f6;
-}
-
-.filter-chip.active[data-chip-type="weather"] .chip-icon {
-  background: rgba(59, 130, 246, 0.15);
-  color: #2563EB;
-}
-
-/* Accident - Purple */
+/* Accident - Terracotta Red */
 .filter-chip.active[data-chip-type="accident"] {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(139, 92, 246, 0.08) 100%);
-  border-color: rgba(139, 92, 246, 0.3);
-  color: #7C3AED;
-}
-
-.filter-chip.active[data-chip-type="accident"]::before {
-  background: #8B5CF6;
-}
-
-.filter-chip.active[data-chip-type="accident"] .chip-icon {
-  background: rgba(139, 92, 246, 0.15);
-  color: #7C3AED;
+  background: rgba(204, 102, 82, 0.2);
+  border-color: rgba(204, 102, 82, 0.4);
+  color: #6b3528;
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.1),
+    0 2px 4px rgba(204, 102, 82, 0.18);
 }
 
 .filter-chip.active[data-chip-type="accident"] .chip-count {
-  background: rgba(139, 92, 246, 0.2);
-  color: #6D28D9;
+  background: rgba(204, 102, 82, 0.25);
+  color: #6b3528;
 }
 
-/* Construction - Orange */
+/* Construction - Goldenrod */
 .filter-chip.active[data-chip-type="construction"] {
-  background: linear-gradient(135deg, rgba(249, 115, 22, 0.12) 0%, rgba(249, 115, 22, 0.08) 100%);
-  border-color: rgba(249, 115, 22, 0.3);
-  color: #EA580C;
-}
-
-.filter-chip.active[data-chip-type="construction"]::before {
-  background: #F97316;
-}
-
-.filter-chip.active[data-chip-type="construction"] .chip-icon {
-  background: rgba(249, 115, 22, 0.15);
-  color: #EA580C;
+  background: rgba(218, 165, 32, 0.2);
+  border-color: rgba(218, 165, 32, 0.4);
+  color: #6b5210;
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.1),
+    0 2px 4px rgba(218, 165, 32, 0.18);
 }
 
 .filter-chip.active[data-chip-type="construction"] .chip-count {
-  background: rgba(249, 115, 22, 0.2);
-  color: #C2410C;
+  background: rgba(218, 165, 32, 0.25);
+  color: #6b5210;
 }
 
-/* Closure - Red */
+/* Closure - Rose Pink */
 .filter-chip.active[data-chip-type="closure"] {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(239, 68, 68, 0.08) 100%);
-  border-color: rgba(239, 68, 68, 0.3);
-  color: #DC2626;
-}
-
-.filter-chip.active[data-chip-type="closure"]::before {
-  background: #EF4444;
-}
-
-.filter-chip.active[data-chip-type="closure"] .chip-icon {
-  background: rgba(239, 68, 68, 0.15);
-  color: #DC2626;
+  background: rgba(219, 112, 147, 0.2);
+  border-color: rgba(219, 112, 147, 0.4);
+  color: #6d3849;
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.1),
+    0 2px 4px rgba(219, 112, 147, 0.18);
 }
 
 .filter-chip.active[data-chip-type="closure"] .chip-count {
-  background: rgba(239, 68, 68, 0.2);
-  color: #B91C1C;
+  background: rgba(219, 112, 147, 0.25);
+  color: #6d3849;
 }
 
 /* Flooding - Teal */
 .filter-chip.active[data-chip-type="flooding"] {
-  background: linear-gradient(135deg, rgba(20, 184, 166, 0.12) 0%, rgba(20, 184, 166, 0.08) 100%);
-  border-color: rgba(20, 184, 166, 0.3);
-  color: #0D9488;
-}
-
-.filter-chip.active[data-chip-type="flooding"]::before {
-  background: #14B8A6;
-}
-
-.filter-chip.active[data-chip-type="flooding"] .chip-icon {
-  background: rgba(20, 184, 166, 0.15);
-  color: #0D9488;
+  background: rgba(72, 157, 153, 0.2);
+  border-color: rgba(72, 157, 153, 0.4);
+  color: #254d4b;
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.1),
+    0 2px 4px rgba(72, 157, 153, 0.18);
 }
 
 .filter-chip.active[data-chip-type="flooding"] .chip-count {
-  background: rgba(20, 184, 166, 0.2);
-  color: #0F766E;
+  background: rgba(72, 157, 153, 0.25);
+  color: #254d4b;
 }
 
-/* Hazard - Amber */
+/* Hazard - Burnt Orange */
 .filter-chip.active[data-chip-type="hazard"] {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(245, 158, 11, 0.08) 100%);
-  border-color: rgba(245, 158, 11, 0.3);
-  color: #D97706;
-}
-
-.filter-chip.active[data-chip-type="hazard"]::before {
-  background: #F59E0B;
-}
-
-.filter-chip.active[data-chip-type="hazard"] .chip-icon {
-  background: rgba(245, 158, 11, 0.15);
-  color: #D97706;
+  background: rgba(214, 126, 44, 0.2);
+  border-color: rgba(214, 126, 44, 0.4);
+  color: #6a3e16;
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.1),
+    0 2px 4px rgba(214, 126, 44, 0.18);
 }
 
 .filter-chip.active[data-chip-type="hazard"] .chip-count {
-  background: rgba(245, 158, 11, 0.2);
-  color: #B45309;
+  background: rgba(214, 126, 44, 0.25);
+  color: #6a3e16;
+}
+
+/* =============================================================================
+   Map Popup Styling - Vintage Topographic Theme
+   ============================================================================= */
+
+.incident-popup .maplibregl-popup-content,
+.station-popup .maplibregl-popup-content {
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.incident-popup .maplibregl-popup-close-button,
+.station-popup .maplibregl-popup-close-button {
+  width: 24px;
+  height: 24px;
+  background: var(--gradient-panel);
+  border: 1px solid var(--color-vermont-green-subtle);
+  border-radius: var(--radius-md);
+  color: var(--color-vermont-green);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  right: var(--space-2);
+  top: var(--space-2);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-base);
+  opacity: 0.9;
+}
+
+.incident-popup .maplibregl-popup-close-button:hover,
+.station-popup .maplibregl-popup-close-button:hover {
+  background: var(--color-vermont-green-subtle);
+  border-color: var(--color-vermont-green-lighter);
+  transform: scale(1.05);
+  opacity: 1;
+}
+
+.incident-popup .maplibregl-popup-tip,
+.station-popup .maplibregl-popup-tip {
+  border-top-color: #fbfdf4;
 }
 
 /* Dark mode chip adjustments */
@@ -383,7 +373,14 @@
 
 .success-icon {
   font-size: var(--font-size-5xl);
-  color: var(--color-success);
+  color: var(--color-accent-cyan);
+  text-shadow:
+    -1px -1px 0 rgba(55, 65, 81, 0.4),
+    1px -1px 0 rgba(55, 65, 81, 0.4),
+    -1px 1px 0 rgba(55, 65, 81, 0.4),
+    1px 1px 0 rgba(55, 65, 81, 0.4),
+    0 2px 4px rgba(55, 65, 81, 0.3),
+    0 0 12px var(--color-accent-cyan-glow);
 }
 
 .no-incidents p {
@@ -456,6 +453,52 @@
   cursor: pointer;
 }
 
+/* Incident Item Category Colors - Match chips */
+.incident-item[data-incident-type="accident"] {
+  border-left-color: rgba(204, 102, 82, 0.6);
+  background: rgba(204, 102, 82, 0.06);
+}
+
+.incident-item[data-incident-type="accident"] .incident-title {
+  color: #6b3528;
+}
+
+.incident-item[data-incident-type="construction"] {
+  border-left-color: rgba(218, 165, 32, 0.6);
+  background: rgba(218, 165, 32, 0.06);
+}
+
+.incident-item[data-incident-type="construction"] .incident-title {
+  color: #6b5210;
+}
+
+.incident-item[data-incident-type="closure"] {
+  border-left-color: rgba(219, 112, 147, 0.6);
+  background: rgba(219, 112, 147, 0.06);
+}
+
+.incident-item[data-incident-type="closure"] .incident-title {
+  color: #6d3849;
+}
+
+.incident-item[data-incident-type="flooding"] {
+  border-left-color: rgba(72, 157, 153, 0.6);
+  background: rgba(72, 157, 153, 0.06);
+}
+
+.incident-item[data-incident-type="flooding"] .incident-title {
+  color: #254d4b;
+}
+
+.incident-item[data-incident-type="hazard"] {
+  border-left-color: rgba(214, 126, 44, 0.6);
+  background: rgba(214, 126, 44, 0.06);
+}
+
+.incident-item[data-incident-type="hazard"] .incident-title {
+  color: #6a3e16;
+}
+
 .incident-item:hover {
   transform: translateX(2px);
   box-shadow: var(--shadow-xs);
@@ -466,9 +509,29 @@
 }
 
 .incident-item.clickable:hover {
-  background: var(--color-bg-surface-hover);
   transform: translateX(3px);
   box-shadow: var(--shadow-sm);
+}
+
+/* Category-specific hover states */
+.incident-item.clickable[data-incident-type="accident"]:hover {
+  background: rgba(204, 102, 82, 0.12);
+}
+
+.incident-item.clickable[data-incident-type="construction"]:hover {
+  background: rgba(218, 165, 32, 0.12);
+}
+
+.incident-item.clickable[data-incident-type="closure"]:hover {
+  background: rgba(219, 112, 147, 0.12);
+}
+
+.incident-item.clickable[data-incident-type="flooding"]:hover {
+  background: rgba(72, 157, 153, 0.12);
+}
+
+.incident-item.clickable[data-incident-type="hazard"]:hover {
+  background: rgba(214, 126, 44, 0.12);
 }
 
 .incident-item.selected {
@@ -510,17 +573,26 @@
 
 /* Zoom Hint */
 .zoom-hint {
-  background: var(--color-warning-subtle);
-  border: 1px solid var(--color-warning);
+  background: var(--color-vermont-green-faint);
+  border: 1px solid var(--color-vermont-green-subtle);
   border-radius: var(--radius-md);
   padding: var(--space-3) var(--space-5);
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  color: var(--color-vermont-green);
+}
+
+.zoom-hint svg {
+  color: var(--color-vermont-green);
+  flex-shrink: 0;
 }
 
 .zoom-hint span {
   font-size: var(--font-size-md);
-  color: var(--color-warning);
-  font-weight: var(--font-weight-medium);
+  color: var(--color-vermont-green);
+  font-weight: var(--font-weight-semibold);
 }
 
 /* Marker Styles (for map) */
