@@ -665,6 +665,7 @@ function WeatherMap() {
           {/* Traffic Flow Layer */}
           {mapLoaded && (
             <TrafficFlowLayer
+              key={mapStyleVersion}
               map={map.current}
               visible={showTrafficFlow}
               isDark={isDark}
