@@ -5,6 +5,7 @@ import './WeatherMap.css';
 import TravelLayer from './components/TravelLayer';
 import WeatherStationsLayer from './components/WeatherStationsLayer';
 import SkiLayer from './components/SkiLayer';
+import TrafficFlowLayer from './components/TrafficFlowLayer';
 import CurrentWeather from './components/CurrentWeather';
 import RadarOverlay from './components/RadarOverlay';
 import ThemeToggle from './components/ThemeToggle';
@@ -75,6 +76,7 @@ function WeatherMap() {
   const [showWeatherStations, setShowWeatherStations] = useState(true);
   const [showSkiResorts, setShowSkiResorts] = useState(false);
   const [showStargazing, setShowStargazing] = useState(false);
+  const [showTrafficFlow, setShowTrafficFlow] = useState(false);
 
   // Mobile responsiveness
   const isMobile = useIsMobile();
@@ -529,6 +531,11 @@ function WeatherMap() {
     setShowStargazing(prev => !prev);
   }, []);
 
+  // Toggle traffic flow visibility
+  const toggleTrafficFlow = useCallback((): void => {
+    setShowTrafficFlow(prev => !prev);
+  }, []);
+
   // Handle weather station click - memoized to prevent marker recreation
   const handleStationClick = useCallback((station: ObservationStation): void => {
     setDetailPanelContent({ type: 'station', data: station });
@@ -630,6 +637,8 @@ function WeatherMap() {
               onToggleSkiResorts={toggleSkiResorts}
               showStargazing={showStargazing}
               onToggleStargazing={toggleStargazing}
+              showTrafficFlow={showTrafficFlow}
+              onToggleTrafficFlow={toggleTrafficFlow}
               globalPopupRef={globalPopupRef}
               mapStyleVersion={mapStyleVersion}
             />
@@ -650,6 +659,15 @@ function WeatherMap() {
             <SkiLayer
               map={map.current}
               visible={showSkiResorts}
+            />
+          )}
+
+          {/* Traffic Flow Layer */}
+          {mapLoaded && (
+            <TrafficFlowLayer
+              map={map.current}
+              visible={showTrafficFlow}
+              isDark={isDark}
             />
           )}
 

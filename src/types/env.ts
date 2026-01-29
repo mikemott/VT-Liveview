@@ -10,6 +10,9 @@ export const envSchema = z.object({
   /** Protomaps API key for vector tiles (required) */
   VITE_PROTOMAPS_API_KEY: z.string().min(1, 'Protomaps API key is required'),
 
+  /** TomTom API key for traffic flow tiles (optional) */
+  VITE_TOMTOM_API_KEY: z.string().optional(),
+
   /** Backend URL for GraphQL/API calls */
   VITE_BACKEND_URL: z.string().url().optional().default('http://localhost:4000'),
 
