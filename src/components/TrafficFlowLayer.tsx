@@ -1,4 +1,4 @@
-import { useEffect, memo } from 'react';
+import { useEffect, useRef, memo } from 'react';
 import type { MapLibreMap } from '../types';
 
 // =============================================================================
@@ -22,35 +22,19 @@ const SOURCE_ID = 'traffic-flow-source';
 const LAYER_ID = 'traffic-flow-layer';
 const LAYER_ID_CASING = 'traffic-flow-layer-casing';
 
-// Show all traffic but use opacity to de-emphasize free-flowing roads
-
 // =============================================================================
 // Component
 // =============================================================================
 
 function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
-  // Single effect that manages everything based on visible state
+  const layersAdded = useRef(false);
+
+  // Effect to add layers on mount, remove on unmount
   useEffect(() => {
     if (!map || !TOMTOM_API_KEY) {
       return;
     }
 
-    // If not visible, hide layers
-    if (!visible) {
-      try {
-        if (map.getLayer(LAYER_ID)) {
-          map.setLayoutProperty(LAYER_ID, 'visibility', 'none');
-        }
-        if (map.getLayer(LAYER_ID_CASING)) {
-          map.setLayoutProperty(LAYER_ID_CASING, 'visibility', 'none');
-        }
-      } catch {
-        // Layers may not exist yet
-      }
-      return;
-    }
-
-    // visible === true, add layers if needed
     const addTrafficLayers = () => {
       if (!map.isStyleLoaded()) {
         map.once('style.load', addTrafficLayers);
@@ -71,7 +55,7 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
           });
         }
 
-        // Add casing layer if needed (outline for visibility)
+        // Add casing layer (outline for visibility)
         if (!map.getLayer(LAYER_ID_CASING)) {
           map.addLayer({
             id: LAYER_ID_CASING,
@@ -81,7 +65,7 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
             layout: {
               'line-cap': 'round',
               'line-join': 'round',
-              visibility: 'visible'
+              visibility: visible ? 'visible' : 'none'
             },
             paint: {
               'line-color': isDark ? '#000000' : '#ffffff',
@@ -89,11 +73,9 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
               'line-opacity': 0.5
             }
           });
-        } else {
-          map.setLayoutProperty(LAYER_ID_CASING, 'visibility', 'visible');
         }
 
-        // Add main traffic layer if needed
+        // Add main traffic layer
         if (!map.getLayer(LAYER_ID)) {
           map.addLayer({
             id: LAYER_ID,
@@ -103,7 +85,7 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
             layout: {
               'line-cap': 'round',
               'line-join': 'round',
-              visibility: 'visible'
+              visibility: visible ? 'visible' : 'none'
             },
             paint: {
               // Color: red (stopped) -> orange -> yellow -> green (free flow)
@@ -121,9 +103,9 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
               'line-opacity': 0.85
             }
           });
-        } else {
-          map.setLayoutProperty(LAYER_ID, 'visibility', 'visible');
         }
+
+        layersAdded.current = true;
       } catch (e) {
         if (import.meta.env.DEV) {
           console.error('TrafficFlowLayer: Error adding layers', e);
@@ -132,8 +114,43 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
     };
 
     addTrafficLayers();
-  }, [map, visible, isDark]);
 
+    // Cleanup only on unmount
+    return () => {
+      if (!map) return;
+      try {
+        if (map.getLayer(LAYER_ID)) {
+          map.removeLayer(LAYER_ID);
+        }
+        if (map.getLayer(LAYER_ID_CASING)) {
+          map.removeLayer(LAYER_ID_CASING);
+        }
+        if (map.getSource(SOURCE_ID)) {
+          map.removeSource(SOURCE_ID);
+        }
+      } catch {
+        // Map may have been destroyed
+      }
+      layersAdded.current = false;
+    };
+  }, [map, isDark]); // Note: visible not in deps - handled separately
+
+  // Separate effect for visibility changes
+  useEffect(() => {
+    if (!map || !layersAdded.current) return;
+
+    try {
+      const visibility = visible ? 'visible' : 'none';
+      if (map.getLayer(LAYER_ID)) {
+        map.setLayoutProperty(LAYER_ID, 'visibility', visibility);
+      }
+      if (map.getLayer(LAYER_ID_CASING)) {
+        map.setLayoutProperty(LAYER_ID_CASING, 'visibility', visibility);
+      }
+    } catch {
+      // Layers may not exist yet
+    }
+  }, [map, visible]);
 
   // This component only manages map layers, no UI to render
   return null;
