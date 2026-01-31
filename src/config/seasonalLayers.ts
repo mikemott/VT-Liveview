@@ -1,8 +1,8 @@
 import { ComponentType } from 'react';
-import { Mountain, IceCream, Waves } from 'lucide-react';
+import { Mountain, IceCream } from 'lucide-react';
 import SkiLayer from '../components/SkiLayer';
 import CreemeeLayer from '../components/CreemeeLayer';
-// LakeConditionsLayer will be added in future phases
+// LakeConditionsLayer will be added in future phases (will need Waves icon)
 
 /**
  * Seasonal Layer System Configuration

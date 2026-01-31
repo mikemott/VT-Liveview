@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, memo } from 'react';
 import maplibregl from 'maplibre-gl';
 import { fetchCreemeeStands } from '../services/creemeeApi';
 import type { CreemeeStand } from '../services/creemeeApi';
-import { INTERVALS } from '../utils/constants';
 import type { MapLibreMap, Marker } from '../types';
 import './CreemeeLayer.css';
 
@@ -153,7 +152,7 @@ function CreemeeLayer({ map, visible }: CreemeeLayerProps) {
       const handleMarkerClick = (e: MouseEvent): void => {
         e.stopPropagation();
 
-        const popup = new maplibregl.Popup({
+        new maplibregl.Popup({
           closeButton: true,
           closeOnClick: true,
           className: 'creemee-popup',
