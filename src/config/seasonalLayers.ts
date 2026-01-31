@@ -1,7 +1,8 @@
 import { ComponentType } from 'react';
 import { Mountain, IceCream, Waves } from 'lucide-react';
 import SkiLayer from '../components/SkiLayer';
-// CreemeeLayer and LakeConditionsLayer will be added in later phases
+import CreemeeLayer from '../components/CreemeeLayer';
+// LakeConditionsLayer will be added in future phases
 
 /**
  * Seasonal Layer System Configuration
@@ -52,17 +53,16 @@ export const SEASONAL_LAYERS: LayerConfig[] = [
     },
     component: SkiLayer
   },
-  // Uncomment when CreemeeLayer is implemented (Phase 4)
-  // {
-  //   id: 'creemeeStands',
-  //   label: 'Creemee Stands',
-  //   icon: IceCream,
-  //   season: {
-  //     months: [4, 5, 6, 7, 8, 9],  // April - September
-  //     label: 'Creemee Season'
-  //   },
-  //   component: CreemeeLayer
-  // },
+  {
+    id: 'creemeeStands',
+    label: 'Creemee Stands',
+    icon: IceCream,
+    season: {
+      months: [4, 5, 6, 7, 8, 9],  // April - September
+      label: 'Creemee Season'
+    },
+    component: CreemeeLayer
+  },
   // Uncomment when LakeConditionsLayer is implemented (future)
   // {
   //   id: 'lakeConditions',

@@ -6,6 +6,7 @@ import TravelLayer from './components/TravelLayer';
 import WeatherStationsLayer from './components/WeatherStationsLayer';
 import SkiLayer from './components/SkiLayer';
 import TrafficFlowLayer from './components/TrafficFlowLayer';
+import CreemeeLayer from './components/CreemeeLayer';
 import CurrentWeather from './components/CurrentWeather';
 import RadarOverlay from './components/RadarOverlay';
 import ThemeToggle from './components/ThemeToggle';
@@ -80,7 +81,7 @@ function WeatherMap() {
   const [layerVisibility, setLayerVisibility] = useState<Record<string, boolean | null>>({
     weatherStations: true,  // Core layer - always on by default
     skiResorts: null,       // Seasonal - auto show during ski season
-    creemeeStands: null,    // Seasonal - auto show during creemee season
+    creemeeStands: null,    // Seasonal - auto show during creemee season (Apr-Sep)
   });
   const [showStargazing, setShowStargazing] = useState(false);
   const [showTrafficFlow, setShowTrafficFlow] = useState(false);
@@ -706,6 +707,14 @@ function WeatherMap() {
             <SkiLayer
               map={map.current}
               visible={isLayerVisible('skiResorts')}
+            />
+          )}
+
+          {/* Creemee Stands Layer */}
+          {mapLoaded && (
+            <CreemeeLayer
+              map={map.current}
+              visible={isLayerVisible('creemeeStands')}
             />
           )}
 
