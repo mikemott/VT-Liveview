@@ -574,6 +574,10 @@ function WeatherMap() {
     toggleLayer('skiResorts');
   }, [toggleLayer]);
 
+  const toggleCreemeeStands = useCallback((): void => {
+    toggleLayer('creemeeStands');
+  }, [toggleLayer]);
+
   // Toggle stargazing visibility
   const toggleStargazing = useCallback((): void => {
     setShowStargazing(prev => !prev);
@@ -683,6 +687,8 @@ function WeatherMap() {
               onToggleWeatherStations={toggleWeatherStations}
               showSkiResorts={isLayerVisible('skiResorts')}
               onToggleSkiResorts={toggleSkiResorts}
+              showCreemeeStands={isLayerVisible('creemeeStands')}
+              onToggleCreemeeStands={toggleCreemeeStands}
               showStargazing={showStargazing}
               onToggleStargazing={toggleStargazing}
               showTrafficFlow={showTrafficFlow}
