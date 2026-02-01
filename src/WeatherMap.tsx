@@ -668,7 +668,7 @@ function WeatherMap() {
           {/* Radar Controls */}
           {mapLoaded && (
             <div className="control-section">
-              <RadarOverlay map={map.current} isDark={isDark} key={mapStyleVersion} collapsed={showStargazing} />
+              <RadarOverlay map={map.current} isDark={isDark} key={mapStyleVersion} />
             </div>
           )}
 
