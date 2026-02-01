@@ -19,7 +19,7 @@ describe('getMapStyle', () => {
     const style = getMapStyle(false);
 
     expect(style.sources.protomaps).toBeDefined();
-    expect(style.sources.protomaps.type).toBe('vector');
+    expect(style.sources.protomaps?.type).toBe('vector');
   });
 
   it('should include glyphs and sprite URLs', () => {

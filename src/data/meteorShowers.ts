@@ -195,7 +195,7 @@ export function getUpcomingShowers(withinDays: number = 60): Array<MeteorShower 
  */
 export function getNextShowerPeak(): MeteorShower & { daysUntilPeak: number } | null {
   const upcoming = getUpcomingShowers(365);
-  return upcoming.length > 0 ? upcoming[0] : null;
+  return upcoming[0] ?? null;
 }
 
 /**

@@ -163,7 +163,7 @@ export function generateLightSourcePoints(): LightSourceGeoJSON {
     properties: {
       name: source.name,
       intensity: source.intensity,
-      population: source.population,
+      ...(source.population !== undefined && { population: source.population }),
       type: source.type,
     },
     geometry: {

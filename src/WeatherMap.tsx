@@ -119,9 +119,9 @@ function WeatherMap() {
 
     // Remove existing event handlers to prevent memory leak
     if (map.current.getLayer('alert-fills')) {
-      map.current.off('click', 'alert-fills');
-      map.current.off('mouseenter', 'alert-fills');
-      map.current.off('mouseleave', 'alert-fills');
+      (map.current as any).off('click', 'alert-fills');
+      (map.current as any).off('mouseenter', 'alert-fills');
+      (map.current as any).off('mouseleave', 'alert-fills');
     }
 
     // Remove existing alert layers if present
@@ -454,9 +454,9 @@ function WeatherMap() {
         'incident-highlight-outline',
       ].filter(layerId => map.current?.getLayer(layerId));
 
-      const features = map.current.queryRenderedFeatures(e.point, {
-        layers: interactiveLayers.length > 0 ? interactiveLayers : undefined,
-      });
+      const features = interactiveLayers.length > 0
+        ? map.current.queryRenderedFeatures(e.point, { layers: interactiveLayers })
+        : [];
       const clickedOnFeature = features.length > 0;
 
       // If clicked on empty map, show historical data
