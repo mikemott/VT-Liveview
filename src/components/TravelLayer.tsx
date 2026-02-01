@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo, ReactNode, memo } from 'react';
-import { AlertTriangle, Construction, Ban, Waves, AlertOctagon, ChevronDown, ChevronRight, Thermometer, Mountain, Star, Car, ZoomIn } from 'lucide-react';
+import { AlertTriangle, Construction, Ban, Waves, AlertOctagon, ChevronDown, ChevronRight, Thermometer, Mountain, IceCream, Star, Car, ZoomIn } from 'lucide-react';
 import maplibregl from 'maplibre-gl';
 import { fetchAllIncidents, type TravelIncident } from '../services/travelApi';
 import { getIncidentColor, shouldShowIncident } from '../utils/incidentColors';
@@ -32,6 +32,8 @@ interface TravelLayerProps {
   onToggleWeatherStations: () => void;
   showSkiResorts: boolean;
   onToggleSkiResorts: () => void;
+  showCreemeeStands: boolean;
+  onToggleCreemeeStands: () => void;
   showStargazing: boolean;
   onToggleStargazing: () => void;
   showTrafficFlow: boolean;
@@ -80,7 +82,7 @@ function getTypeLabel(type: IncidentType, short: boolean = false): string {
 // Component
 // =============================================================================
 
-function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, onToggleWeatherStations, showSkiResorts, onToggleSkiResorts, showStargazing, onToggleStargazing, showTrafficFlow, onToggleTrafficFlow, globalPopupRef, mapStyleVersion }: TravelLayerProps) {
+function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, onToggleWeatherStations, showSkiResorts, onToggleSkiResorts, showCreemeeStands, onToggleCreemeeStands, showStargazing, onToggleStargazing, showTrafficFlow, onToggleTrafficFlow, globalPopupRef, mapStyleVersion }: TravelLayerProps) {
   const [incidents, setIncidents] = useState<TravelIncident[]>([]);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(true);
@@ -581,6 +583,19 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
                 <Mountain size={14} strokeWidth={2.5} />
               </span>
               Ski Resorts
+            </button>
+
+            {/* Creemee Stands chip */}
+            <button
+              className={`filter-chip ${showCreemeeStands ? 'active' : ''}`}
+              onClick={onToggleCreemeeStands}
+              aria-pressed={showCreemeeStands}
+              data-chip-type="creemee"
+            >
+              <span className="chip-icon">
+                <IceCream size={14} strokeWidth={2.5} />
+              </span>
+              Creemee Stands
             </button>
 
             {/* Stargazing chip */}
