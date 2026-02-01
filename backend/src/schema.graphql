@@ -241,3 +241,21 @@ extend type Query {
   creemeeStandById(id: ID!): CreemeeStand
   creemeeStandsByTown(town: String!): [CreemeeStand!]!
 }
+
+# Lake temperature types
+
+type LakeTemperature {
+  id: ID!
+  name: String!
+  latitude: Float!
+  longitude: Float!
+  temperatureFahrenheit: Int
+  comfortLevel: String!
+  timestamp: String!
+  usgsGaugeId: String
+  description: String
+}
+
+extend type Query {
+  lakeTemperatures: [LakeTemperature!]!
+}

@@ -7,6 +7,7 @@ import WeatherStationsLayer from './components/WeatherStationsLayer';
 import SkiLayer from './components/SkiLayer';
 import TrafficFlowLayer from './components/TrafficFlowLayer';
 import CreemeeLayer from './components/CreemeeLayer';
+import LakeLayer from './components/LakeLayer';
 import CurrentWeather from './components/CurrentWeather';
 import RadarOverlay from './components/RadarOverlay';
 import ThemeToggle from './components/ThemeToggle';
@@ -82,6 +83,7 @@ function WeatherMap() {
     weatherStations: true,  // Core layer - always on by default
     skiResorts: null,       // Seasonal - auto show during ski season
     creemeeStands: null,    // Seasonal - auto show during creemee season (Apr-Sep)
+    lakeTemperatures: true, // Core layer - always on by default
   });
   const [showStargazing, setShowStargazing] = useState(false);
   const [showTrafficFlow, setShowTrafficFlow] = useState(false);
@@ -578,6 +580,10 @@ function WeatherMap() {
     toggleLayer('creemeeStands');
   }, [toggleLayer]);
 
+  const toggleLakeTemperatures = useCallback((): void => {
+    toggleLayer('lakeTemperatures');
+  }, [toggleLayer]);
+
   // Toggle stargazing visibility
   const toggleStargazing = useCallback((): void => {
     setShowStargazing(prev => !prev);
@@ -689,6 +695,8 @@ function WeatherMap() {
               onToggleSkiResorts={toggleSkiResorts}
               showCreemeeStands={isLayerVisible('creemeeStands')}
               onToggleCreemeeStands={toggleCreemeeStands}
+              showLakeTemperatures={isLayerVisible('lakeTemperatures')}
+              onToggleLakeTemperatures={toggleLakeTemperatures}
               showStargazing={showStargazing}
               onToggleStargazing={toggleStargazing}
               showTrafficFlow={showTrafficFlow}
@@ -721,6 +729,14 @@ function WeatherMap() {
             <CreemeeLayer
               map={map.current}
               visible={isLayerVisible('creemeeStands')}
+            />
+          )}
+
+          {/* Lake Temperatures Layer */}
+          {mapLoaded && (
+            <LakeLayer
+              map={map.current}
+              visible={isLayerVisible('lakeTemperatures')}
             />
           )}
 
