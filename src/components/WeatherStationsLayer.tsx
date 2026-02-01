@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef, memo } from 'react';
+import { createRoot } from 'react-dom/client';
+import { Droplet } from 'lucide-react';
 import maplibregl from 'maplibre-gl';
 import { graphqlClient } from '../services/graphqlClient';
 import { gql } from 'graphql-request';
@@ -64,37 +66,76 @@ function createWeatherStationMarker(station: ObservationStation): HTMLDivElement
   const el = document.createElement('div');
   el.className = 'weather-station-marker';
 
-  // Weather station colors - vibrant and eye-catching
-  const stationColors = {
-    bg: '#588bae', // Vibrant soft blue
-    border: '#ffffff', // White border for contrast
+  // Check if this is a water temperature sensor (USGS station)
+  const isWaterTemp = station.id.startsWith('USGS-');
+
+  // Different colors for water temp vs air temp
+  const stationColors = isWaterTemp ? {
+    bg: '#3b82f6', // Vibrant blue for water
+    border: '#ffffff',
+    shadow: 'rgba(59, 130, 246, 0.4)',
+    text: '#ffffff'
+  } : {
+    bg: '#588bae', // Soft blue for air
+    border: '#ffffff',
     shadow: 'rgba(0, 0, 0, 0.3)',
-    text: '#ffffff' // White text
+    text: '#ffffff'
   };
 
+  // Larger size for water temp sensors
+  const size = isWaterTemp ? 42 : 34;
+
   // Create inner element for content and hover effects
-  // This prevents conflicts with MapLibre's positioning transform
   const inner = document.createElement('div');
   inner.style.cssText = `
-    width: 34px;
-    height: 34px;
+    width: ${size}px;
+    height: ${size}px;
     background: ${stationColors.bg};
     border: 3px solid ${stationColors.border};
     border-radius: 50%;
     box-shadow: 0 3px 8px ${stationColors.shadow};
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
-    font-size: 10px;
+    font-size: ${isWaterTemp ? '11px' : '10px'};
     font-weight: 700;
     color: ${stationColors.text};
     transform-origin: center center;
     will-change: transform;
+    gap: 1px;
   `;
 
-  inner.textContent = `${Math.round(station.weather.temperature)}°`;
+  if (isWaterTemp) {
+    // Create water droplet icon container
+    const iconContainer = document.createElement('div');
+    iconContainer.style.cssText = `
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: -2px;
+    `;
+
+    // Render React Droplet icon into the container
+    const root = createRoot(iconContainer);
+    root.render(<Droplet size={14} strokeWidth={2.5} />);
+
+    inner.appendChild(iconContainer);
+
+    // Add temperature text below icon
+    const tempText = document.createElement('div');
+    tempText.textContent = `${Math.round(station.weather.temperature)}°`;
+    tempText.style.cssText = `
+      font-size: 10px;
+      line-height: 1;
+    `;
+    inner.appendChild(tempText);
+  } else {
+    // Regular air temperature display
+    inner.textContent = `${Math.round(station.weather.temperature)}°`;
+  }
 
   // Add hover effect to inner element only
   inner.addEventListener('mouseenter', () => {
@@ -189,8 +230,20 @@ function WeatherStationsLayer({ map, visible, onStationClick: _onStationClick, g
         .setLngLat([station.location.lng, station.location.lat])
         .addTo(map);
 
+      // Check if this is a water temperature sensor
+      const isWaterTemp = station.id.startsWith('USGS-');
+
       // Weather station colors (soft blue from style guide) - solid cream background
-      const stationColors = {
+      // Use vibrant blue for water temp sensors
+      const stationColors = isWaterTemp ? {
+        bg: '#fbfdf4',
+        border: 'rgba(59, 130, 246, 0.4)',
+        text: '#1e40af',
+        badgeBg: 'rgba(59, 130, 246, 0.2)',
+        badgeBorder: 'rgba(59, 130, 246, 0.4)',
+        secondary: '#3b82f6',
+        metadata: '#3b82f6'
+      } : {
         bg: '#fbfdf4',
         border: 'rgba(88, 139, 174, 0.4)',
         text: '#2c5368',
@@ -209,6 +262,7 @@ function WeatherStationsLayer({ map, visible, onStationClick: _onStationClick, g
       };
 
       const safeName = escapeHTML(station.name);
+      const badgeText = isWaterTemp ? 'Water Temperature' : 'Weather Station';
       const temp = station.weather?.temperature ? `${Math.round(station.weather.temperature)}°F` : 'N/A';
       const wind = station.weather?.windSpeed ? station.weather.windSpeed : 'N/A';
       const humidity = station.weather?.humidity ? `${Math.round(station.weather.humidity)}%` : 'N/A';
@@ -246,7 +300,7 @@ function WeatherStationsLayer({ map, visible, onStationClick: _onStationClick, g
               font-weight: 600;
               text-transform: uppercase;
               letter-spacing: 0.05em;
-            ">Weather Station</span>
+            ">${badgeText}</span>
           </div>
           <h3 style="
             margin: 0 0 var(--space-5, 12px) 0;
