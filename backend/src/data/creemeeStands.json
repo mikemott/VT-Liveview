@@ -1,0 +1,221 @@
+[
+  {
+    "id": "morse-farm-maple-sugarworks",
+    "name": "Morse Farm Maple Sugarworks",
+    "town": "Montpelier",
+    "latitude": 44.2865197,
+    "longitude": -72.5433719,
+    "description": "Eighth-generation sugaring family. Specializes in maple creemees.",
+    "specialties": [
+      "Maple Creemee",
+      "Working Sugarhouse"
+    ],
+    "featured": true
+  },
+  {
+    "id": "palmer-lane-maple",
+    "name": "Palmer Lane Maple",
+    "town": "Jericho",
+    "latitude": 44.5065721,
+    "longitude": -72.9923311,
+    "description": "Seven Days VT 2024 Best Creemee winner.",
+    "specialties": [
+      "Maple Creemee"
+    ],
+    "featured": true
+  },
+  {
+    "id": "bragg-farm-sugarhouse-gift-shop",
+    "name": "Bragg Farm Sugarhouse & Gift Shop",
+    "town": "East Montpelier",
+    "latitude": 44.2812876,
+    "longitude": -72.473537,
+    "description": "Working sugarhouse with maple creemees. Farm-fresh experience.",
+    "specialties": [
+      "Maple Creemee"
+    ],
+    "featured": true
+  },
+  {
+    "id": "al-s-french-frys",
+    "name": "Al's French Frys",
+    "town": "South Burlington",
+    "latitude": 44.4671955,
+    "longitude": -73.174327,
+    "featured": false
+  },
+  {
+    "id": "allenholm-farm",
+    "name": "Allenholm Farm",
+    "town": "South Hero",
+    "latitude": 44.6315057,
+    "longitude": -73.3023949,
+    "featured": false
+  },
+  {
+    "id": "archie-s-grill",
+    "name": "Archie's Grill",
+    "town": "Shelburne",
+    "latitude": 44.3977605,
+    "longitude": -73.2202874,
+    "featured": false
+  },
+  {
+    "id": "c-village-store",
+    "name": "C Village Store",
+    "town": "Craftsbury",
+    "latitude": 44.6357632,
+    "longitude": -72.3727425,
+    "featured": false
+  },
+  {
+    "id": "dairy-creme",
+    "name": "Dairy Creme",
+    "town": "Montpelier",
+    "latitude": 44.2585599,
+    "longitude": -72.6068086,
+    "featured": false
+  },
+  {
+    "id": "duke-s-creemees",
+    "name": "Duke's Creemees",
+    "town": "Milton",
+    "latitude": 44.6281637,
+    "longitude": -73.1164693,
+    "featured": false
+  },
+  {
+    "id": "full-belly-farm",
+    "name": "Full Belly Farm",
+    "town": "Monkton",
+    "latitude": 44.2664069,
+    "longitude": -73.1358134,
+    "featured": false
+  },
+  {
+    "id": "hero-s-welcome-general-store",
+    "name": "Hero's Welcome General Store",
+    "town": "North Hero",
+    "latitude": 44.8164168,
+    "longitude": -73.2906844,
+    "description": "Lake Champlain shore",
+    "featured": false
+  },
+  {
+    "id": "joe-s-snack-bar",
+    "name": "Joe's Snack Bar",
+    "town": "Jericho",
+    "latitude": 44.5042304,
+    "longitude": -72.998269,
+    "description": "Adjacent to Old Mill Park",
+    "featured": false
+  },
+  {
+    "id": "kate-s-food-truck",
+    "name": "Kate's Food Truck",
+    "town": "Jericho",
+    "latitude": 44.5114999,
+    "longitude": -72.9592745,
+    "featured": false
+  },
+  {
+    "id": "little-gordo-creemee-stand",
+    "name": "Little Gordo Creemee Stand",
+    "town": "Burlington",
+    "latitude": 44.4781175,
+    "longitude": -73.2092965,
+    "featured": false
+  },
+  {
+    "id": "lu-lu",
+    "name": "Lu Lu",
+    "town": "Vergennes",
+    "latitude": 44.1677087,
+    "longitude": -73.2519182,
+    "featured": false
+  },
+  {
+    "id": "maple-wind-farm",
+    "name": "Maple Wind Farm",
+    "town": "Richmond",
+    "latitude": 44.3987795,
+    "longitude": -72.9725386,
+    "featured": false
+  },
+  {
+    "id": "milkhouse-ice-cream",
+    "name": "Milkhouse Ice Cream",
+    "town": "St. Johnsbury",
+    "latitude": 44.4203376,
+    "longitude": -72.0098794,
+    "featured": false
+  },
+  {
+    "id": "offbeat-creemee",
+    "name": "Offbeat Creemee",
+    "town": "Winooski",
+    "latitude": 44.4985419,
+    "longitude": -73.1915765,
+    "description": "Myers Memorial Pool",
+    "featured": false
+  },
+  {
+    "id": "scout-co",
+    "name": "Scout & Co.",
+    "town": "Burlington",
+    "latitude": 44.4878189,
+    "longitude": -73.2253332,
+    "featured": false
+  },
+  {
+    "id": "seb-s-snack-bar",
+    "name": "Seb's Snack Bar",
+    "town": "South Hero",
+    "latitude": 44.6454524,
+    "longitude": -73.3018277,
+    "description": "Village green",
+    "featured": false
+  },
+  {
+    "id": "shelburne-country-store",
+    "name": "Shelburne Country Store",
+    "town": "Shelburne",
+    "latitude": 44.3803938,
+    "longitude": -73.2270101,
+    "featured": false
+  },
+  {
+    "id": "sweet-roots-farm",
+    "name": "Sweet Roots Farm",
+    "town": "Charlotte",
+    "latitude": 44.2883399,
+    "longitude": -73.2427242,
+    "featured": false
+  },
+  {
+    "id": "the-bay-store",
+    "name": "The Bay Store",
+    "town": "St. Albans",
+    "latitude": 44.8079106,
+    "longitude": -73.139714,
+    "description": "Lake Champlain views",
+    "featured": false
+  },
+  {
+    "id": "the-mill-market-deli",
+    "name": "The Mill Market & Deli",
+    "town": "South Burlington",
+    "latitude": 44.4233965,
+    "longitude": -73.1731187,
+    "featured": false
+  },
+  {
+    "id": "the-village-scoop",
+    "name": "The Village Scoop",
+    "town": "Colchester",
+    "latitude": 44.5476252,
+    "longitude": -73.1574825,
+    "description": "Drive-through and indoor seating",
+    "featured": false
+  }
+]

@@ -14,6 +14,12 @@ import { getRadarInfo } from '../services/radar.js';
 import { getHistoricalWeather } from '../services/noaaCDO.js';
 import { historicalResolvers } from './historical.js';
 import { fetchSkiConditions } from '../services/skiConditions.js';
+import {
+  fetchCreemeeStands,
+  fetchFeaturedStands,
+  getCreemeeStandById,
+  getCreemeeStandsByTown,
+} from '../services/creemee.js';
 import type {
   WeatherConditions,
   ForecastPeriod,
@@ -86,6 +92,23 @@ export const resolvers = {
 
     skiResorts: async () => {
       return await fetchSkiConditions();
+    },
+
+    // Creemee stands queries
+    creemeeStands: async () => {
+      return await fetchCreemeeStands();
+    },
+
+    featuredCreemeeStands: async () => {
+      return await fetchFeaturedStands();
+    },
+
+    creemeeStandById: async (_parent: unknown, { id }: { id: string }) => {
+      return await getCreemeeStandById(id);
+    },
+
+    creemeeStandsByTown: async (_parent: unknown, { town }: { town: string }) => {
+      return await getCreemeeStandsByTown(town);
     },
 
     // Historical database queries

@@ -221,3 +221,23 @@ type SkiResort {
 extend type Query {
   skiResorts: [SkiResort!]!
 }
+
+# Creemee stand types
+
+type CreemeeStand {
+  id: ID!
+  name: String!
+  town: String!
+  latitude: Float!
+  longitude: Float!
+  description: String
+  specialties: [String!]
+  featured: Boolean!
+}
+
+extend type Query {
+  creemeeStands: [CreemeeStand!]!
+  featuredCreemeeStands: [CreemeeStand!]!
+  creemeeStandById(id: ID!): CreemeeStand
+  creemeeStandsByTown(town: String!): [CreemeeStand!]!
+}
