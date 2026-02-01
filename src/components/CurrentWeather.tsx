@@ -22,7 +22,7 @@ export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, i
   // Default to collapsed for better map visibility
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const { data, isLoading, error } = useQuery<CurrentWeatherData | null>({
+  const { data, isLoading, error: _error } = useQuery<CurrentWeatherData | null>({
     queryKey: ['currentWeather', lat, lon],
     queryFn: () => fetchCurrentWeather(lat, lon),
     staleTime: 5 * 60 * 1000, // 5 minutes

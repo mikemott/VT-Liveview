@@ -7,7 +7,7 @@ import { createMarkerElement } from '../utils/incidentIcons';
 import { INTERVALS } from '../utils/constants';
 import { escapeHTML } from '../utils/sanitize';
 import { cleanupMarkers, type MarkerEntry } from '../utils/markerCleanup';
-import type { MapLibreMap, Popup, IncidentType } from '../types';
+import type { MapLibreMap, IncidentType, Marker } from '../types';
 import StargazingLayer from './StargazingLayer';
 import './TravelLayer.css';
 
@@ -277,54 +277,6 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
         .addTo(map);
 
       // Create popup with theme-aware colors matching chip design
-      const color = getIncidentColor(incident.type);
-
-      // Get gradient and colors based on incident type (matching chip styles)
-      const getPopupGradient = (type: IncidentType, dark: boolean) => {
-        const gradients: Record<IncidentType, { light: string; dark: string; textLight: string; textDark: string; accentLight: string; accentDark: string }> = {
-          ACCIDENT: {
-            light: 'linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(139, 92, 246, 0.08) 100%)',
-            dark: 'linear-gradient(135deg, rgba(139, 92, 246, 0.18) 0%, rgba(139, 92, 246, 0.12) 100%)',
-            textLight: '#7C3AED',
-            textDark: '#C4B5FD',
-            accentLight: '#8B5CF6',
-            accentDark: '#A78BFA'
-          },
-          CONSTRUCTION: {
-            light: 'linear-gradient(135deg, rgba(249, 115, 22, 0.12) 0%, rgba(249, 115, 22, 0.08) 100%)',
-            dark: 'linear-gradient(135deg, rgba(249, 115, 22, 0.18) 0%, rgba(249, 115, 22, 0.12) 100%)',
-            textLight: '#EA580C',
-            textDark: '#FDBA74',
-            accentLight: '#F97316',
-            accentDark: '#FB923C'
-          },
-          CLOSURE: {
-            light: 'linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(239, 68, 68, 0.08) 100%)',
-            dark: 'linear-gradient(135deg, rgba(239, 68, 68, 0.18) 0%, rgba(239, 68, 68, 0.12) 100%)',
-            textLight: '#DC2626',
-            textDark: '#FCA5A5',
-            accentLight: '#EF4444',
-            accentDark: '#F87171'
-          },
-          FLOODING: {
-            light: 'linear-gradient(135deg, rgba(20, 184, 166, 0.12) 0%, rgba(20, 184, 166, 0.08) 100%)',
-            dark: 'linear-gradient(135deg, rgba(20, 184, 166, 0.18) 0%, rgba(20, 184, 166, 0.12) 100%)',
-            textLight: '#0D9488',
-            textDark: '#5EEAD4',
-            accentLight: '#14B8A6',
-            accentDark: '#2DD4BF'
-          },
-          HAZARD: {
-            light: 'linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(245, 158, 11, 0.08) 100%)',
-            dark: 'linear-gradient(135deg, rgba(245, 158, 11, 0.18) 0%, rgba(245, 158, 11, 0.12) 100%)',
-            textLight: '#D97706',
-            textDark: '#FCD34D',
-            accentLight: '#F59E0B',
-            accentDark: '#FBBF24'
-          }
-        };
-        return gradients[type] || gradients.HAZARD;
-      };
 
       // Vintage topographic colors matching detail cards - solid cream background
       const categoryColors: Record<IncidentType, { bg: string; border: string; text: string; badgeBg: string; badgeBorder: string }> = {
