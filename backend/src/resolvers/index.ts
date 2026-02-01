@@ -20,6 +20,7 @@ import {
   getCreemeeStandById,
   getCreemeeStandsByTown,
 } from '../services/creemee.js';
+import { fetchLakeTemperatures } from '../services/lakes.js';
 import type {
   WeatherConditions,
   ForecastPeriod,
@@ -109,6 +110,11 @@ export const resolvers = {
 
     creemeeStandsByTown: async (_parent: unknown, { town }: { town: string }) => {
       return await getCreemeeStandsByTown(town);
+    },
+
+    // Lake temperatures
+    lakeTemperatures: async () => {
+      return await fetchLakeTemperatures();
     },
 
     // Historical database queries
