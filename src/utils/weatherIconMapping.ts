@@ -34,8 +34,8 @@ function parseNOAAIconUrl(iconUrl: string): { isNight: boolean; codes: string[] 
     // Weather codes are after day/night
     const codes = pathParts.slice(timeIndex + 1).map(code => {
       // Remove probability percentages (e.g., "snow,20" -> "snow")
-      return code.split(',')[0];
-    });
+      return code.split(',')[0] ?? '';
+    }).filter(code => code !== '');
 
     return { isNight, codes };
   } catch (error) {

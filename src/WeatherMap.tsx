@@ -5,6 +5,8 @@ import './WeatherMap.css';
 import TravelLayer from './components/TravelLayer';
 import WeatherStationsLayer from './components/WeatherStationsLayer';
 import SkiLayer from './components/SkiLayer';
+import TrafficFlowLayer from './components/TrafficFlowLayer';
+import CreemeeLayer from './components/CreemeeLayer';
 import CurrentWeather from './components/CurrentWeather';
 import RadarOverlay from './components/RadarOverlay';
 import ThemeToggle from './components/ThemeToggle';
@@ -13,6 +15,8 @@ import { getMapStyle, isDarkMode } from './utils/mapStyles';
 import type { MapLibreMap, DetailPanelContent, AlertFeature, ObservationStation } from './types';
 import { VERMONT, INTERVALS } from './utils/constants';
 import { useIsMobile } from './hooks/useIsMobile';
+import { useSeasonalLayers } from './hooks/useSeasonalLayers';
+import { SEASONAL_LAYERS } from './config/seasonalLayers';
 import { Menu, X, AlertTriangle, AlertCircle, Info } from 'lucide-react';
 import { fetchMergedAlerts, type MergedAlertData } from './services/graphqlClient';
 
@@ -72,8 +76,35 @@ function WeatherMap() {
     lat: VERMONT_CENTER.lat,
     lng: VERMONT_CENTER.lng
   });
-  const [showWeatherStations, setShowWeatherStations] = useState(true);
-  const [showSkiResorts, setShowSkiResorts] = useState(false);
+  // Unified layer visibility state
+  // null = auto (follow season), true = forced on, false = forced off
+  const [layerVisibility, setLayerVisibility] = useState<Record<string, boolean | null>>({
+    weatherStations: true,  // Core layer - always on by default
+    skiResorts: null,       // Seasonal - auto show during ski season
+    creemeeStands: null,    // Seasonal - auto show during creemee season (Apr-Sep)
+  });
+  const [showStargazing, setShowStargazing] = useState(false);
+  const [showTrafficFlow, setShowTrafficFlow] = useState(false);
+
+  // Seasonal layers hook
+  const { isInSeason } = useSeasonalLayers();
+
+  // Calculate actual layer visibility (user override or auto based on season)
+  const isLayerVisible = useCallback((layerId: string): boolean => {
+    const manualToggle = layerVisibility[layerId] ?? null;
+
+    // If user has manually toggled, respect that
+    if (manualToggle !== null) return manualToggle;
+
+    // Otherwise, check if it's a seasonal layer and if it's in season
+    const seasonalConfig = SEASONAL_LAYERS.find(l => l.id === layerId);
+    if (seasonalConfig) {
+      return isInSeason(seasonalConfig);
+    }
+
+    // Non-seasonal layers default to false if not in visibility state
+    return false;
+  }, [layerVisibility, isInSeason]);
 
   // Mobile responsiveness
   const isMobile = useIsMobile();
@@ -88,9 +119,9 @@ function WeatherMap() {
 
     // Remove existing event handlers to prevent memory leak
     if (map.current.getLayer('alert-fills')) {
-      map.current.off('click', 'alert-fills');
-      map.current.off('mouseenter', 'alert-fills');
-      map.current.off('mouseleave', 'alert-fills');
+      (map.current as any).off('click', 'alert-fills');
+      (map.current as any).off('mouseenter', 'alert-fills');
+      (map.current as any).off('mouseleave', 'alert-fills');
     }
 
     // Remove existing alert layers if present
@@ -423,9 +454,10 @@ function WeatherMap() {
         'incident-highlight-outline',
       ].filter(layerId => map.current?.getLayer(layerId));
 
-      const features = map.current.queryRenderedFeatures(e.point, {
-        layers: interactiveLayers.length > 0 ? interactiveLayers : undefined,
-      });
+      const features = map.current.queryRenderedFeatures(
+        e.point,
+        interactiveLayers.length > 0 ? { layers: interactiveLayers } : undefined
+      );
       const clickedOnFeature = features.length > 0;
 
       // If clicked on empty map, show historical data
@@ -513,14 +545,44 @@ function WeatherMap() {
     setManualThemeOverride(true); // User has manually set the theme
   }, []);
 
-  // Toggle weather stations visibility
-  const toggleWeatherStations = useCallback((): void => {
-    setShowWeatherStations(prev => !prev);
+  // Toggle layer visibility (unified function)
+  const toggleLayer = useCallback((layerId: string): void => {
+    setLayerVisibility(prev => {
+      const current = prev[layerId];
+
+      // Cycle: null (auto) → true (on) → false (off) → null (auto)
+      // For core layers (always true/false), just toggle between true/false
+      const seasonalConfig = SEASONAL_LAYERS.find(l => l.id === layerId);
+
+      if (seasonalConfig) {
+        // Seasonal layer: cycle through null → true → false → null
+        if (current === null) return { ...prev, [layerId]: true };
+        if (current === true) return { ...prev, [layerId]: false };
+        return { ...prev, [layerId]: null };
+      } else {
+        // Core layer: simple boolean toggle
+        return { ...prev, [layerId]: !current };
+      }
+    });
   }, []);
 
-  // Toggle ski resorts visibility
+  // Convenience functions for backward compatibility
+  const toggleWeatherStations = useCallback((): void => {
+    toggleLayer('weatherStations');
+  }, [toggleLayer]);
+
   const toggleSkiResorts = useCallback((): void => {
-    setShowSkiResorts(prev => !prev);
+    toggleLayer('skiResorts');
+  }, [toggleLayer]);
+
+  // Toggle stargazing visibility
+  const toggleStargazing = useCallback((): void => {
+    setShowStargazing(prev => !prev);
+  }, []);
+
+  // Toggle traffic flow visibility
+  const toggleTrafficFlow = useCallback((): void => {
+    setShowTrafficFlow(prev => !prev);
   }, []);
 
   // Handle weather station click - memoized to prevent marker recreation
@@ -587,7 +649,7 @@ function WeatherMap() {
       <div className={`controls-panel ${isDark ? 'dark' : ''} ${isMobile ? 'mobile' : ''} ${isMobile && !controlsPanelOpen ? 'hidden' : ''}`}>
         <div className="logo-container">
           <img
-            src="/assets/vt-liveview-vintage.svg"
+            src={isDark ? "/assets/vt-liveview-dark.svg" : "/assets/vt-liveview-vintage.svg"}
             alt="VT LiveView"
             className="app-logo"
           />
@@ -607,7 +669,7 @@ function WeatherMap() {
           {/* Radar Controls */}
           {mapLoaded && (
             <div className="control-section">
-              <RadarOverlay map={map.current} isDark={isDark} key={mapStyleVersion} />
+              <RadarOverlay map={map.current} isDark={isDark} key={mapStyleVersion} collapsed={showStargazing} />
             </div>
           )}
 
@@ -618,11 +680,16 @@ function WeatherMap() {
               visible={true}
               currentZoom={currentZoom}
               isDark={isDark}
-              showWeatherStations={showWeatherStations}
+              showWeatherStations={isLayerVisible('weatherStations')}
               onToggleWeatherStations={toggleWeatherStations}
-              showSkiResorts={showSkiResorts}
+              showSkiResorts={isLayerVisible('skiResorts')}
               onToggleSkiResorts={toggleSkiResorts}
+              showStargazing={showStargazing}
+              onToggleStargazing={toggleStargazing}
+              showTrafficFlow={showTrafficFlow}
+              onToggleTrafficFlow={toggleTrafficFlow}
               globalPopupRef={globalPopupRef}
+              mapStyleVersion={mapStyleVersion}
             />
           )}
 
@@ -630,7 +697,7 @@ function WeatherMap() {
           {mapLoaded && (
             <WeatherStationsLayer
               map={map.current}
-              visible={showWeatherStations}
+              visible={isLayerVisible('weatherStations')}
               onStationClick={handleStationClick}
               globalPopupRef={globalPopupRef}
             />
@@ -640,7 +707,25 @@ function WeatherMap() {
           {mapLoaded && (
             <SkiLayer
               map={map.current}
-              visible={showSkiResorts}
+              visible={isLayerVisible('skiResorts')}
+            />
+          )}
+
+          {/* Creemee Stands Layer */}
+          {mapLoaded && (
+            <CreemeeLayer
+              map={map.current}
+              visible={isLayerVisible('creemeeStands')}
+            />
+          )}
+
+          {/* Traffic Flow Layer */}
+          {mapLoaded && (
+            <TrafficFlowLayer
+              key={mapStyleVersion}
+              map={map.current}
+              visible={showTrafficFlow}
+              isDark={isDark}
             />
           )}
 

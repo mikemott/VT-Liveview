@@ -4,7 +4,6 @@
  */
 
 import type { IncidentType } from '@/types';
-import { getIncidentColor } from './incidentColors';
 
 // =============================================================================
 // SVG Icon Generation

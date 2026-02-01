@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo, ReactNode, memo } from 'react';
-import { AlertTriangle, Construction, Ban, Waves, AlertOctagon, ChevronDown, ChevronRight, Thermometer, Mountain, ZoomIn } from 'lucide-react';
+import { AlertTriangle, Construction, Ban, Waves, AlertOctagon, ChevronDown, ChevronRight, Thermometer, Mountain, Star, Car, ZoomIn } from 'lucide-react';
 import maplibregl from 'maplibre-gl';
 import { fetchAllIncidents, type TravelIncident } from '../services/travelApi';
 import { getIncidentColor, shouldShowIncident } from '../utils/incidentColors';
@@ -7,7 +7,8 @@ import { createMarkerElement } from '../utils/incidentIcons';
 import { INTERVALS } from '../utils/constants';
 import { escapeHTML } from '../utils/sanitize';
 import { cleanupMarkers, type MarkerEntry } from '../utils/markerCleanup';
-import type { MapLibreMap, Popup, IncidentType } from '../types';
+import type { MapLibreMap, IncidentType, Marker } from '../types';
+import StargazingLayer from './StargazingLayer';
 import './TravelLayer.css';
 
 // =============================================================================
@@ -31,7 +32,12 @@ interface TravelLayerProps {
   onToggleWeatherStations: () => void;
   showSkiResorts: boolean;
   onToggleSkiResorts: () => void;
+  showStargazing: boolean;
+  onToggleStargazing: () => void;
+  showTrafficFlow: boolean;
+  onToggleTrafficFlow: () => void;
   globalPopupRef: React.MutableRefObject<maplibregl.Popup | null>;
+  mapStyleVersion: number;
 }
 
 interface IncidentsByType {
@@ -74,7 +80,7 @@ function getTypeLabel(type: IncidentType, short: boolean = false): string {
 // Component
 // =============================================================================
 
-function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, onToggleWeatherStations, showSkiResorts, onToggleSkiResorts, globalPopupRef }: TravelLayerProps) {
+function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, onToggleWeatherStations, showSkiResorts, onToggleSkiResorts, showStargazing, onToggleStargazing, showTrafficFlow, onToggleTrafficFlow, globalPopupRef, mapStyleVersion }: TravelLayerProps) {
   const [incidents, setIncidents] = useState<TravelIncident[]>([]);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(true);
@@ -267,56 +273,6 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
       const marker = new maplibregl.Marker({ element: el })
         .setLngLat([incident.location.lng, incident.location.lat])
         .addTo(map);
-
-      // Create popup with theme-aware colors matching chip design
-      const color = getIncidentColor(incident.type);
-
-      // Get gradient and colors based on incident type (matching chip styles)
-      const getPopupGradient = (type: IncidentType, dark: boolean) => {
-        const gradients: Record<IncidentType, { light: string; dark: string; textLight: string; textDark: string; accentLight: string; accentDark: string }> = {
-          ACCIDENT: {
-            light: 'linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(139, 92, 246, 0.08) 100%)',
-            dark: 'linear-gradient(135deg, rgba(139, 92, 246, 0.18) 0%, rgba(139, 92, 246, 0.12) 100%)',
-            textLight: '#7C3AED',
-            textDark: '#C4B5FD',
-            accentLight: '#8B5CF6',
-            accentDark: '#A78BFA'
-          },
-          CONSTRUCTION: {
-            light: 'linear-gradient(135deg, rgba(249, 115, 22, 0.12) 0%, rgba(249, 115, 22, 0.08) 100%)',
-            dark: 'linear-gradient(135deg, rgba(249, 115, 22, 0.18) 0%, rgba(249, 115, 22, 0.12) 100%)',
-            textLight: '#EA580C',
-            textDark: '#FDBA74',
-            accentLight: '#F97316',
-            accentDark: '#FB923C'
-          },
-          CLOSURE: {
-            light: 'linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(239, 68, 68, 0.08) 100%)',
-            dark: 'linear-gradient(135deg, rgba(239, 68, 68, 0.18) 0%, rgba(239, 68, 68, 0.12) 100%)',
-            textLight: '#DC2626',
-            textDark: '#FCA5A5',
-            accentLight: '#EF4444',
-            accentDark: '#F87171'
-          },
-          FLOODING: {
-            light: 'linear-gradient(135deg, rgba(20, 184, 166, 0.12) 0%, rgba(20, 184, 166, 0.08) 100%)',
-            dark: 'linear-gradient(135deg, rgba(20, 184, 166, 0.18) 0%, rgba(20, 184, 166, 0.12) 100%)',
-            textLight: '#0D9488',
-            textDark: '#5EEAD4',
-            accentLight: '#14B8A6',
-            accentDark: '#2DD4BF'
-          },
-          HAZARD: {
-            light: 'linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(245, 158, 11, 0.08) 100%)',
-            dark: 'linear-gradient(135deg, rgba(245, 158, 11, 0.18) 0%, rgba(245, 158, 11, 0.12) 100%)',
-            textLight: '#D97706',
-            textDark: '#FCD34D',
-            accentLight: '#F59E0B',
-            accentDark: '#FBBF24'
-          }
-        };
-        return gradients[type] || gradients.HAZARD;
-      };
 
       // Vintage topographic colors matching detail cards - solid cream background
       const categoryColors: Record<IncidentType, { bg: string; border: string; text: string; badgeBg: string; badgeBorder: string }> = {
@@ -577,6 +533,32 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
               Ski Resorts
             </button>
 
+            {/* Stargazing chip */}
+            <button
+              className={`filter-chip ${showStargazing ? 'active' : ''}`}
+              onClick={onToggleStargazing}
+              aria-pressed={showStargazing}
+              data-chip-type="stargazing"
+            >
+              <span className="chip-icon">
+                <Star size={14} strokeWidth={2.5} />
+              </span>
+              Stargazing
+            </button>
+
+            {/* Traffic Flow chip */}
+            <button
+              className={`filter-chip ${showTrafficFlow ? 'active' : ''}`}
+              onClick={onToggleTrafficFlow}
+              aria-pressed={showTrafficFlow}
+              data-chip-type="traffic"
+            >
+              <span className="chip-icon">
+                <Car size={14} strokeWidth={2.5} />
+              </span>
+              Traffic
+            </button>
+
             {/* Incident type chips */}
             {(Object.keys(activeFilters) as IncidentType[]).map(type => {
               const count = incidentsByType[type]?.length || 0;
@@ -599,6 +581,18 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
             })}
           </div>
 
+          {/* Stargazing content - shown when stargazing chip is active */}
+          {showStargazing && (
+            <StargazingLayer
+              map={map}
+              isDark={isDark}
+              key={mapStyleVersion}
+            />
+          )}
+
+          {/* Incidents content - hidden when stargazing is active */}
+          {!showStargazing && (
+            <>
           {/* Loading state with skeleton */}
           {loading && (
             <div className="incidents-skeleton" aria-live="polite" aria-busy="true">
@@ -702,6 +696,8 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
               <ZoomIn size={16} />
               <span>Zoom in to see more incidents</span>
             </div>
+          )}
+            </>
           )}
         </div>
       )}

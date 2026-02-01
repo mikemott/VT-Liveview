@@ -30,8 +30,10 @@ export default function HistoricalDetail({ coordinates, isDark }: HistoricalDeta
   const parseLocalDate = (dateStr: string): Date => {
     // Handle YYYY-MM-DD format (most common from NOAA)
     const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
-    if (match) {
-      const [, year, month, day] = match;
+    if (match && match[1] && match[2] && match[3]) {
+      const year = match[1];
+      const month = match[2];
+      const day = match[3];
       // Month is 0-indexed in JavaScript Date constructor
       return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
     }

@@ -3,7 +3,6 @@ import maplibregl from 'maplibre-gl';
 import { fetchSkiResorts } from '../services/skiApi';
 import type { SkiResort } from '../services/skiApi';
 import { SKI_COLORS } from '../utils/skiColors';
-import { INTERVALS } from '../utils/constants';
 import type { MapLibreMap, Marker } from '../types';
 import './SkiLayer.css';
 
