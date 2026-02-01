@@ -30,6 +30,9 @@ __tests__
 *.spec.ts
 coverage
 
+# Build scripts (one-time data generation)
+src/scripts
+
 # OS files
 .DS_Store
 Thumbs.db
