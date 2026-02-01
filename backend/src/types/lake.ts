@@ -4,7 +4,7 @@ export interface LakeTemperature {
   latitude: number;
   longitude: number;
   temperatureFahrenheit: number | null;
-  comfortLevel: 'cold' | 'comfortable' | 'warm';
+  comfortLevel: 'cold' | 'comfortable' | 'warm' | 'unknown';
   timestamp: string;
   usgsGaugeId: string | null;
   description: string | null;

@@ -105,6 +105,8 @@ function createPopupHTML(lake: LakeTemperature): string {
         return 'Comfortable for swimming';
       case 'warm':
         return 'Warm water';
+      case 'unknown':
+        return 'Temperature data not available';
       default:
         return '';
     }

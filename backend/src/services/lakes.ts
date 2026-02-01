@@ -187,6 +187,8 @@ async function fetchUSGSData(gaugeIds: string[]): Promise<Map<string, { temp: nu
 
 /**
  * Calculate comfort level based on temperature
+ * @param tempF Temperature in Fahrenheit
+ * @returns Comfort level classification
  */
 function calculateComfortLevel(tempF: number): 'cold' | 'comfortable' | 'warm' {
   if (tempF < 65) return 'cold';
@@ -243,7 +245,7 @@ export async function fetchLakeTemperatures(): Promise<LakeTemperature[]> {
       latitude: lake.latitude,
       longitude: lake.longitude,
       temperatureFahrenheit: usgsReading?.temp ?? null,
-      comfortLevel: usgsReading ? calculateComfortLevel(usgsReading.temp) : 'cold',
+      comfortLevel: usgsReading ? calculateComfortLevel(usgsReading.temp) : 'unknown',
       timestamp: usgsReading?.timestamp ?? new Date().toISOString(),
       usgsGaugeId: lake.usgsGaugeId ?? null,
       description: lake.description ?? null,

@@ -30,7 +30,7 @@ Add real-time water temperature tracking for Vermont lakes to help residents and
 
 ### System Flow
 
-```
+```text
 Frontend (LakeLayer.tsx)
     ↓ GraphQL query every 15 minutes
 Backend GraphQL (/graphql - lakeTemperatures query)
@@ -106,7 +106,7 @@ interface LakeTemperature {
 - Lake Rescue
 - Somerset Reservoir
 
-*Note: USGS gauge IDs to be researched and validated during implementation*
+> **Note:** USGS gauge IDs to be researched and validated during implementation
 
 ## API Integration
 
@@ -121,7 +121,7 @@ interface LakeTemperature {
 - `siteStatus`: `active`
 
 **Example Request:**
-```
+```text
 https://waterservices.usgs.gov/nwis/iv/?sites=04294500&parameterCd=00010&format=json&siteStatus=active
 ```
 
@@ -150,7 +150,7 @@ https://waterservices.usgs.gov/nwis/iv/?sites=04294500&parameterCd=00010&format=
 }
 ```
 
-*Note: Temperature returned in Celsius, needs conversion to Fahrenheit*
+> **Note:** Temperature returned in Celsius, needs conversion to Fahrenheit
 
 ### Caching Strategy
 
@@ -174,7 +174,7 @@ https://waterservices.usgs.gov/nwis/iv/?sites=04294500&parameterCd=00010&format=
 
 ### Popup Content
 
-```
+```text
 [Lake Icon/Name]
 Lake Champlain (Burlington)
 
@@ -285,7 +285,7 @@ Last Updated: Jan 31, 2:00 PM
 
 ## References
 
-- USGS Water Services API: https://waterservices.usgs.gov/
-- USGS Parameter Codes: https://help.waterdata.usgs.gov/parameter_cd
-- VT Lakes Database: https://dec.vermont.gov/watershed/lakes-ponds
+- USGS Water Services API: <https://waterservices.usgs.gov/>
+- USGS Parameter Codes: <https://help.waterdata.usgs.gov/parameter_cd>
+- VT Lakes Database: <https://dec.vermont.gov/watershed/lakes-ponds>
 - Linear Issue: VTL-11

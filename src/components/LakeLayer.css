@@ -66,33 +66,31 @@
   background-color: white;
 }
 
-@media (prefers-color-scheme: dark) {
-  .maplibregl-popup-content:has(.lake-popup-content) {
-    background-color: rgba(30, 30, 30, 0.95);
-  }
+.dark .maplibregl-popup-content:has(.lake-popup-content) {
+  background-color: rgba(30, 30, 30, 0.95);
+}
 
-  .lake-popup-content h3 {
-    color: #f5f5f5;
-  }
+.dark .lake-popup-content h3 {
+  color: #f5f5f5;
+}
 
-  .lake-description {
-    color: #aaa;
-  }
+.dark .lake-description {
+  color: #aaa;
+}
 
-  .stat-label {
-    color: #aaa;
-  }
+.dark .stat-label {
+  color: #aaa;
+}
 
-  .stat-value {
-    color: #f5f5f5;
-  }
+.dark .stat-value {
+  color: #f5f5f5;
+}
 
-  .last-updated {
-    border-top-color: #444;
-    color: #888;
-  }
+.dark .last-updated {
+  border-top-color: #444;
+  color: #888;
+}
 
-  .stat-row.no-data {
-    color: #777;
-  }
+.dark .stat-row.no-data {
+  color: #777;
 }
