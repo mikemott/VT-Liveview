@@ -29,38 +29,7 @@ const CREEMEE_ICON = `
 function createCreemeeMarker(): HTMLDivElement {
   const el = document.createElement('div');
   el.className = 'creemee-stand-marker';
-
-  // Vintage cream/vanilla color to match map theme
-  const color = '#F5DEB3'; // Wheat/cream color
-
-  el.style.cssText = `
-    width: 32px;
-    height: 32px;
-    background: ${color};
-    border: 2px solid #8B4513;
-    border-radius: 50%;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
-    color: #8B4513;
-  `;
-
   el.innerHTML = CREEMEE_ICON;
-
-  // Hover effect
-  el.addEventListener('mouseenter', () => {
-    el.style.transform = 'scale(1.1)';
-    el.style.boxShadow = `0 0 12px ${color}, 0 2px 8px rgba(0, 0, 0, 0.3)`;
-  });
-
-  el.addEventListener('mouseleave', () => {
-    el.style.transform = 'scale(1)';
-    el.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.25)';
-  });
-
   return el;
 }
 
