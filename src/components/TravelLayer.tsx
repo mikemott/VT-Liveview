@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo, ReactNode, memo } from 'react';
-import { AlertTriangle, Construction, Ban, Waves, AlertOctagon, ChevronDown, ChevronRight, Thermometer, Mountain, IceCream, Droplet, Star, Car, ZoomIn } from 'lucide-react';
+import { AlertTriangle, Construction, Ban, Waves, AlertOctagon, ChevronDown, ChevronRight, Thermometer, Mountain, IceCream, Star, Car, ZoomIn } from 'lucide-react';
 import maplibregl from 'maplibre-gl';
 import { fetchAllIncidents, type TravelIncident } from '../services/travelApi';
 import { getIncidentColor, shouldShowIncident } from '../utils/incidentColors';
@@ -34,8 +34,6 @@ interface TravelLayerProps {
   onToggleSkiResorts: () => void;
   showCreemeeStands: boolean;
   onToggleCreemeeStands: () => void;
-  showLakeTemperatures: boolean;
-  onToggleLakeTemperatures: () => void;
   showStargazing: boolean;
   onToggleStargazing: () => void;
   showTrafficFlow: boolean;
@@ -84,7 +82,7 @@ function getTypeLabel(type: IncidentType, short: boolean = false): string {
 // Component
 // =============================================================================
 
-function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, onToggleWeatherStations, showSkiResorts, onToggleSkiResorts, showCreemeeStands, onToggleCreemeeStands, showLakeTemperatures, onToggleLakeTemperatures, showStargazing, onToggleStargazing, showTrafficFlow, onToggleTrafficFlow, globalPopupRef, mapStyleVersion }: TravelLayerProps) {
+function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, onToggleWeatherStations, showSkiResorts, onToggleSkiResorts, showCreemeeStands, onToggleCreemeeStands, showStargazing, onToggleStargazing, showTrafficFlow, onToggleTrafficFlow, globalPopupRef, mapStyleVersion }: TravelLayerProps) {
   const [incidents, setIncidents] = useState<TravelIncident[]>([]);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(true);
@@ -550,19 +548,6 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
                 <IceCream size={14} strokeWidth={2.5} />
               </span>
               Creemee Stands
-            </button>
-
-            {/* Lake Temperatures chip */}
-            <button
-              className={`filter-chip ${showLakeTemperatures ? 'active' : ''}`}
-              onClick={onToggleLakeTemperatures}
-              aria-pressed={showLakeTemperatures}
-              data-chip-type="lakes"
-            >
-              <span className="chip-icon">
-                <Droplet size={14} strokeWidth={2.5} />
-              </span>
-              Lake Temps
             </button>
 
             {/* Stargazing chip */}
