@@ -454,10 +454,9 @@ function WeatherMap() {
         'incident-highlight-outline',
       ].filter(layerId => map.current?.getLayer(layerId));
 
-      const features = map.current.queryRenderedFeatures(
-        e.point,
-        interactiveLayers.length > 0 ? { layers: interactiveLayers } : undefined
-      );
+      const features = interactiveLayers.length > 0
+        ? map.current.queryRenderedFeatures(e.point, { layers: interactiveLayers })
+        : [];
       const clickedOnFeature = features.length > 0;
 
       // If clicked on empty map, show historical data
