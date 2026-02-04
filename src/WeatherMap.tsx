@@ -80,7 +80,7 @@ function WeatherMap() {
   // null = auto (follow season), true = forced on, false = forced off
   const [layerVisibility, setLayerVisibility] = useState<Record<string, boolean | null>>({
     weatherStations: true,  // Core layer - always on by default
-    skiResorts: null,       // Seasonal - auto show during ski season
+    skiResorts: false,      // Off by default - user can enable manually
     creemeeStands: null,    // Seasonal - auto show during creemee season (Apr-Sep)
   });
   const [showStargazing, setShowStargazing] = useState(false);

@@ -553,14 +553,16 @@ const VERMONT_GRID_POINTS = [
 
 /**
  * Logging utility for station fetching diagnostics.
- * Always logs in production to help debug station availability issues.
+ * Only logs in development mode.
  */
 function logStationDebug(message: string, data?: Record<string, unknown>): void {
-  const timestamp = new Date().toISOString();
-  const logEntry = data
-    ? `[STATIONS ${timestamp}] ${message}: ${JSON.stringify(data)}`
-    : `[STATIONS ${timestamp}] ${message}`;
-  console.log(logEntry);
+  if (import.meta.env?.DEV) {
+    const timestamp = new Date().toISOString();
+    const logEntry = data
+      ? `[STATIONS ${timestamp}] ${message}: ${JSON.stringify(data)}`
+      : `[STATIONS ${timestamp}] ${message}`;
+    console.log(logEntry);
+  }
 }
 
 /**
@@ -593,10 +595,132 @@ async function fetchStationsFromGridPoint(
   }
 }
 
+// Type definitions for USGS API response
+interface USGSValue {
+  value: string;
+  dateTime: string;
+}
+
+interface USGSTimeSeries {
+  sourceInfo: {
+    siteName: string;
+    geoLocation: {
+      geogLocation: {
+        latitude: string;
+        longitude: string;
+      };
+    };
+  };
+  values?: Array<{
+    value: USGSValue[];
+  }>;
+}
+
+interface USGSResponse {
+  value?: {
+    timeSeries?: USGSTimeSeries[];
+  };
+}
+
+/**
+ * Fetch Lake Champlain water temperature from USGS.
+ * Returns an ObservationStation with water temperature data.
+ */
+async function fetchLakeChamplainSensor(): Promise<ObservationStation | null> {
+  const USGS_SITE_ID = '04294500'; // Lake Champlain at Burlington
+  const USGS_PARAM = '00010'; // Water temperature in Celsius
+
+  try {
+    const url = `https://waterservices.usgs.gov/nwis/iv/?format=json&sites=${USGS_SITE_ID}&parameterCd=${USGS_PARAM}&siteStatus=active`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      logStationDebug('USGS Lake Champlain fetch failed', { status: response.status });
+      return null;
+    }
+
+    const data = await response.json() as USGSResponse;
+    const timeSeries = data.value?.timeSeries?.[0];
+
+    if (!timeSeries) {
+      logStationDebug('No USGS time series data for Lake Champlain');
+      return null;
+    }
+
+    // Extract site info
+    const siteInfo = timeSeries.sourceInfo;
+    const siteName = siteInfo.siteName;
+    const latitude = parseFloat(siteInfo.geoLocation.geogLocation.latitude);
+    const longitude = parseFloat(siteInfo.geoLocation.geogLocation.longitude);
+
+    // Validate coordinates
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+      logStationDebug('Invalid USGS coordinates', { latitude, longitude });
+      return null;
+    }
+
+    // Extract latest water temperature value
+    const values = timeSeries.values?.[0]?.value;
+    if (!values || values.length === 0) {
+      logStationDebug('No USGS values for Lake Champlain');
+      return null;
+    }
+
+    const latestValue = values[values.length - 1];
+    if (!latestValue) {
+      logStationDebug('No latest USGS value for Lake Champlain');
+      return null;
+    }
+
+    const waterTempCelsius = parseFloat(latestValue.value);
+    const timestamp = latestValue.dateTime;
+
+    // Validate temperature
+    if (!Number.isFinite(waterTempCelsius)) {
+      logStationDebug('Invalid USGS water temperature value', { value: latestValue.value });
+      return null;
+    }
+
+    // Validate timestamp
+    const observedAt = new Date(timestamp);
+    if (isNaN(observedAt.getTime())) {
+      logStationDebug('Invalid USGS timestamp', { timestamp });
+      return null;
+    }
+
+    return {
+      id: `USGS-${USGS_SITE_ID}`,
+      name: `${siteName} (Water Temp)`,
+      location: {
+        lat: latitude,
+        lng: longitude,
+      },
+      elevation: null,
+      weather: {
+        temperature: celsiusToFahrenheit(waterTempCelsius),
+        temperatureUnit: 'F',
+        description: 'Water Temperature',
+        windSpeed: null,
+        windDirection: null,
+        humidity: null,
+        dewpoint: null,
+        pressure: null,
+        timestamp,
+      },
+    };
+  } catch (error) {
+    logStationDebug('Error fetching Lake Champlain sensor', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+    return null;
+  }
+}
+
 /**
  * Get all Vermont observation stations with current weather.
  * Queries multiple grid points across Vermont to capture airport stations
  * that are missing from the ?state=VT endpoint.
+ * Also includes Lake Champlain water temperature sensor from USGS.
  * Results are cached for 15 minutes.
  */
 export async function getObservationStations(): Promise<ObservationStation[]> {
@@ -609,14 +733,17 @@ export async function getObservationStations(): Promise<ObservationStation[]> {
     }
   }
 
-  logStationDebug('Fetching fresh station data from NOAA grid points');
+  logStationDebug('Fetching fresh station data from NOAA grid points and USGS');
 
-  // Fetch stations from all Vermont grid points in parallel
-  const stationArrays = await Promise.all(
-    VERMONT_GRID_POINTS.map((point) =>
-      fetchStationsFromGridPoint(point.name, point.lat, point.lon)
-    )
-  );
+  // Fetch NOAA stations and Lake Champlain sensor in parallel
+  const [stationArrays, lakeChamplainSensor] = await Promise.all([
+    Promise.all(
+      VERMONT_GRID_POINTS.map((point) =>
+        fetchStationsFromGridPoint(point.name, point.lat, point.lon)
+      )
+    ),
+    fetchLakeChamplainSensor(),
+  ]);
 
   // Deduplicate stations by ID (same station appears from multiple grid points)
   const stationMap = new Map<string, NOAAStationsResponse['features'][0]>();
@@ -716,16 +843,23 @@ export async function getObservationStations(): Promise<ObservationStation[]> {
     })
   );
 
-  // Filter out null results and cache
+  // Filter out null results
   const validStations = stationsWithWeather.filter(
     (s): s is ObservationStation => s !== null
   );
+
+  // Add Lake Champlain sensor if available
+  if (lakeChamplainSensor) {
+    validStations.push(lakeChamplainSensor);
+  }
 
   logStationDebug('Station fetch complete', {
     discovered: uniqueStations.length,
     fetchErrors,
     nullTemperature,
     valid: validCount,
+    lakeChamplain: lakeChamplainSensor !== null,
+    total: validStations.length,
     stationIds: validStations.map((s) => s.id),
   });
 
