@@ -553,14 +553,16 @@ const VERMONT_GRID_POINTS = [
 
 /**
  * Logging utility for station fetching diagnostics.
- * Always logs in production to help debug station availability issues.
+ * Only logs in development mode.
  */
 function logStationDebug(message: string, data?: Record<string, unknown>): void {
-  const timestamp = new Date().toISOString();
-  const logEntry = data
-    ? `[STATIONS ${timestamp}] ${message}: ${JSON.stringify(data)}`
-    : `[STATIONS ${timestamp}] ${message}`;
-  console.log(logEntry);
+  if (import.meta.env?.DEV) {
+    const timestamp = new Date().toISOString();
+    const logEntry = data
+      ? `[STATIONS ${timestamp}] ${message}: ${JSON.stringify(data)}`
+      : `[STATIONS ${timestamp}] ${message}`;
+    console.log(logEntry);
+  }
 }
 
 /**
@@ -651,6 +653,12 @@ async function fetchLakeChamplainSensor(): Promise<ObservationStation | null> {
     const latitude = parseFloat(siteInfo.geoLocation.geogLocation.latitude);
     const longitude = parseFloat(siteInfo.geoLocation.geogLocation.longitude);
 
+    // Validate coordinates
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+      logStationDebug('Invalid USGS coordinates', { latitude, longitude });
+      return null;
+    }
+
     // Extract latest water temperature value
     const values = timeSeries.values?.[0]?.value;
     if (!values || values.length === 0) {
@@ -667,8 +675,16 @@ async function fetchLakeChamplainSensor(): Promise<ObservationStation | null> {
     const waterTempCelsius = parseFloat(latestValue.value);
     const timestamp = latestValue.dateTime;
 
-    if (isNaN(waterTempCelsius)) {
-      logStationDebug('Invalid USGS water temperature value');
+    // Validate temperature
+    if (!Number.isFinite(waterTempCelsius)) {
+      logStationDebug('Invalid USGS water temperature value', { value: latestValue.value });
+      return null;
+    }
+
+    // Validate timestamp
+    const observedAt = new Date(timestamp);
+    if (isNaN(observedAt.getTime())) {
+      logStationDebug('Invalid USGS timestamp', { timestamp });
       return null;
     }
 

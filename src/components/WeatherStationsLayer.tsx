@@ -108,6 +108,12 @@ function createWeatherStationMarker(station: ObservationStation): HTMLDivElement
     gap: 1px;
   `;
 
+  // Validate temperature before rendering
+  const temp = station.weather?.temperature;
+  const tempDisplay = (temp !== null && temp !== undefined && Number.isFinite(temp))
+    ? `${Math.round(temp)}°`
+    : 'N/A';
+
   if (isWaterTemp) {
     // Create water droplet icon container
     const iconContainer = document.createElement('div');
@@ -126,7 +132,7 @@ function createWeatherStationMarker(station: ObservationStation): HTMLDivElement
 
     // Add temperature text below icon
     const tempText = document.createElement('div');
-    tempText.textContent = `${Math.round(station.weather.temperature)}°`;
+    tempText.textContent = tempDisplay;
     tempText.style.cssText = `
       font-size: 10px;
       line-height: 1;
@@ -134,7 +140,7 @@ function createWeatherStationMarker(station: ObservationStation): HTMLDivElement
     inner.appendChild(tempText);
   } else {
     // Regular air temperature display
-    inner.textContent = `${Math.round(station.weather.temperature)}°`;
+    inner.textContent = tempDisplay;
   }
 
   // Add hover effect to inner element only
