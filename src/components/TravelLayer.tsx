@@ -524,6 +524,19 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
               Stations
             </button>
 
+            {/* Traffic Flow chip */}
+            <button
+              className={`filter-chip ${showTrafficFlow ? 'active' : ''}`}
+              onClick={onToggleTrafficFlow}
+              aria-pressed={showTrafficFlow}
+              data-chip-type="traffic"
+            >
+              <span className="chip-icon">
+                <Car size={14} strokeWidth={2.5} />
+              </span>
+              Traffic
+            </button>
+
             {/* Ski Resorts chip */}
             <button
               className={`filter-chip ${showSkiResorts ? 'active' : ''}`}
@@ -535,19 +548,6 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
                 <Mountain size={14} strokeWidth={2.5} />
               </span>
               Ski Resorts
-            </button>
-
-            {/* Creemee Stands chip */}
-            <button
-              className={`filter-chip ${showCreemeeStands ? 'active' : ''}`}
-              onClick={onToggleCreemeeStands}
-              aria-pressed={showCreemeeStands}
-              data-chip-type="creemee"
-            >
-              <span className="chip-icon">
-                <IceCream size={14} strokeWidth={2.5} />
-              </span>
-              Creemee Stands
             </button>
 
             {/* Stargazing chip */}
@@ -563,17 +563,17 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
               Stargazing
             </button>
 
-            {/* Traffic Flow chip */}
+            {/* Creemee Stands chip */}
             <button
-              className={`filter-chip ${showTrafficFlow ? 'active' : ''}`}
-              onClick={onToggleTrafficFlow}
-              aria-pressed={showTrafficFlow}
-              data-chip-type="traffic"
+              className={`filter-chip ${showCreemeeStands ? 'active' : ''}`}
+              onClick={onToggleCreemeeStands}
+              aria-pressed={showCreemeeStands}
+              data-chip-type="creemee"
             >
               <span className="chip-icon">
-                <Car size={14} strokeWidth={2.5} />
+                <IceCream size={14} strokeWidth={2.5} />
               </span>
-              Traffic
+              Creemee Stands
             </button>
 
             {/* Incident type chips */}
