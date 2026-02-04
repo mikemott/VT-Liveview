@@ -556,7 +556,8 @@ const VERMONT_GRID_POINTS = [
  * Only logs in development mode.
  */
 function logStationDebug(message: string, data?: Record<string, unknown>): void {
-  if (import.meta.env?.DEV) {
+  const isDev = process.env.NODE_ENV === 'development';
+  if (isDev) {
     const timestamp = new Date().toISOString();
     const logEntry = data
       ? `[STATIONS ${timestamp}] ${message}: ${JSON.stringify(data)}`
