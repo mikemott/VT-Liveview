@@ -1,4 +1,4 @@
-# VT-Liveview
+# VT-LiveView
 
 A hyper-local, real-time information map for Vermont. Beautiful, privacy-first, and community-focused.
 
