@@ -15,6 +15,7 @@ interface TrafficFlowLayerProps {
 // Constants
 // =============================================================================
 
+// TomTom API key from environment variables
 const TOMTOM_API_KEY = import.meta.env.VITE_TOMTOM_API_KEY as string;
 
 // Traffic flow layer IDs
