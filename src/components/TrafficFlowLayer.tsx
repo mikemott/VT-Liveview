@@ -30,11 +30,16 @@ const LAYER_ID_CASING = 'traffic-flow-layer-casing';
 function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
   const layersAdded = useRef(false);
   const isDarkRef = useRef(isDark);
+  const visibleRef = useRef(visible);
 
-  // Keep ref in sync with prop
+  // Keep refs in sync with props
   useEffect(() => {
     isDarkRef.current = isDark;
   }, [isDark]);
+
+  useEffect(() => {
+    visibleRef.current = visible;
+  }, [visible]);
 
   // Effect to add layers on mount, remove on unmount
   // IMPORTANT: isDark is NOT in the dependency array to prevent recreating
@@ -49,17 +54,21 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
     }
 
     const instanceId = Math.random().toString(36).substring(7);
-    console.log(`TrafficFlowLayer: MOUNTING - Instance ID: ${instanceId}`);
-    console.log('TrafficFlowLayer: API key value:', TOMTOM_API_KEY ? `${TOMTOM_API_KEY.substring(0, 10)}...` : 'UNDEFINED');
+    if (import.meta.env.DEV) {
+      console.log(`TrafficFlowLayer: MOUNTING - Instance ID: ${instanceId}`);
+      console.log('TrafficFlowLayer: API key value:', TOMTOM_API_KEY ? `${TOMTOM_API_KEY.substring(0, 10)}...` : 'UNDEFINED');
+    }
 
     const addTrafficLayers = (retryCount = 0) => {
       const styleLoaded = map.isStyleLoaded();
-      console.log(`TrafficFlowLayer [${instanceId}]: Attempting to add layers`, {
-        styleLoaded,
-        retryCount,
-        hasStyle: !!map.getStyle(),
-        currentTheme: isDarkRef.current ? 'dark' : 'light'
-      });
+      if (import.meta.env.DEV) {
+        console.log(`TrafficFlowLayer [${instanceId}]: Attempting to add layers`, {
+          styleLoaded,
+          retryCount,
+          hasStyle: !!map.getStyle(),
+          currentTheme: isDarkRef.current ? 'dark' : 'light'
+        });
+      }
 
       if (!styleLoaded) {
         // Use both event listener AND timeout fallback to handle race conditions
@@ -223,25 +232,32 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
       const casingExists = !!map.getLayer(LAYER_ID_CASING);
 
       if (layersAdded.current && (!layerExists || !casingExists)) {
-        console.error(`TrafficFlowLayer [${instanceId}]: LAYERS DISAPPEARED!`, {
-          sourceExists,
-          layerExists,
-          casingExists,
-          wasAdded: layersAdded.current
-        });
+        if (import.meta.env.DEV) {
+          console.error(`TrafficFlowLayer [${instanceId}]: LAYERS DISAPPEARED!`, {
+            sourceExists,
+            layerExists,
+            casingExists,
+            wasAdded: layersAdded.current
+          });
+        }
       }
 
       if (layerExists) {
         const visibility = map.getLayoutProperty(LAYER_ID, 'visibility');
-        if (visibility !== 'visible' && visible) {
-          console.warn(`TrafficFlowLayer [${instanceId}]: Visibility changed unexpectedly to ${visibility}`);
+        // Use visibleRef.current to get latest value (avoid stale closure)
+        if (visibility !== 'visible' && visibleRef.current) {
+          if (import.meta.env.DEV) {
+            console.warn(`TrafficFlowLayer [${instanceId}]: Visibility changed unexpectedly to ${visibility}`);
+          }
         }
       }
     }, 2000);
 
     // Cleanup only on unmount
     return () => {
-      console.log(`TrafficFlowLayer: CLEANUP RUNNING - Instance ID: ${instanceId} - WHY?`);
+      if (import.meta.env.DEV) {
+        console.log(`TrafficFlowLayer: CLEANUP RUNNING - Instance ID: ${instanceId} - WHY?`);
+      }
       clearInterval(monitorInterval);
       map.off('style.load', addTrafficLayers);
       if (!map) return;
