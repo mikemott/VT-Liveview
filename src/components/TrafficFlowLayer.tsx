@@ -56,6 +56,17 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
           });
         }
 
+        // Find the first label/symbol layer to insert traffic layers before it
+        // This ensures traffic shows above roads but below labels
+        const layers = map.getStyle().layers;
+        let firstLabelLayer: string | undefined;
+        for (const layer of layers) {
+          if (layer.type === 'symbol' || layer.id.includes('label') || layer.id.includes('place')) {
+            firstLabelLayer = layer.id;
+            break;
+          }
+        }
+
         // Add casing layer (outline for visibility)
         if (!map.getLayer(LAYER_ID_CASING)) {
           map.addLayer({
@@ -73,7 +84,7 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
               'line-width': 4,
               'line-opacity': 0.5
             }
-          });
+          }, firstLabelLayer); // Insert before labels
         }
 
         // Add main traffic layer
@@ -103,7 +114,7 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
               'line-width': 3,
               'line-opacity': 0.85
             }
-          });
+          }, firstLabelLayer); // Insert before labels
         }
 
         layersAdded.current = true;
