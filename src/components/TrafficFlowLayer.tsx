@@ -33,8 +33,14 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
   // Effect to add layers on mount, remove on unmount
   useEffect(() => {
     if (!map || !TOMTOM_API_KEY) {
+      console.warn('TrafficFlowLayer: Component mounted but prerequisites missing', {
+        hasMap: !!map,
+        hasApiKey: !!TOMTOM_API_KEY
+      });
       return;
     }
+
+    console.log('TrafficFlowLayer: Initializing with map and API key');
 
     const addTrafficLayers = () => {
       if (!map.isStyleLoaded()) {
@@ -135,9 +141,8 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
 
         layersAdded.current = true;
       } catch (e) {
-        if (import.meta.env.DEV) {
-          console.error('TrafficFlowLayer: Error adding layers', e);
-        }
+        // Always log errors - critical for debugging production issues
+        console.error('TrafficFlowLayer: Error adding layers', e);
       }
     };
 
