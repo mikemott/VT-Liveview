@@ -42,9 +42,22 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
 
     console.log('TrafficFlowLayer: Initializing with map and API key');
 
-    const addTrafficLayers = () => {
-      if (!map.isStyleLoaded()) {
-        map.once('style.load', addTrafficLayers);
+    const addTrafficLayers = (retryCount = 0) => {
+      const styleLoaded = map.isStyleLoaded();
+      console.log('TrafficFlowLayer: Attempting to add layers', {
+        styleLoaded,
+        retryCount,
+        hasStyle: !!map.getStyle()
+      });
+
+      if (!styleLoaded) {
+        // Use both event listener AND timeout fallback to handle race conditions
+        if (retryCount < 10) {
+          console.log('TrafficFlowLayer: Style not loaded, scheduling retry');
+          setTimeout(() => addTrafficLayers(retryCount + 1), 100);
+        } else {
+          console.error('TrafficFlowLayer: Failed to add layers after 10 retries - style never loaded');
+        }
         return;
       }
 
@@ -140,6 +153,11 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
         }
 
         layersAdded.current = true;
+        console.log('TrafficFlowLayer: Successfully added traffic layers', {
+          sourceExists: !!map.getSource(SOURCE_ID),
+          mainLayerExists: !!map.getLayer(LAYER_ID),
+          casingLayerExists: !!map.getLayer(LAYER_ID_CASING)
+        });
       } catch (e) {
         // Always log errors - critical for debugging production issues
         console.error('TrafficFlowLayer: Error adding layers', e);
