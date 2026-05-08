@@ -603,7 +603,7 @@ function WeatherMap() {
     }, 150); // 150ms debounce - prevents rapid toggles from stacking
 
     return () => clearTimeout(debounceTimer);
-  }, [isDark, mapLoaded]); // Only run when theme or map load state changes, NOT when alerts change
+  }, [isDark]); // ONLY run when theme actually changes, not when map loads or alerts change
 
   // Toggle theme manually
   const toggleTheme = useCallback((): void => {
