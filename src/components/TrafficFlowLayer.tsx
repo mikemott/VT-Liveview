@@ -73,8 +73,11 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
       if (!styleLoaded) {
         // Use both event listener AND timeout fallback to handle race conditions
         if (retryCount < 10) {
-          console.log('TrafficFlowLayer: Style not loaded, scheduling retry');
-          setTimeout(() => addTrafficLayers(retryCount + 1), 100);
+          if (import.meta.env.DEV) {
+            console.log('TrafficFlowLayer: Style not loaded, scheduling retry');
+          }
+          // Increased delay to 200ms to give style more time to stabilize
+          setTimeout(() => addTrafficLayers(retryCount + 1), 200);
         } else {
           console.error('TrafficFlowLayer: Failed to add layers after 10 retries - style never loaded');
         }
@@ -221,7 +224,13 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
 
     // Re-add layers whenever style reloads (theme changes, etc)
     // This is critical because MapLibre wipes custom layers on style change
-    map.on('style.load', addTrafficLayers);
+    // Add small delay after style.load to ensure style is fully ready
+    const handleStyleLoad = () => {
+      // Wait for next tick to ensure style is fully settled
+      setTimeout(() => addTrafficLayers(), 50);
+    };
+
+    map.on('style.load', handleStyleLoad);
 
     // Start periodic monitoring to detect layer disappearance
     const monitorInterval = setInterval(() => {
@@ -259,7 +268,7 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
         console.log(`TrafficFlowLayer: CLEANUP RUNNING - Instance ID: ${instanceId} - WHY?`);
       }
       clearInterval(monitorInterval);
-      map.off('style.load', addTrafficLayers);
+      map.off('style.load', handleStyleLoad);
       if (!map) return;
       try {
         if (map.getLayer(LAYER_ID)) {
