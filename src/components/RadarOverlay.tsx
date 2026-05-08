@@ -39,7 +39,7 @@ export default function RadarOverlay({ map, isDark = false, collapsed = false }:
     prevFrame,
     goToFrame,
     refresh
-  } = useRadarAnimation(map, { frameCount: 6, frameDelay: 500 });
+  } = useRadarAnimation(map, { frameCount: 4, frameDelay: 500 });
 
   // Helper to safely check if layer exists
   const hasLayer = useCallback((layerId: string): boolean => {
@@ -88,41 +88,53 @@ export default function RadarOverlay({ map, isDark = false, collapsed = false }:
         }
       }
 
-      // Update existing sources and add new ones if count increased
-      frames.forEach((frame: RadarFrameData, index: number) => {
-        const sourceId = `radar-source-${index}`;
-        const layerId = `radar-layer-${index}`;
+      // Add sources sequentially with delays to avoid RainViewer rate limiting (429 errors)
+      // Loading all 4 frames at once causes CORS errors due to 429 responses lacking CORS headers
+      const addSourcesSequentially = async () => {
+        for (let index = 0; index < frames.length; index++) {
+          const frame = frames[index];
+          const sourceId = `radar-source-${index}`;
+          const layerId = `radar-layer-${index}`;
 
-        // If source exists, remove and recreate with new URL
-        if (hasSource(sourceId)) {
-          if (hasLayer(layerId)) {
-            map.removeLayer(layerId);
+          // If source exists, remove and recreate with new URL
+          if (hasSource(sourceId)) {
+            if (hasLayer(layerId)) {
+              map.removeLayer(layerId);
+            }
+            map.removeSource(sourceId);
           }
-          map.removeSource(sourceId);
+
+          // Add source with current frame URL
+          map.addSource(sourceId, {
+            type: 'raster',
+            tiles: [frame.tileUrl],
+            tileSize: 256,
+            attribution: index === 0 ? 'Weather radar: RainViewer / NOAA' : ''
+          });
+
+          // Add layer
+          map.addLayer({
+            id: layerId,
+            type: 'raster',
+            source: sourceId,
+            layout: {
+              visibility: 'visible' // Keep visible to preload tiles
+            },
+            paint: {
+              'raster-opacity': 0, // Start transparent, increase after tiles load
+              'raster-fade-duration': 0 // No fade during preload
+            }
+          });
+
+          // Wait 400ms before adding next source to avoid rate limiting
+          // This prevents RainViewer from returning 429 (Too Many Requests)
+          if (index < frames.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 400));
+          }
         }
+      };
 
-        // Add source with current frame URL
-        map.addSource(sourceId, {
-          type: 'raster',
-          tiles: [frame.tileUrl],
-          tileSize: 256,
-          attribution: index === 0 ? 'Weather radar: RainViewer / NOAA' : ''
-        });
-
-        // Add layer
-        map.addLayer({
-          id: layerId,
-          type: 'raster',
-          source: sourceId,
-          layout: {
-            visibility: 'visible' // Keep visible to preload tiles
-          },
-          paint: {
-            'raster-opacity': 0, // Start transparent, increase after tiles load
-            'raster-fade-duration': 0 // No fade during preload
-          }
-        });
-      });
+      void addSourcesSequentially();
 
       layersInitialized.current = true;
       previousFrameCount.current = currentCount;
@@ -145,40 +157,50 @@ export default function RadarOverlay({ map, isDark = false, collapsed = false }:
         setTilesLoaded(false);
         loadedSources.current.clear();
 
-        // Update each source with new tile URL
-        frames.forEach((frame: RadarFrameData, index: number) => {
-          const sourceId = `radar-source-${index}`;
-          const layerId = `radar-layer-${index}`;
+        // Update sources sequentially with delays to avoid rate limiting
+        const updateSourcesSequentially = async () => {
+          for (let index = 0; index < frames.length; index++) {
+            const frame = frames[index];
+            const sourceId = `radar-source-${index}`;
+            const layerId = `radar-layer-${index}`;
 
-          if (hasSource(sourceId) && hasLayer(layerId)) {
-            // Hide layer temporarily
-            map.setPaintProperty(layerId, 'raster-opacity', 0);
+            if (hasSource(sourceId) && hasLayer(layerId)) {
+              // Hide layer temporarily
+              map.setPaintProperty(layerId, 'raster-opacity', 0);
 
-            // Remove and recreate source with new URL
-            map.removeLayer(layerId);
-            map.removeSource(sourceId);
+              // Remove and recreate source with new URL
+              map.removeLayer(layerId);
+              map.removeSource(sourceId);
 
-            map.addSource(sourceId, {
-              type: 'raster',
-              tiles: [frame.tileUrl],
-              tileSize: 256,
-              attribution: index === 0 ? 'Weather radar: RainViewer / NOAA' : ''
-            });
+              map.addSource(sourceId, {
+                type: 'raster',
+                tiles: [frame.tileUrl],
+                tileSize: 256,
+                attribution: index === 0 ? 'Weather radar: RainViewer / NOAA' : ''
+              });
 
-            map.addLayer({
-              id: layerId,
-              type: 'raster',
-              source: sourceId,
-              layout: {
-                visibility: 'visible'
-              },
-              paint: {
-                'raster-opacity': 0,
-                'raster-fade-duration': 0
+              map.addLayer({
+                id: layerId,
+                type: 'raster',
+                source: sourceId,
+                layout: {
+                  visibility: 'visible'
+                },
+                paint: {
+                  'raster-opacity': 0,
+                  'raster-fade-duration': 0
+                }
+              });
+
+              // Wait 400ms before updating next source
+              if (index < frames.length - 1) {
+                await new Promise(resolve => setTimeout(resolve, 400));
               }
-            });
+            }
           }
-        });
+        };
+
+        void updateSourcesSequentially();
       }
     }
 
