@@ -81,7 +81,7 @@ function WeatherMap() {
   const [layerVisibility, setLayerVisibility] = useState<Record<string, boolean | null>>({
     weatherStations: true,  // Core layer - always on by default
     skiResorts: false,      // Off by default - user can enable manually
-    creemeeStands: null,    // Seasonal - auto show during creemee season (Apr-Sep)
+    creemeeStands: false,   // Off by default - user can enable manually (was null for auto-show)
   });
   const [showStargazing, setShowStargazing] = useState(false);
   const [showTrafficFlow, setShowTrafficFlow] = useState(false);
