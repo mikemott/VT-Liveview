@@ -112,13 +112,14 @@ export default function RadarOverlay({ map, isDark = false, collapsed = false }:
             attribution: index === 0 ? 'Weather radar: RainViewer / NOAA' : ''
           });
 
-          // Add layer
+          // Add layer - start hidden to prevent tile loading
+          // Only the current frame will be set to visible, avoiding rate limits
           map.addLayer({
             id: layerId,
             type: 'raster',
             source: sourceId,
             layout: {
-              visibility: 'visible' // Keep visible to preload tiles
+              visibility: index === frames.length - 1 ? 'visible' : 'none' // Only show most recent frame initially
             },
             paint: {
               'raster-opacity': 0, // Start transparent, increase after tiles load
@@ -184,7 +185,7 @@ export default function RadarOverlay({ map, isDark = false, collapsed = false }:
                 type: 'raster',
                 source: sourceId,
                 layout: {
-                  visibility: 'visible'
+                  visibility: index === frames.length - 1 ? 'visible' : 'none'
                 },
                 paint: {
                   'raster-opacity': 0,
@@ -226,57 +227,38 @@ export default function RadarOverlay({ map, isDark = false, collapsed = false }:
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, frames, hasSource, hasLayer]);
 
-  // Preload tiles by listening for data events
+  // Mark tiles as loaded immediately since we're using lazy loading
+  // Each frame loads its tiles only when visible, so no preload wait needed
   useEffect(() => {
-    if (!map || !layersInitialized.current || frames.length === 0 || tilesLoaded) return;
+    if (!map || !layersInitialized.current || frames.length === 0) return;
 
-    const handleSourceData = (e: { sourceId?: string; isSourceLoaded?: boolean }) => {
-      // Check if this is a radar source and tiles are loaded
-      if (e.sourceId && e.sourceId.startsWith('radar-source-') && e.isSourceLoaded) {
-        loadedSources.current.add(e.sourceId);
+    // With lazy loading (visibility: 'none'), tiles load on-demand
+    // No need to wait for all sources - mark as ready immediately
+    setTilesLoaded(true);
+  }, [map, frames, layersInitialized.current]);
 
-        // If all sources have loaded tiles, mark as ready
-        if (loadedSources.current.size >= frames.length) {
-          setTilesLoaded(true);
-        }
-      }
-    };
-
-    map.on('sourcedata', handleSourceData);
-
-    // Fallback: If tiles don't load within timeout, show anyway
-    preloadTimeoutRef.current = setTimeout(() => {
-      if (!tilesLoaded) {
-        if (import.meta.env.DEV) {
-          console.log('Radar tiles preload timeout, showing anyway');
-        }
-        setTilesLoaded(true);
-      }
-    }, INTERVALS.PRELOAD_TIMEOUT);
-
-    return () => {
-      map.off('sourcedata', handleSourceData);
-      if (preloadTimeoutRef.current) {
-        clearTimeout(preloadTimeoutRef.current);
-      }
-    };
-  }, [map, frames, tilesLoaded]);
-
-  // Toggle opacity between layers based on current frame
+  // Toggle visibility and opacity between layers based on current frame
+  // Using visibility:'none' prevents MapLibre from loading tiles, avoiding rate limits
   useEffect(() => {
-    if (!map || !layersInitialized.current || frames.length === 0 || !tilesLoaded) return;
+    if (!map || !layersInitialized.current || frames.length === 0) return;
 
-    // Show only the current frame by adjusting opacity
+    // Show only the current frame by adjusting both visibility and opacity
     frames.forEach((_: RadarFrameData, index: number) => {
       const layerId = `radar-layer-${index}`;
       if (hasLayer(layerId)) {
         const shouldShow = index === currentFrame && visible;
-        // Use opacity for instant switching - no fade during animation
-        map.setPaintProperty(layerId, 'raster-fade-duration', 0);
-        map.setPaintProperty(layerId, 'raster-opacity', shouldShow ? opacity : 0);
+
+        // Set visibility - 'none' prevents tile loading (avoids rate limits)
+        map.setLayoutProperty(layerId, 'visibility', shouldShow ? 'visible' : 'none');
+
+        // Set opacity - only visible layer gets opacity
+        if (shouldShow) {
+          map.setPaintProperty(layerId, 'raster-fade-duration', 0);
+          map.setPaintProperty(layerId, 'raster-opacity', opacity);
+        }
       }
     });
-  }, [map, currentFrame, visible, frames, hasLayer, tilesLoaded, opacity]);
+  }, [map, currentFrame, visible, frames, hasLayer, opacity]);
 
   // Note: Opacity is now handled in the frame switching effect above
   // to avoid conflicts and ensure smooth transitions

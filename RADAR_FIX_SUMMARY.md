@@ -15,9 +15,11 @@ Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remot
 - The 429 error responses **lacked CORS headers**, causing the browser to block them
 - MapLibre showed "Zoom Level Not Supported" because tiles failed to load
 
-## Solution
+## Solution (Revised - Lazy Loading)
 
-**3 key changes implemented:**
+**Key insight:** Sequential source loading wasn't enough because each source triggers MapLibre to load **dozens of tiles** for the viewport. Even with delays, we were still overwhelming RainViewer.
+
+**New approach:** Lazy load tiles **only for the currently visible frame** using `visibility: 'none'`:
 
 ### 1. Reduced Frame Count (6 → 4)
 **Files:** `src/utils/constants.ts`, `src/components/RadarOverlay.tsx`
@@ -32,47 +34,45 @@ export const RADAR_CONFIG: RadarConfig = {
 
 **Benefit:** Fewer simultaneous requests = less likely to hit rate limit
 
-### 2. Sequential Frame Loading with Delays
+### 2. Lazy Loading with visibility: 'none'
 **File:** `src/components/RadarOverlay.tsx`
 
-**Before:**
-```typescript
-// All sources added at once (caused rate limiting)
-frames.forEach((frame, index) => {
-  map.addSource(sourceId, { ... });
-  map.addLayer({ ... });
-});
-```
+**The Real Problem:**
+- Each raster source with `visibility: 'visible'` triggers MapLibre to load **all tiles** for the viewport
+- At zoom level 8, that's ~50-100 tiles per frame
+- 4 frames × 100 tiles = 400 simultaneous requests → 429 rate limit
 
-**After:**
+**The Fix:**
 ```typescript
-// Sources added sequentially with 400ms delays
-const addSourcesSequentially = async () => {
-  for (let index = 0; index < frames.length; index++) {
-    map.addSource(sourceId, { ... });
-    map.addLayer({ ... });
-
-    // Wait 400ms before adding next source
-    if (index < frames.length - 1) {
-      await new Promise(resolve => setTimeout(resolve, 400));
-    }
+// Initial layer creation - all hidden except current frame
+map.addLayer({
+  id: layerId,
+  type: 'raster',
+  source: sourceId,
+  layout: {
+    visibility: index === currentFrame ? 'visible' : 'none' // Only current frame loads tiles
   }
-};
+});
+
+// When switching frames - toggle visibility
+map.setLayoutProperty(layerId, 'visibility', shouldShow ? 'visible' : 'none');
 ```
 
 **Benefit:**
-- Spreads requests over ~1.6 seconds (4 frames × 400ms)
-- Prevents overwhelming RainViewer's rate limiter
-- Applied to both initial load AND refresh operations
+- **Only 1 frame loads tiles at a time** (50-100 tiles instead of 400)
+- Stays well under RainViewer's rate limit
+- Tiles load on-demand when user switches frames
+- No preload delays needed
 
-### 3. Increased Preload Timeout (8s → 12s)
-**File:** `src/utils/constants.ts`
+### 3. Removed Preload Timeout Logic
+**File:** `src/components/RadarOverlay.tsx`
 
 ```typescript
-PRELOAD_TIMEOUT: 12000, // Increased to account for sequential loading
+// With lazy loading, tiles load on-demand - no preload wait needed
+setTilesLoaded(true);
 ```
 
-**Benefit:** Allows time for sequential loading before fallback timeout
+**Benefit:** Simplified logic since we don't preload all frames anymore
 
 ## Technical Details
 
