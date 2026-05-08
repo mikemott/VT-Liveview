@@ -63,16 +63,20 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
       console.log('TrafficFlowLayer: API key value:', TOMTOM_API_KEY ? `${TOMTOM_API_KEY.substring(0, 10)}...` : 'UNDEFINED');
     }
 
+    let addTrafficLayersCallCount = 0;
+
     const addTrafficLayers = (retryCount = 0) => {
+      addTrafficLayersCallCount++;
       const styleLoaded = map.isStyleLoaded();
-      if (import.meta.env.DEV) {
-        console.log(`TrafficFlowLayer [${instanceId}]: Attempting to add layers`, {
-          styleLoaded,
-          retryCount,
-          hasStyle: !!map.getStyle(),
-          currentTheme: isDarkRef.current ? 'dark' : 'light'
-        });
-      }
+
+      console.log(`TrafficFlowLayer [${instanceId}]: addTrafficLayers called (#${addTrafficLayersCallCount})`, {
+        styleLoaded,
+        retryCount,
+        hasStyle: !!map.getStyle(),
+        currentTheme: isDarkRef.current ? 'dark' : 'light',
+        layersCurrentlyExist: !!map.getLayer(LAYER_ID),
+        sourceCurrentlyExists: !!map.getSource(SOURCE_ID)
+      });
 
       if (!styleLoaded) {
         // Use both event listener AND timeout fallback to handle race conditions
@@ -88,20 +92,33 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
         return;
       }
 
-      // Clean up existing layers/sources if they exist
-      // This handles style reload scenarios
+      // Check if layers already exist and are working
+      const layersExist = !!map.getLayer(LAYER_ID) && !!map.getLayer(LAYER_ID_CASING);
+      const sourceExists = !!map.getSource(SOURCE_ID);
+
+      if (layersExist && sourceExists) {
+        console.log(`TrafficFlowLayer [${instanceId}]: Layers already exist, skipping re-add to prevent destruction`);
+        return; // Don't destroy and recreate if they're already there
+      }
+
+      // Clean up existing layers/sources if they exist (only runs if incomplete)
+      // This handles style reload scenarios where source exists but layers don't
       try {
         if (map.getLayer(LAYER_ID)) {
+          console.log(`TrafficFlowLayer [${instanceId}]: Removing existing main layer`);
           map.removeLayer(LAYER_ID);
         }
         if (map.getLayer(LAYER_ID_CASING)) {
+          console.log(`TrafficFlowLayer [${instanceId}]: Removing existing casing layer`);
           map.removeLayer(LAYER_ID_CASING);
         }
         if (map.getSource(SOURCE_ID)) {
+          console.log(`TrafficFlowLayer [${instanceId}]: Removing existing source`);
           map.removeSource(SOURCE_ID);
         }
-      } catch {
+      } catch (e) {
         // Layers/sources don't exist yet, which is fine
+        console.log(`TrafficFlowLayer [${instanceId}]: Cleanup failed (probably didn't exist):`, e);
       }
 
       try {
