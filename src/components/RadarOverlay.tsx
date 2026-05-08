@@ -109,6 +109,9 @@ export default function RadarOverlay({ map, isDark = false, collapsed = false }:
             type: 'raster',
             tiles: [frame.tileUrl],
             tileSize: 256,
+            minzoom: 0,
+            maxzoom: 7,  // RainViewer maximum zoom level
+            scheme: 'xyz',
             attribution: index === 0 ? 'Weather radar: RainViewer / NOAA' : ''
           });
 
@@ -177,6 +180,9 @@ export default function RadarOverlay({ map, isDark = false, collapsed = false }:
                 type: 'raster',
                 tiles: [frame.tileUrl],
                 tileSize: 256,
+                minzoom: 0,
+                maxzoom: 7,  // RainViewer maximum zoom level
+                scheme: 'xyz',
                 attribution: index === 0 ? 'Weather radar: RainViewer / NOAA' : ''
               });
 
@@ -242,11 +248,24 @@ export default function RadarOverlay({ map, isDark = false, collapsed = false }:
   useEffect(() => {
     if (!map || !layersInitialized.current || frames.length === 0) return;
 
+    if (import.meta.env.DEV) {
+      console.log('[RadarOverlay] Toggling frame visibility:', {
+        currentFrame,
+        visible,
+        opacity,
+        totalFrames: frames.length
+      });
+    }
+
     // Show only the current frame by adjusting both visibility and opacity
     frames.forEach((_: RadarFrameData, index: number) => {
       const layerId = `radar-layer-${index}`;
       if (hasLayer(layerId)) {
         const shouldShow = index === currentFrame && visible;
+
+        if (import.meta.env.DEV && shouldShow) {
+          console.log(`[RadarOverlay] Making ${layerId} visible with opacity ${opacity}`);
+        }
 
         // Set visibility - 'none' prevents tile loading (avoids rate limits)
         map.setLayoutProperty(layerId, 'visibility', shouldShow ? 'visible' : 'none');
