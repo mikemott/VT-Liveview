@@ -16,20 +16,49 @@ interface CreemeeLayerProps {
   visible: boolean;
 }
 
-// Ice cream cone icon (soft serve style)
+// Lucide IceCream icon (matches filter chip)
 const CREEMEE_ICON = `
   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
-       viewBox="0 0 24 24" fill="white" stroke="currentColor"
+       viewBox="0 0 24 24" fill="none" stroke="white"
        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M12 2a4 4 0 0 0-4 4c0 1.5.8 2.8 2 3.5V11c0 1.1.9 2 2 2s2-.9 2-2V9.5c1.2-.7 2-2 2-3.5a4 4 0 0 0-4-4Z"/>
-    <path d="M8 11v.5c0 1.4.6 2.6 1.5 3.5L12 22l2.5-6.5c.9-.9 1.5-2.1 1.5-3.5V11"/>
+    <path d="m7 11 4.08 10.35a1 1 0 0 0 1.84 0L17 11"/>
+    <path d="M17 7A5 5 0 0 0 7 7"/>
+    <path d="M17 7a2 2 0 0 1 0 4H7a2 2 0 0 1 0-4"/>
   </svg>
 `;
 
 function createCreemeeMarker(): HTMLDivElement {
   const el = document.createElement('div');
   el.className = 'creemee-stand-marker';
+
+  // Match ski resort marker styling: white border, colored background
+  el.style.cssText = `
+    width: 32px;
+    height: 32px;
+    background: #F5DEB3;
+    border: 2px solid white;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: box-shadow 0.2s ease, border-width 0.2s ease;
+  `;
+
   el.innerHTML = CREEMEE_ICON;
+
+  // Hover glow effect (like ski resorts)
+  el.addEventListener('mouseenter', () => {
+    el.style.boxShadow = '0 0 12px #F5DEB3, 0 2px 8px rgba(0, 0, 0, 0.3)';
+    el.style.borderWidth = '3px';
+  });
+
+  el.addEventListener('mouseleave', () => {
+    el.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.25)';
+    el.style.borderWidth = '2px';
+  });
+
   return el;
 }
 
