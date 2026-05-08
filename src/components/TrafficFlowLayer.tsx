@@ -42,6 +42,22 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
         return;
       }
 
+      // Clean up existing layers/sources if they exist
+      // This handles style reload scenarios
+      try {
+        if (map.getLayer(LAYER_ID)) {
+          map.removeLayer(LAYER_ID);
+        }
+        if (map.getLayer(LAYER_ID_CASING)) {
+          map.removeLayer(LAYER_ID_CASING);
+        }
+        if (map.getSource(SOURCE_ID)) {
+          map.removeSource(SOURCE_ID);
+        }
+      } catch {
+        // Layers/sources don't exist yet, which is fine
+      }
+
       try {
         // Add source if needed
         if (!map.getSource(SOURCE_ID)) {
@@ -125,10 +141,16 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
       }
     };
 
+    // Add layers initially
     addTrafficLayers();
+
+    // Re-add layers whenever style reloads (theme changes, etc)
+    // This is critical because MapLibre wipes custom layers on style change
+    map.on('style.load', addTrafficLayers);
 
     // Cleanup only on unmount
     return () => {
+      map.off('style.load', addTrafficLayers);
       if (!map) return;
       try {
         if (map.getLayer(LAYER_ID)) {
