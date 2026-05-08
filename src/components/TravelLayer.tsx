@@ -89,10 +89,10 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
   const [selectedIncident, setSelectedIncident] = useState<TravelIncident | null>(null);
   const [activeFilters, setActiveFilters] = useState<ActiveFilters>({
     ACCIDENT: true,
-    CONSTRUCTION: true,
-    CLOSURE: true,
-    FLOODING: true,
-    HAZARD: true
+    CONSTRUCTION: false,
+    CLOSURE: false,
+    FLOODING: false,
+    HAZARD: false
   });
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);

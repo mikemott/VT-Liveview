@@ -84,7 +84,7 @@ function WeatherMap() {
     creemeeStands: false,   // Off by default - user can enable manually (was null for auto-show)
   });
   const [showStargazing, setShowStargazing] = useState(false);
-  const [showTrafficFlow, setShowTrafficFlow] = useState(false);
+  const [showTrafficFlow, setShowTrafficFlow] = useState(true);
 
   // Seasonal layers hook
   const { isInSeason } = useSeasonalLayers();
