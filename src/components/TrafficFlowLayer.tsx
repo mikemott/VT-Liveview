@@ -41,6 +41,7 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
     }
 
     console.log('TrafficFlowLayer: Initializing with map and API key');
+    console.log('TrafficFlowLayer: API key value:', TOMTOM_API_KEY ? `${TOMTOM_API_KEY.substring(0, 10)}...` : 'UNDEFINED');
 
     const addTrafficLayers = (retryCount = 0) => {
       const styleLoaded = map.isStyleLoaded();
@@ -80,15 +81,26 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
       try {
         // Add source if needed
         if (!map.getSource(SOURCE_ID)) {
-          map.addSource(SOURCE_ID, {
-            type: 'vector',
-            tiles: [
-              `https://api.tomtom.com/traffic/map/4/tile/flow/relative/{z}/{x}/{y}.pbf?key=${TOMTOM_API_KEY}`
-            ],
-            minzoom: 6,
-            maxzoom: 18,
-            attribution: '© TomTom'
-          });
+          const tileUrl = `https://api.tomtom.com/traffic/map/4/tile/flow/relative/{z}/{x}/{y}.pbf?key=${TOMTOM_API_KEY}`;
+          console.log('TrafficFlowLayer: Adding source with tile URL:', tileUrl.substring(0, 80) + '...');
+
+          try {
+            map.addSource(SOURCE_ID, {
+              type: 'vector',
+              tiles: [tileUrl],
+              minzoom: 6,
+              maxzoom: 18,
+              attribution: '© TomTom'
+            });
+            console.log('TrafficFlowLayer: Source added successfully');
+          } catch (sourceError) {
+            console.error('TrafficFlowLayer: FAILED to add source!', sourceError);
+            throw sourceError;
+          }
+
+          console.log('TrafficFlowLayer: Verifying source exists...', !!map.getSource(SOURCE_ID));
+        } else {
+          console.log('TrafficFlowLayer: Source already exists, skipping addSource');
         }
 
         // Find the first label/symbol layer to insert traffic layers before it
