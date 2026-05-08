@@ -45,11 +45,15 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
   // IMPORTANT: isDark is NOT in the dependency array to prevent recreating
   // event listeners on every theme change. We use isDarkRef.current to get latest value.
   useEffect(() => {
-    if (!map || !TOMTOM_API_KEY) {
-      console.warn('TrafficFlowLayer: Component mounted but prerequisites missing', {
-        hasMap: !!map,
-        hasApiKey: !!TOMTOM_API_KEY
-      });
+    if (!map) {
+      console.warn('TrafficFlowLayer: Map not available yet');
+      return;
+    }
+
+    if (!TOMTOM_API_KEY) {
+      console.error('TrafficFlowLayer: VITE_TOMTOM_API_KEY environment variable is not set!');
+      console.error('TrafficFlowLayer: Traffic flow layer will not work without an API key');
+      console.error('TrafficFlowLayer: Get a free API key at https://developer.tomtom.com/');
       return;
     }
 
@@ -110,11 +114,38 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
             map.addSource(SOURCE_ID, {
               type: 'vector',
               tiles: [tileUrl],
-              minzoom: 6,
-              maxzoom: 18,
+              minzoom: 0, // Changed from 6 to 0 to ensure tiles load at all zoom levels
+              maxzoom: 22, // Increased to match TomTom's max
               attribution: '© TomTom'
             });
             console.log('TrafficFlowLayer: Source added successfully');
+
+            // Add event listeners to debug tile loading
+            map.on('sourcedataloading', (e) => {
+              if (e.sourceId === SOURCE_ID && import.meta.env.DEV) {
+                console.log('TrafficFlowLayer: Tiles loading from source');
+              }
+            });
+
+            map.on('sourcedata', (e) => {
+              if (e.sourceId === SOURCE_ID && e.isSourceLoaded && import.meta.env.DEV) {
+                console.log('TrafficFlowLayer: Source data loaded', {
+                  tileID: e.tile?.tileID,
+                  loaded: e.isSourceLoaded
+                });
+              }
+            });
+
+            map.on('error', (e) => {
+              const err = e.error as any;
+              if (err?.url?.includes('tomtom.com')) {
+                console.error('TrafficFlowLayer: TomTom tile loading error:', {
+                  message: err.message,
+                  url: err.url,
+                  status: err.status
+                });
+              }
+            });
           } catch (sourceError) {
             console.error('TrafficFlowLayer: FAILED to add source!', sourceError);
             throw sourceError;
@@ -179,19 +210,11 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
               'line-join': 'round'
             },
             paint: {
-              // Color: red (stopped) -> orange -> yellow -> green (free flow)
-              'line-color': [
-                'interpolate',
-                ['linear'],
-                ['get', 'traffic_level'],
-                0, '#dc2626',
-                0.25, '#ea580c',
-                0.5, '#eab308',
-                0.75, '#84cc16',
-                1, '#22c55e'
-              ],
-              'line-width': 3,
-              'line-opacity': 0.85
+              // Use solid color first for debugging - ensures visibility regardless of data
+              // TODO: Restore traffic_level interpolation once tiles confirmed loading
+              'line-color': '#3b82f6', // Bright blue for visibility
+              'line-width': 5, // Thicker for visibility
+              'line-opacity': 0.9
             }
           }, firstLabelLayer); // Insert before labels
 
