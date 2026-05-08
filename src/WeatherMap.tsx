@@ -592,9 +592,9 @@ function WeatherMap() {
         map.current.setCenter(center);
         map.current.setZoom(zoom);
 
-        // Re-add alerts layer if we have alerts
-        if (alerts.length > 0) {
-          addAlertsToMap(alerts);
+        // Re-add alerts layer if we have alerts (use refs to avoid stale closure)
+        if (alertsRef.current.length > 0 && addAlertsToMapRef.current) {
+          addAlertsToMapRef.current(alertsRef.current);
         }
 
         // Increment mapStyleVersion to trigger radar layer recreation
@@ -603,7 +603,7 @@ function WeatherMap() {
     }, 150); // 150ms debounce - prevents rapid toggles from stacking
 
     return () => clearTimeout(debounceTimer);
-  }, [isDark, mapLoaded, alerts, addAlertsToMap]);
+  }, [isDark, mapLoaded]); // Only run when theme or map load state changes, NOT when alerts change
 
   // Toggle theme manually
   const toggleTheme = useCallback((): void => {
