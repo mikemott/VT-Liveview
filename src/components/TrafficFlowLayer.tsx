@@ -210,11 +210,19 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
               'line-join': 'round'
             },
             paint: {
-              // Use solid color first for debugging - ensures visibility regardless of data
-              // TODO: Restore traffic_level interpolation once tiles confirmed loading
-              'line-color': '#3b82f6', // Bright blue for visibility
-              'line-width': 5, // Thicker for visibility
-              'line-opacity': 0.9
+              // Color: red (stopped) -> orange -> yellow -> green (free flow)
+              'line-color': [
+                'interpolate',
+                ['linear'],
+                ['get', 'traffic_level'],
+                0, '#dc2626',      // Red (stopped)
+                0.25, '#ea580c',   // Orange
+                0.5, '#eab308',    // Yellow
+                0.75, '#84cc16',   // Light green
+                1, '#22c55e'       // Green (free flow)
+              ],
+              'line-width': 3,
+              'line-opacity': 0.85
             }
           }, firstLabelLayer); // Insert before labels
 
@@ -236,6 +244,26 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
           casingVisibility: casingVis,
           visibleProp: visible
         });
+
+        // Check if layers still exist after 50ms, 200ms, 500ms, 1000ms
+        const checkDelays = [50, 200, 500, 1000];
+        checkDelays.forEach(delay => {
+          setTimeout(() => {
+            const stillExists = !!map.getLayer(LAYER_ID);
+            const casingStillExists = !!map.getLayer(LAYER_ID_CASING);
+            const sourceStillExists = !!map.getSource(SOURCE_ID);
+
+            if (!stillExists || !casingStillExists) {
+              console.error(`TrafficFlowLayer: Layers disappeared after ${delay}ms!`, {
+                mainLayerExists: stillExists,
+                casingExists: casingStillExists,
+                sourceExists: sourceStillExists
+              });
+            } else {
+              console.log(`TrafficFlowLayer: Layers still exist after ${delay}ms ✓`);
+            }
+          }, delay);
+        });
       } catch (e) {
         // Always log errors - critical for debugging production issues
         console.error('TrafficFlowLayer: Error adding layers', e);
@@ -256,6 +284,7 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
     map.on('style.load', handleStyleLoad);
 
     // Start periodic monitoring to detect layer disappearance
+    // Using 100ms interval to catch immediate disappearance
     const monitorInterval = setInterval(() => {
       if (!map) return;
 
@@ -264,26 +293,27 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
       const casingExists = !!map.getLayer(LAYER_ID_CASING);
 
       if (layersAdded.current && (!layerExists || !casingExists)) {
-        if (import.meta.env.DEV) {
-          console.error(`TrafficFlowLayer [${instanceId}]: LAYERS DISAPPEARED!`, {
-            sourceExists,
-            layerExists,
-            casingExists,
-            wasAdded: layersAdded.current
-          });
-        }
+        console.error(`TrafficFlowLayer [${instanceId}]: LAYERS DISAPPEARED!`, {
+          sourceExists,
+          layerExists,
+          casingExists,
+          wasAdded: layersAdded.current,
+          timestamp: new Date().toISOString()
+        });
+
+        // Check all layers on the map to see if something else was added
+        const allLayers = map.getStyle()?.layers?.map(l => l.id) || [];
+        console.error(`TrafficFlowLayer: Current layers on map:`, allLayers);
       }
 
       if (layerExists) {
         const visibility = map.getLayoutProperty(LAYER_ID, 'visibility');
         // Use visibleRef.current to get latest value (avoid stale closure)
         if (visibility !== 'visible' && visibleRef.current) {
-          if (import.meta.env.DEV) {
-            console.warn(`TrafficFlowLayer [${instanceId}]: Visibility changed unexpectedly to ${visibility}`);
-          }
+          console.warn(`TrafficFlowLayer [${instanceId}]: Visibility changed unexpectedly to ${visibility}`);
         }
       }
-    }, 2000);
+    }, 100); // Changed from 2000ms to 100ms to catch immediate disappearance
 
     // Cleanup only on unmount
     return () => {
