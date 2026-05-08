@@ -570,32 +570,39 @@ function WeatherMap() {
     return () => clearInterval(interval);
   }, [isDark, manualThemeOverride]);
 
-  // Update map style when theme changes
+  // Update map style when theme changes (debounced to prevent race conditions)
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
 
-    // Get current center and zoom
-    const center = map.current.getCenter();
-    const zoom = map.current.getZoom();
-
-    // Set new style
-    map.current.setStyle(getMapStyle(isDark));
-
-    // Restore center and zoom after style load
-    map.current.once('style.load', () => {
+    // Debounce theme changes to prevent rapid toggling from destroying layers
+    const debounceTimer = setTimeout(() => {
       if (!map.current) return;
 
-      map.current.setCenter(center);
-      map.current.setZoom(zoom);
+      // Get current center and zoom
+      const center = map.current.getCenter();
+      const zoom = map.current.getZoom();
 
-      // Re-add alerts layer if we have alerts
-      if (alerts.length > 0) {
-        addAlertsToMap(alerts);
-      }
+      // Set new style
+      map.current.setStyle(getMapStyle(isDark));
 
-      // Increment mapStyleVersion to trigger radar layer recreation
-      setMapStyleVersion(v => v + 1);
-    });
+      // Restore center and zoom after style load
+      map.current.once('style.load', () => {
+        if (!map.current) return;
+
+        map.current.setCenter(center);
+        map.current.setZoom(zoom);
+
+        // Re-add alerts layer if we have alerts
+        if (alerts.length > 0) {
+          addAlertsToMap(alerts);
+        }
+
+        // Increment mapStyleVersion to trigger radar layer recreation
+        setMapStyleVersion(v => v + 1);
+      });
+    }, 150); // 150ms debounce - prevents rapid toggles from stacking
+
+    return () => clearTimeout(debounceTimer);
   }, [isDark, mapLoaded, alerts, addAlertsToMap]);
 
   // Toggle theme manually
