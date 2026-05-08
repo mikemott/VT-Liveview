@@ -63,20 +63,8 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
       console.log('TrafficFlowLayer: API key value:', TOMTOM_API_KEY ? `${TOMTOM_API_KEY.substring(0, 10)}...` : 'UNDEFINED');
     }
 
-    let addTrafficLayersCallCount = 0;
-
     const addTrafficLayers = (retryCount = 0) => {
-      addTrafficLayersCallCount++;
       const styleLoaded = map.isStyleLoaded();
-
-      console.log(`TrafficFlowLayer [${instanceId}]: addTrafficLayers called (#${addTrafficLayersCallCount})`, {
-        styleLoaded,
-        retryCount,
-        hasStyle: !!map.getStyle(),
-        currentTheme: isDarkRef.current ? 'dark' : 'light',
-        layersCurrentlyExist: !!map.getLayer(LAYER_ID),
-        sourceCurrentlyExists: !!map.getSource(SOURCE_ID)
-      });
 
       if (!styleLoaded) {
         // Use both event listener AND timeout fallback to handle race conditions
@@ -97,28 +85,24 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
       const sourceExists = !!map.getSource(SOURCE_ID);
 
       if (layersExist && sourceExists) {
-        console.log(`TrafficFlowLayer [${instanceId}]: Layers already exist, skipping re-add to prevent destruction`);
-        return; // Don't destroy and recreate if they're already there
+        // Layers already working, don't recreate
+        return;
       }
 
       // Clean up existing layers/sources if they exist (only runs if incomplete)
       // This handles style reload scenarios where source exists but layers don't
       try {
         if (map.getLayer(LAYER_ID)) {
-          console.log(`TrafficFlowLayer [${instanceId}]: Removing existing main layer`);
           map.removeLayer(LAYER_ID);
         }
         if (map.getLayer(LAYER_ID_CASING)) {
-          console.log(`TrafficFlowLayer [${instanceId}]: Removing existing casing layer`);
           map.removeLayer(LAYER_ID_CASING);
         }
         if (map.getSource(SOURCE_ID)) {
-          console.log(`TrafficFlowLayer [${instanceId}]: Removing existing source`);
           map.removeSource(SOURCE_ID);
         }
-      } catch (e) {
+      } catch {
         // Layers/sources don't exist yet, which is fine
-        console.log(`TrafficFlowLayer [${instanceId}]: Cleanup failed (probably didn't exist):`, e);
       }
 
       try {
@@ -131,37 +115,9 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
             map.addSource(SOURCE_ID, {
               type: 'vector',
               tiles: [tileUrl],
-              minzoom: 0, // Changed from 6 to 0 to ensure tiles load at all zoom levels
-              maxzoom: 22, // Increased to match TomTom's max
+              minzoom: 0,
+              maxzoom: 22,
               attribution: '© TomTom'
-            });
-            console.log('TrafficFlowLayer: Source added successfully');
-
-            // Add event listeners to debug tile loading
-            map.on('sourcedataloading', (e) => {
-              if (e.sourceId === SOURCE_ID && import.meta.env.DEV) {
-                console.log('TrafficFlowLayer: Tiles loading from source');
-              }
-            });
-
-            map.on('sourcedata', (e) => {
-              if (e.sourceId === SOURCE_ID && e.isSourceLoaded && import.meta.env.DEV) {
-                console.log('TrafficFlowLayer: Source data loaded', {
-                  tileID: e.tile?.tileID,
-                  loaded: e.isSourceLoaded
-                });
-              }
-            });
-
-            map.on('error', (e) => {
-              const err = e.error as any;
-              if (err?.url?.includes('tomtom.com')) {
-                console.error('TrafficFlowLayer: TomTom tile loading error:', {
-                  message: err.message,
-                  url: err.url,
-                  status: err.status
-                });
-              }
             });
           } catch (sourceError) {
             console.error('TrafficFlowLayer: FAILED to add source!', sourceError);
@@ -262,25 +218,20 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
           visibleProp: visible
         });
 
-        // Check if layers still exist after 50ms, 200ms, 500ms, 1000ms
-        const checkDelays = [50, 200, 500, 1000];
-        checkDelays.forEach(delay => {
-          setTimeout(() => {
-            const stillExists = !!map.getLayer(LAYER_ID);
-            const casingStillExists = !!map.getLayer(LAYER_ID_CASING);
-            const sourceStillExists = !!map.getSource(SOURCE_ID);
+        // Single check after 1 second to verify layers survived
+        setTimeout(() => {
+          const stillExists = !!map.getLayer(LAYER_ID);
+          const casingStillExists = !!map.getLayer(LAYER_ID_CASING);
+          const sourceStillExists = !!map.getSource(SOURCE_ID);
 
-            if (!stillExists || !casingStillExists) {
-              console.error(`TrafficFlowLayer: Layers disappeared after ${delay}ms!`, {
-                mainLayerExists: stillExists,
-                casingExists: casingStillExists,
-                sourceExists: sourceStillExists
-              });
-            } else {
-              console.log(`TrafficFlowLayer: Layers still exist after ${delay}ms ✓`);
-            }
-          }, delay);
-        });
+          if (!stillExists || !casingStillExists || !sourceStillExists) {
+            console.error(`TrafficFlowLayer: Layers were removed within 1 second!`, {
+              mainLayerExists: stillExists,
+              casingExists: casingStillExists,
+              sourceExists: sourceStillExists
+            });
+          }
+        }, 1000);
       } catch (e) {
         // Always log errors - critical for debugging production issues
         console.error('TrafficFlowLayer: Error adding layers', e);
@@ -300,44 +251,11 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
 
     map.on('style.load', handleStyleLoad);
 
-    // Start periodic monitoring to detect layer disappearance
-    // Using 100ms interval to catch immediate disappearance
-    const monitorInterval = setInterval(() => {
-      if (!map) return;
-
-      const sourceExists = !!map.getSource(SOURCE_ID);
-      const layerExists = !!map.getLayer(LAYER_ID);
-      const casingExists = !!map.getLayer(LAYER_ID_CASING);
-
-      if (layersAdded.current && (!layerExists || !casingExists)) {
-        console.error(`TrafficFlowLayer [${instanceId}]: LAYERS DISAPPEARED!`, {
-          sourceExists,
-          layerExists,
-          casingExists,
-          wasAdded: layersAdded.current,
-          timestamp: new Date().toISOString()
-        });
-
-        // Check all layers on the map to see if something else was added
-        const allLayers = map.getStyle()?.layers?.map(l => l.id) || [];
-        console.error(`TrafficFlowLayer: Current layers on map:`, allLayers);
-      }
-
-      if (layerExists) {
-        const visibility = map.getLayoutProperty(LAYER_ID, 'visibility');
-        // Use visibleRef.current to get latest value (avoid stale closure)
-        if (visibility !== 'visible' && visibleRef.current) {
-          console.warn(`TrafficFlowLayer [${instanceId}]: Visibility changed unexpectedly to ${visibility}`);
-        }
-      }
-    }, 100); // Changed from 2000ms to 100ms to catch immediate disappearance
-
     // Cleanup only on unmount
     return () => {
       if (import.meta.env.DEV) {
-        console.log(`TrafficFlowLayer: CLEANUP RUNNING - Instance ID: ${instanceId} - WHY?`);
+        console.log(`TrafficFlowLayer: CLEANUP RUNNING - Instance ID: ${instanceId}`);
       }
-      clearInterval(monitorInterval);
       map.off('style.load', handleStyleLoad);
       if (!map) return;
       try {
