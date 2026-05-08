@@ -24,8 +24,6 @@ export const INTERVALS = {
   ALERTS_REFRESH: 5 * 60 * 1000,
 
   // Timeouts
-  /** Preload timeout - 12 seconds (increased to account for sequential loading with delays) */
-  PRELOAD_TIMEOUT: 12000,
   /** Map move debounce - 500ms */
   MAP_MOVE_DEBOUNCE: 500,
 } as const;

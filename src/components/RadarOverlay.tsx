@@ -9,7 +9,7 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
-import { INTERVALS } from '../utils/constants';
+import { INTERVALS, RADAR_CONFIG } from '../utils/constants';
 import type { MapLibreMap } from '../types';
 import './RadarOverlay.css';
 
@@ -26,7 +26,6 @@ export default function RadarOverlay({ map, isDark = false, collapsed = false }:
   const layersInitialized = useRef(false);
   const previousFrameCount = useRef(0);
   const loadedSources = useRef(new Set<string>());
-  const preloadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const {
     frames,
@@ -39,7 +38,10 @@ export default function RadarOverlay({ map, isDark = false, collapsed = false }:
     prevFrame,
     goToFrame,
     refresh
-  } = useRadarAnimation(map, { frameCount: 4, frameDelay: 500 });
+  } = useRadarAnimation(map, {
+    frameCount: RADAR_CONFIG.frameCount,
+    frameDelay: RADAR_CONFIG.frameDelay,
+  });
 
   // Helper to safely check if layer exists
   const hasLayer = useCallback((layerId: string): boolean => {
@@ -226,9 +228,6 @@ export default function RadarOverlay({ map, isDark = false, collapsed = false }:
       layersInitialized.current = false;
       previousFrameCount.current = 0;
       loadedSources.current.clear();
-      if (preloadTimeoutRef.current) {
-        clearTimeout(preloadTimeoutRef.current);
-      }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, frames, hasSource, hasLayer]);

@@ -405,6 +405,17 @@
   color: #7dd3fc;
 }
 
+.dark .filter-chip.active[data-chip-type="creemee"] {
+  background: linear-gradient(135deg, rgba(245, 222, 179, 0.18) 0%, rgba(245, 222, 179, 0.12) 100%);
+  border-color: rgba(245, 222, 179, 0.4);
+  color: #f5deb3;
+}
+
+.dark .filter-chip.active[data-chip-type="creemee"] .chip-icon {
+  background: rgba(245, 222, 179, 0.25);
+  color: #f5deb3;
+}
+
 /* Traffic Flow - Green/Yellow/Red gradient feel */
 .filter-chip.active[data-chip-type="traffic"] {
   background: rgba(34, 197, 94, 0.2);

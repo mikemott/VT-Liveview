@@ -30,35 +30,7 @@ const CREEMEE_ICON = `
 function createCreemeeMarker(): HTMLDivElement {
   const el = document.createElement('div');
   el.className = 'creemee-stand-marker';
-
-  // Match ski resort marker styling: white border, colored background
-  el.style.cssText = `
-    width: 32px;
-    height: 32px;
-    background: #F5DEB3;
-    border: 2px solid white;
-    border-radius: 50%;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: box-shadow 0.2s ease, border-width 0.2s ease;
-  `;
-
   el.innerHTML = CREEMEE_ICON;
-
-  // Hover glow effect (like ski resorts)
-  el.addEventListener('mouseenter', () => {
-    el.style.boxShadow = '0 0 12px #F5DEB3, 0 2px 8px rgba(0, 0, 0, 0.3)';
-    el.style.borderWidth = '3px';
-  });
-
-  el.addEventListener('mouseleave', () => {
-    el.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.25)';
-    el.style.borderWidth = '2px';
-  });
-
   return el;
 }
 
