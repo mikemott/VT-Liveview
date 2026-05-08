@@ -48,15 +48,17 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
       return;
     }
 
-    console.log('TrafficFlowLayer: Initializing with map and API key');
+    const instanceId = Math.random().toString(36).substring(7);
+    console.log(`TrafficFlowLayer: MOUNTING - Instance ID: ${instanceId}`);
     console.log('TrafficFlowLayer: API key value:', TOMTOM_API_KEY ? `${TOMTOM_API_KEY.substring(0, 10)}...` : 'UNDEFINED');
 
     const addTrafficLayers = (retryCount = 0) => {
       const styleLoaded = map.isStyleLoaded();
-      console.log('TrafficFlowLayer: Attempting to add layers', {
+      console.log(`TrafficFlowLayer [${instanceId}]: Attempting to add layers`, {
         styleLoaded,
         retryCount,
-        hasStyle: !!map.getStyle()
+        hasStyle: !!map.getStyle(),
+        currentTheme: isDarkRef.current ? 'dark' : 'light'
       });
 
       if (!styleLoaded) {
@@ -212,8 +214,35 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
     // This is critical because MapLibre wipes custom layers on style change
     map.on('style.load', addTrafficLayers);
 
+    // Start periodic monitoring to detect layer disappearance
+    const monitorInterval = setInterval(() => {
+      if (!map) return;
+
+      const sourceExists = !!map.getSource(SOURCE_ID);
+      const layerExists = !!map.getLayer(LAYER_ID);
+      const casingExists = !!map.getLayer(LAYER_ID_CASING);
+
+      if (layersAdded.current && (!layerExists || !casingExists)) {
+        console.error(`TrafficFlowLayer [${instanceId}]: LAYERS DISAPPEARED!`, {
+          sourceExists,
+          layerExists,
+          casingExists,
+          wasAdded: layersAdded.current
+        });
+      }
+
+      if (layerExists) {
+        const visibility = map.getLayoutProperty(LAYER_ID, 'visibility');
+        if (visibility !== 'visible' && visible) {
+          console.warn(`TrafficFlowLayer [${instanceId}]: Visibility changed unexpectedly to ${visibility}`);
+        }
+      }
+    }, 2000);
+
     // Cleanup only on unmount
     return () => {
+      console.log(`TrafficFlowLayer: CLEANUP RUNNING - Instance ID: ${instanceId} - WHY?`);
+      clearInterval(monitorInterval);
       map.off('style.load', addTrafficLayers);
       if (!map) return;
       try {
