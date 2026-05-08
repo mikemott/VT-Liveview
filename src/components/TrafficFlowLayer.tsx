@@ -185,6 +185,26 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
           casingVisibility: casingVis,
           visibleProp: visible
         });
+
+        // Force MapLibre to recognize the changes and start tile loading
+        map.triggerRepaint();
+        console.log('TrafficFlowLayer: Triggered repaint');
+
+        // Verify layers persist after a delay (catches if they're being removed immediately)
+        setTimeout(() => {
+          const stillExists = {
+            source: !!map.getSource(SOURCE_ID),
+            mainLayer: !!map.getLayer(LAYER_ID),
+            casingLayer: !!map.getLayer(LAYER_ID_CASING),
+            mainVis: map.getLayoutProperty(LAYER_ID, 'visibility'),
+            casingVis: map.getLayoutProperty(LAYER_ID_CASING, 'visibility')
+          };
+          console.log('TrafficFlowLayer: Layers still exist after 2s?', stillExists);
+
+          if (!stillExists.source) {
+            console.error('TrafficFlowLayer: SOURCE DISAPPEARED! Something is removing it.');
+          }
+        }, 2000);
       } catch (e) {
         // Always log errors - critical for debugging production issues
         console.error('TrafficFlowLayer: Error adding layers', e);
