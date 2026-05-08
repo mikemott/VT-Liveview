@@ -102,6 +102,9 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
           }
         }
 
+        const visibilityValue = visible ? 'visible' : 'none';
+        console.log('TrafficFlowLayer: Creating layers with visible =', visible, 'visibility =', visibilityValue);
+
         // Add casing layer (outline for visibility)
         if (!map.getLayer(LAYER_ID_CASING)) {
           map.addLayer({
@@ -111,8 +114,7 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
             'source-layer': 'Traffic flow',
             layout: {
               'line-cap': 'round',
-              'line-join': 'round',
-              visibility: visible ? 'visible' : 'none'
+              'line-join': 'round'
             },
             paint: {
               'line-color': isDark ? '#000000' : '#ffffff',
@@ -120,6 +122,9 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
               'line-opacity': 0.5
             }
           }, firstLabelLayer); // Insert before labels
+
+          // Explicitly set visibility after layer creation
+          map.setLayoutProperty(LAYER_ID_CASING, 'visibility', visibilityValue);
         }
 
         // Add main traffic layer
@@ -131,8 +136,7 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
             'source-layer': 'Traffic flow',
             layout: {
               'line-cap': 'round',
-              'line-join': 'round',
-              visibility: visible ? 'visible' : 'none'
+              'line-join': 'round'
             },
             paint: {
               // Color: red (stopped) -> orange -> yellow -> green (free flow)
@@ -150,13 +154,24 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
               'line-opacity': 0.85
             }
           }, firstLabelLayer); // Insert before labels
+
+          // Explicitly set visibility after layer creation
+          map.setLayoutProperty(LAYER_ID, 'visibility', visibilityValue);
         }
 
         layersAdded.current = true;
+
+        // Verify visibility was set correctly
+        const mainVis = map.getLayoutProperty(LAYER_ID, 'visibility');
+        const casingVis = map.getLayoutProperty(LAYER_ID_CASING, 'visibility');
+
         console.log('TrafficFlowLayer: Successfully added traffic layers', {
           sourceExists: !!map.getSource(SOURCE_ID),
           mainLayerExists: !!map.getLayer(LAYER_ID),
-          casingLayerExists: !!map.getLayer(LAYER_ID_CASING)
+          casingLayerExists: !!map.getLayer(LAYER_ID_CASING),
+          mainVisibility: mainVis,
+          casingVisibility: casingVis,
+          visibleProp: visible
         });
       } catch (e) {
         // Always log errors - critical for debugging production issues
