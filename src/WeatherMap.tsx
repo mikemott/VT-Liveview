@@ -407,6 +407,8 @@ function WeatherMap() {
     });
 
     map.current.on('load', () => {
+      console.log('WeatherMap: Map load event fired');
+
       if (import.meta.env.DEV && map.current) {
         console.log('Map loaded!', {
           sources: Object.keys(map.current.getStyle().sources || {}),
@@ -415,9 +417,14 @@ function WeatherMap() {
         });
       }
 
-      setLoading(false);
-      setMapLoaded(true);
-      fetchAlertsFromBackend();
+      try {
+        setLoading(false);
+        setMapLoaded(true);
+        console.log('WeatherMap: mapLoaded state set to true');
+        fetchAlertsFromBackend();
+      } catch (error) {
+        console.error('WeatherMap: Error in load callback:', error);
+      }
     });
 
     // Track zoom changes
