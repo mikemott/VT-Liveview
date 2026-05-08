@@ -89,10 +89,10 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
   const [selectedIncident, setSelectedIncident] = useState<TravelIncident | null>(null);
   const [activeFilters, setActiveFilters] = useState<ActiveFilters>({
     ACCIDENT: true,
-    CONSTRUCTION: true,
-    CLOSURE: true,
-    FLOODING: true,
-    HAZARD: true
+    CONSTRUCTION: false,
+    CLOSURE: false,
+    FLOODING: false,
+    HAZARD: false
   });
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -509,93 +509,102 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
 
       {expanded && (
         <div className="section-content" id="map-features-content">
-          {/* Filter chips - compact horizontal layout */}
-          <div className="filter-chips">
-            {/* Weather Stations chip */}
-            <button
-              className={`filter-chip ${showWeatherStations ? 'active' : ''}`}
-              onClick={onToggleWeatherStations}
-              aria-pressed={showWeatherStations}
-              data-chip-type="weather"
-            >
-              <span className="chip-icon">
-                <Thermometer size={14} strokeWidth={2.5} />
-              </span>
-              Stations
-            </button>
+          {/* Weather & Travel Section */}
+          <div className="filter-group">
+            <h4 className="filter-group-label">Weather & Travel</h4>
+            <div className="filter-chips">
+              {/* Weather Stations chip */}
+              <button
+                className={`filter-chip ${showWeatherStations ? 'active' : ''}`}
+                onClick={onToggleWeatherStations}
+                aria-pressed={showWeatherStations}
+                data-chip-type="weather"
+              >
+                <span className="chip-icon">
+                  <Thermometer size={14} strokeWidth={2.5} />
+                </span>
+                Stations
+              </button>
 
-            {/* Traffic Flow chip */}
-            <button
-              className={`filter-chip ${showTrafficFlow ? 'active' : ''}`}
-              onClick={onToggleTrafficFlow}
-              aria-pressed={showTrafficFlow}
-              data-chip-type="traffic"
-            >
-              <span className="chip-icon">
-                <Car size={14} strokeWidth={2.5} />
-              </span>
-              Traffic
-            </button>
+              {/* Traffic Flow chip */}
+              <button
+                className={`filter-chip ${showTrafficFlow ? 'active' : ''}`}
+                onClick={onToggleTrafficFlow}
+                aria-pressed={showTrafficFlow}
+                data-chip-type="traffic"
+              >
+                <span className="chip-icon">
+                  <Car size={14} strokeWidth={2.5} />
+                </span>
+                Traffic
+              </button>
 
-            {/* Ski Resorts chip */}
-            <button
-              className={`filter-chip ${showSkiResorts ? 'active' : ''}`}
-              onClick={onToggleSkiResorts}
-              aria-pressed={showSkiResorts}
-              data-chip-type="ski"
-            >
-              <span className="chip-icon">
-                <Mountain size={14} strokeWidth={2.5} />
-              </span>
-              Ski Resorts
-            </button>
+              {/* Incident type chips */}
+              {(Object.keys(activeFilters) as IncidentType[]).map(type => {
+                const count = incidentsByType[type]?.length || 0;
 
-            {/* Stargazing chip */}
-            <button
-              className={`filter-chip ${showStargazing ? 'active' : ''}`}
-              onClick={onToggleStargazing}
-              aria-pressed={showStargazing}
-              data-chip-type="stargazing"
-            >
-              <span className="chip-icon">
-                <Star size={14} strokeWidth={2.5} />
-              </span>
-              Stargazing
-            </button>
+                return (
+                  <button
+                    key={type}
+                    className={`filter-chip ${activeFilters[type] ? 'active' : ''}`}
+                    onClick={() => toggleFilter(type)}
+                    aria-pressed={activeFilters[type]}
+                    data-chip-type={type.toLowerCase()}
+                  >
+                    <span className="chip-icon">
+                      {getIcon(type, 14)}
+                    </span>
+                    {getTypeLabel(type, true)}
+                    {count > 0 && <span className="chip-count">{count}</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
-            {/* Creemee Stands chip */}
-            <button
-              className={`filter-chip ${showCreemeeStands ? 'active' : ''}`}
-              onClick={onToggleCreemeeStands}
-              aria-pressed={showCreemeeStands}
-              data-chip-type="creemee"
-            >
-              <span className="chip-icon">
-                <IceCream size={14} strokeWidth={2.5} />
-              </span>
-              Creemee Stands
-            </button>
+          {/* Points of Interest Section */}
+          <div className="filter-group">
+            <h4 className="filter-group-label">Points of Interest</h4>
+            <div className="filter-chips">
+              {/* Ski Resorts chip */}
+              <button
+                className={`filter-chip ${showSkiResorts ? 'active' : ''}`}
+                onClick={onToggleSkiResorts}
+                aria-pressed={showSkiResorts}
+                data-chip-type="ski"
+              >
+                <span className="chip-icon">
+                  <Mountain size={14} strokeWidth={2.5} />
+                </span>
+                Ski Resorts
+              </button>
 
-            {/* Incident type chips */}
-            {(Object.keys(activeFilters) as IncidentType[]).map(type => {
-              const count = incidentsByType[type]?.length || 0;
+              {/* Stargazing chip */}
+              <button
+                className={`filter-chip ${showStargazing ? 'active' : ''}`}
+                onClick={onToggleStargazing}
+                aria-pressed={showStargazing}
+                data-chip-type="stargazing"
+              >
+                <span className="chip-icon">
+                  <Star size={14} strokeWidth={2.5} />
+                </span>
+                Stargazing
+              </button>
 
-              return (
-                <button
-                  key={type}
-                  className={`filter-chip ${activeFilters[type] ? 'active' : ''}`}
-                  onClick={() => toggleFilter(type)}
-                  aria-pressed={activeFilters[type]}
-                  data-chip-type={type.toLowerCase()}
-                >
-                  <span className="chip-icon">
-                    {getIcon(type, 14)}
-                  </span>
-                  {getTypeLabel(type, true)}
-                  {count > 0 && <span className="chip-count">{count}</span>}
-                </button>
-              );
-            })}
+              {/* Creemee Stands chip */}
+              <button
+                className={`filter-chip ${showCreemeeStands ? 'active' : ''}`}
+                onClick={onToggleCreemeeStands}
+                aria-pressed={showCreemeeStands}
+                data-chip-type="creemee"
+              >
+                <span className="chip-icon">
+                  <IceCream size={14} strokeWidth={2.5} />
+                </span>
+                Creemee Stands
+              </button>
+            </div>
           </div>
 
           {/* Stargazing content - shown when stargazing chip is active */}

@@ -190,6 +190,16 @@ export function useRadarAnimation(
 
       const allFrames = [...pastFrames, ...nowcastFrames];
 
+      if (import.meta.env.DEV) {
+        console.log('[useRadarAnimation] Fetched frames:', {
+          pastFrames: pastFrames.length,
+          nowcastFrames: nowcastFrames.length,
+          total: allFrames.length,
+          startingFrame: pastFrames.length - 1,
+          sampleTileUrl: allFrames[0]?.tileUrl
+        });
+      }
+
       setFrames(allFrames);
       setCurrentFrame(pastFrames.length - 1); // Start at most recent past frame
     } catch (err) {

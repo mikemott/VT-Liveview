@@ -16,13 +16,14 @@ interface CreemeeLayerProps {
   visible: boolean;
 }
 
-// Ice cream cone icon (soft serve style)
+// Lucide IceCream icon (matches filter chip)
 const CREEMEE_ICON = `
   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
-       viewBox="0 0 24 24" fill="white" stroke="currentColor"
+       viewBox="0 0 24 24" fill="none" stroke="white"
        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M12 2a4 4 0 0 0-4 4c0 1.5.8 2.8 2 3.5V11c0 1.1.9 2 2 2s2-.9 2-2V9.5c1.2-.7 2-2 2-3.5a4 4 0 0 0-4-4Z"/>
-    <path d="M8 11v.5c0 1.4.6 2.6 1.5 3.5L12 22l2.5-6.5c.9-.9 1.5-2.1 1.5-3.5V11"/>
+    <path d="m7 11 4.08 10.35a1 1 0 0 0 1.84 0L17 11"/>
+    <path d="M17 7A5 5 0 0 0 7 7"/>
+    <path d="M17 7a2 2 0 0 1 0 4H7a2 2 0 0 1 0-4"/>
   </svg>
 `;
 

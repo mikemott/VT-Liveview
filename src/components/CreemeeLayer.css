@@ -121,23 +121,22 @@
   border-top-color: var(--creemee-popup-bg);
 }
 
-/* Creemee marker styling */
+/* Creemee marker styling - matches ski resort markers */
 .creemee-stand-marker {
   width: 32px;
   height: 32px;
   background: var(--creemee-marker-bg);
-  border: 2px solid var(--creemee-marker-border);
+  border: 2px solid white;
   border-radius: 50%;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
-  color: var(--creemee-marker-color);
+  transition: box-shadow 0.2s ease, border-width 0.2s ease;
 }
 
 .creemee-stand-marker:hover {
-  transform: scale(1.1);
   box-shadow: 0 0 12px var(--creemee-marker-bg), 0 2px 8px rgba(0, 0, 0, 0.3);
+  border-width: 3px;
 }

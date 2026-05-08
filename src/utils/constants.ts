@@ -24,8 +24,6 @@ export const INTERVALS = {
   ALERTS_REFRESH: 5 * 60 * 1000,
 
   // Timeouts
-  /** Preload timeout - 8 seconds */
-  PRELOAD_TIMEOUT: 8000,
   /** Map move debounce - 500ms */
   MAP_MOVE_DEBOUNCE: 500,
 } as const;
@@ -53,7 +51,7 @@ export const MAP_CONFIG: MapConfig = {
 
 /** Radar animation configuration */
 export const RADAR_CONFIG: RadarConfig = {
-  frameCount: 6,
+  frameCount: 4, // Reduced from 6 to avoid RainViewer rate limiting
   frameDelay: 500, // ms between frames
   defaultOpacity: 0.7,
 } as const;
