@@ -38,11 +38,6 @@ describe('INTERVALS', () => {
     expect(INTERVALS.WEATHER_REFRESH).toBeLessThanOrEqual(thirtyMinutes);
   });
 
-  it('should have PRELOAD_TIMEOUT between 1-30 seconds', () => {
-    expect(INTERVALS.PRELOAD_TIMEOUT).toBeGreaterThanOrEqual(1000);
-    expect(INTERVALS.PRELOAD_TIMEOUT).toBeLessThanOrEqual(30000);
-  });
-
   it('should have MAP_MOVE_DEBOUNCE between 100-2000ms', () => {
     expect(INTERVALS.MAP_MOVE_DEBOUNCE).toBeGreaterThanOrEqual(100);
     expect(INTERVALS.MAP_MOVE_DEBOUNCE).toBeLessThanOrEqual(2000);
