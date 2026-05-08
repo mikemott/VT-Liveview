@@ -29,10 +29,16 @@ const LAYER_ID_CASING = 'traffic-flow-layer-casing';
 
 function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
   const layersAdded = useRef(false);
+  const isDarkRef = useRef(isDark);
+
+  // Keep ref in sync with prop
+  useEffect(() => {
+    isDarkRef.current = isDark;
+  }, [isDark]);
 
   // Effect to add layers on mount, remove on unmount
   // IMPORTANT: isDark is NOT in the dependency array to prevent recreating
-  // event listeners on every theme change. The paint color is updated separately.
+  // event listeners on every theme change. We use isDarkRef.current to get latest value.
   useEffect(() => {
     if (!map || !TOMTOM_API_KEY) {
       console.warn('TrafficFlowLayer: Component mounted but prerequisites missing', {
@@ -121,7 +127,7 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
 
         // Add casing layer (outline for visibility)
         if (!map.getLayer(LAYER_ID_CASING)) {
-          const casingColor = isDark ? '#000000' : '#ffffff';
+          const casingColor = isDarkRef.current ? '#000000' : '#ffffff';
 
           map.addLayer({
             id: LAYER_ID_CASING,
@@ -143,7 +149,7 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
           map.setLayoutProperty(LAYER_ID_CASING, 'visibility', visibilityValue);
         } else {
           // Layer already exists, just update the casing color to match current theme
-          const casingColor = isDark ? '#000000' : '#ffffff';
+          const casingColor = isDarkRef.current ? '#000000' : '#ffffff';
           map.setPaintProperty(LAYER_ID_CASING, 'line-color', casingColor);
         }
 
