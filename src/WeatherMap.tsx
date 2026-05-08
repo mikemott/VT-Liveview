@@ -72,6 +72,21 @@ function WeatherMap() {
   const [manualThemeOverride, setManualThemeOverride] = useState(false);
   const [mapStyleVersion, setMapStyleVersion] = useState(0); // Track map style changes
   const [alerts, setAlerts] = useState<AlertFeature[]>([]);
+
+  // Refs to avoid stale closures in WebGL context event listeners
+  const isDarkRef = useRef(isDark);
+  const alertsRef = useRef(alerts);
+  const addAlertsToMapRef = useRef<((alerts: AlertFeature[]) => void) | null>(null);
+
+  // Keep refs in sync
+  useEffect(() => {
+    isDarkRef.current = isDark;
+  }, [isDark]);
+
+  useEffect(() => {
+    alertsRef.current = alerts;
+  }, [alerts]);
+
   const [mapCenter, setMapCenter] = useState<MapCenterState>({
     lat: VERMONT_CENTER.lat,
     lng: VERMONT_CENTER.lng
@@ -215,6 +230,11 @@ function WeatherMap() {
       }
     });
   }, []);
+
+  // Store addAlertsToMap in ref for WebGL context restore handler
+  useEffect(() => {
+    addAlertsToMapRef.current = addAlertsToMap;
+  }, [addAlertsToMap]);
 
   // Handle alert item click to fly to affected area and highlight boundary
   const handleAlertClick = useCallback((alert: AlertFeature): void => {
@@ -390,6 +410,39 @@ function WeatherMap() {
 
     // Expose map for debugging
     (window as { map?: MapLibreMap }).map = map.current;
+
+    // Handle WebGL context loss/restore
+    // This is critical for preventing layer disappearance on GPU throttling
+    const canvas = map.current.getCanvas();
+
+    canvas.addEventListener('webglcontextlost', (e) => {
+      console.warn('WebGL context lost - preventing default to allow recovery');
+      e.preventDefault(); // Prevent context from being permanently lost
+    });
+
+    canvas.addEventListener('webglcontextrestored', () => {
+      console.log('WebGL context restored - triggering style reload to recreate layers');
+      if (map.current) {
+        // Force style reload to recreate all layers
+        // This will trigger 'style.load' events that custom layers listen to
+        const currentCenter = map.current.getCenter();
+        const currentZoom = map.current.getZoom();
+
+        // Use refs to get latest values (avoid stale closure)
+        map.current.setStyle(getMapStyle(isDarkRef.current));
+
+        map.current.once('style.load', () => {
+          if (!map.current) return;
+          map.current.setCenter(currentCenter);
+          map.current.setZoom(currentZoom);
+
+          // Re-add alerts if we have them (use refs for latest values)
+          if (alertsRef.current.length > 0 && addAlertsToMapRef.current) {
+            addAlertsToMapRef.current(alertsRef.current);
+          }
+        });
+      }
+    });
 
     // Debug tile loading
     map.current.on('error', (e) => {
