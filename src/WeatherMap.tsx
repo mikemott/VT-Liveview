@@ -519,10 +519,10 @@ function WeatherMap() {
         : [];
       const clickedOnFeature = features.length > 0;
 
-      // If clicked on empty map, show historical data
+      // If clicked on empty map, show location details
       if (!clickedOnFeature) {
         setDetailPanelContent({
-          type: 'historical',
+          type: 'location',
           coordinates: {
             lat: e.lngLat.lat,
             lng: e.lngLat.lng,

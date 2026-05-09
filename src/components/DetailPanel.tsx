@@ -9,7 +9,7 @@ import type { DetailPanelContent } from '../types';
 import AlertDetail from './detail-views/AlertDetail';
 import IncidentDetail from './detail-views/IncidentDetail';
 import StationDetail from './detail-views/StationDetail';
-import HistoricalDetail from './detail-views/HistoricalDetail';
+import LocationDetail from './detail-views/LocationDetail';
 import './DetailPanel.css';
 
 interface DetailPanelProps {
@@ -58,8 +58,8 @@ export default function DetailPanel({ content, onClose, isDark }: DetailPanelPro
         return 'Traffic Incident';
       case 'station':
         return 'Weather Station';
-      case 'historical':
-        return 'Historical Data';
+      case 'location':
+        return 'Location Details';
       default:
         return 'Details';
     }
@@ -75,8 +75,8 @@ export default function DetailPanel({ content, onClose, isDark }: DetailPanelPro
         return <IncidentDetail incident={content.data} isDark={isDark} />;
       case 'station':
         return <StationDetail station={content.data} isDark={isDark} />;
-      case 'historical':
-        return <HistoricalDetail coordinates={content.coordinates} isDark={isDark} />;
+      case 'location':
+        return <LocationDetail coordinates={content.coordinates} isDark={isDark} />;
       default:
         return null;
     }

@@ -441,3 +441,183 @@
   font-size: var(--font-size-xl);
   margin-top: var(--space-5);
 }
+
+/* =================================================================
+   Location Detail
+   ================================================================= */
+
+.location-detail {
+  padding: var(--space-7);
+}
+
+.location-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background: var(--color-bg-glass-subtle);
+  border: 1.5px solid var(--color-border-primary);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--space-8);
+}
+
+.location-coords {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-vermont-green);
+  font-size: var(--font-size-lg);
+}
+
+.location-section {
+  margin-bottom: var(--space-10);
+  padding-bottom: var(--space-8);
+  border-bottom: 1px solid var(--color-border-secondary);
+}
+
+.location-section:last-child {
+  border-bottom: none;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wider);
+  color: var(--color-vermont-green);
+  margin-bottom: var(--space-7);
+}
+
+/* Forecast Section */
+.forecast-periods {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.forecast-period {
+  background: var(--color-bg-glass-subtle);
+  border: 1.5px solid var(--color-border-primary);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  transition: var(--transition-spring);
+}
+
+.forecast-period:hover {
+  transform: translateX(4px);
+  box-shadow: var(--shadow-md);
+}
+
+.period-name {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-vermont-green);
+  margin-bottom: var(--space-3);
+}
+
+.period-temp {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.period-conditions {
+  font-size: var(--font-size-base);
+  color: var(--color-text-tertiary);
+  margin-bottom: var(--space-2);
+}
+
+.period-precip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-md);
+  color: var(--color-text-secondary);
+}
+
+/* Astronomy Section */
+.astronomy-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-5);
+}
+
+.astro-item {
+  background: var(--color-bg-glass-subtle);
+  border: 1.5px solid var(--color-border-primary);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  transition: var(--transition-spring);
+}
+
+.astro-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.astro-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+  color: var(--color-text-tertiary);
+  margin-bottom: var(--space-3);
+}
+
+.astro-value {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-vermont-green);
+}
+
+.moon-illumination {
+  font-size: var(--font-size-md);
+  color: var(--color-text-tertiary);
+}
+
+/* Historical Summary Section */
+.historical-summary {
+  font-size: var(--font-size-lg);
+}
+
+.historical-station {
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-md);
+  margin-bottom: var(--space-5);
+}
+
+.historical-stats {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-bg-glass-subtle);
+  border: 1.5px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-lg);
+  color: var(--color-text-primary);
+  transition: var(--transition-spring);
+}
+
+.stat-item:hover {
+  transform: translateX(4px);
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-item svg {
+  color: var(--color-vermont-green-light);
+  flex-shrink: 0;
+}

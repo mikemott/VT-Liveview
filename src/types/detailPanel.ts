@@ -44,5 +44,5 @@ export type DetailPanelContent =
   | { type: 'alert'; data: AlertFeature }
   | { type: 'incident'; data: Incident }
   | { type: 'station'; data: ObservationStation }
-  | { type: 'historical'; coordinates: { lat: number; lng: number } }
+  | { type: 'location'; coordinates: { lat: number; lng: number } }
   | null;

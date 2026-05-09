@@ -174,7 +174,8 @@ function processWeatherData(datapoints: NOAACDODatapoint[]): WeatherDay[] {
 // ============================================================================
 
 /**
- * Get historical weather data for the past 7 days near given coordinates.
+ * Get historical weather data from 1 year ago (same 7-day window) near given coordinates.
+ * Useful for year-over-year comparison and seasonal planning.
  * Results are cached for 1 hour with LRU eviction.
  */
 export async function getHistoricalWeather(
@@ -201,9 +202,10 @@ export async function getHistoricalWeather(
     );
   }
 
-  // Calculate date range (past 7 days)
+  // Calculate date range (same 7-day window from 1 year ago)
   const endDate = new Date();
-  const startDate = new Date();
+  endDate.setFullYear(endDate.getFullYear() - 1);
+  const startDate = new Date(endDate);
   startDate.setDate(startDate.getDate() - 7);
 
   const startDateStr = formatDate(startDate);
