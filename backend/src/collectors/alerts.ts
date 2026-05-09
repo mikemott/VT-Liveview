@@ -32,8 +32,15 @@ export async function collectWeatherAlerts(): Promise<number> {
       return 0;
     }
 
-    // Batch optimization: Fetch all existing alerts in ONE query
-    const alertIds = alerts.map(alert => alert.id);
+    // Batch optimization: Deduplicate alerts by ID (API may return duplicates)
+    const dedupedById = new Map<string, typeof alerts[number]>();
+    for (const alert of alerts) {
+      if (!dedupedById.has(alert.id)) {
+        dedupedById.set(alert.id, alert);
+      }
+    }
+    const dedupedAlerts = Array.from(dedupedById.values());
+    const alertIds = dedupedAlerts.map(alert => alert.id);
 
     const existingAlerts = alertIds.length > 0
       ? await db
@@ -48,7 +55,7 @@ export async function collectWeatherAlerts(): Promise<number> {
     const idsToUpdate: string[] = [];
     const alertsToInsert: NewWeatherAlert[] = [];
 
-    for (const alert of alerts) {
+    for (const alert of dedupedAlerts) {
       if (existingIdSet.has(alert.id)) {
         idsToUpdate.push(alert.id);
       } else {
@@ -79,8 +86,12 @@ export async function collectWeatherAlerts(): Promise<number> {
     }
 
     // Batch insert: Insert all new alerts in ONE query
+    // Use onConflictDoNothing() to handle concurrent collector runs
     if (alertsToInsert.length > 0) {
-      await db.insert(weatherAlerts).values(alertsToInsert);
+      await db
+        .insert(weatherAlerts)
+        .values(alertsToInsert)
+        .onConflictDoNothing();
     }
 
     const processedCount = alerts.length;

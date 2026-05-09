@@ -62,8 +62,16 @@ export async function collectTrafficIncidents(): Promise<number> {
       return 0;
     }
 
-    // Batch optimization: Fetch all existing incidents in ONE query
-    const currentIds = incidents.map(incident => `vt511-${incident.id}`);
+    // Batch optimization: Deduplicate incidents by sourceId (API may return duplicates)
+    const dedupedBySourceId = new Map<string, ParsedIncident>();
+    for (const incident of incidents) {
+      const sourceId = `vt511-${incident.id}`;
+      if (!dedupedBySourceId.has(sourceId)) {
+        dedupedBySourceId.set(sourceId, incident);
+      }
+    }
+    const dedupedIncidents = Array.from(dedupedBySourceId.entries());
+    const currentIds = dedupedIncidents.map(([sourceId]) => sourceId);
 
     const existingIncidents = currentIds.length > 0
       ? await db
@@ -78,9 +86,7 @@ export async function collectTrafficIncidents(): Promise<number> {
     const idsToUpdate: string[] = [];
     const incidentsToInsert: NewTrafficIncident[] = [];
 
-    for (const incident of incidents) {
-      const sourceId = `vt511-${incident.id}`;
-
+    for (const [sourceId, incident] of dedupedIncidents) {
       if (existingIdSet.has(sourceId)) {
         idsToUpdate.push(sourceId);
       } else {
@@ -110,8 +116,12 @@ export async function collectTrafficIncidents(): Promise<number> {
     }
 
     // Batch insert: Insert all new incidents in ONE query
+    // Use onConflictDoNothing() to handle concurrent collector runs
     if (incidentsToInsert.length > 0) {
-      await db.insert(trafficIncidents).values(incidentsToInsert);
+      await db
+        .insert(trafficIncidents)
+        .values(incidentsToInsert)
+        .onConflictDoNothing();
     }
 
     const processedCount = incidents.length;
