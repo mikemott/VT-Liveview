@@ -3,7 +3,7 @@
  * Fetches VT 511 incident data and stores in database.
  */
 
-import { eq, isNull, notInArray, and } from 'drizzle-orm';
+import { eq, isNull, notInArray, inArray, and } from 'drizzle-orm';
 import { getDb, trafficIncidents, type NewTrafficIncident } from '../db/index.js';
 import { getEnv, isDev } from '../types/env.js';
 
@@ -62,29 +62,29 @@ export async function collectTrafficIncidents(): Promise<number> {
       return 0;
     }
 
-    const currentIds: string[] = [];
-    let processedCount = 0;
+    // Batch optimization: Fetch all existing incidents in ONE query
+    const currentIds = incidents.map(incident => `vt511-${incident.id}`);
+
+    const existingIncidents = currentIds.length > 0
+      ? await db
+          .select({ sourceId: trafficIncidents.sourceId })
+          .from(trafficIncidents)
+          .where(inArray(trafficIncidents.sourceId, currentIds))
+      : [];
+
+    const existingIdSet = new Set(existingIncidents.map(i => i.sourceId));
+
+    // Separate incidents into update vs insert batches
+    const idsToUpdate: string[] = [];
+    const incidentsToInsert: NewTrafficIncident[] = [];
 
     for (const incident of incidents) {
       const sourceId = `vt511-${incident.id}`;
-      currentIds.push(sourceId);
 
-      // Check if incident exists
-      const existing = await db
-        .select()
-        .from(trafficIncidents)
-        .where(eq(trafficIncidents.sourceId, sourceId))
-        .limit(1);
-
-      if (existing.length > 0) {
-        // Update last_seen timestamp
-        await db
-          .update(trafficIncidents)
-          .set({ lastSeenAt: new Date() })
-          .where(eq(trafficIncidents.sourceId, sourceId));
+      if (existingIdSet.has(sourceId)) {
+        idsToUpdate.push(sourceId);
       } else {
-        // Insert new incident
-        const newIncident: NewTrafficIncident = {
+        incidentsToInsert.push({
           sourceId,
           incidentType: incident.type,
           severity: incident.severity,
@@ -97,13 +97,24 @@ export async function collectTrafficIncidents(): Promise<number> {
           geometry: incident.geometry,
           startedAt: incident.startedAt,
           source: 'VT 511',
-        };
-
-        await db.insert(trafficIncidents).values(newIncident);
+        });
       }
-
-      processedCount++;
     }
+
+    // Batch update: Update all existing incidents in ONE query
+    if (idsToUpdate.length > 0) {
+      await db
+        .update(trafficIncidents)
+        .set({ lastSeenAt: new Date() })
+        .where(inArray(trafficIncidents.sourceId, idsToUpdate));
+    }
+
+    // Batch insert: Insert all new incidents in ONE query
+    if (incidentsToInsert.length > 0) {
+      await db.insert(trafficIncidents).values(incidentsToInsert);
+    }
+
+    const processedCount = incidents.length;
 
     // Mark incidents that are no longer active as resolved
     if (currentIds.length > 0) {

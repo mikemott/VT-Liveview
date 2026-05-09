@@ -3,6 +3,7 @@ import maplibregl from 'maplibre-gl';
 import { fetchSkiResorts } from '../services/skiApi';
 import type { SkiResort } from '../services/skiApi';
 import { SKI_COLORS } from '../utils/skiColors';
+import { escapeHTML } from '../utils/sanitize';
 import type { MapLibreMap, Marker } from '../types';
 import './SkiLayer.css';
 
@@ -73,17 +74,21 @@ function createPopupHTML(resort: SkiResort): string {
     });
   };
 
+  // Sanitize all dynamic content to prevent XSS
+  const safeName = escapeHTML(resort.name);
+  const safeLogoUrl = escapeHTML(resort.logoUrl);
+
   return `
     <div class="ski-popup-content">
-      ${resort.logoUrl ? `<img src="${resort.logoUrl}" alt="${resort.name}" class="resort-logo" />` : ''}
-      <h3>${resort.name}</h3>
+      ${resort.logoUrl ? `<img src="${safeLogoUrl}" alt="${safeName}" class="resort-logo" />` : ''}
+      <h3>${safeName}</h3>
       <div class="stats-grid">
-        <div>❄️ Fresh: ${resort.snowfall24hr !== null ? `${resort.snowfall24hr}"` : 'N/A'}</div>
-        <div>🎿 Trails: ${resort.trailsOpen}/${resort.trailsTotal}</div>
-        <div>🚡 Lifts: ${resort.liftsOpen}/${resort.liftsTotal}</div>
-        <div>🌡️ Temp: ${resort.tempCurrent !== null ? `${resort.tempCurrent}°F` : 'N/A'}</div>
-        <div>📊 Base: ${resort.baseDepth !== null ? `${resort.baseDepth}"` : 'N/A'}</div>
-        <div>📈 Total: ${resort.snowfallCumulative !== null ? `${resort.snowfallCumulative}"` : 'N/A'}</div>
+        <div>❄️ Fresh: ${resort.snowfall24hr !== null ? `${escapeHTML(String(resort.snowfall24hr))}"` : 'N/A'}</div>
+        <div>🎿 Trails: ${escapeHTML(String(resort.trailsOpen))}/${escapeHTML(String(resort.trailsTotal))}</div>
+        <div>🚡 Lifts: ${escapeHTML(String(resort.liftsOpen))}/${escapeHTML(String(resort.liftsTotal))}</div>
+        <div>🌡️ Temp: ${resort.tempCurrent !== null ? `${escapeHTML(String(resort.tempCurrent))}°F` : 'N/A'}</div>
+        <div>📊 Base: ${resort.baseDepth !== null ? `${escapeHTML(String(resort.baseDepth))}"` : 'N/A'}</div>
+        <div>📈 Total: ${resort.snowfallCumulative !== null ? `${escapeHTML(String(resort.snowfallCumulative))}"` : 'N/A'}</div>
       </div>
       <div class="last-updated">Updated: ${formatTime(resort.lastUpdated)}</div>
     </div>
@@ -107,6 +112,7 @@ function SkiLayer({ map, visible }: SkiLayerProps) {
         const data = await fetchSkiResorts();
         setResorts(data);
       } catch (error) {
+        // Silently fail - ski data is non-critical
         if (import.meta.env.DEV) {
           console.error('Error fetching ski resorts:', error);
         }
