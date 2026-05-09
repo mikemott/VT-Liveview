@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, memo } from 'react';
 import maplibregl from 'maplibre-gl';
 import { fetchCreemeeStands } from '../services/creemeeApi';
 import type { CreemeeStand } from '../services/creemeeApi';
+import { escapeHTML } from '../utils/sanitize';
 import type { MapLibreMap, Marker } from '../types';
 import './CreemeeLayer.css';
 
@@ -35,17 +36,22 @@ function createCreemeeMarker(): HTMLDivElement {
 }
 
 function createPopupHTML(stand: CreemeeStand): string {
+  // Sanitize all dynamic content to prevent XSS
+  const safeName = escapeHTML(stand.name);
+  const safeTown = escapeHTML(stand.town);
+  const safeDescription = stand.description ? escapeHTML(stand.description) : '';
+
   return `
     <div class="creemee-popup-content">
-      <h3>${stand.name}</h3>
+      <h3>${safeName}</h3>
       ${stand.featured ? '<div class="featured-badge">⭐ Featured</div>' : ''}
-      <div class="stand-location">📍 ${stand.town}, VT</div>
-      ${stand.description ? `<div class="stand-description">${stand.description}</div>` : ''}
+      <div class="stand-location">📍 ${safeTown}, VT</div>
+      ${stand.description ? `<div class="stand-description">${safeDescription}</div>` : ''}
       ${stand.specialties && stand.specialties.length > 0 ? `
         <div class="stand-specialties">
           <strong>Specialties:</strong>
           <ul>
-            ${stand.specialties.map(s => `<li>${s}</li>`).join('')}
+            ${stand.specialties.map(s => `<li>${escapeHTML(s)}</li>`).join('')}
           </ul>
         </div>
       ` : ''}
@@ -73,6 +79,7 @@ function CreemeeLayer({ map, visible }: CreemeeLayerProps) {
         const data = await fetchCreemeeStands();
         setStands(data);
       } catch (error) {
+        // Silently fail - creemee data is non-critical
         if (import.meta.env.DEV) {
           console.error('Error fetching creemee stands:', error);
         }

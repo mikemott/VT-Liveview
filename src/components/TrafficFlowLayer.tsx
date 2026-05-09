@@ -46,7 +46,9 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
   // event listeners on every theme change. We use isDarkRef.current to get latest value.
   useEffect(() => {
     if (!map) {
-      console.warn('TrafficFlowLayer: Map not available yet');
+      if (import.meta.env.DEV) {
+        console.warn('TrafficFlowLayer: Map not available yet');
+      }
       return;
     }
 
@@ -75,7 +77,9 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
           // Increased delay to 200ms to give style more time to stabilize
           setTimeout(() => addTrafficLayers(retryCount + 1), 200);
         } else {
-          console.error('TrafficFlowLayer: Failed to add layers after 10 retries - style never loaded');
+          if (import.meta.env.DEV) {
+            console.error('TrafficFlowLayer: Failed to add layers after 10 retries - style never loaded');
+          }
         }
         return;
       }
@@ -109,7 +113,9 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
         // Add source if needed
         if (!map.getSource(SOURCE_ID)) {
           const tileUrl = `https://api.tomtom.com/traffic/map/4/tile/flow/relative/{z}/{x}/{y}.pbf?key=${TOMTOM_API_KEY}`;
-          console.log('TrafficFlowLayer: Adding source with tile URL:', tileUrl.substring(0, 80) + '...');
+          if (import.meta.env.DEV) {
+            console.log('TrafficFlowLayer: Adding source with tile URL:', tileUrl.substring(0, 80) + '...');
+          }
 
           try {
             map.addSource(SOURCE_ID, {
@@ -120,13 +126,19 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
               attribution: '© TomTom'
             });
           } catch (sourceError) {
-            console.error('TrafficFlowLayer: FAILED to add source!', sourceError);
+            if (import.meta.env.DEV) {
+              console.error('TrafficFlowLayer: FAILED to add source!', sourceError);
+            }
             throw sourceError;
           }
 
-          console.log('TrafficFlowLayer: Verifying source exists...', !!map.getSource(SOURCE_ID));
+          if (import.meta.env.DEV) {
+            console.log('TrafficFlowLayer: Verifying source exists...', !!map.getSource(SOURCE_ID));
+          }
         } else {
-          console.log('TrafficFlowLayer: Source already exists, skipping addSource');
+          if (import.meta.env.DEV) {
+            console.log('TrafficFlowLayer: Source already exists, skipping addSource');
+          }
         }
 
         // Find the first label/symbol layer to insert traffic layers before it
@@ -141,7 +153,9 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
         }
 
         const visibilityValue = visible ? 'visible' : 'none';
-        console.log('TrafficFlowLayer: Creating layers with visible =', visible, 'visibility =', visibilityValue);
+        if (import.meta.env.DEV) {
+          console.log('TrafficFlowLayer: Creating layers with visible =', visible, 'visibility =', visibilityValue);
+        }
 
         // Add casing layer (outline for visibility)
         if (!map.getLayer(LAYER_ID_CASING)) {
@@ -209,14 +223,16 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
         const mainVis = map.getLayoutProperty(LAYER_ID, 'visibility');
         const casingVis = map.getLayoutProperty(LAYER_ID_CASING, 'visibility');
 
-        console.log('TrafficFlowLayer: Successfully added traffic layers', {
-          sourceExists: !!map.getSource(SOURCE_ID),
-          mainLayerExists: !!map.getLayer(LAYER_ID),
-          casingLayerExists: !!map.getLayer(LAYER_ID_CASING),
-          mainVisibility: mainVis,
-          casingVisibility: casingVis,
-          visibleProp: visible
-        });
+        if (import.meta.env.DEV) {
+          console.log('TrafficFlowLayer: Successfully added traffic layers', {
+            sourceExists: !!map.getSource(SOURCE_ID),
+            mainLayerExists: !!map.getLayer(LAYER_ID),
+            casingLayerExists: !!map.getLayer(LAYER_ID_CASING),
+            mainVisibility: mainVis,
+            casingVisibility: casingVis,
+            visibleProp: visible
+          });
+        }
 
         // Single check after 1 second to verify layers survived
         setTimeout(() => {
@@ -225,11 +241,13 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
           const sourceStillExists = !!map.getSource(SOURCE_ID);
 
           if (!stillExists || !casingStillExists || !sourceStillExists) {
-            console.error(`TrafficFlowLayer: Layers were removed within 1 second!`, {
-              mainLayerExists: stillExists,
-              casingExists: casingStillExists,
-              sourceExists: sourceStillExists
-            });
+            if (import.meta.env.DEV) {
+              console.error(`TrafficFlowLayer: Layers were removed within 1 second!`, {
+                mainLayerExists: stillExists,
+                casingExists: casingStillExists,
+                sourceExists: sourceStillExists
+              });
+            }
           }
         }, 1000);
       } catch (e) {

@@ -3,7 +3,7 @@
  * Fetches NOAA alerts and stores/updates in database.
  */
 
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import { getDb, weatherAlerts, type NewWeatherAlert } from '../db/index.js';
 import { getMergedAlerts } from '../services/noaa.js';
 import { isDev } from '../types/env.js';
@@ -32,25 +32,34 @@ export async function collectWeatherAlerts(): Promise<number> {
       return 0;
     }
 
-    let processedCount = 0;
-
+    // Batch optimization: Deduplicate alerts by ID (API may return duplicates)
+    const dedupedById = new Map<string, typeof alerts[number]>();
     for (const alert of alerts) {
-      // Check if alert already exists
-      const existing = await db
-        .select()
-        .from(weatherAlerts)
-        .where(eq(weatherAlerts.noaaAlertId, alert.id))
-        .limit(1);
+      if (!dedupedById.has(alert.id)) {
+        dedupedById.set(alert.id, alert);
+      }
+    }
+    const dedupedAlerts = Array.from(dedupedById.values());
+    const alertIds = dedupedAlerts.map(alert => alert.id);
 
-      if (existing.length > 0) {
-        // Update last_seen timestamp
-        await db
-          .update(weatherAlerts)
-          .set({ lastSeenAt: new Date() })
-          .where(eq(weatherAlerts.noaaAlertId, alert.id));
+    const existingAlerts = alertIds.length > 0
+      ? await db
+          .select({ noaaAlertId: weatherAlerts.noaaAlertId })
+          .from(weatherAlerts)
+          .where(inArray(weatherAlerts.noaaAlertId, alertIds))
+      : [];
+
+    const existingIdSet = new Set(existingAlerts.map(a => a.noaaAlertId));
+
+    // Separate alerts into update vs insert batches
+    const idsToUpdate: string[] = [];
+    const alertsToInsert: NewWeatherAlert[] = [];
+
+    for (const alert of dedupedAlerts) {
+      if (existingIdSet.has(alert.id)) {
+        idsToUpdate.push(alert.id);
       } else {
-        // Insert new alert
-        const newAlert: NewWeatherAlert = {
+        alertsToInsert.push({
           noaaAlertId: alert.id,
           eventType: alert.event,
           severity: alert.severity,
@@ -64,13 +73,28 @@ export async function collectWeatherAlerts(): Promise<number> {
           geometry: alert.geometry || null,
           effectiveAt: new Date(alert.effective),
           expiresAt: new Date(alert.expires),
-        };
-
-        await db.insert(weatherAlerts).values(newAlert);
+        });
       }
-
-      processedCount++;
     }
+
+    // Batch update: Update all existing alerts in ONE query
+    if (idsToUpdate.length > 0) {
+      await db
+        .update(weatherAlerts)
+        .set({ lastSeenAt: new Date() })
+        .where(inArray(weatherAlerts.noaaAlertId, idsToUpdate));
+    }
+
+    // Batch insert: Insert all new alerts in ONE query
+    // Use onConflictDoNothing() to handle concurrent collector runs
+    if (alertsToInsert.length > 0) {
+      await db
+        .insert(weatherAlerts)
+        .values(alertsToInsert)
+        .onConflictDoNothing();
+    }
+
+    const processedCount = alerts.length;
 
     if (isDev()) {
       console.log(`[Collector:Alerts] Processed ${processedCount} alerts`);

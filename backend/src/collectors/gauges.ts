@@ -47,7 +47,17 @@ export async function collectRiverGauges(): Promise<number> {
       throw new Error(`USGS API returned ${response.status}`);
     }
 
-    const data = await response.json();
+    // Parse JSON with error handling for malformed responses
+    let data: unknown;
+    try {
+      data = await response.json();
+    } catch (parseError) {
+      if (isDev()) {
+        console.error('[Collector:Gauges] Failed to parse USGS JSON response:', parseError);
+      }
+      throw new Error('USGS API returned invalid JSON');
+    }
+
     const sites = parseUSGSResponse(data);
 
     if (sites.length === 0) {

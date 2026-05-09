@@ -455,12 +455,16 @@ function WeatherMap() {
       if (import.meta.env.DEV && e.dataType === 'source' && e.sourceDataType === 'metadata') {
         // Cast to access sourceId which exists on source data events
         const sourceEvent = e as { sourceId?: string };
-        console.log('Source loaded:', sourceEvent.sourceId);
+        if (import.meta.env.DEV) {
+          console.log('Source loaded:', sourceEvent.sourceId);
+        }
       }
     });
 
     map.current.on('load', () => {
-      console.log('WeatherMap: Map load event fired');
+      if (import.meta.env.DEV) {
+        console.log('WeatherMap: Map load event fired');
+      }
 
       if (import.meta.env.DEV && map.current) {
         console.log('Map loaded!', {
@@ -473,10 +477,14 @@ function WeatherMap() {
       try {
         setLoading(false);
         setMapLoaded(true);
-        console.log('WeatherMap: mapLoaded state set to true');
+        if (import.meta.env.DEV) {
+          console.log('WeatherMap: mapLoaded state set to true');
+        }
         fetchAlertsFromBackend();
       } catch (error) {
-        console.error('WeatherMap: Error in load callback:', error);
+        if (import.meta.env.DEV) {
+          console.error('WeatherMap: Error in load callback:', error);
+        }
       }
     });
 
