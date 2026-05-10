@@ -63,6 +63,14 @@
   --popup-note-bg: #fef9c3;
   --popup-note-border: #fde047;
   --popup-amenity-bg: #f8fafc;
+
+  /* Camping Areas Specific */
+  --camping-area-header-bg: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.02) 100%);
+  --camping-area-header-border: rgba(16, 185, 129, 0.15);
+  --camping-area-btn-bg: linear-gradient(135deg, #92400e 0%, #78350f 100%);
+  --camping-area-btn-hover: linear-gradient(135deg, #78350f 0%, #57260a 100%);
+  --camping-area-btn-shadow: rgba(146, 64, 14, 0.25);
+  --camping-area-hint-bg: rgba(16, 185, 129, 0.06);
 }
 
 .dark {
@@ -126,6 +134,14 @@
   --popup-note-bg: rgba(251, 191, 36, 0.15);
   --popup-note-border: #fbbf24;
   --popup-amenity-bg: #0f172a;
+
+  /* Camping Areas Specific */
+  --camping-area-header-bg: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%);
+  --camping-area-header-border: rgba(16, 185, 129, 0.25);
+  --camping-area-btn-bg: linear-gradient(135deg, #92400e 0%, #78350f 100%);
+  --camping-area-btn-hover: linear-gradient(135deg, #78350f 0%, #57260a 100%);
+  --camping-area-btn-shadow: rgba(146, 64, 14, 0.35);
+  --camping-area-hint-bg: rgba(16, 185, 129, 0.12);
 }
 
 /* =============================================================================
