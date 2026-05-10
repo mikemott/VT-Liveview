@@ -113,16 +113,16 @@ function createBackcountryMarker(siteType: string): HTMLDivElement {
 
   el.innerHTML = icon;
 
-  // Hover effect
+  // Hover effect - use filter instead of transform to avoid MapLibre positioning issues
   el.addEventListener('mouseenter', () => {
     el.style.boxShadow = `0 0 12px ${BACKCOUNTRY_COLOR}, 0 2px 8px rgba(0, 0, 0, 0.3)`;
-    el.style.transform = 'scale(1.15)';
+    el.style.filter = 'brightness(1.15)';
     el.style.zIndex = '1000';
   });
 
   el.addEventListener('mouseleave', () => {
     el.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.25)';
-    el.style.transform = 'scale(1)';
+    el.style.filter = 'brightness(1)';
     el.style.zIndex = '';
   });
 
@@ -280,7 +280,6 @@ function createBackcountryPopupHTML(site: BackcountrySite): string {
 function CampingLayer({ map, visible, showCampgrounds, showBackcountry, onCountsChange }: CampingLayerProps) {
   const [campgrounds, setCampgrounds] = useState<RecreationSite[]>([]);
   const [backcountrySites, setBackcountrySites] = useState<BackcountrySite[]>([]);
-  const [_loading, setLoading] = useState(false);
 
   const campgroundMarkersRef = useRef<MarkerEntry[]>([]);
   const backcountryMarkersRef = useRef<MarkerEntry[]>([]);
@@ -300,7 +299,6 @@ function CampingLayer({ map, visible, showCampgrounds, showBackcountry, onCounts
         console.log('CampingLayer: Starting fetch for camping sites...');
       }
 
-      setLoading(true);
       try {
         // Fetch campgrounds (recreation sites filtered for camping)
         const recreationData = await fetchRecreationSites();
@@ -333,8 +331,6 @@ function CampingLayer({ map, visible, showCampgrounds, showBackcountry, onCounts
         if (import.meta.env.DEV) {
           console.error('CampingLayer: Error fetching camping sites:', error);
         }
-      } finally {
-        setLoading(false);
       }
     };
 

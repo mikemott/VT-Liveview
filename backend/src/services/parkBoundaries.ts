@@ -151,12 +151,16 @@ export async function fetchParkBoundaries(): Promise<ParkBoundary[]> {
 
   } catch (error) {
     // Log error
-    console.error('Park boundaries fetch failed:', error);
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('Park boundaries fetch failed:', error);
+    }
 
     // Return stale cache if available
     const staleCache = boundaryCache.get('boundaries');
     if (staleCache) {
-      console.warn('Using stale park boundaries cache');
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('Using stale park boundaries cache');
+      }
       return staleCache.boundaries;
     }
 

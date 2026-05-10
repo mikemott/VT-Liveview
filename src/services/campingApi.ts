@@ -107,7 +107,9 @@ export async function fetchCampingAreas(options?: {
 
     return data.campingAreas;
   } catch (error) {
-    console.error('Error fetching camping areas:', error);
+    if (import.meta.env.DEV) {
+      console.error('Error fetching camping areas:', error);
+    }
     throw new Error(error instanceof Error ? error.message : 'Failed to fetch camping areas');
   }
 }

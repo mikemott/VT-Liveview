@@ -99,7 +99,7 @@ function parseBackcountrySite(feature: ArcGISFeature): BackcountrySite | null {
   // Validate coordinates are within Vermont bounds (relaxed slightly)
   if (lat < 42.0 || lat > 46.0 || lng < -74.0 || lng > -71.0) {
     // Log first few invalid coordinates for debugging
-    if (Math.random() < 0.01) { // 1% sample
+    if (process.env.NODE_ENV !== 'production' && Math.random() < 0.01) { // 1% sample
       console.warn(`Invalid coordinates for site ${a.OBJECTID}: lat=${lat}, lng=${lng} (x=${geometry.x}, y=${geometry.y})`);
     }
     return null;
@@ -140,7 +140,9 @@ async function fetchFromAPI(): Promise<BackcountrySite[]> {
 
   const url = `${API_BASE_URL}?${params.toString()}`;
 
-  console.log('Fetching backcountry sites from:', url);
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('Fetching backcountry sites from:', url);
+  }
 
   const response = await fetch(url);
   if (!response.ok) {
@@ -153,14 +155,18 @@ async function fetchFromAPI(): Promise<BackcountrySite[]> {
     throw new Error('No backcountry sites returned from API');
   }
 
-  console.log(`Received ${data.features.length} features from API`);
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`Received ${data.features.length} features from API`);
+  }
 
   // Parse features
   const sites = data.features
     .map(parseBackcountrySite)
     .filter((site): site is BackcountrySite => site !== null);
 
-  console.log(`Parsed ${sites.length} valid backcountry sites (filtered ${data.features.length - sites.length} invalid)`);
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`Parsed ${sites.length} valid backcountry sites (filtered ${data.features.length - sites.length} invalid)`);
+  }
 
   // Validate minimum expected sites - relaxed to 50 since it's backcountry only
   if (sites.length < 50) {
@@ -209,12 +215,16 @@ export async function fetchBackcountrySites(): Promise<BackcountrySite[]> {
 
   } catch (error) {
     // Log error
-    console.error('Backcountry sites fetch failed:', error);
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('Backcountry sites fetch failed:', error);
+    }
 
     // Return stale cache if available
     const staleCache = backcountryCache.get('sites');
     if (staleCache) {
-      console.warn('Using stale backcountry sites cache');
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('Using stale backcountry sites cache');
+      }
       return staleCache.sites;
     }
 

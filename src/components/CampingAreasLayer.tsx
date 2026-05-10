@@ -198,7 +198,9 @@ function CampingAreasLayer({ map, visible, onAreaClick, onCountChange }: Camping
         if (isMounted) {
           setError(err instanceof Error ? err.message : 'Failed to load camping areas');
           setLoading(false);
-          console.error('CampingAreasLayer error:', err);
+          if (import.meta.env.DEV) {
+            console.error('CampingAreasLayer error:', err);
+          }
         }
       });
 
@@ -456,7 +458,7 @@ function CampingAreasLayer({ map, visible, onAreaClick, onCountChange }: Camping
     if (loading && import.meta.env.DEV) {
       console.log('Loading camping areas...');
     }
-    if (error) {
+    if (error && import.meta.env.DEV) {
       console.error('Camping areas layer error:', error);
     }
   }, [loading, error]);

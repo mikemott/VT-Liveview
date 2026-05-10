@@ -104,7 +104,9 @@ function normalizeGeometryToMultiPolygon(geometry: {
  * Group campsites by park boundaries using ANRUnit matching
  */
 export async function groupCampsitesByArea(): Promise<CampingArea[]> {
-  console.log('[campingAreas] Grouping campsites by area...');
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('[campingAreas] Grouping campsites by area...');
+  }
 
   // Fetch both datasets in parallel
   const [sites, boundaries] = await Promise.all([
@@ -112,7 +114,9 @@ export async function groupCampsitesByArea(): Promise<CampingArea[]> {
     fetchParkBoundaries(),
   ]);
 
-  console.log(`[campingAreas] Fetched ${sites.length} sites and ${boundaries.length} park boundaries`);
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`[campingAreas] Fetched ${sites.length} sites and ${boundaries.length} park boundaries`);
+  }
 
   // Create a map of ANRUnit -> ParkBoundary for fast lookup
   const boundaryMap = new Map<number, ParkBoundary>();
@@ -170,9 +174,11 @@ export async function groupCampsitesByArea(): Promise<CampingArea[]> {
   // Sort by site count (descending)
   areas.sort((a, b) => b.siteCount - a.siteCount);
 
-  console.log(`[campingAreas] Created ${areas.length} camping areas`);
-  if (areas.length > 0) {
-    console.log(`[campingAreas] Top 3 areas by site count:`, areas.slice(0, 3).map(a => `${a.name} (${a.siteCount} sites)`));
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`[campingAreas] Created ${areas.length} camping areas`);
+    if (areas.length > 0) {
+      console.log(`[campingAreas] Top 3 areas by site count:`, areas.slice(0, 3).map(a => `${a.name} (${a.siteCount} sites)`));
+    }
   }
 
   return areas;

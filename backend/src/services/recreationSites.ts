@@ -258,12 +258,16 @@ export async function fetchRecreationSites(): Promise<RecreationSite[]> {
 
   } catch (error) {
     // Log error
-    console.error('Recreation sites fetch failed:', error);
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('Recreation sites fetch failed:', error);
+    }
 
     // Return stale cache if available
     const staleCache = recreationCache.get('sites');
     if (staleCache) {
-      console.warn('Using stale recreation sites cache');
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('Using stale recreation sites cache');
+      }
       return staleCache.sites;
     }
 

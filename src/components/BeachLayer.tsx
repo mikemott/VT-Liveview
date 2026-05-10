@@ -155,7 +155,6 @@ function createPopupHTML(site: RecreationSite): string {
 
 function BeachLayer({ map, visible }: BeachLayerProps) {
   const [sites, setSites] = useState<RecreationSite[]>([]);
-  const [_loading, setLoading] = useState(false);
   const markersRef = useRef<MarkerEntry[]>([]);
 
   // Fetch sites on mount and filter for beaches
@@ -165,7 +164,6 @@ function BeachLayer({ map, visible }: BeachLayerProps) {
     const fetchSites = async (): Promise<void> => {
       if (!map) return;
 
-      setLoading(true);
       try {
         const data = await fetchRecreationSites();
         // Filter for beach and mixed sites only
@@ -178,8 +176,6 @@ function BeachLayer({ map, visible }: BeachLayerProps) {
         if (import.meta.env.DEV) {
           console.error('Error fetching beach sites:', error);
         }
-      } finally {
-        setLoading(false);
       }
     };
 
