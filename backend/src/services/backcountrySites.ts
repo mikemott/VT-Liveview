@@ -155,6 +155,14 @@ async function fetchFromAPI(): Promise<BackcountrySite[]> {
     throw new Error('No backcountry sites returned from API');
   }
 
+  // Check if response was truncated
+  if (data.exceededTransferLimit) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(`WARNING: Vermont ANR API exceeded transfer limit. Data may be incomplete (received ${data.features.length} features)`);
+    }
+    // Note: For now we accept partial data. Could implement pagination in the future.
+  }
+
   if (process.env.NODE_ENV !== 'production') {
     console.log(`Received ${data.features.length} features from API`);
   }

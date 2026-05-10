@@ -206,6 +206,14 @@ async function fetchFromAPI(): Promise<RecreationSite[]> {
     throw new Error('No recreation sites returned from API');
   }
 
+  // Check if response was truncated
+  if (data.exceededTransferLimit) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(`WARNING: Vermont ANR API exceeded transfer limit. Data may be incomplete (received ${data.features.length} features)`);
+    }
+    // Note: For now we accept partial data. Could implement pagination in the future.
+  }
+
   // Parse features
   const sites = data.features
     .map(parseRecreationSite)
