@@ -116,17 +116,38 @@ export const resolvers = {
 
     // Recreation sites query
     recreationSites: async () => {
-      return await fetchRecreationSites();
+      try {
+        return await fetchRecreationSites();
+      } catch (error) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.error('GraphQL resolver error (recreationSites):', error);
+        }
+        throw new Error('Failed to fetch recreation sites');
+      }
     },
 
     // Backcountry sites query
     backcountrySites: async () => {
-      return await fetchBackcountrySites();
+      try {
+        return await fetchBackcountrySites();
+      } catch (error) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.error('GraphQL resolver error (backcountrySites):', error);
+        }
+        throw new Error('Failed to fetch backcountry sites');
+      }
     },
 
     // Camping areas query (grouped sites)
     campingAreas: async (_parent: unknown, args: { minSites?: number; types?: string[] }) => {
-      return await getCampingAreas(args);
+      try {
+        return await getCampingAreas(args);
+      } catch (error) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.error('GraphQL resolver error (campingAreas):', error);
+        }
+        throw new Error('Failed to fetch camping areas');
+      }
     },
 
     // Historical database queries
