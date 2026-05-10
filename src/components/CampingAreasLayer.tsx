@@ -15,6 +15,7 @@ interface MarkerEntry {
 interface CampingAreasLayerProps {
   map: MapLibreMap | null;
   visible: boolean;
+  mapStyleVersion?: number;
   onAreaClick?: (area: CampingArea) => void;
   onCountChange?: (count: number) => void;
 }
@@ -144,7 +145,7 @@ function createPopupHTML(area: CampingArea): string {
   `;
 }
 
-function CampingAreasLayer({ map, visible, onAreaClick, onCountChange }: CampingAreasLayerProps) {
+function CampingAreasLayer({ map, visible, mapStyleVersion, onAreaClick, onCountChange }: CampingAreasLayerProps) {
   const [areas, setAreas] = useState<CampingArea[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -336,7 +337,7 @@ function CampingAreasLayer({ map, visible, onAreaClick, onCountChange }: Camping
       }
       boundaryLayerAddedRef.current = false;
     };
-  }, [map, visible, areas]);
+  }, [map, visible, areas, mapStyleVersion]);
 
   // Update markers when areas or visibility changes
   useEffect(() => {

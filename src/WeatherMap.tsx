@@ -844,6 +844,7 @@ function WeatherMap() {
             <CampingAreasLayer
               map={map.current}
               visible={isLayerVisible('campingSites')}
+              mapStyleVersion={mapStyleVersion}
               onCountChange={setBackcountryCount}
             />
           )}
