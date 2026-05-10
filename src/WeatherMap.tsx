@@ -109,7 +109,6 @@ function WeatherMap() {
   // Camping sub-filter state
   const [showCampgrounds, setShowCampgrounds] = useState(true);
   const [showBackcountrySites, setShowBackcountrySites] = useState(false);
-  const [showHikingRoutes, setShowHikingRoutes] = useState(false);
 
   // Camping counts
   const [campgroundCount, setCampgroundCount] = useState(0);
@@ -792,8 +791,6 @@ function WeatherMap() {
               onToggleCampgrounds={() => setShowCampgrounds(!showCampgrounds)}
               showBackcountrySites={showBackcountrySites}
               onToggleBackcountrySites={() => setShowBackcountrySites(!showBackcountrySites)}
-              showHikingRoutes={showHikingRoutes}
-              onToggleHikingRoutes={() => setShowHikingRoutes(!showHikingRoutes)}
               showBeachSites={isLayerVisible('beachSites')}
               onToggleBeachSites={toggleBeachSites}
               showStargazing={showStargazing}
@@ -804,7 +801,6 @@ function WeatherMap() {
               mapStyleVersion={mapStyleVersion}
               campgroundCount={campgroundCount}
               backcountryCount={backcountryCount}
-              hikingRouteCount={0}
             />
           )}
 

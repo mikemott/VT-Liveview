@@ -41,11 +41,8 @@ interface TravelLayerProps {
   onToggleCampgrounds: () => void;
   showBackcountrySites: boolean;
   onToggleBackcountrySites: () => void;
-  showHikingRoutes: boolean;
-  onToggleHikingRoutes: () => void;
   campgroundCount: number;
   backcountryCount: number;
-  hikingRouteCount: number;
   showBeachSites: boolean;
   onToggleBeachSites: () => void;
   showStargazing: boolean;
@@ -96,7 +93,7 @@ function getTypeLabel(type: IncidentType, short: boolean = false): string {
 // Component
 // =============================================================================
 
-function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, onToggleWeatherStations, showSkiResorts, onToggleSkiResorts, showCreemeeStands, onToggleCreemeeStands, showCampingSites, onToggleCampingSites, showCampgrounds, onToggleCampgrounds, showBackcountrySites, onToggleBackcountrySites, showHikingRoutes, onToggleHikingRoutes, campgroundCount, backcountryCount, hikingRouteCount, showBeachSites, onToggleBeachSites, showStargazing, onToggleStargazing, showTrafficFlow, onToggleTrafficFlow, globalPopupRef, mapStyleVersion }: TravelLayerProps) {
+function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, onToggleWeatherStations, showSkiResorts, onToggleSkiResorts, showCreemeeStands, onToggleCreemeeStands, showCampingSites, onToggleCampingSites, showCampgrounds, onToggleCampgrounds, showBackcountrySites, onToggleBackcountrySites, campgroundCount, backcountryCount, showBeachSites, onToggleBeachSites, showStargazing, onToggleStargazing, showTrafficFlow, onToggleTrafficFlow, globalPopupRef, mapStyleVersion }: TravelLayerProps) {
   const [incidents, setIncidents] = useState<TravelIncident[]>([]);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(true);
@@ -663,11 +660,8 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
               onToggleCampgrounds={onToggleCampgrounds}
               showBackcountrySites={showBackcountrySites}
               onToggleBackcountrySites={onToggleBackcountrySites}
-              showHikingRoutes={showHikingRoutes}
-              onToggleHikingRoutes={onToggleHikingRoutes}
               campgroundCount={campgroundCount}
               backcountryCount={backcountryCount}
-              hikingRouteCount={hikingRouteCount}
             />
           )}
 

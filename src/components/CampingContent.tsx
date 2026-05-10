@@ -7,11 +7,8 @@ interface CampingContentProps {
   onToggleCampgrounds: () => void;
   showBackcountrySites: boolean;
   onToggleBackcountrySites: () => void;
-  showHikingRoutes: boolean;
-  onToggleHikingRoutes: () => void;
   campgroundCount: number;
   backcountryCount: number;
-  hikingRouteCount: number;
 }
 
 function CampingContent({
@@ -19,11 +16,8 @@ function CampingContent({
   onToggleCampgrounds,
   showBackcountrySites,
   onToggleBackcountrySites,
-  showHikingRoutes,
-  onToggleHikingRoutes,
   campgroundCount,
   backcountryCount,
-  hikingRouteCount,
 }: CampingContentProps) {
   return (
     <div className="camping-content">
@@ -64,25 +58,6 @@ function CampingContent({
               <span className="toggle-label">Backcountry Areas</span>
               <span className="toggle-description">
                 Grouped by wilderness area • {backcountryCount} sites
-              </span>
-            </span>
-          </label>
-
-          {/* Hiking Routes (future) */}
-          <label className="camping-layer-toggle disabled">
-            <input
-              type="checkbox"
-              checked={showHikingRoutes}
-              onChange={onToggleHikingRoutes}
-              disabled={hikingRouteCount === 0}
-            />
-            <span className="toggle-icon hiking-icon">
-              <MapPin size={16} />
-            </span>
-            <span className="toggle-content">
-              <span className="toggle-label">Hiking Trails</span>
-              <span className="toggle-description">
-                {hikingRouteCount === 0 ? 'Coming soon' : `${hikingRouteCount} trails`}
               </span>
             </span>
           </label>
