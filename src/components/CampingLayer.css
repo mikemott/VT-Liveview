@@ -8,9 +8,9 @@
   padding: 0;
   border-radius: 12px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.98);
+  background: var(--popup-bg);
   backdrop-filter: blur(10px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 20px var(--shadow-lg);
 }
 
 .camping-popup-content {
@@ -22,7 +22,7 @@
   margin: 0 0 8px 0;
   font-size: 18px;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text-primary);
 }
 
 .camping-popup-content .site-type-badge {
@@ -37,23 +37,23 @@
 }
 
 .camping-popup-content .campground-badge {
-  background: #d1fae5;
-  color: #065f46;
+  background: var(--badge-campground-bg);
+  color: var(--badge-campground-text);
 }
 
 .camping-popup-content .backcountry-badge {
-  background: #fef3c7;
-  color: #78350f;
+  background: var(--badge-backcountry-bg);
+  color: var(--badge-backcountry-text);
 }
 
 .camping-popup-content .site-notes {
   margin-bottom: 12px;
   padding: 8px 10px;
-  background: #fef3c7;
-  border-left: 3px solid #f59e0b;
+  background: var(--popup-note-bg);
+  border-left: 3px solid var(--popup-note-border);
   border-radius: 4px;
   font-size: 13px;
-  color: #78350f;
+  color: var(--badge-backcountry-text);
   font-style: italic;
 }
 
@@ -61,15 +61,15 @@
   margin: 0 0 8px 0;
   font-size: 14px;
   font-weight: 600;
-  color: #374151;
+  color: var(--text-primary);
 }
 
 .camping-popup-content .site-info {
   margin-bottom: 12px;
   padding-bottom: 12px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-default);
   font-size: 13px;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .camping-popup-content .site-info > div {
@@ -78,19 +78,19 @@
 
 .camping-popup-content .site-info .operator {
   font-weight: 500;
-  color: #4b5563;
+  color: var(--text-primary);
 }
 
 .camping-popup-content .site-info .phone {
-  color: #10b981;
+  color: var(--color-campground);
 }
 
 .camping-popup-content .site-info .access {
   display: inline-block;
   margin-top: 4px;
   padding: 2px 8px;
-  background: #d1fae5;
-  color: #065f46;
+  background: var(--badge-campground-bg);
+  color: var(--badge-campground-text);
   border-radius: 4px;
   font-size: 12px;
   font-weight: 500;
@@ -106,7 +106,7 @@
 
 .camping-popup-content .amenity-section.amenity-bonus {
   padding-top: 12px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border-default);
 }
 
 .camping-popup-content .amenity-grid {
@@ -114,88 +114,24 @@
   grid-template-columns: 1fr 1fr;
   gap: 6px;
   font-size: 13px;
-  color: #4b5563;
+  color: var(--text-primary);
 }
 
 .camping-popup-content .amenity-grid > div {
   padding: 4px 8px;
-  background: #f3f4f6;
+  background: var(--popup-amenity-bg);
   border-radius: 6px;
 }
 
 .camping-popup-content .total-sites {
   margin-top: 8px;
   padding: 6px 10px;
-  background: #d1fae5;
-  color: #065f46;
+  background: var(--badge-campground-bg);
+  color: var(--badge-campground-text);
   border-radius: 6px;
   font-size: 13px;
   font-weight: 600;
   text-align: center;
-}
-
-/* Dark mode support */
-.dark .camping-popup .maplibregl-popup-content {
-  background: rgba(31, 41, 55, 0.98);
-}
-
-.dark .camping-popup-content h3 {
-  color: #f9fafb;
-}
-
-.dark .camping-popup-content .campground-badge {
-  background: #064e3b;
-  color: #a7f3d0;
-}
-
-.dark .camping-popup-content .backcountry-badge {
-  background: #78350f;
-  color: #fef3c7;
-}
-
-.dark .camping-popup-content .site-notes {
-  background: #78350f;
-  border-left-color: #fbbf24;
-  color: #fef3c7;
-}
-
-.dark .camping-popup-content h4 {
-  color: #e5e7eb;
-}
-
-.dark .camping-popup-content .site-info {
-  border-bottom-color: #374151;
-  color: #9ca3af;
-}
-
-.dark .camping-popup-content .site-info .operator {
-  color: #d1d5db;
-}
-
-.dark .camping-popup-content .site-info .phone {
-  color: #6ee7b7;
-}
-
-.dark .camping-popup-content .site-info .access {
-  background: #064e3b;
-  color: #a7f3d0;
-}
-
-.dark .camping-popup-content .amenity-section.amenity-bonus {
-  border-top-color: #374151;
-}
-
-.dark .camping-popup-content .amenity-grid {
-  color: #d1d5db;
-}
-
-.dark .camping-popup-content .amenity-grid > div {
-  background: #374151;
-}
-
-.dark .camping-popup-content .total-sites {
-  background: #064e3b;
-  color: #6ee7b7;
 }
 
 /* Backcountry-specific popup styles */
@@ -205,7 +141,7 @@
   gap: 12px;
   margin-bottom: 12px;
   padding-bottom: 12px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-default);
 }
 
 .camping-popup-content.backcountry-popup .site-icon {
@@ -225,7 +161,7 @@
 .camping-popup-content.backcountry-popup .backcountry-features {
   margin-bottom: 12px;
   padding: 10px;
-  background: #f3f4f6;
+  background: var(--popup-amenity-bg);
   border-radius: 8px;
 }
 
@@ -235,7 +171,7 @@
   gap: 8px;
   margin-bottom: 6px;
   font-size: 13px;
-  color: #4b5563;
+  color: var(--text-primary);
 }
 
 .camping-popup-content.backcountry-popup .feature-item:last-child {
@@ -250,13 +186,13 @@
 .camping-popup-content.backcountry-popup .backcountry-info {
   margin-bottom: 12px;
   padding: 10px;
-  background: #fef3c7;
+  background: var(--popup-note-bg);
   border-radius: 8px;
 }
 
 .camping-popup-content.backcountry-popup .info-item {
   font-size: 13px;
-  color: #78350f;
+  color: var(--badge-backcountry-text);
   margin-bottom: 6px;
   line-height: 1.4;
 }
@@ -267,44 +203,15 @@
 
 .camping-popup-content.backcountry-popup .popup-footer {
   padding-top: 12px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border-default);
 }
 
 .camping-popup-content.backcountry-popup .footer-note {
   display: block;
   font-size: 12px;
-  color: #6b7280;
+  color: var(--text-secondary);
   font-style: italic;
   text-align: center;
-}
-
-/* Dark mode for backcountry popups */
-.dark .camping-popup-content.backcountry-popup .popup-header {
-  border-bottom-color: #374151;
-}
-
-.dark .camping-popup-content.backcountry-popup .backcountry-features {
-  background: #374151;
-}
-
-.dark .camping-popup-content.backcountry-popup .feature-item {
-  color: #d1d5db;
-}
-
-.dark .camping-popup-content.backcountry-popup .backcountry-info {
-  background: #78350f;
-}
-
-.dark .camping-popup-content.backcountry-popup .info-item {
-  color: #fef3c7;
-}
-
-.dark .camping-popup-content.backcountry-popup .popup-footer {
-  border-top-color: #374151;
-}
-
-.dark .camping-popup-content.backcountry-popup .footer-note {
-  color: #9ca3af;
 }
 
 /* Mobile responsiveness */
