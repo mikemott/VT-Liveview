@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo, ReactNode, memo } from 'react';
-import { AlertTriangle, Construction, Ban, Waves, AlertOctagon, ChevronDown, ChevronRight, Thermometer, Mountain, IceCream, Star, Car, ZoomIn } from 'lucide-react';
+import { AlertTriangle, Construction, Ban, Waves, AlertOctagon, ChevronDown, ChevronRight, Thermometer, Mountain, IceCream, Star, Car, ZoomIn, Tent } from 'lucide-react';
 import maplibregl from 'maplibre-gl';
 import { fetchAllIncidents, type TravelIncident } from '../services/travelApi';
 import { getIncidentColor, shouldShowIncident } from '../utils/incidentColors';
@@ -9,6 +9,7 @@ import { escapeHTML } from '../utils/sanitize';
 import { cleanupMarkers, type MarkerEntry } from '../utils/markerCleanup';
 import type { MapLibreMap, IncidentType, Marker } from '../types';
 import StargazingLayer from './StargazingLayer';
+import CampingContent from './CampingContent';
 import './TravelLayer.css';
 
 // =============================================================================
@@ -34,6 +35,19 @@ interface TravelLayerProps {
   onToggleSkiResorts: () => void;
   showCreemeeStands: boolean;
   onToggleCreemeeStands: () => void;
+  showCampingSites: boolean;
+  onToggleCampingSites: () => void;
+  showCampgrounds: boolean;
+  onToggleCampgrounds: () => void;
+  showBackcountrySites: boolean;
+  onToggleBackcountrySites: () => void;
+  showHikingRoutes: boolean;
+  onToggleHikingRoutes: () => void;
+  campgroundCount: number;
+  backcountryCount: number;
+  hikingRouteCount: number;
+  showBeachSites: boolean;
+  onToggleBeachSites: () => void;
   showStargazing: boolean;
   onToggleStargazing: () => void;
   showTrafficFlow: boolean;
@@ -82,7 +96,7 @@ function getTypeLabel(type: IncidentType, short: boolean = false): string {
 // Component
 // =============================================================================
 
-function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, onToggleWeatherStations, showSkiResorts, onToggleSkiResorts, showCreemeeStands, onToggleCreemeeStands, showStargazing, onToggleStargazing, showTrafficFlow, onToggleTrafficFlow, globalPopupRef, mapStyleVersion }: TravelLayerProps) {
+function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, onToggleWeatherStations, showSkiResorts, onToggleSkiResorts, showCreemeeStands, onToggleCreemeeStands, showCampingSites, onToggleCampingSites, showCampgrounds, onToggleCampgrounds, showBackcountrySites, onToggleBackcountrySites, showHikingRoutes, onToggleHikingRoutes, campgroundCount, backcountryCount, hikingRouteCount, showBeachSites, onToggleBeachSites, showStargazing, onToggleStargazing, showTrafficFlow, onToggleTrafficFlow, globalPopupRef, mapStyleVersion }: TravelLayerProps) {
   const [incidents, setIncidents] = useState<TravelIncident[]>([]);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(true);
@@ -604,6 +618,32 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
                 </span>
                 Creemee Stands
               </button>
+
+              {/* Camping Sites chip */}
+              <button
+                className={`filter-chip ${showCampingSites ? 'active' : ''}`}
+                onClick={onToggleCampingSites}
+                aria-pressed={showCampingSites}
+                data-chip-type="camping"
+              >
+                <span className="chip-icon">
+                  <Tent size={14} strokeWidth={2.5} />
+                </span>
+                Camping
+              </button>
+
+              {/* Beach Sites chip */}
+              <button
+                className={`filter-chip ${showBeachSites ? 'active' : ''}`}
+                onClick={onToggleBeachSites}
+                aria-pressed={showBeachSites}
+                data-chip-type="beach"
+              >
+                <span className="chip-icon">
+                  <Waves size={14} strokeWidth={2.5} />
+                </span>
+                Beaches
+              </button>
             </div>
           </div>
 
@@ -616,8 +656,23 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
             />
           )}
 
-          {/* Incidents content - hidden when stargazing is active */}
-          {!showStargazing && (
+          {/* Camping content - shown when camping chip is active */}
+          {showCampingSites && (
+            <CampingContent
+              showCampgrounds={showCampgrounds}
+              onToggleCampgrounds={onToggleCampgrounds}
+              showBackcountrySites={showBackcountrySites}
+              onToggleBackcountrySites={onToggleBackcountrySites}
+              showHikingRoutes={showHikingRoutes}
+              onToggleHikingRoutes={onToggleHikingRoutes}
+              campgroundCount={campgroundCount}
+              backcountryCount={backcountryCount}
+              hikingRouteCount={hikingRouteCount}
+            />
+          )}
+
+          {/* Incidents content - hidden when stargazing or camping is active */}
+          {!showStargazing && !showCampingSites && (
             <>
           {/* Loading state with skeleton */}
           {loading && (

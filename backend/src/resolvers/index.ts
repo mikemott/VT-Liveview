@@ -20,6 +20,9 @@ import {
   getCreemeeStandById,
   getCreemeeStandsByTown,
 } from '../services/creemee.js';
+import { fetchRecreationSites } from '../services/recreationSites.js';
+import { fetchBackcountrySites } from '../services/backcountrySites.js';
+import { getCampingAreas } from '../services/campingAreas.js';
 import type {
   WeatherConditions,
   ForecastPeriod,
@@ -109,6 +112,21 @@ export const resolvers = {
 
     creemeeStandsByTown: async (_parent: unknown, { town }: { town: string }) => {
       return await getCreemeeStandsByTown(town);
+    },
+
+    // Recreation sites query
+    recreationSites: async () => {
+      return await fetchRecreationSites();
+    },
+
+    // Backcountry sites query
+    backcountrySites: async () => {
+      return await fetchBackcountrySites();
+    },
+
+    // Camping areas query (grouped sites)
+    campingAreas: async (_parent: unknown, args: { minSites?: number; types?: string[] }) => {
+      return await getCampingAreas(args);
     },
 
     // Historical database queries

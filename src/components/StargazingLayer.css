@@ -439,12 +439,12 @@
 
 .dark-sky-marker {
   cursor: pointer;
-  transition: transform 0.15s ease;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  transition: filter 0.15s ease;
 }
 
 .dark-sky-marker:hover {
-  transform: scale(1.25);
+  filter: drop-shadow(0 4px 8px rgba(99, 102, 241, 0.5));
 }
 
 /* =============================================================================

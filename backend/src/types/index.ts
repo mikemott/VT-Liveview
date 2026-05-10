@@ -41,3 +41,13 @@ export type {
 // Environment types
 export type { Env } from './env.js';
 export { validateEnv, getEnv, isDev, isProd } from './env.js';
+
+// Recreation sites types
+export type {
+  RecreationSite,
+  RecreationSiteType,
+  CampingAmenities,
+  SwimmingAmenities,
+  RecreationAmenities,
+  RecreationSiteCache,
+} from './recreation.js';
