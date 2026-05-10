@@ -274,30 +274,30 @@
 
 /* Camping - Nature Green */
 .filter-chip.active[data-chip-type="camping"] {
-  background: rgba(16, 185, 129, 0.2);
-  border-color: rgba(16, 185, 129, 0.4);
-  color: #065f46;
+  background: var(--chip-camping-bg);
+  border-color: var(--chip-camping-border);
+  color: var(--chip-camping-text);
   box-shadow:
     inset 0 1px 2px rgba(0, 0, 0, 0.1),
-    0 2px 4px rgba(16, 185, 129, 0.18);
+    0 2px 4px var(--chip-camping-shadow);
 }
 
 .filter-chip.active[data-chip-type="camping"] .chip-icon {
-  color: #10b981;
+  color: var(--chip-camping-icon);
 }
 
 /* Beach - Ocean Blue */
 .filter-chip.active[data-chip-type="beach"] {
-  background: rgba(59, 130, 246, 0.2);
-  border-color: rgba(59, 130, 246, 0.4);
-  color: #1e40af;
+  background: var(--chip-beach-bg);
+  border-color: var(--chip-beach-border);
+  color: var(--chip-beach-text);
   box-shadow:
     inset 0 1px 2px rgba(0, 0, 0, 0.1),
-    0 2px 4px rgba(59, 130, 246, 0.18);
+    0 2px 4px var(--chip-beach-shadow);
 }
 
 .filter-chip.active[data-chip-type="beach"] .chip-icon {
-  color: #3b82f6;
+  color: var(--chip-beach-icon);
 }
 
 /* Camping sub-filters */
@@ -306,10 +306,10 @@
   flex-direction: column;
   gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
-  background: rgba(16, 185, 129, 0.08);
+  background: var(--chip-camping-sub-bg);
   border-radius: var(--radius-lg);
   margin-top: var(--space-2);
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  border: 1px solid var(--chip-camping-sub-border);
 }
 
 .sub-filter-checkbox {
@@ -344,11 +344,11 @@
 }
 
 .campground-indicator {
-  background: #10b981;
+  background: var(--color-campground);
 }
 
 .backcountry-indicator {
-  background: #92400e;
+  background: var(--color-backcountry);
 }
 
 /* =============================================================================
@@ -495,37 +495,6 @@
   color: #f5deb3;
 }
 
-.dark .filter-chip.active[data-chip-type="camping"] {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(16, 185, 129, 0.12) 100%);
-  border-color: rgba(16, 185, 129, 0.4);
-  color: #6ee7b7;
-}
-
-.dark .filter-chip.active[data-chip-type="camping"] .chip-icon {
-  background: rgba(16, 185, 129, 0.25);
-  color: #6ee7b7;
-}
-
-.dark .filter-chip.active[data-chip-type="beach"] {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18) 0%, rgba(59, 130, 246, 0.12) 100%);
-  border-color: rgba(59, 130, 246, 0.4);
-  color: #93c5fd;
-}
-
-.dark .filter-chip.active[data-chip-type="beach"] .chip-icon {
-  background: rgba(59, 130, 246, 0.25);
-  color: #93c5fd;
-}
-
-/* Dark mode - Camping sub-filters */
-.dark .camping-sub-filters {
-  background: rgba(16, 185, 129, 0.12);
-  border-color: rgba(16, 185, 129, 0.25);
-}
-
-.dark .sub-filter-label {
-  color: #d1d5db;
-}
 
 /* Traffic Flow - Green/Yellow/Red gradient feel */
 .filter-chip.active[data-chip-type="traffic"] {
