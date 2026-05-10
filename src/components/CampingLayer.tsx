@@ -284,10 +284,10 @@ function CampingLayer({ map, visible, showCampgrounds, showBackcountry, onCounts
   const campgroundMarkersRef = useRef<MarkerEntry[]>([]);
   const backcountryMarkersRef = useRef<MarkerEntry[]>([]);
 
-  // Fetch both types of sites on mount
+  // Fetch both types of sites on mount (or when toggle states change)
   useEffect(() => {
     if (import.meta.env.DEV) {
-      console.log('CampingLayer: useEffect triggered', { map: !!map, visible });
+      console.log('CampingLayer: useEffect triggered', { map: !!map, visible, showCampgrounds, showBackcountry });
     }
 
     if (!map) return;
@@ -300,26 +300,37 @@ function CampingLayer({ map, visible, showCampgrounds, showBackcountry, onCounts
       }
 
       try {
-        // Fetch campgrounds (recreation sites filtered for camping)
-        const recreationData = await fetchRecreationSites();
-        const campingData = recreationData.filter(site =>
-          site.type === 'camping' || site.type === 'mixed'
-        );
-        setCampgrounds(campingData);
+        let campingData: typeof campgrounds = [];
+        let backcountryData: typeof backcountrySites = [];
 
-        if (import.meta.env.DEV) {
-          console.log(`CampingLayer: Fetched ${campingData.length} campgrounds`);
+        // Only fetch campgrounds if they will be shown
+        if (showCampgrounds) {
+          const recreationData = await fetchRecreationSites();
+          campingData = recreationData.filter(site =>
+            site.type === 'camping' || site.type === 'mixed'
+          );
+          setCampgrounds(campingData);
+
+          if (import.meta.env.DEV) {
+            console.log(`CampingLayer: Fetched ${campingData.length} campgrounds`);
+          }
+        } else {
+          setCampgrounds([]);
         }
 
-        // Fetch backcountry sites
-        if (import.meta.env.DEV) {
-          console.log('CampingLayer: Fetching backcountry sites...');
-        }
-        const backcountryData = await fetchBackcountrySites();
-        setBackcountrySites(backcountryData);
+        // Only fetch backcountry sites if they will be shown
+        if (showBackcountry) {
+          if (import.meta.env.DEV) {
+            console.log('CampingLayer: Fetching backcountry sites...');
+          }
+          backcountryData = await fetchBackcountrySites();
+          setBackcountrySites(backcountryData);
 
-        if (import.meta.env.DEV) {
-          console.log(`CampingLayer: Fetched ${backcountryData.length} backcountry sites`);
+          if (import.meta.env.DEV) {
+            console.log(`CampingLayer: Fetched ${backcountryData.length} backcountry sites`);
+          }
+        } else {
+          setBackcountrySites([]);
         }
 
         // Notify parent of counts
@@ -335,7 +346,7 @@ function CampingLayer({ map, visible, showCampgrounds, showBackcountry, onCounts
     };
 
     fetchSites();
-  }, [map, onCountsChange]);
+  }, [map, showCampgrounds, showBackcountry, onCountsChange]);
 
   // Manage campground markers (non-clustered)
   useEffect(() => {
