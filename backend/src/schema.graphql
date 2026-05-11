@@ -242,3 +242,99 @@ extend type Query {
   creemeeStandsByTown(town: String!): [CreemeeStand!]!
 }
 
+# Recreation sites types
+
+type RecreationSite {
+  id: ID!
+  name: String!
+  type: String!
+  latitude: Float!
+  longitude: Float!
+  address: String
+  town: String
+  phone: String
+  contact: String
+  organization: String
+  isPublic: Boolean!
+  acreage: Float
+  parkingSpaces: Int
+  amenities: RecreationAmenities!
+}
+
+type RecreationAmenities {
+  camping: CampingAmenities
+  swimming: SwimmingAmenities
+  boatRental: Boolean!
+  picnicArea: Boolean!
+  playground: Boolean!
+}
+
+type CampingAmenities {
+  tentSites: Int!
+  rvSites: Int!
+  shelters: Int!
+  hookups: CampingHookups!
+  groupCamping: Boolean!
+  primitiveCamping: Boolean!
+  winterCamping: Boolean!
+}
+
+type CampingHookups {
+  electric: Int!
+  water: Int!
+  both: Int!
+}
+
+type SwimmingAmenities {
+  lakeSwimming: Boolean!
+  poolSwimming: Boolean!
+  riverSwimming: Boolean!
+  hasBeach: Boolean!
+  waterBodyName: String
+}
+
+extend type Query {
+  recreationSites: [RecreationSite!]!
+}
+
+# Backcountry campsites types
+
+type BackcountrySite {
+  id: ID!
+  siteId: String!
+  siteType: String!
+  latitude: Float!
+  longitude: Float!
+  isAccessible: Boolean!
+  hasFirePit: Boolean!
+  hasPicnicTable: Boolean!
+  notes: String
+  parkId: Float
+  districtId: Int
+}
+
+type CampingArea {
+  id: ID!
+  name: String!
+  type: String!
+  siteCount: Int!
+  sites: [BackcountrySite!]!
+  centroid: Centroid!
+  boundary: AreaBoundary
+}
+
+type Centroid {
+  latitude: Float!
+  longitude: Float!
+}
+
+type AreaBoundary {
+  type: String! # Always "MultiPolygon" (Polygons are normalized to MultiPolygon)
+  coordinates: [[[[Float!]!]!]!]! # GeoJSON MultiPolygon coordinates
+}
+
+extend type Query {
+  backcountrySites: [BackcountrySite!]!
+  campingAreas(minSites: Int, types: [String!]): [CampingArea!]!
+}
+

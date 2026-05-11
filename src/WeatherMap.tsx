@@ -7,6 +7,9 @@ import WeatherStationsLayer from './components/WeatherStationsLayer';
 import SkiLayer from './components/SkiLayer';
 import TrafficFlowLayer from './components/TrafficFlowLayer';
 import CreemeeLayer from './components/CreemeeLayer';
+import CampingLayer from './components/CampingLayer';
+import CampingAreasLayer from './components/CampingAreasLayer';
+import BeachLayer from './components/BeachLayer';
 import CurrentWeather from './components/CurrentWeather';
 import RadarOverlay from './components/RadarOverlay';
 import ThemeToggle from './components/ThemeToggle';
@@ -97,9 +100,19 @@ function WeatherMap() {
     weatherStations: true,  // Core layer - always on by default
     skiResorts: false,      // Off by default - user can enable manually
     creemeeStands: false,   // Off by default - user can enable manually (was null for auto-show)
+    campingSites: false,    // Off by default - user can enable manually
+    beachSites: false,      // Off by default - user can enable manually
   });
   const [showStargazing, setShowStargazing] = useState(false);
   const [showTrafficFlow, setShowTrafficFlow] = useState(true);
+
+  // Camping sub-filter state
+  const [showCampgrounds, setShowCampgrounds] = useState(true);
+  const [showBackcountrySites, setShowBackcountrySites] = useState(false);
+
+  // Camping counts
+  const [campgroundCount, setCampgroundCount] = useState(0);
+  const [backcountryCount, setBackcountryCount] = useState(0);
 
   // Seasonal layers hook
   const { isInSeason } = useSeasonalLayers();
@@ -653,6 +666,14 @@ function WeatherMap() {
     toggleLayer('creemeeStands');
   }, [toggleLayer]);
 
+  const toggleCampingSites = useCallback((): void => {
+    toggleLayer('campingSites');
+  }, [toggleLayer]);
+
+  const toggleBeachSites = useCallback((): void => {
+    toggleLayer('beachSites');
+  }, [toggleLayer]);
+
   // Toggle stargazing visibility
   const toggleStargazing = useCallback((): void => {
     setShowStargazing(prev => !prev);
@@ -764,12 +785,22 @@ function WeatherMap() {
               onToggleSkiResorts={toggleSkiResorts}
               showCreemeeStands={isLayerVisible('creemeeStands')}
               onToggleCreemeeStands={toggleCreemeeStands}
+              showCampingSites={isLayerVisible('campingSites')}
+              onToggleCampingSites={toggleCampingSites}
+              showCampgrounds={showCampgrounds}
+              onToggleCampgrounds={() => setShowCampgrounds(!showCampgrounds)}
+              showBackcountrySites={showBackcountrySites}
+              onToggleBackcountrySites={() => setShowBackcountrySites(!showBackcountrySites)}
+              showBeachSites={isLayerVisible('beachSites')}
+              onToggleBeachSites={toggleBeachSites}
               showStargazing={showStargazing}
               onToggleStargazing={toggleStargazing}
               showTrafficFlow={showTrafficFlow}
               onToggleTrafficFlow={toggleTrafficFlow}
               globalPopupRef={globalPopupRef}
               mapStyleVersion={mapStyleVersion}
+              campgroundCount={campgroundCount}
+              backcountryCount={backcountryCount}
             />
           )}
 
@@ -788,6 +819,37 @@ function WeatherMap() {
             <SkiLayer
               map={map.current}
               visible={isLayerVisible('skiResorts')}
+            />
+          )}
+
+          {/* Camping Sites Layer - Campgrounds shown individually */}
+          {mapLoaded && showCampgrounds && (
+            <CampingLayer
+              map={map.current}
+              visible={isLayerVisible('campingSites')}
+              showCampgrounds={true}
+              showBackcountry={false}
+              onCountsChange={(campgrounds, _backcountry) => {
+                setCampgroundCount(campgrounds);
+              }}
+            />
+          )}
+
+          {/* Backcountry Sites Layer - Grouped by wilderness area */}
+          {mapLoaded && showBackcountrySites && (
+            <CampingAreasLayer
+              map={map.current}
+              visible={isLayerVisible('campingSites')}
+              mapStyleVersion={mapStyleVersion}
+              onCountChange={setBackcountryCount}
+            />
+          )}
+
+          {/* Beach Sites Layer */}
+          {mapLoaded && (
+            <BeachLayer
+              map={map.current}
+              visible={isLayerVisible('beachSites')}
             />
           )}
 

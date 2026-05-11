@@ -20,6 +20,9 @@ import {
   getCreemeeStandById,
   getCreemeeStandsByTown,
 } from '../services/creemee.js';
+import { fetchRecreationSites } from '../services/recreationSites.js';
+import { fetchBackcountrySites } from '../services/backcountrySites.js';
+import { getCampingAreas } from '../services/campingAreas.js';
 import type {
   WeatherConditions,
   ForecastPeriod,
@@ -109,6 +112,42 @@ export const resolvers = {
 
     creemeeStandsByTown: async (_parent: unknown, { town }: { town: string }) => {
       return await getCreemeeStandsByTown(town);
+    },
+
+    // Recreation sites query
+    recreationSites: async () => {
+      try {
+        return await fetchRecreationSites();
+      } catch (error) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.error('GraphQL resolver error (recreationSites):', error);
+        }
+        throw new Error('Failed to fetch recreation sites');
+      }
+    },
+
+    // Backcountry sites query
+    backcountrySites: async () => {
+      try {
+        return await fetchBackcountrySites();
+      } catch (error) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.error('GraphQL resolver error (backcountrySites):', error);
+        }
+        throw new Error('Failed to fetch backcountry sites');
+      }
+    },
+
+    // Camping areas query (grouped sites)
+    campingAreas: async (_parent: unknown, args: { minSites?: number; types?: string[] }) => {
+      try {
+        return await getCampingAreas(args);
+      } catch (error) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.error('GraphQL resolver error (campingAreas):', error);
+        }
+        throw new Error('Failed to fetch camping areas');
+      }
     },
 
     // Historical database queries

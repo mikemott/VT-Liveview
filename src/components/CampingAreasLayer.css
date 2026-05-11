@@ -1,0 +1,186 @@
+/* Camping Areas Layer Styles */
+
+.camping-area-marker {
+  /* Styled inline via JS for dynamic colors */
+}
+
+/* Popup Container */
+.camping-areas-popup-container .maplibregl-popup-content {
+  padding: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.camping-areas-popup-container .maplibregl-popup-tip {
+  border-top-color: rgba(255, 255, 255, 0.98);
+}
+
+/* Popup Content */
+.camping-areas-popup {
+  min-width: 260px;
+}
+
+.camping-areas-popup-header {
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.02) 100%);
+  border-bottom: 1px solid rgba(16, 185, 129, 0.15);
+}
+
+.camping-areas-popup-title {
+  margin: 0 0 6px 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: #1f2937;
+  line-height: 1.3;
+}
+
+.camping-areas-popup-type {
+  display: inline-block;
+  padding: 3px 8px;
+  background: rgba(16, 185, 129, 0.12);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #065f46;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Stats Section */
+.camping-areas-popup-stats {
+  padding: 16px;
+}
+
+.camping-areas-stat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.camping-areas-stat-icon {
+  font-size: 32px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.camping-areas-stat-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.camping-areas-stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #10b981;
+  line-height: 1;
+}
+
+.camping-areas-stat-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* Footer Section */
+.camping-areas-popup-footer {
+  padding: 12px 16px 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.camping-areas-link-btn {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #92400e 0%, #78350f 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(146, 64, 14, 0.25);
+}
+
+.camping-areas-link-btn:hover {
+  background: linear-gradient(135deg, #78350f 0%, #57260a 100%);
+  box-shadow: 0 4px 12px rgba(146, 64, 14, 0.35);
+  transform: translateY(-1px);
+}
+
+.camping-areas-link-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(146, 64, 14, 0.25);
+}
+
+.camping-areas-hint {
+  margin-top: 10px;
+  padding: 8px;
+  background: rgba(16, 185, 129, 0.06);
+  border-radius: 6px;
+  font-size: 11px;
+  color: #065f46;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* Dark Mode Support */
+.dark .camping-areas-popup-container .maplibregl-popup-content {
+  background: rgba(31, 41, 55, 0.98);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.dark .camping-areas-popup-title {
+  color: #f9fafb;
+}
+
+.dark .camping-areas-popup-header {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%);
+  border-bottom-color: rgba(16, 185, 129, 0.25);
+}
+
+.dark .camping-areas-popup-type {
+  background: rgba(16, 185, 129, 0.2);
+  color: #6ee7b7;
+}
+
+.dark .camping-areas-stat-label {
+  color: #9ca3af;
+}
+
+.dark .camping-areas-popup-footer {
+  border-top-color: #374151;
+}
+
+.dark .camping-areas-hint {
+  background: rgba(16, 185, 129, 0.12);
+  color: #6ee7b7;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .camping-areas-popup {
+    min-width: 240px;
+  }
+
+  .camping-areas-popup-title {
+    font-size: 15px;
+  }
+
+  .camping-areas-stat-icon {
+    font-size: 28px;
+  }
+
+  .camping-areas-stat-value {
+    font-size: 20px;
+  }
+}
