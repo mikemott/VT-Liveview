@@ -1,3 +1,183 @@
+/* =============================================================================
+   Theme Variables
+   ============================================================================= */
+
+:root {
+  /* Background Colors */
+  --bg-default: #ffffff;
+  --bg-surface: #f8fafc;
+  --bg-popup: #ffffff;
+  --bg-glass: rgba(255, 255, 255, 0.9);
+
+  /* Text Colors */
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  --text-inverse: #ffffff;
+
+  /* Border Colors */
+  --border-default: #e2e8f0;
+  --border-light: #f1f5f9;
+
+  /* Shadow Colors */
+  --shadow-sm: rgba(0, 0, 0, 0.05);
+  --shadow-md: rgba(0, 0, 0, 0.1);
+  --shadow-lg: rgba(0, 0, 0, 0.15);
+
+  /* Accent Colors */
+  --accent-primary: #3b82f6;
+  --accent-primary-hover: #2563eb;
+  --accent-success: #10b981;
+  --accent-warning: #f59e0b;
+  --accent-danger: #ef4444;
+
+  /* Layer-Specific Colors */
+  --color-campground: #10b981;
+  --color-campground-dark: #059669;
+  --color-backcountry: #92400e;
+  --color-backcountry-light: #d97706;
+  --color-beach: #3b82f6;
+  --color-beach-dark: #2563eb;
+
+  /* Badge Colors */
+  --badge-campground-bg: #d1fae5;
+  --badge-campground-text: #065f46;
+  --badge-backcountry-bg: #fef3c7;
+  --badge-backcountry-text: #78350f;
+  --badge-beach-bg: #dbeafe;
+  --badge-beach-text: #1e40af;
+
+  /* Button Colors */
+  --btn-bg: #ffffff;
+  --btn-border: #e2e8f0;
+  --btn-text: #475569;
+  --btn-hover-bg: #f8fafc;
+  --btn-hover-border: #cbd5e1;
+  --btn-active-bg: linear-gradient(135deg, #3b82f6, #2563eb);
+  --btn-active-border: #3b82f6;
+  --btn-active-text: #ffffff;
+
+  /* Popup Colors */
+  --popup-bg: #ffffff;
+  --popup-header-border: #e2e8f0;
+  --popup-note-bg: #fef9c3;
+  --popup-note-border: #fde047;
+  --popup-amenity-bg: #f8fafc;
+
+  /* Camping Areas Specific */
+  --camping-area-header-bg: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.02) 100%);
+  --camping-area-header-border: rgba(16, 185, 129, 0.15);
+  --camping-area-btn-bg: linear-gradient(135deg, #92400e 0%, #78350f 100%);
+  --camping-area-btn-hover: linear-gradient(135deg, #78350f 0%, #57260a 100%);
+  --camping-area-btn-shadow: rgba(146, 64, 14, 0.25);
+  --camping-area-hint-bg: rgba(16, 185, 129, 0.06);
+
+  /* Filter Chip Styles - Camping & Beach */
+  --chip-camping-bg: rgba(16, 185, 129, 0.2);
+  --chip-camping-border: rgba(16, 185, 129, 0.4);
+  --chip-camping-text: #065f46;
+  --chip-camping-icon: #10b981;
+  --chip-camping-shadow: rgba(16, 185, 129, 0.18);
+  --chip-camping-sub-bg: rgba(16, 185, 129, 0.08);
+  --chip-camping-sub-border: rgba(16, 185, 129, 0.2);
+
+  --chip-beach-bg: rgba(59, 130, 246, 0.2);
+  --chip-beach-border: rgba(59, 130, 246, 0.4);
+  --chip-beach-text: #1e40af;
+  --chip-beach-icon: #3b82f6;
+  --chip-beach-shadow: rgba(59, 130, 246, 0.18);
+}
+
+.dark {
+  /* Background Colors */
+  --bg-default: #0f172a;
+  --bg-surface: #1e293b;
+  --bg-popup: #1e293b;
+  --bg-glass: rgba(15, 23, 42, 0.9);
+
+  /* Text Colors */
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-inverse: #0f172a;
+
+  /* Border Colors */
+  --border-default: #334155;
+  --border-light: #475569;
+
+  /* Shadow Colors */
+  --shadow-sm: rgba(0, 0, 0, 0.3);
+  --shadow-md: rgba(0, 0, 0, 0.4);
+  --shadow-lg: rgba(0, 0, 0, 0.5);
+
+  /* Accent Colors (slightly adjusted for dark mode) */
+  --accent-primary: #60a5fa;
+  --accent-primary-hover: #3b82f6;
+  --accent-success: #34d399;
+  --accent-warning: #fbbf24;
+  --accent-danger: #f87171;
+
+  /* Layer-Specific Colors */
+  --color-campground: #34d399;
+  --color-campground-dark: #10b981;
+  --color-backcountry: #fbbf24;
+  --color-backcountry-light: #fcd34d;
+  --color-beach: #60a5fa;
+  --color-beach-dark: #3b82f6;
+
+  /* Badge Colors */
+  --badge-campground-bg: rgba(16, 185, 129, 0.2);
+  --badge-campground-text: #6ee7b7;
+  --badge-backcountry-bg: rgba(251, 191, 36, 0.2);
+  --badge-backcountry-text: #fcd34d;
+  --badge-beach-bg: rgba(96, 165, 250, 0.2);
+  --badge-beach-text: #93c5fd;
+
+  /* Button Colors */
+  --btn-bg: #1e293b;
+  --btn-border: #475569;
+  --btn-text: #cbd5e1;
+  --btn-hover-bg: #334155;
+  --btn-hover-border: #64748b;
+  --btn-active-bg: linear-gradient(135deg, #60a5fa, #3b82f6);
+  --btn-active-border: #60a5fa;
+  --btn-active-text: #0f172a;
+
+  /* Popup Colors */
+  --popup-bg: #1e293b;
+  --popup-header-border: #475569;
+  --popup-note-bg: rgba(251, 191, 36, 0.15);
+  --popup-note-border: #fbbf24;
+  --popup-amenity-bg: #0f172a;
+
+  /* Camping Areas Specific */
+  --camping-area-header-bg: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%);
+  --camping-area-header-border: rgba(16, 185, 129, 0.25);
+  --camping-area-btn-bg: linear-gradient(135deg, #92400e 0%, #78350f 100%);
+  --camping-area-btn-hover: linear-gradient(135deg, #78350f 0%, #57260a 100%);
+  --camping-area-btn-shadow: rgba(146, 64, 14, 0.35);
+  --camping-area-hint-bg: rgba(16, 185, 129, 0.12);
+
+  /* Filter Chip Styles - Camping & Beach */
+  --chip-camping-bg: linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(16, 185, 129, 0.12) 100%);
+  --chip-camping-border: rgba(16, 185, 129, 0.4);
+  --chip-camping-text: #6ee7b7;
+  --chip-camping-icon: #6ee7b7;
+  --chip-camping-icon-bg: rgba(16, 185, 129, 0.25);
+  --chip-camping-sub-bg: rgba(16, 185, 129, 0.12);
+  --chip-camping-sub-border: rgba(16, 185, 129, 0.25);
+
+  --chip-beach-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.18) 0%, rgba(59, 130, 246, 0.12) 100%);
+  --chip-beach-border: rgba(59, 130, 246, 0.4);
+  --chip-beach-text: #93c5fd;
+  --chip-beach-icon: #93c5fd;
+  --chip-beach-icon-bg: rgba(59, 130, 246, 0.25);
+}
+
+/* =============================================================================
+   Global Styles
+   ============================================================================= */
+
 * {
   margin: 0;
   padding: 0;
