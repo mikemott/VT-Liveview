@@ -710,27 +710,29 @@ function WeatherMap() {
     // Efficiently update the map source without destroying layers
     addAlertsToMap(newAlerts);
 
-    // Remove highlight layers for the dismissed alert
-    if (map.current) {
-      if (map.current.getLayer('alert-highlight-border')) {
-        map.current.removeLayer('alert-highlight-border');
-      }
-      if (map.current.getLayer('alert-highlight-fill')) {
-        map.current.removeLayer('alert-highlight-fill');
-      }
-      if (map.current.getSource('alert-highlight')) {
-        map.current.removeSource('alert-highlight');
-      }
-    }
+    // Only clear highlight and detail panel if the dismissed alert is active
+    const dismissedAlertIsActive =
+      detailPanelContent?.type === 'alert' &&
+      detailPanelContent.data.properties.id === alertId;
 
-    // Close detail panel if it's showing the dismissed alert
-    setDetailPanelContent(current => {
-      if (current?.type === 'alert' && current.data.properties.id === alertId) {
-        return null;
+    if (dismissedAlertIsActive) {
+      // Remove highlight layers for the dismissed alert
+      if (map.current) {
+        if (map.current.getLayer('alert-highlight-border')) {
+          map.current.removeLayer('alert-highlight-border');
+        }
+        if (map.current.getLayer('alert-highlight-fill')) {
+          map.current.removeLayer('alert-highlight-fill');
+        }
+        if (map.current.getSource('alert-highlight')) {
+          map.current.removeSource('alert-highlight');
+        }
       }
-      return current;
-    });
-  }, [addAlertsToMap, alerts]);
+
+      // Close detail panel
+      setDetailPanelContent(null);
+    }
+  }, [addAlertsToMap, alerts, detailPanelContent]);
 
   return (
     <div className={`weather-map-container ${isDark ? 'dark' : ''}`}>
