@@ -121,6 +121,24 @@ async function start(): Promise<void> {
     maxAge: 86400, // Cache preflight responses for 24 hours
   });
 
+  // Security headers for all responses
+  fastify.addHook('onSend', async (_request, reply, _payload) => {
+    reply
+      .header('X-Content-Type-Options', 'nosniff')
+      .header('X-Frame-Options', 'DENY')
+      .header('X-XSS-Protection', '1; mode=block')
+      .header('Referrer-Policy', 'strict-origin-when-cross-origin')
+      .header(
+        'Content-Security-Policy',
+        "default-src 'self'; " +
+        "img-src 'self' data: https://*.protomaps.com https://*.rainviewer.com https://tilecache.rainviewer.com https://*.tomtom.com https://api.weather.gov; " +
+        "connect-src 'self' https://api.weather.gov https://nec-por.ne-compass.com https://waterservices.usgs.gov https://api.rainviewer.com https://*.tomtom.com; " +
+        "script-src 'self'; " +
+        "style-src 'self' 'unsafe-inline'; " +
+        "font-src 'self' data:;"
+      );
+  });
+
   // Rate limiting for proxy endpoints (100 requests per minute)
   await fastify.register(rateLimit, {
     max: 100,
@@ -137,7 +155,7 @@ async function start(): Promise<void> {
     typeDefs,
     resolvers,
     plugins: [fastifyApolloDrainPlugin(fastify)],
-    introspection: true, // Enable GraphQL playground
+    introspection: isDev(), // Only enable playground in development
   });
 
   await apollo.start();
@@ -200,10 +218,27 @@ async function start(): Promise<void> {
         }
 
         // Use timing-safe comparison to prevent timing attacks
-        const tokenValid =
-          typeof adminToken === 'string' &&
-          adminToken.length === env.ADMIN_TOKEN.length &&
-          timingSafeEqual(Buffer.from(adminToken), Buffer.from(env.ADMIN_TOKEN));
+        // Guard against missing token, wrong type, or length mismatch before comparing
+        const adminTokenStr = Array.isArray(adminToken)
+          ? adminToken[0]
+          : adminToken;
+
+        if (
+          typeof adminTokenStr !== 'string' ||
+          typeof env.ADMIN_TOKEN !== 'string' ||
+          adminTokenStr.length !== env.ADMIN_TOKEN.length
+        ) {
+          fastify.log.warn(
+            `Failed admin access attempt from IP: ${request.ip}`
+          );
+          reply.code(401);
+          return { error: 'Unauthorized' };
+        }
+
+        const tokenValid = timingSafeEqual(
+          Buffer.from(adminTokenStr),
+          Buffer.from(env.ADMIN_TOKEN)
+        );
 
         if (!tokenValid) {
           // Log failed access attempts with IP (but not the attempted token)
