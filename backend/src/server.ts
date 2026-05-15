@@ -18,6 +18,7 @@ import { fetchSkiConditions } from './services/skiConditions.js';
 import { validateEnv, isProd, isDev } from './types/index.js';
 import { getDb, checkDatabaseHealth, closeDatabase, isDatabaseEnabled } from './db/index.js';
 import { startScheduler, stopScheduler, getCollectorStatus } from './scheduler/index.js';
+import { fetchWithTimeout } from './utils/fetchWithTimeout.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -233,7 +234,7 @@ async function start(): Promise<void> {
     '/api/vt511/incidents',
     async (_request: FastifyRequest, reply: FastifyReply): Promise<void> => {
       try {
-        const response = await fetch(
+        const response = await fetchWithTimeout(
           `${VT_511_BASE}?networks=Vermont&dataTypes=incidentData`,
           vt511FetchOptions
         );
@@ -249,7 +250,7 @@ async function start(): Promise<void> {
     '/api/vt511/closures',
     async (_request: FastifyRequest, reply: FastifyReply): Promise<void> => {
       try {
-        const response = await fetch(
+        const response = await fetchWithTimeout(
           `${VT_511_BASE}?networks=Vermont&dataTypes=laneClosureData`,
           vt511FetchOptions
         );
@@ -266,7 +267,7 @@ async function start(): Promise<void> {
     '/api/vt511/traffic-conditions',
     async (_request: FastifyRequest, reply: FastifyReply): Promise<void> => {
       try {
-        const response = await fetch(
+        const response = await fetchWithTimeout(
           `${VT_511_BASE}?networks=Vermont&dataTypes=trafficCondData`,
           vt511FetchOptions
         );
@@ -282,7 +283,7 @@ async function start(): Promise<void> {
     '/api/vt511/network',
     async (_request: FastifyRequest, reply: FastifyReply): Promise<void> => {
       try {
-        const response = await fetch(
+        const response = await fetchWithTimeout(
           `${VT_511_BASE}?networks=Vermont&dataTypes=networkData`,
           vt511FetchOptions
         );

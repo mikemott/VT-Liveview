@@ -4,6 +4,7 @@
  */
 
 import type { RadarInfo, RadarTimestamp } from '../types/index.js';
+import { fetchWithTimeout } from '../utils/fetchWithTimeout.js';
 
 const IEM_BASE = 'https://mesonet.agron.iastate.edu';
 
@@ -31,7 +32,7 @@ interface RainViewerResponse {
 export async function getRadarInfo(): Promise<RadarInfo> {
   try {
     // Fetch available radar timestamps from IEM
-    const response = await fetch(`${IEM_BASE}/json/radar.py`);
+    const response = await fetchWithTimeout(`${IEM_BASE}/json/radar.py`);
 
     if (!response.ok) {
       // Fallback to generating recent timestamps
@@ -98,7 +99,7 @@ function generateRecentTimestamps(count: number, intervalMinutes: number): Radar
  * Provides global radar coverage with smoother animation frames.
  */
 export async function getRainViewerRadar(): Promise<RadarInfo> {
-  const response = await fetch('https://api.rainviewer.com/public/weather-maps.json');
+  const response = await fetchWithTimeout('https://api.rainviewer.com/public/weather-maps.json');
 
   if (!response.ok) {
     throw new Error(`RainViewer API error: ${response.status}`);
