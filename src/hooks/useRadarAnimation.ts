@@ -229,12 +229,16 @@ export function useRadarAnimation(
 
       // All retries exhausted - log error and fallback
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      console.error('[RADAR] Failed to fetch radar frames after', maxRetries + 1, 'attempts:', errorMessage);
+      if (import.meta.env.DEV) {
+        console.error('[RADAR] Failed to fetch radar frames after', maxRetries + 1, 'attempts:', errorMessage);
+      }
 
       setError(errorMessage);
 
       // Fallback to static IEM tile (but IEM is unreliable with 503s)
-      console.warn('[RADAR] Using fallback IEM radar (may be unreliable)');
+      if (import.meta.env.DEV) {
+        console.warn('[RADAR] Using fallback IEM radar (may be unreliable)');
+      }
       setFrames([
         {
           time: new Date().toISOString(),
