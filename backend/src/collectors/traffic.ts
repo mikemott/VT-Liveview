@@ -3,7 +3,7 @@
  * Fetches VT 511 incident data and stores in database.
  */
 
-import { eq, isNull, notInArray, inArray, and } from 'drizzle-orm';
+import { isNull, notInArray, inArray, and } from 'drizzle-orm';
 import { getDb, trafficIncidents, type NewTrafficIncident } from '../db/index.js';
 import { getEnv, isDev } from '../types/env.js';
 

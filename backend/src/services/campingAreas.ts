@@ -30,42 +30,6 @@ function calculateCentroid(sites: BackcountrySite[]): { latitude: number; longit
 }
 
 /**
- * Calculate center point from boundary geometry bounding box
- * This ensures marker is positioned based on the boundary that's rendering
- */
-function calculateBoundaryCenter(geometry: {
-  type: 'Polygon' | 'MultiPolygon';
-  coordinates: number[][][] | number[][][][];
-}): { latitude: number; longitude: number } {
-  // Flatten all coordinates to find bounding box
-  let allCoords: number[][] = [];
-
-  if (geometry.type === 'Polygon') {
-    allCoords = (geometry.coordinates as number[][][])[0]; // First ring only
-  } else {
-    // MultiPolygon - use first polygon's first ring
-    allCoords = (geometry.coordinates as number[][][][])[0][0];
-  }
-
-  // Find bounding box
-  let minLng = Infinity, maxLng = -Infinity;
-  let minLat = Infinity, maxLat = -Infinity;
-
-  for (const [lng, lat] of allCoords) {
-    if (lng < minLng) minLng = lng;
-    if (lng > maxLng) maxLng = lng;
-    if (lat < minLat) minLat = lat;
-    if (lat > maxLat) maxLat = lat;
-  }
-
-  // Return center of bounding box
-  return {
-    latitude: (minLat + maxLat) / 2,
-    longitude: (minLng + maxLng) / 2,
-  };
-}
-
-/**
  * Determine park type from unit type code
  */
 function determineParkType(unitType: string): string {

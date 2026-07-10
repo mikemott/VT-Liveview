@@ -3,7 +3,7 @@
  * Fetches NOAA alerts and stores/updates in database.
  */
 
-import { eq, inArray } from 'drizzle-orm';
+import { inArray } from 'drizzle-orm';
 import { getDb, weatherAlerts, type NewWeatherAlert } from '../db/index.js';
 import { getMergedAlerts } from '../services/noaa.js';
 import { isDev } from '../types/env.js';
