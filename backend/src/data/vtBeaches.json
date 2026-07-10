@@ -1,0 +1,372 @@
+[
+  {
+    "id": "north-shore-natural-area",
+    "name": "North Shore Natural Area",
+    "town": "Burlington",
+    "latitude": 44.5089,
+    "longitude": -73.2314,
+    "parkType": "municipal",
+    "amenities": ["parking", "trails"],
+    "burlingtonLocationId": 1
+  },
+  {
+    "id": "leddy-beach-north",
+    "name": "Leddy Beach North",
+    "town": "Burlington",
+    "latitude": 44.5008,
+    "longitude": -73.2336,
+    "parkType": "municipal",
+    "amenities": ["parking", "restrooms", "lifeguards", "concessions"],
+    "burlingtonLocationId": 2
+  },
+  {
+    "id": "leddy-beach-south",
+    "name": "Leddy Beach South",
+    "town": "Burlington",
+    "latitude": 44.5003,
+    "longitude": -73.2340,
+    "parkType": "municipal",
+    "amenities": ["parking", "restrooms", "lifeguards", "concessions"],
+    "burlingtonLocationId": 3
+  },
+  {
+    "id": "north-beach-north",
+    "name": "North Beach North",
+    "town": "Burlington",
+    "latitude": 44.4925,
+    "longitude": -73.2237,
+    "parkType": "municipal",
+    "amenities": ["parking", "restrooms", "concessions", "lifeguards", "boat_launch"],
+    "burlingtonLocationId": 4
+  },
+  {
+    "id": "north-beach-south",
+    "name": "North Beach South",
+    "town": "Burlington",
+    "latitude": 44.4916,
+    "longitude": -73.2216,
+    "parkType": "municipal",
+    "amenities": ["parking", "restrooms", "concessions", "lifeguards"],
+    "burlingtonLocationId": 5
+  },
+  {
+    "id": "texaco-beach",
+    "name": "Texaco Beach",
+    "town": "Burlington",
+    "latitude": 44.4900,
+    "longitude": -73.2227,
+    "parkType": "municipal",
+    "amenities": ["parking"],
+    "burlingtonLocationId": 6
+  },
+  {
+    "id": "blanchard-beach-north",
+    "name": "Blanchard Beach North",
+    "town": "Burlington",
+    "latitude": 44.4751,
+    "longitude": -73.2254,
+    "parkType": "municipal",
+    "amenities": ["parking"],
+    "burlingtonLocationId": 7
+  },
+  {
+    "id": "blanchard-beach-south",
+    "name": "Blanchard Beach South",
+    "town": "Burlington",
+    "latitude": 44.4739,
+    "longitude": -73.2262,
+    "parkType": "municipal",
+    "amenities": ["parking"],
+    "burlingtonLocationId": 8
+  },
+  {
+    "id": "oakledge-cove",
+    "name": "Oakledge Cove",
+    "town": "Burlington",
+    "latitude": 44.4598,
+    "longitude": -73.2196,
+    "parkType": "municipal",
+    "amenities": ["parking", "restrooms", "playground", "trails"],
+    "burlingtonLocationId": 9
+  },
+  {
+    "id": "blodgett-water-access",
+    "name": "Blodgett Water Access Point",
+    "town": "Burlington",
+    "latitude": 44.4814,
+    "longitude": -73.2212,
+    "parkType": "municipal",
+    "amenities": ["parking", "boat_launch"],
+    "burlingtonLocationId": 10
+  },
+  {
+    "id": "sand-bar-state-park",
+    "name": "Sand Bar State Park",
+    "town": "Milton",
+    "latitude": 44.6468,
+    "longitude": -73.2856,
+    "parkType": "state_park",
+    "amenities": ["parking", "restrooms", "concessions", "boat_launch", "picnic_area"]
+  },
+  {
+    "id": "alburg-dunes-state-park",
+    "name": "Alburg Dunes State Park",
+    "town": "Alburg",
+    "latitude": 44.9815,
+    "longitude": -73.3018,
+    "parkType": "state_park",
+    "amenities": ["parking", "restrooms", "trails", "picnic_area"]
+  },
+  {
+    "id": "grand-isle-state-park",
+    "name": "Grand Isle State Park",
+    "town": "Grand Isle",
+    "latitude": 44.7273,
+    "longitude": -73.3175,
+    "parkType": "state_park",
+    "amenities": ["parking", "restrooms", "camping", "boat_launch", "fishing"]
+  },
+  {
+    "id": "knight-point-state-park",
+    "name": "Knight Point State Park",
+    "town": "North Hero",
+    "latitude": 44.8453,
+    "longitude": -73.2893,
+    "parkType": "state_park",
+    "amenities": ["parking", "restrooms", "boat_rentals", "picnic_area"]
+  },
+  {
+    "id": "north-hero-state-park",
+    "name": "North Hero State Park",
+    "town": "North Hero",
+    "latitude": 44.8567,
+    "longitude": -73.2945,
+    "parkType": "state_park",
+    "amenities": ["parking", "restrooms", "camping", "boat_launch", "boat_rentals"]
+  },
+  {
+    "id": "kill-kare-state-park",
+    "name": "Kill Kare State Park",
+    "town": "St. Albans",
+    "latitude": 44.8342,
+    "longitude": -73.2156,
+    "parkType": "state_park",
+    "amenities": ["parking", "restrooms", "picnic_area"]
+  },
+  {
+    "id": "burton-island-state-park",
+    "name": "Burton Island State Park",
+    "town": "St. Albans",
+    "latitude": 44.8245,
+    "longitude": -73.2534,
+    "parkType": "state_park",
+    "amenities": ["camping", "restrooms", "trails", "ferry_access"]
+  },
+  {
+    "id": "knight-island-state-park",
+    "name": "Knight Island State Park",
+    "town": "North Hero",
+    "latitude": 44.8567,
+    "longitude": -73.3012,
+    "parkType": "state_park",
+    "amenities": ["primitive_camping"]
+  },
+  {
+    "id": "button-bay-state-park",
+    "name": "Button Bay State Park",
+    "town": "Ferrisburgh",
+    "latitude": 44.1889,
+    "longitude": -73.3667,
+    "parkType": "state_park",
+    "amenities": ["parking", "restrooms", "camping", "pool", "lifeguards", "picnic_area"]
+  },
+  {
+    "id": "kingsland-bay-state-park",
+    "name": "Kingsland Bay State Park",
+    "town": "Ferrisburgh",
+    "latitude": 44.2145,
+    "longitude": -73.3512,
+    "parkType": "state_park",
+    "amenities": ["parking", "restrooms", "trails", "picnic_area"]
+  },
+  {
+    "id": "dar-state-park",
+    "name": "D.A.R. State Park",
+    "town": "Addison",
+    "latitude": 44.0842,
+    "longitude": -73.3289,
+    "parkType": "state_park",
+    "amenities": ["parking", "restrooms", "camping", "boat_launch", "picnic_area"]
+  },
+  {
+    "id": "colchester-beach",
+    "name": "Colchester Beach",
+    "town": "Colchester",
+    "latitude": 44.5234,
+    "longitude": -73.2456,
+    "parkType": "municipal",
+    "amenities": ["parking", "restrooms", "concessions"]
+  },
+  {
+    "id": "bayside-park-beach",
+    "name": "Bayside Park Beach",
+    "town": "Colchester",
+    "latitude": 44.4978,
+    "longitude": -73.2389,
+    "parkType": "municipal",
+    "amenities": ["parking", "restrooms", "playground"]
+  },
+  {
+    "id": "red-rocks-park-beach",
+    "name": "Red Rocks Park Beach",
+    "town": "South Burlington",
+    "latitude": 44.4456,
+    "longitude": -73.2398,
+    "parkType": "municipal",
+    "amenities": ["parking", "trails", "playground"]
+  },
+  {
+    "id": "oakledge-park-beach",
+    "name": "Oakledge Park Beach",
+    "town": "Burlington",
+    "latitude": 44.4598,
+    "longitude": -73.2314,
+    "parkType": "municipal",
+    "amenities": ["parking", "restrooms", "playground", "trails", "picnic_area"]
+  },
+  {
+    "id": "cedar-beach",
+    "name": "Cedar Beach",
+    "town": "Charlotte",
+    "latitude": 44.2893,
+    "longitude": -73.2756,
+    "parkType": "town_beach",
+    "amenities": ["parking", "restrooms"]
+  },
+  {
+    "id": "mount-philo-state-park",
+    "name": "Mount Philo State Park",
+    "town": "Charlotte",
+    "latitude": 44.2654,
+    "longitude": -73.2156,
+    "parkType": "state_park",
+    "amenities": ["parking", "restrooms", "camping", "trails"]
+  },
+  {
+    "id": "apple-island-resort-beach",
+    "name": "Apple Island Resort Beach",
+    "town": "South Hero",
+    "latitude": 44.6523,
+    "longitude": -73.3145,
+    "parkType": "private",
+    "amenities": ["parking", "restrooms", "boat_launch"]
+  },
+  {
+    "id": "camp-skyland-beach",
+    "name": "Camp Skyland Beach",
+    "town": "South Hero",
+    "latitude": 44.6389,
+    "longitude": -73.3067,
+    "parkType": "private",
+    "amenities": ["camping", "boat_launch"]
+  },
+  {
+    "id": "underhill-state-park",
+    "name": "Underhill State Park",
+    "town": "Underhill",
+    "latitude": 44.5234,
+    "longitude": -72.8945,
+    "parkType": "state_park",
+    "amenities": ["parking", "camping", "trails"]
+  },
+  {
+    "id": "point-au-roche-state-park",
+    "name": "Point Au Roche State Park",
+    "town": "Plattsburgh, NY",
+    "latitude": 44.7845,
+    "longitude": -73.4234,
+    "parkType": "state_park",
+    "amenities": ["parking", "restrooms", "camping", "boat_launch"]
+  },
+  {
+    "id": "mallets-bay-beach",
+    "name": "Mallets Bay Beach",
+    "town": "Colchester",
+    "latitude": 44.5456,
+    "longitude": -73.2123,
+    "parkType": "municipal",
+    "amenities": ["parking", "restrooms"]
+  },
+  {
+    "id": "lamoille-river-access",
+    "name": "Lamoille River Access",
+    "town": "Milton",
+    "latitude": 44.6234,
+    "longitude": -73.0987,
+    "parkType": "access_point",
+    "amenities": ["parking", "boat_launch"]
+  },
+  {
+    "id": "swanton-village-beach",
+    "name": "Swanton Village Beach",
+    "town": "Swanton",
+    "latitude": 44.9123,
+    "longitude": -73.1234,
+    "parkType": "municipal",
+    "amenities": ["parking", "picnic_area"]
+  },
+  {
+    "id": "shelburne-bay-park",
+    "name": "Shelburne Bay Park",
+    "town": "Shelburne",
+    "latitude": 44.3856,
+    "longitude": -73.2398,
+    "parkType": "municipal",
+    "amenities": ["parking", "trails"]
+  },
+  {
+    "id": "shelburne-town-beach",
+    "name": "Shelburne Town Beach",
+    "town": "Shelburne",
+    "latitude": 44.3923,
+    "longitude": -73.2456,
+    "parkType": "municipal",
+    "amenities": ["parking", "restrooms", "picnic_area"]
+  },
+  {
+    "id": "st-albans-bay-town-beach",
+    "name": "St. Albans Bay Town Beach",
+    "town": "St. Albans",
+    "latitude": 44.8123,
+    "longitude": -73.0898,
+    "parkType": "municipal",
+    "amenities": ["parking", "restrooms", "concessions"]
+  },
+  {
+    "id": "georgia-shore-campground-beach",
+    "name": "Georgia Shore Campground Beach",
+    "town": "Georgia",
+    "latitude": 44.6823,
+    "longitude": -73.1234,
+    "parkType": "private",
+    "amenities": ["camping", "boat_launch"]
+  },
+  {
+    "id": "missisquoi-national-wildlife-refuge-beach",
+    "name": "Missisquoi National Wildlife Refuge Beach",
+    "town": "Swanton",
+    "latitude": 44.9456,
+    "longitude": -73.0678,
+    "parkType": "federal",
+    "amenities": ["parking", "trails", "boat_launch"]
+  },
+  {
+    "id": "lone-rock-point",
+    "name": "Lone Rock Point",
+    "town": "Burlington",
+    "latitude": 44.4989,
+    "longitude": -73.2345,
+    "parkType": "conservation",
+    "amenities": ["trails"]
+  }
+]

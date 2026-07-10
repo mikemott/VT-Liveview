@@ -242,6 +242,31 @@ extend type Query {
   creemeeStandsByTown(town: String!): [CreemeeStand!]!
 }
 
+# Beach types
+
+type Beach {
+  id: ID!
+  name: String!
+  town: String!
+  latitude: Float!
+  longitude: Float!
+  parkType: String!
+  amenities: [String!]!
+  waterQualityGrade: String
+  waterTemp: Int
+  eColiLevel: Int
+  cyanobacteriaCategory: Int
+  lastTested: String
+  advisory: String
+  status: String!
+  color: String!
+  lastUpdated: String!
+}
+
+extend type Query {
+  beaches: [Beach!]!
+}
+
 # Recreation sites types
 
 type RecreationSite {
