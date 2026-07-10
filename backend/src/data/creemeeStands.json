@@ -1,5 +1,17 @@
 [
   {
+    "id": "burlington-bay-market-cafe",
+    "name": "Burlington Bay Market & Cafe",
+    "town": "Burlington",
+    "latitude": 44.4788,
+    "longitude": -73.2178,
+    "description": "Maple creemee is their best seller. Battery Street near waterfront.",
+    "specialties": [
+      "Maple Creemee"
+    ],
+    "featured": true
+  },
+  {
     "id": "morse-farm-maple-sugarworks",
     "name": "Morse Farm Maple Sugarworks",
     "town": "Montpelier",
@@ -13,14 +25,50 @@
     "featured": true
   },
   {
+    "id": "canteen-creemee-company",
+    "name": "Canteen Creemee Company",
+    "town": "Waitsfield",
+    "latitude": 44.1879,
+    "longitude": -72.8279,
+    "description": "Unique flavors: toasted marshmallow, ginger, coffee. Creative sundaes.",
+    "specialties": [
+      "Toasted Marshmallow",
+      "Ginger",
+      "Coffee"
+    ],
+    "featured": true
+  },
+  {
+    "id": "red-hen-baking-co-cafe",
+    "name": "Red Hen Baking Co. Cafe",
+    "town": "Middlesex",
+    "latitude": 44.3447,
+    "longitude": -72.6151,
+    "description": "Vermont Public 2025 featured stand.",
+    "featured": true
+  },
+  {
     "id": "palmer-lane-maple",
     "name": "Palmer Lane Maple",
     "town": "Jericho",
-    "latitude": 44.5065721,
-    "longitude": -72.9923311,
+    "latitude": 44.5066748,
+    "longitude": -72.992375,
     "description": "Seven Days VT 2024 Best Creemee winner.",
     "specialties": [
       "Maple Creemee"
+    ],
+    "featured": true
+  },
+  {
+    "id": "vermont-cookie-love",
+    "name": "Vermont Cookie Love",
+    "town": "North Ferrisburgh",
+    "latitude": 44.2415,
+    "longitude": -73.2493,
+    "description": "Creates 'love-wiches' - creemee between cookies. Maple-coffee twist.",
+    "specialties": [
+      "Love-wiches",
+      "Maple-Coffee Twist"
     ],
     "featured": true
   },
@@ -53,11 +101,36 @@
     "featured": false
   },
   {
+    "id": "april-s-maple",
+    "name": "April's Maple",
+    "town": "Canaan",
+    "latitude": 44.9603,
+    "longitude": -71.5395,
+    "featured": false
+  },
+  {
     "id": "archie-s-grill",
     "name": "Archie's Grill",
     "town": "Shelburne",
     "latitude": 44.3977605,
     "longitude": -73.2202874,
+    "featured": false
+  },
+  {
+    "id": "beansie-s-bus",
+    "name": "Beansie's Bus",
+    "town": "Burlington",
+    "latitude": 44.4778,
+    "longitude": -73.2165,
+    "description": "Battery Park edge",
+    "featured": false
+  },
+  {
+    "id": "broad-acres-creemee-stand",
+    "name": "Broad Acres Creemee Stand",
+    "town": "Colchester",
+    "latitude": 44.5398,
+    "longitude": -73.1817,
     "featured": false
   },
   {
@@ -69,11 +142,36 @@
     "featured": false
   },
   {
+    "id": "champ-s-legendary-creemees",
+    "name": "Champ's Legendary Creemees",
+    "town": "Burlington",
+    "latitude": 44.4786,
+    "longitude": -73.2166,
+    "description": "At ECHO",
+    "featured": false
+  },
+  {
+    "id": "chef-s-corner-caf-bakery",
+    "name": "Chef's Corner Café & Bakery",
+    "town": "Williston",
+    "latitude": 44.4358,
+    "longitude": -73.0819,
+    "featured": false
+  },
+  {
     "id": "dairy-creme",
     "name": "Dairy Creme",
     "town": "Montpelier",
     "latitude": 44.2585599,
     "longitude": -72.6068086,
+    "featured": false
+  },
+  {
+    "id": "devyn-s-restaurant-creemee-stand",
+    "name": "Devyn's Restaurant Creemee Stand",
+    "town": "Swanton",
+    "latitude": 44.9177,
+    "longitude": -73.1237,
     "featured": false
   },
   {
@@ -93,12 +191,69 @@
     "featured": false
   },
   {
+    "id": "gagne-maple",
+    "name": "Gagne Maple",
+    "town": "Highgate",
+    "latitude": 44.9531,
+    "longitude": -73.0142,
+    "featured": false
+  },
+  {
+    "id": "georgia-farmhouse",
+    "name": "Georgia Farmhouse",
+    "town": "Milton",
+    "latitude": 44.6534,
+    "longitude": -73.1078,
+    "featured": false
+  },
+  {
+    "id": "goodie-s-snack-bar",
+    "name": "Goodie's Snack Bar",
+    "town": "Addison",
+    "latitude": 44.0813,
+    "longitude": -73.3155,
+    "description": "Oversized creemee for low prices. Cash or check only.",
+    "featured": false
+  },
+  {
+    "id": "hardwick-house-of-pizza",
+    "name": "Hardwick House of Pizza",
+    "town": "Hardwick",
+    "latitude": 44.5071,
+    "longitude": -72.3705,
+    "featured": false
+  },
+  {
     "id": "hero-s-welcome-general-store",
     "name": "Hero's Welcome General Store",
     "town": "North Hero",
     "latitude": 44.8164168,
     "longitude": -73.2906844,
     "description": "Lake Champlain shore",
+    "featured": false
+  },
+  {
+    "id": "hoss-s-dogg-house",
+    "name": "Hoss's Dogg House",
+    "town": "St. Albans",
+    "latitude": 44.8099,
+    "longitude": -73.0808,
+    "featured": false
+  },
+  {
+    "id": "ice-cream-window-lake-champlain-chocolates",
+    "name": "Ice Cream Window @ Lake Champlain Chocolates",
+    "town": "Burlington",
+    "latitude": 44.4759,
+    "longitude": -73.2123,
+    "featured": false
+  },
+  {
+    "id": "jericho-center-country-store",
+    "name": "Jericho Center Country Store",
+    "town": "Jericho",
+    "latitude": 44.5043,
+    "longitude": -72.9819,
     "featured": false
   },
   {
@@ -119,6 +274,22 @@
     "featured": false
   },
   {
+    "id": "kellee-s-creemee-grill",
+    "name": "Kellee's Creemee & Grill",
+    "town": "Waterbury",
+    "latitude": 44.3383,
+    "longitude": -72.7563,
+    "featured": false
+  },
+  {
+    "id": "legendairy-maple-ice-cream",
+    "name": "LegenDairy Maple & Ice Cream",
+    "town": "Williamstown",
+    "latitude": 44.1273,
+    "longitude": -72.5416,
+    "featured": false
+  },
+  {
     "id": "little-gordo-creemee-stand",
     "name": "Little Gordo Creemee Stand",
     "town": "Burlington",
@@ -132,6 +303,14 @@
     "town": "Vergennes",
     "latitude": 44.1677087,
     "longitude": -73.2519182,
+    "featured": false
+  },
+  {
+    "id": "maple-city-candy-ice-cream-stand",
+    "name": "Maple City Candy & Ice Cream Stand",
+    "town": "Swanton",
+    "latitude": 44.9177,
+    "longitude": -73.1238,
     "featured": false
   },
   {
@@ -160,11 +339,19 @@
     "featured": false
   },
   {
+    "id": "papa-nick-s-family-restaurant",
+    "name": "Papa Nick's Family Restaurant",
+    "town": "Hinesburg",
+    "latitude": 44.3291,
+    "longitude": -73.1133,
+    "featured": false
+  },
+  {
     "id": "scout-co",
     "name": "Scout & Co.",
     "town": "Burlington",
-    "latitude": 44.4878189,
-    "longitude": -73.2253332,
+    "latitude": 44.4599673,
+    "longitude": -73.2141558,
     "featured": false
   },
   {
@@ -185,11 +372,35 @@
     "featured": false
   },
   {
+    "id": "silloway-maple",
+    "name": "Silloway Maple",
+    "town": "Randolph Center",
+    "latitude": 43.9337,
+    "longitude": -72.5966,
+    "featured": false
+  },
+  {
+    "id": "sisters-of-anarchy-fisher-brothers-farm",
+    "name": "Sisters of Anarchy @ Fisher Brothers Farm",
+    "town": "Shelburne",
+    "latitude": 44.3721,
+    "longitude": -73.2264,
+    "featured": false
+  },
+  {
     "id": "sweet-roots-farm",
     "name": "Sweet Roots Farm",
     "town": "Charlotte",
     "latitude": 44.2883399,
     "longitude": -73.2427242,
+    "featured": false
+  },
+  {
+    "id": "sweet-scoops",
+    "name": "Sweet Scoops",
+    "town": "Essex Junction",
+    "latitude": 44.4903,
+    "longitude": -73.1106,
     "featured": false
   },
   {
@@ -210,12 +421,108 @@
     "featured": false
   },
   {
+    "id": "the-scoop",
+    "name": "The Scoop",
+    "town": "Shelburne",
+    "latitude": 44.3799,
+    "longitude": -73.2272,
+    "featured": false
+  },
+  {
+    "id": "the-shiretown-marketplace",
+    "name": "The Shiretown Marketplace",
+    "town": "Middlebury",
+    "latitude": 44.0147,
+    "longitude": -73.1673,
+    "featured": false
+  },
+  {
     "id": "the-village-scoop",
     "name": "The Village Scoop",
     "town": "Colchester",
     "latitude": 44.5476252,
     "longitude": -73.1574825,
     "description": "Drive-through and indoor seating",
+    "featured": false
+  },
+  {
+    "id": "toby-s-treats",
+    "name": "Toby's Treats",
+    "town": "St. Albans",
+    "latitude": 44.8099,
+    "longitude": -73.0809,
+    "featured": false
+  },
+  {
+    "id": "mountain-creamery",
+    "name": "Mountain Creamery",
+    "town": "Woodstock",
+    "latitude": 43.6244,
+    "longitude": -72.5184,
+    "description": "Historic village location, homemade creemees",
+    "featured": false
+  },
+  {
+    "id": "dot-s-restaurant",
+    "name": "Dot's Restaurant",
+    "town": "Wilmington",
+    "latitude": 42.8675,
+    "longitude": -72.8729,
+    "description": "Classic Vermont diner with creemees",
+    "featured": false
+  },
+  {
+    "id": "curtis-all-american-bbq",
+    "name": "Curtis' All American BBQ",
+    "town": "Putney",
+    "latitude": 42.9707,
+    "longitude": -72.5195,
+    "description": "BBQ and creemees combo",
+    "featured": false
+  },
+  {
+    "id": "village-cup-restaurant-bakery",
+    "name": "Village Cup Restaurant & Bakery",
+    "town": "Ludlow",
+    "latitude": 43.3947,
+    "longitude": -72.6987,
+    "description": "Ski town favorite",
+    "featured": false
+  },
+  {
+    "id": "poppies-bagels",
+    "name": "Poppies Bagels",
+    "town": "Manchester",
+    "latitude": 43.1637,
+    "longitude": -73.0779,
+    "description": "Bagels and creemees in southern VT",
+    "featured": false
+  },
+  {
+    "id": "brattleboro-bowl-country-club-snack-bar",
+    "name": "Brattleboro Bowl & Country Club Snack Bar",
+    "town": "Brattleboro",
+    "latitude": 42.8509,
+    "longitude": -72.5579,
+    "description": "Local bowling alley classic",
+    "featured": false
+  },
+  {
+    "id": "maple-landmark-woodcraft-creemee-stand",
+    "name": "Maple Landmark Woodcraft Creemee Stand",
+    "town": "Middlebury",
+    "latitude": 44.0119,
+    "longitude": -73.1679,
+    "description": "Toy factory with creemee stand",
+    "featured": false
+  },
+  {
+    "id": "robie-farm-store",
+    "name": "Robie Farm Store",
+    "town": "Piermont, NH",
+    "latitude": 43.9736,
+    "longitude": -72.0765,
+    "description": "Just across the CT River from VT",
     "featured": false
   }
 ]
