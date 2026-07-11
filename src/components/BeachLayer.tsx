@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, memo } from 'react';
 import maplibregl from 'maplibre-gl';
-import { fetchRecreationSites } from '../services/recreationApi';
-import type { RecreationSite } from '../services/recreationApi';
+import { fetchBeaches } from '../services/beachApi';
+import type { Beach } from '../services/beachApi';
+import { BEACH_COLORS } from '../utils/beachColors';
 import { escapeHTML } from '../utils/sanitize';
 import type { MapLibreMap, Marker } from '../types';
 import './BeachLayer.css';
@@ -17,12 +18,9 @@ interface BeachLayerProps {
   visible: boolean;
 }
 
-// =============================================================================
-// Icon & Colors
-// =============================================================================
-
+// Lucide Waves icon SVG
 const WAVES_ICON = `
-  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
        viewBox="0 0 24 24" fill="none" stroke="white"
        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>
@@ -31,20 +29,16 @@ const WAVES_ICON = `
   </svg>
 `;
 
-const BEACH_COLOR = '#3b82f6'; // Blue - matches water theme
-
-// =============================================================================
-// Marker Creation
-// =============================================================================
-
-function createBeachMarker(): HTMLDivElement {
+function createBeachMarker(beach: Beach): HTMLDivElement {
   const el = document.createElement('div');
   el.className = 'beach-marker';
+
+  const color = BEACH_COLORS[beach.color as keyof typeof BEACH_COLORS] || BEACH_COLORS.yellow;
 
   el.style.cssText = `
     width: 32px;
     height: 32px;
-    background: ${BEACH_COLOR};
+    background: ${color};
     border: 2px solid white;
     border-radius: 50%;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
@@ -59,7 +53,7 @@ function createBeachMarker(): HTMLDivElement {
 
   // Hover glow effect
   el.addEventListener('mouseenter', () => {
-    el.style.boxShadow = `0 0 12px ${BEACH_COLOR}, 0 2px 8px rgba(0, 0, 0, 0.3)`;
+    el.style.boxShadow = `0 0 12px ${color}, 0 2px 8px rgba(0, 0, 0, 0.3)`;
     el.style.borderWidth = '3px';
   });
 
@@ -71,118 +65,115 @@ function createBeachMarker(): HTMLDivElement {
   return el;
 }
 
-// =============================================================================
-// Popup HTML Generation
-// =============================================================================
-
-function createPopupHTML(site: RecreationSite): string {
-  const safeName = escapeHTML(site.name);
-  const safeAddress = site.address ? escapeHTML(site.address) : null;
-  const safeTown = site.town ? escapeHTML(site.town) : null;
-  const safePhone = site.phone ? escapeHTML(site.phone) : null;
-  const safeOrg = site.organization ? escapeHTML(site.organization) : null;
-
-  let amenitiesHTML = '';
-
-  // Swimming amenities
-  if (site.amenities.swimming) {
-    const s = site.amenities.swimming;
-    amenitiesHTML += '<div class="amenity-section">';
-    amenitiesHTML += '<h4>🏊 Swimming & Beach</h4>';
-    amenitiesHTML += '<div class="amenity-grid">';
-    if (s.hasBeach) amenitiesHTML += '<div>🏖️ Beach access</div>';
-    if (s.lakeSwimming) amenitiesHTML += '<div>🌊 Lake swimming</div>';
-    if (s.poolSwimming) amenitiesHTML += '<div>🏊 Swimming pool</div>';
-    if (s.riverSwimming) amenitiesHTML += '<div>🏞️ River swimming</div>';
-    if (s.waterBodyName) amenitiesHTML += `<div class="water-name">📍 ${escapeHTML(s.waterBodyName)}</div>`;
-    amenitiesHTML += '</div>';
-    amenitiesHTML += '</div>';
-  }
-
-  // Camping amenities (if mixed site)
-  if (site.amenities.camping) {
-    const c = site.amenities.camping;
-    const totalSites = c.tentSites + c.rvSites + c.shelters;
-
-    amenitiesHTML += '<div class="amenity-section amenity-bonus">';
-    amenitiesHTML += '<h4>⛺ Also Available: Camping</h4>';
-    amenitiesHTML += '<div class="amenity-grid">';
-    if (c.tentSites > 0) amenitiesHTML += `<div>🏕️ ${c.tentSites} tent sites</div>`;
-    if (c.rvSites > 0) amenitiesHTML += `<div>🚐 ${c.rvSites} RV sites</div>`;
-    if (c.shelters > 0) amenitiesHTML += `<div>🏡 ${c.shelters} shelters</div>`;
-    if (totalSites > 0) amenitiesHTML += `<div class="total-sites-inline">Total: ${totalSites} sites</div>`;
-    amenitiesHTML += '</div>';
-    amenitiesHTML += '</div>';
-  }
-
-  // Other amenities
-  const otherAmenities = [];
-  if (site.amenities.boatRental) otherAmenities.push('⛵ Boat rental');
-  if (site.amenities.picnicArea) otherAmenities.push('🧺 Picnic area');
-  if (site.amenities.playground) otherAmenities.push('🎪 Playground');
-
-  if (otherAmenities.length > 0) {
-    amenitiesHTML += '<div class="amenity-section">';
-    amenitiesHTML += '<h4>Additional Amenities</h4>';
-    amenitiesHTML += '<div class="amenity-grid">';
-    otherAmenities.forEach(a => {
-      amenitiesHTML += `<div>${a}</div>`;
+function createPopupHTML(beach: Beach): string {
+  const formatDate = (isoString: string | null) => {
+    if (!isoString) return 'N/A';
+    const date = new Date(isoString);
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
     });
-    amenitiesHTML += '</div>';
-    amenitiesHTML += '</div>';
-  }
+  };
+
+  // Sanitize all dynamic content
+  const safeName = escapeHTML(beach.name);
+  const safeTown = escapeHTML(beach.town);
+  const safeAdvisory = beach.advisory ? escapeHTML(beach.advisory) : null;
+
+  // Status badge
+  const statusEmoji = beach.status === 'open' ? '✅' : beach.status === 'alert' ? '⚠️' : beach.status === 'closed' ? '🚫' : '❓';
+  const statusLabel = beach.status === 'open' ? 'Open' : beach.status === 'alert' ? 'Alert' : beach.status === 'closed' ? 'Closed' : 'Unknown';
 
   return `
     <div class="beach-popup-content">
       <h3>${safeName}</h3>
-      <div class="site-info">
-        ${safeOrg ? `<div class="operator">${safeOrg}</div>` : ''}
-        ${safeAddress ? `<div class="address">${safeAddress}</div>` : ''}
-        ${safeTown ? `<div class="town">${safeTown}</div>` : ''}
-        ${safePhone ? `<div class="phone">📞 ${safePhone}</div>` : ''}
-        <div class="access">${site.isPublic ? '🌊 Public' : '🏢 Private'}</div>
-        ${site.acreage ? `<div class="acreage">📏 ${site.acreage} acres</div>` : ''}
-        ${site.parkingSpaces ? `<div class="parking">🅿️ ${site.parkingSpaces} spaces</div>` : ''}
+      <div class="beach-location">${safeTown}</div>
+
+      <div class="beach-status ${beach.status}">
+        ${statusEmoji} ${statusLabel}
       </div>
-      ${amenitiesHTML}
+
+      ${beach.waterQualityGrade ? `
+        <div class="water-quality-section">
+          <div class="quality-grade grade-${beach.waterQualityGrade.toLowerCase()}">${beach.waterQualityGrade}</div>
+          ${beach.eColiLevel !== null ? `
+            <div class="detail-row">
+              <span>E. coli:</span>
+              <span>${escapeHTML(String(beach.eColiLevel))} per 100mL</span>
+            </div>
+          ` : ''}
+          ${beach.lastTested ? `
+            <div class="detail-row">
+              <span>Tested:</span>
+              <span>${formatDate(beach.lastTested)}</span>
+            </div>
+          ` : ''}
+        </div>
+      ` : ''}
+
+      ${safeAdvisory ? `
+        <div class="beach-advisory">${safeAdvisory}</div>
+      ` : ''}
+
+      ${beach.amenities.length > 0 ? `
+        <div class="beach-amenities">
+          ${beach.amenities.map(a => {
+            const amenityIcons: Record<string, string> = {
+              'parking': '🅿️',
+              'restrooms': '🚻',
+              'concessions': '🍔',
+              'lifeguards': '🏊',
+              'boat_launch': '🚤',
+              'picnic_area': '🧺',
+              'swimming': '🏊‍♀️',
+            };
+            const icon = amenityIcons[a] || '•';
+            const label = escapeHTML(a.replace(/_/g, ' '));
+            return `<span class="amenity">${icon} ${label}</span>`;
+          }).join('')}
+        </div>
+      ` : ''}
+
+      <div class="last-updated">Updated: ${formatDate(beach.lastUpdated)}</div>
     </div>
   `;
 }
 
-// =============================================================================
-// Component
-// =============================================================================
-
 function BeachLayer({ map, visible }: BeachLayerProps) {
-  const [sites, setSites] = useState<RecreationSite[]>([]);
+  const [beaches, setBeaches] = useState<Beach[]>([]);
+  const [_loading, setLoading] = useState(false);
   const markersRef = useRef<MarkerEntry[]>([]);
+  const currentPopupRef = useRef<maplibregl.Popup | null>(null);
 
-  // Fetch sites on mount and filter for beaches
+  // Fetch beaches on mount and every 12 hours (matches backend cache)
   useEffect(() => {
     if (!map) return;
 
-    const fetchSites = async (): Promise<void> => {
+    const fetchBeachData = async (): Promise<void> => {
       if (!map) return;
 
+      setLoading(true);
       try {
-        const data = await fetchRecreationSites();
-        // Filter for beach and mixed sites only
-        const beachSites = data.filter(site =>
-          site.type === 'beach' || site.type === 'mixed'
-        );
-        setSites(beachSites);
+        const data = await fetchBeaches();
+        setBeaches(data);
       } catch (error) {
         // Silently fail - beach data is non-critical
         if (import.meta.env.DEV) {
-          console.error('Error fetching beach sites:', error);
+          console.error('Error fetching beaches:', error);
         }
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchSites();
+    fetchBeachData();
+    const interval = setInterval(fetchBeachData, 12 * 60 * 60 * 1000); // 12 hours
+    return () => clearInterval(interval);
   }, [map]);
 
-  // Add markers to map when sites change
+  // Add markers to map when beaches change
   useEffect(() => {
     if (!map || !visible) {
       // Clear existing markers
@@ -193,6 +184,12 @@ function BeachLayer({ map, visible }: BeachLayerProps) {
         marker.remove();
       });
       markersRef.current = [];
+
+      // Close popup when layer is hidden
+      if (currentPopupRef.current) {
+        currentPopupRef.current.remove();
+        currentPopupRef.current = null;
+      }
       return;
     }
 
@@ -205,27 +202,38 @@ function BeachLayer({ map, visible }: BeachLayerProps) {
     });
     markersRef.current = [];
 
-    // Add new markers for beach sites
-    sites.forEach((site) => {
-      const el = createBeachMarker();
+    // Add new markers for beaches
+    beaches.forEach((beach) => {
+      const el = createBeachMarker(beach);
 
-      const marker = new maplibregl.Marker({ element: el })
-        .setLngLat([site.longitude, site.latitude])
+      const marker = new maplibregl.Marker({
+        element: el,
+        anchor: 'center' // Pin marker to center (prevents zoom drift)
+      })
+        .setLngLat([beach.longitude, beach.latitude])
         .addTo(map);
 
       // Click handler opens popup
       const handleMarkerClick = (e: MouseEvent): void => {
         e.stopPropagation();
 
-        new maplibregl.Popup({
+        // Close existing popup
+        if (currentPopupRef.current) {
+          currentPopupRef.current.remove();
+        }
+
+        // Create and show popup
+        const popup = new maplibregl.Popup({
           closeButton: true,
           closeOnClick: true,
           className: 'beach-popup',
-          maxWidth: '360px',
+          maxWidth: '320px',
         })
-          .setLngLat([site.longitude, site.latitude])
-          .setHTML(createPopupHTML(site))
+          .setLngLat([beach.longitude, beach.latitude])
+          .setHTML(createPopupHTML(beach))
           .addTo(map);
+
+        currentPopupRef.current = popup;
       };
 
       el.addEventListener('click', handleMarkerClick as EventListener);
@@ -246,8 +254,13 @@ function BeachLayer({ map, visible }: BeachLayerProps) {
         marker.remove();
       });
       markersRef.current = [];
+
+      if (currentPopupRef.current) {
+        currentPopupRef.current.remove();
+        currentPopupRef.current = null;
+      }
     };
-  }, [map, visible, sites]);
+  }, [map, visible, beaches]);
 
   // No UI panel - markers only
   return null;

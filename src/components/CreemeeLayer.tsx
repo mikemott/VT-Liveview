@@ -66,6 +66,7 @@ function CreemeeLayer({ map, visible }: CreemeeLayerProps) {
   const [stands, setStands] = useState<CreemeeStand[]>([]);
   const [_loading, setLoading] = useState(false);
   const markersRef = useRef<MarkerEntry[]>([]);
+  const currentPopupRef = useRef<maplibregl.Popup | null>(null);
 
   // Fetch stands on mount and every 24 hours
   useEffect(() => {
@@ -105,6 +106,12 @@ function CreemeeLayer({ map, visible }: CreemeeLayerProps) {
         marker.remove();
       });
       markersRef.current = [];
+
+      // Close popup when layer is hidden
+      if (currentPopupRef.current) {
+        currentPopupRef.current.remove();
+        currentPopupRef.current = null;
+      }
       return;
     }
 
@@ -129,7 +136,12 @@ function CreemeeLayer({ map, visible }: CreemeeLayerProps) {
       const handleMarkerClick = (e: MouseEvent): void => {
         e.stopPropagation();
 
-        new maplibregl.Popup({
+        // Close existing popup
+        if (currentPopupRef.current) {
+          currentPopupRef.current.remove();
+        }
+
+        const popup = new maplibregl.Popup({
           closeButton: true,
           closeOnClick: true,
           className: 'creemee-popup',
@@ -138,6 +150,8 @@ function CreemeeLayer({ map, visible }: CreemeeLayerProps) {
           .setLngLat([stand.longitude, stand.latitude])
           .setHTML(createPopupHTML(stand))
           .addTo(map);
+
+        currentPopupRef.current = popup;
       };
 
       el.addEventListener('click', handleMarkerClick as EventListener);
@@ -158,6 +172,11 @@ function CreemeeLayer({ map, visible }: CreemeeLayerProps) {
         marker.remove();
       });
       markersRef.current = [];
+
+      if (currentPopupRef.current) {
+        currentPopupRef.current.remove();
+        currentPopupRef.current = null;
+      }
     };
   }, [map, visible, stands]);
 
