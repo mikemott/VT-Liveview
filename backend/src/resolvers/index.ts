@@ -23,6 +23,7 @@ import {
 import { fetchRecreationSites } from '../services/recreationSites.js';
 import { fetchBackcountrySites } from '../services/backcountrySites.js';
 import { getCampingAreas } from '../services/campingAreas.js';
+import { fetchBeachWaterQuality } from '../services/beachWaterQuality.js';
 import type {
   WeatherConditions,
   ForecastPeriod,
@@ -112,6 +113,18 @@ export const resolvers = {
 
     creemeeStandsByTown: async (_parent: unknown, { town }: { town: string }) => {
       return await getCreemeeStandsByTown(town);
+    },
+
+    // Beaches query
+    beaches: async () => {
+      try {
+        return await fetchBeachWaterQuality();
+      } catch (error) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.error('GraphQL resolver error (beaches):', error);
+        }
+        throw new Error('Failed to fetch beach water quality data');
+      }
     },
 
     // Recreation sites query

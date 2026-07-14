@@ -99,6 +99,7 @@ function SkiLayer({ map, visible }: SkiLayerProps) {
   const [resorts, setResorts] = useState<SkiResort[]>([]);
   const [_loading, setLoading] = useState(false);
   const markersRef = useRef<MarkerEntry[]>([]);
+  const currentPopupRef = useRef<maplibregl.Popup | null>(null);
 
   // Fetch resorts on mount and every 6 hours
   useEffect(() => {
@@ -137,6 +138,12 @@ function SkiLayer({ map, visible }: SkiLayerProps) {
         marker.remove();
       });
       markersRef.current = [];
+
+      // Close popup when layer is hidden
+      if (currentPopupRef.current) {
+        currentPopupRef.current.remove();
+        currentPopupRef.current = null;
+      }
       return;
     }
 
@@ -164,6 +171,11 @@ function SkiLayer({ map, visible }: SkiLayerProps) {
       const handleMarkerClick = (e: MouseEvent): void => {
         e.stopPropagation();
 
+        // Close existing popup
+        if (currentPopupRef.current) {
+          currentPopupRef.current.remove();
+        }
+
         const popup = new maplibregl.Popup({
           closeButton: true,
           closeOnClick: true,
@@ -173,6 +185,8 @@ function SkiLayer({ map, visible }: SkiLayerProps) {
           .setLngLat([resort.longitude, resort.latitude])
           .setHTML(createPopupHTML(resort))
           .addTo(map);
+
+        currentPopupRef.current = popup;
 
         // Handle logo load errors
         const popupElement = popup.getElement();
@@ -202,6 +216,11 @@ function SkiLayer({ map, visible }: SkiLayerProps) {
         marker.remove();
       });
       markersRef.current = [];
+
+      if (currentPopupRef.current) {
+        currentPopupRef.current.remove();
+        currentPopupRef.current = null;
+      }
     };
   }, [map, visible, resorts]);
 
