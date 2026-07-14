@@ -15,8 +15,8 @@ export interface Beach {
   cyanobacteriaCategory: number | null;
   lastTested: string | null;
   advisory: string | null;
-  status: string;
-  color: string;
+  status: 'open' | 'alert' | 'closed' | 'unknown';
+  color: 'green' | 'yellow' | 'red';
   lastUpdated: string;
 }
 

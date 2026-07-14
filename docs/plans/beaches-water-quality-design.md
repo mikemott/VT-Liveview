@@ -1,8 +1,23 @@
 # Beaches + Water Quality System - Design Document
 
 **Date:** 2026-07-10
-**Status:** Ready for Implementation
-**Related Issue:** TBD
+**Status:** ✅ IMPLEMENTED (with modifications)
+**Related Issue:** PR #95
+
+> **⚠️ IMPLEMENTATION NOTE:**
+> The actual implementation differs from this design document. The final version uses:
+> - **Data Source:** Burlington ArcGIS REST API (not Beach Day API)
+> - **Beach Count:** 40 beaches (not 15-20)
+> - **Coverage:** 10 beaches with live monitoring, 30 without data shown as "unknown"
+> - **Field Names:** `burlingtonLocationId` (not `beachDayApiId`)
+> - **Status Values:** `'open' | 'alert' | 'closed' | 'unknown'` (not `'open' | 'closed' | 'advisory'`)
+> - **Additional Field:** `cyanobacteriaCategory` added to Beach interface
+>
+> **Reason:** After extensive research, Burlington's ArcGIS API is the only free, real-time REST endpoint available for Vermont beach water quality monitoring.
+
+---
+
+## Original Design (Reference Only)
 
 ## Overview
 

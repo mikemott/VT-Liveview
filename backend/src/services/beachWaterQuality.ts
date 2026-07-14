@@ -64,11 +64,17 @@ function determineStatus(cyanobacteriaCategory: number | null): Beach['status'] 
 async function fetchBurlingtonBeachData(): Promise<Map<number, BurlingtonApiResponse['features'][0]>> {
   const url = `${BURLINGTON_API_URL}?where=1%3D1&outFields=*&f=json`;
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10_000);
+
   const response = await fetch(url, {
     headers: {
       'User-Agent': 'VT-LiveView/1.0 (Educational; mike@mottvt.com)'
-    }
+    },
+    signal: controller.signal
   });
+
+  clearTimeout(timeoutId);
 
   if (!response.ok) {
     throw new Error(`Burlington API error: ${response.status}`);
@@ -146,9 +152,9 @@ export async function fetchBeachWaterQuality(): Promise<Beach[]> {
         advisory = 'High E. coli levels detected. Beach closed until levels return to safe range.';
       }
 
-      // Add notes if present
+      // Append notes if present, preserving any generated advisory
       if (attrs.Notes) {
-        advisory = attrs.Notes;
+        advisory = advisory ? `${advisory} ${attrs.Notes}` : attrs.Notes;
       }
 
       return {

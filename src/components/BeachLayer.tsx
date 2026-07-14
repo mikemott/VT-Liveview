@@ -91,13 +91,13 @@ function createPopupHTML(beach: Beach): string {
       <h3>${safeName}</h3>
       <div class="beach-location">${safeTown}</div>
 
-      <div class="beach-status ${beach.status}">
+      <div class="beach-status ${escapeHTML(beach.status)}">
         ${statusEmoji} ${statusLabel}
       </div>
 
       ${beach.waterQualityGrade ? `
         <div class="water-quality-section">
-          <div class="quality-grade grade-${beach.waterQualityGrade.toLowerCase()}">${beach.waterQualityGrade}</div>
+          <div class="quality-grade grade-${escapeHTML(beach.waterQualityGrade.toLowerCase())}">${escapeHTML(beach.waterQualityGrade)}</div>
           ${beach.eColiLevel !== null ? `
             <div class="detail-row">
               <span>E. coli:</span>

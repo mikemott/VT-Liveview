@@ -33,9 +33,9 @@ export interface BurlingtonBeachData {
     DisplayOrder: number;
     ResultDateTime: string;
     CreatedBy: string;
-    CyanobacteriaCategory: number;
+    CyanobacteriaCategory: number | null;
     CyanobacteriaDescription: string;
-    EColi: number;
+    EColi: number | null;
     Notes: string | null;
     StatusReason: string;
   };
