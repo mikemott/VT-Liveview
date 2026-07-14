@@ -132,7 +132,7 @@ export async function fetchBeachWaterQuality(): Promise<Beach[]> {
       const attrs = waterQualityData.attributes;
 
       // Parse E. coli level (0 means not tested or below detection limit)
-      const eColiLevel = attrs.EColi > 0 ? attrs.EColi : null;
+      const eColiLevel = attrs.EColi !== null && attrs.EColi > 0 ? attrs.EColi : null;
 
       // Calculate grade, color, and status
       const waterQualityGrade = calculateGrade(eColiLevel);
