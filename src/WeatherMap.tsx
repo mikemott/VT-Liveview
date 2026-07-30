@@ -429,12 +429,16 @@ function WeatherMap() {
     const canvas = map.current.getCanvas();
 
     canvas.addEventListener('webglcontextlost', (e) => {
-      console.warn('WebGL context lost - preventing default to allow recovery');
+      if (import.meta.env.DEV) {
+        console.warn('WebGL context lost - preventing default to allow recovery');
+      }
       e.preventDefault(); // Prevent context from being permanently lost
     });
 
     canvas.addEventListener('webglcontextrestored', () => {
-      console.log('WebGL context restored - triggering style reload to recreate layers');
+      if (import.meta.env.DEV) {
+        console.log('WebGL context restored - triggering style reload to recreate layers');
+      }
       if (map.current) {
         // Force style reload to recreate all layers
         // This will trigger 'style.load' events that custom layers listen to
