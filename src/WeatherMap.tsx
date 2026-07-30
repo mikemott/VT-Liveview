@@ -141,17 +141,23 @@ function WeatherMap() {
   // DetailPanel state
   const [detailPanelContent, setDetailPanelContent] = useState<DetailPanelContent>(null);
 
-  // Add alerts to map
+  // Add alerts to map - uses setData for updates to avoid destroying/recreating layers
   const addAlertsToMap = useCallback((alertFeatures: AlertFeature[]): void => {
     if (!map.current) return;
 
-    // Remove existing event handlers to prevent memory leak
-    if (map.current.getLayer('alert-fills')) {
-      (map.current as any).off('click', 'alert-fills');
-      (map.current as any).off('mouseenter', 'alert-fills');
-      (map.current as any).off('mouseleave', 'alert-fills');
+    const features = alertFeatures.filter(f => f.geometry) as GeoJSON.Feature[];
+
+    // If source already exists, just update data (fast path for dismiss and refresh)
+    const existingSource = map.current.getSource('alerts');
+    if (existingSource && 'setData' in existingSource) {
+      (existingSource as maplibregl.GeoJSONSource).setData({
+        type: 'FeatureCollection',
+        features,
+      });
+      return;
     }
 
+    // Full initialization (first load or after style change / WebGL restore)
     // Remove existing alert layers if present
     if (map.current.getLayer('alert-fills')) {
       map.current.removeLayer('alert-fills');
@@ -168,7 +174,7 @@ function WeatherMap() {
       type: 'geojson',
       data: {
         type: 'FeatureCollection',
-        features: alertFeatures.filter(f => f.geometry) as GeoJSON.Feature[]
+        features,
       }
     });
 
@@ -385,14 +391,9 @@ function WeatherMap() {
   const fetchAlertsFromBackend = useCallback(async (): Promise<void> => {
     try {
       const mergedAlerts = await fetchMergedAlerts('VT');
-
-      if (mergedAlerts.length > 0) {
-        const alertFeatures = mergedAlerts.map(mergedAlertToFeature);
-        setAlerts(alertFeatures);
-        addAlertsToMap(alertFeatures);
-      } else {
-        setAlerts([]);
-      }
+      const alertFeatures = mergedAlerts.map(mergedAlertToFeature);
+      setAlerts(alertFeatures);
+      addAlertsToMap(alertFeatures);
     } catch (error) {
       if (import.meta.env.DEV) {
         console.error('Error fetching merged alerts:', error);
@@ -697,6 +698,42 @@ function WeatherMap() {
     }
   };
 
+  // Dismiss an alert from the list and remove its boundary from the map
+  const handleDismissAlert = useCallback((alertToDismiss: AlertFeature): void => {
+    const alertId = alertToDismiss.properties.id;
+    if (!alertId) return;
+
+    // Update state first (pure operation)
+    const newAlerts = alerts.filter(a => a.properties.id !== alertId);
+    setAlerts(newAlerts);
+
+    // Efficiently update the map source without destroying layers
+    addAlertsToMap(newAlerts);
+
+    // Only clear highlight and detail panel if the dismissed alert is active
+    const dismissedAlertIsActive =
+      detailPanelContent?.type === 'alert' &&
+      detailPanelContent.data.properties.id === alertId;
+
+    if (dismissedAlertIsActive) {
+      // Remove highlight layers for the dismissed alert
+      if (map.current) {
+        if (map.current.getLayer('alert-highlight-border')) {
+          map.current.removeLayer('alert-highlight-border');
+        }
+        if (map.current.getLayer('alert-highlight-fill')) {
+          map.current.removeLayer('alert-highlight-fill');
+        }
+        if (map.current.getSource('alert-highlight')) {
+          map.current.removeSource('alert-highlight');
+        }
+      }
+
+      // Close detail panel
+      setDetailPanelContent(null);
+    }
+  }, [addAlertsToMap, alerts, detailPanelContent]);
+
   return (
     <div className={`weather-map-container ${isDark ? 'dark' : ''}`}>
       <div ref={mapContainer} className="map-container" />
@@ -896,7 +933,14 @@ function WeatherMap() {
                         className="alert-dismiss"
                         onClick={(e) => {
                           e.stopPropagation();
-                          // Close button functionality - could dismiss alert
+                          handleDismissAlert(alert);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            handleDismissAlert(alert);
+                          }
                         }}
                         aria-label="Dismiss alert"
                       >
