@@ -20,6 +20,7 @@ interface MarkerEntry {
   marker: Marker;
   element: HTMLDivElement;
   handler: (e: MouseEvent) => void;
+  reactRoot: ReturnType<typeof createRoot> | undefined;
 }
 
 interface WeatherStationsLayerProps {
@@ -62,7 +63,12 @@ const STATIONS_QUERY = gql`
 // Helper Functions
 // =============================================================================
 
-function createWeatherStationMarker(station: ObservationStation): HTMLDivElement {
+interface MarkerResult {
+  element: HTMLDivElement;
+  reactRoot: ReturnType<typeof createRoot> | undefined;
+}
+
+function createWeatherStationMarker(station: ObservationStation): MarkerResult {
   const el = document.createElement('div');
   el.className = 'weather-station-marker';
 
@@ -114,6 +120,8 @@ function createWeatherStationMarker(station: ObservationStation): HTMLDivElement
     ? `${Math.round(temp)}°`
     : 'N/A';
 
+  let reactRoot: ReturnType<typeof createRoot> | undefined;
+
   if (isWaterTemp) {
     // Create water droplet icon container
     const iconContainer = document.createElement('div');
@@ -125,8 +133,8 @@ function createWeatherStationMarker(station: ObservationStation): HTMLDivElement
     `;
 
     // Render React Droplet icon into the container
-    const root = createRoot(iconContainer);
-    root.render(<Droplet size={14} strokeWidth={2.5} />);
+    reactRoot = createRoot(iconContainer);
+    reactRoot.render(<Droplet size={14} strokeWidth={2.5} />);
 
     inner.appendChild(iconContainer);
 
@@ -155,7 +163,7 @@ function createWeatherStationMarker(station: ObservationStation): HTMLDivElement
   });
 
   el.appendChild(inner);
-  return el;
+  return { element: el, reactRoot };
 }
 
 // =============================================================================
@@ -196,10 +204,11 @@ function WeatherStationsLayer({ map, visible, onStationClick: _onStationClick, g
   useEffect(() => {
     if (!map || !visible) {
       // Clear existing markers and popup
-      markersRef.current.forEach(({ marker, element, handler }) => {
+      markersRef.current.forEach(({ marker, element, handler, reactRoot }) => {
         if (element && handler) {
           element.removeEventListener('click', handler as EventListener);
         }
+        reactRoot?.unmount();
         marker.remove();
       });
       markersRef.current = [];
@@ -211,10 +220,11 @@ function WeatherStationsLayer({ map, visible, onStationClick: _onStationClick, g
     }
 
     // Remove old markers
-    markersRef.current.forEach(({ marker, element, handler }) => {
+    markersRef.current.forEach(({ marker, element, handler, reactRoot }) => {
       if (element && handler) {
         element.removeEventListener('click', handler as EventListener);
       }
+      reactRoot?.unmount();
       marker.remove();
     });
     markersRef.current = [];
@@ -230,7 +240,7 @@ function WeatherStationsLayer({ map, visible, onStationClick: _onStationClick, g
 
     // Add new markers for stations
     stations.forEach((station) => {
-      const el = createWeatherStationMarker(station);
+      const { element: el, reactRoot } = createWeatherStationMarker(station);
 
       const marker = new maplibregl.Marker({ element: el })
         .setLngLat([station.location.lng, station.location.lat])
@@ -389,16 +399,18 @@ function WeatherStationsLayer({ map, visible, onStationClick: _onStationClick, g
       markersRef.current.push({
         marker: marker as Marker,
         element: el,
-        handler: handleMarkerClick
+        handler: handleMarkerClick,
+        reactRoot,
       });
     });
 
     // Cleanup
     return () => {
-      markersRef.current.forEach(({ marker, element, handler }) => {
+      markersRef.current.forEach(({ marker, element, handler, reactRoot }) => {
         if (element && handler) {
           element.removeEventListener('click', handler as EventListener);
         }
+        reactRoot?.unmount();
         marker.remove();
       });
       markersRef.current = [];
