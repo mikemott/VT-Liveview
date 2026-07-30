@@ -24,6 +24,7 @@ import {
   filterVermontZones,
   extractZoneId,
 } from './zones.js';
+import { fetchWithTimeout } from '../utils/fetchWithTimeout.js';
 
 const NOAA_BASE = 'https://api.weather.gov';
 
@@ -69,7 +70,7 @@ async function getGridPoint(lat: number, lon: number): Promise<NOAAGridPointProp
     return cached;
   }
 
-  const response = await fetch(`${NOAA_BASE}/points/${lat},${lon}`, getFetchOptions());
+  const response = await fetchWithTimeout(`${NOAA_BASE}/points/${lat},${lon}`, getFetchOptions());
 
   if (!response.ok) {
     throw new Error(`Failed to get grid point: ${response.status}`);
@@ -117,7 +118,7 @@ export async function getCurrentWeather(lat: number, lon: number): Promise<Weath
   const gridPoint = await getGridPoint(lat, lon);
 
   // Get observation stations
-  const stationsResponse = await fetch(gridPoint.observationStations, getFetchOptions());
+  const stationsResponse = await fetchWithTimeout(gridPoint.observationStations, getFetchOptions());
   if (!stationsResponse.ok) {
     throw new Error(`Failed to get stations: ${stationsResponse.status}`);
   }
@@ -134,7 +135,7 @@ export async function getCurrentWeather(lat: number, lon: number): Promise<Weath
     const stationId = station.properties.stationIdentifier;
 
     try {
-      const obsResponse = await fetch(
+      const obsResponse = await fetchWithTimeout(
         `${NOAA_BASE}/stations/${stationId}/observations/latest`,
         getFetchOptions()
       );
@@ -184,7 +185,7 @@ export async function getCurrentWeather(lat: number, lon: number): Promise<Weath
 export async function getForecast(lat: number, lon: number): Promise<ForecastPeriod[]> {
   const gridPoint = await getGridPoint(lat, lon);
 
-  const forecastResponse = await fetch(gridPoint.forecast, getFetchOptions());
+  const forecastResponse = await fetchWithTimeout(gridPoint.forecast, getFetchOptions());
 
   if (!forecastResponse.ok) {
     throw new Error(`Failed to get forecast: ${forecastResponse.status}`);
@@ -212,7 +213,7 @@ export async function getForecast(lat: number, lon: number): Promise<ForecastPer
  * Get active weather alerts for a state.
  */
 export async function getAlerts(state: string): Promise<Alert[]> {
-  const response = await fetch(`${NOAA_BASE}/alerts/active?area=${state}`, getFetchOptions());
+  const response = await fetchWithTimeout(`${NOAA_BASE}/alerts/active?area=${state}`, getFetchOptions());
 
   if (!response.ok) {
     throw new Error(`Failed to get alerts: ${response.status}`);
@@ -313,7 +314,7 @@ export async function getMergedAlerts(state: string): Promise<MergedAlert[]> {
   let data: NOAAAlertsResponse;
 
   try {
-    const response = await fetch(`${NOAA_BASE}/alerts/active?area=${state}`, getFetchOptions());
+    const response = await fetchWithTimeout(`${NOAA_BASE}/alerts/active?area=${state}`, getFetchOptions());
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
@@ -580,7 +581,7 @@ async function fetchStationsFromGridPoint(
     const stationsUrl = gridPoint.observationStations;
 
     // Fetch stations from this grid point
-    const stationsResponse = await fetch(stationsUrl, getFetchOptions());
+    const stationsResponse = await fetchWithTimeout(stationsUrl, getFetchOptions());
     if (!stationsResponse.ok) {
       logStationDebug(`Stations fetch failed for ${gridPointName}`, { status: stationsResponse.status });
       return [];
@@ -633,7 +634,7 @@ async function fetchLakeChamplainSensor(): Promise<ObservationStation | null> {
 
   try {
     const url = `https://waterservices.usgs.gov/nwis/iv/?format=json&sites=${USGS_SITE_ID}&parameterCd=${USGS_PARAM}&siteStatus=active`;
-    const response = await fetch(url);
+    const response = await fetchWithTimeout(url);
 
     if (!response.ok) {
       logStationDebug('USGS Lake Champlain fetch failed', { status: response.status });
@@ -776,7 +777,7 @@ export async function getObservationStations(): Promise<ObservationStation[]> {
     uniqueStations.map(async (station): Promise<ObservationStation | null> => {
       const stationId = station.properties.stationIdentifier;
       try {
-        const obsResponse = await fetch(
+        const obsResponse = await fetchWithTimeout(
           `${NOAA_BASE}/stations/${stationId}/observations/latest`,
           getFetchOptions()
         );
