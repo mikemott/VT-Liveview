@@ -89,9 +89,9 @@ function CreemeeLayer({ map, visible }: CreemeeLayerProps) {
       }
     };
 
-    fetchStands();
+    void fetchStands();
     // Refresh once per day (data is relatively static)
-    const interval = setInterval(fetchStands, 24 * 60 * 60 * 1000);
+    const interval = setInterval(() => void fetchStands(), 24 * 60 * 60 * 1000);
     return () => clearInterval(interval);
   }, [map]);
 
@@ -157,7 +157,7 @@ function CreemeeLayer({ map, visible }: CreemeeLayerProps) {
       el.addEventListener('click', handleMarkerClick as EventListener);
 
       markersRef.current.push({
-        marker: marker as Marker,
+        marker: marker,
         element: el,
         handler: handleMarkerClick,
       });

@@ -208,6 +208,8 @@ function CampingAreasLayer({ map, visible, mapStyleVersion, onAreaClick, onCount
     return () => {
       isMounted = false;
     };
+    // TODO(VTL-45): `map` is read inside but omitted; adding it re-fetches on map change (see docs/review/FINDINGS.md)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, onCountChange]);
 
   // Add boundary polygons layer (zones like stargazing)

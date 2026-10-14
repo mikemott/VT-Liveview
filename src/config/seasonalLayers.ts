@@ -2,6 +2,7 @@ import { ComponentType } from 'react';
 import { Mountain, IceCream } from 'lucide-react';
 import SkiLayer from '../components/SkiLayer';
 import CreemeeLayer from '../components/CreemeeLayer';
+import type { MapLibreMap } from '../types';
 // LakeConditionsLayer will be added in future phases (will need Waves icon)
 
 /**
@@ -26,7 +27,7 @@ export interface SeasonConfig {
 }
 
 export interface LayerProps {
-  map: any;  // MapLibreMap type from ../types
+  map: MapLibreMap | null;
   visible: boolean;
 }
 

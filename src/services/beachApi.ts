@@ -44,6 +44,6 @@ const BEACHES_QUERY = gql`
 `;
 
 export async function fetchBeaches(): Promise<Beach[]> {
-  const data = await graphqlClient.request(BEACHES_QUERY);
+  const data = await graphqlClient.request<{ beaches: Beach[] }>(BEACHES_QUERY);
   return data.beaches;
 }

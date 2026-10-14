@@ -78,6 +78,8 @@ export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, i
   const showMinimalView = isMobile && !isExpanded;
 
   return (
+      // TODO(VTL-45 Phase 4): expandable card needs keyboard support (see docs/review/FINDINGS.md, a11y)
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
     <div
       className={`current-weather ${isDark ? 'dark' : ''} ${isExpanded ? 'expanded' : 'collapsed'} ${isMobile ? 'mobile' : ''}`}
       onClick={() => setIsExpanded(!isExpanded)}

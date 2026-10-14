@@ -117,6 +117,8 @@ function ShowerCard({ shower, badge, formatDate, isDark }: ShowerCardProps) {
   const [showDetails, setShowDetails] = useState(false);
 
   return (
+      // TODO(VTL-45 Phase 4): expandable card needs keyboard support (see docs/review/FINDINGS.md, a11y)
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
     <div
       className={`shower-card ${shower.isActive ? 'active' : ''} ${shower.isPeak ? 'peak' : ''}`}
       onClick={() => setShowDetails(!showDetails)}

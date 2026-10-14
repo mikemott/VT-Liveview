@@ -5,7 +5,7 @@
  */
 
 import { layers, LIGHT, DARK, type Flavor } from '@protomaps/basemaps';
-import type { StyleSpecification, LayerSpecification } from 'maplibre-gl';
+import type { StyleSpecification } from 'maplibre-gl';
 import { VERMONT } from './constants';
 import { calculateSunTimes } from './time';
 
@@ -52,7 +52,7 @@ export function getMapStyle(isDark = false): StyleSpecification {
 
   // Get layers with the theme and language option
   // Note: lang parameter is REQUIRED for label layers to be generated
-  const mapLayers = layers(sourceName, theme, { lang: 'en' }) as LayerSpecification[];
+  const mapLayers = layers(sourceName, theme, { lang: 'en' });
 
   // Adjust zoom levels for road labels - show minor road names earlier
   const adjustedLayers = mapLayers.map((layer) => {

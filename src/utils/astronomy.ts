@@ -285,7 +285,7 @@ export function getNextBestNights(count: number = 5): Date[] {
   const moonPhase = calculateMoonPhase(now);
 
   // Calculate days until next new moon
-  let daysToCheck = moonPhase.daysUntilNew;
+  const daysToCheck = moonPhase.daysUntilNew;
 
   // Start checking from 5 days before new moon
   const startDay = Math.max(0, daysToCheck - 5);

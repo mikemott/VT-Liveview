@@ -187,8 +187,8 @@ function WeatherStationsLayer({ map, visible, onStationClick: _onStationClick, g
       }
     };
 
-    fetchStations();
-    const interval = setInterval(fetchStations, INTERVALS.STATIONS_REFRESH);
+    void fetchStations();
+    const interval = setInterval(() => void fetchStations(), INTERVALS.STATIONS_REFRESH);
     return () => clearInterval(interval);
   }, [map]);
 
@@ -387,7 +387,7 @@ function WeatherStationsLayer({ map, visible, onStationClick: _onStationClick, g
       el.addEventListener('click', handleMarkerClick as EventListener);
 
       markersRef.current.push({
-        marker: marker as Marker,
+        marker: marker,
         element: el,
         handler: handleMarkerClick
       });
@@ -410,7 +410,7 @@ function WeatherStationsLayer({ map, visible, onStationClick: _onStationClick, g
       }
       map.off('click', handleMapClick);
     };
-  }, [map, visible, stations]);
+  }, [map, visible, stations, globalPopupRef]);
 
   // No UI panel - markers only
   return null;

@@ -7,7 +7,7 @@ import { createMarkerElement } from '../utils/incidentIcons';
 import { INTERVALS } from '../utils/constants';
 import { escapeHTML } from '../utils/sanitize';
 import { cleanupMarkers, type MarkerEntry } from '../utils/markerCleanup';
-import type { MapLibreMap, IncidentType, Marker } from '../types';
+import type { MapLibreMap, IncidentType } from '../types';
 import StargazingLayer from './StargazingLayer';
 import CampingContent from './CampingContent';
 import './TravelLayer.css';
@@ -220,7 +220,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
       }
 
       // Fit map to show the entire route
-      const coordinates = incident.geometry.coordinates as [number, number][];
+      const coordinates = incident.geometry.coordinates;
       const bounds = coordinates.reduce((bnds, coord) => {
         return bnds.extend(coord);
       }, new maplibregl.LngLatBounds(coordinates[0], coordinates[0]));
@@ -244,7 +244,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
   // Memoize to prevent unnecessary marker recreation
   const visibleIncidents = useMemo(() => {
     return incidents.filter(incident => {
-      const typeMatch = activeFilters[incident.type as keyof ActiveFilters];
+      const typeMatch = activeFilters[incident.type];
       const zoomMatch = shouldShowIncident(incident, currentZoom);
       return typeMatch && zoomMatch;
     });
@@ -252,6 +252,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
 
   // Add markers to map when incidents or filters change
   useEffect(() => {
+    const markers = markersRef.current;
     if (!map || !visible) {
       // Clear existing markers, event listeners, and popup
       cleanupMarkers(markersRef.current);
@@ -468,7 +469,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
 
       // Store marker and its cleanup function
       markersRef.current.push({
-        marker: marker as Marker,
+        marker: marker,
         element: el,
         handler: handleMarkerClick
       });
@@ -477,7 +478,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
     // Cleanup function
     return () => {
       // Clean up markers and event listeners
-      cleanupMarkers(markersRef.current);
+      cleanupMarkers(markers);
 
       // Clean up popup
       if (globalPopupRef.current) {
@@ -488,7 +489,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
       // Clean up map click handler
       map.off('click', handleMapClick);
     };
-  }, [map, visible, visibleIncidents, isDark]);
+  }, [map, visible, visibleIncidents, isDark, globalPopupRef]);
 
   // Group incidents by type
   const incidentsByType: IncidentsByType = visibleIncidents.reduce((acc, incident) => {
@@ -503,6 +504,8 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
 
   return (
     <div className="travel-section">
+      {/* TODO(VTL-45 Phase 4): make the header a <button> (see docs/review/FINDINGS.md, Low/a11y) */}
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
       <div className="section-header" onClick={() => setExpanded(!expanded)}>
         <h3>
           Map Features
@@ -736,6 +739,8 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
                       </span>
                     </div>
                     {(incidentsByType[type] ?? []).map(incident => (
+                      // TODO(VTL-45 Phase 4/H15): keyboard access for incident items
+                      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
                       <div
                         key={incident.id}
                         className={`incident-item ${selectedIncident?.id === incident.id ? 'selected' : ''} ${(incident.geometry || incident.location) ? 'clickable' : ''}`}
