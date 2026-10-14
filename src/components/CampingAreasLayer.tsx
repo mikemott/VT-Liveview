@@ -3,7 +3,7 @@ import maplibregl from 'maplibre-gl';
 import { fetchCampingAreas } from '../services/campingApi';
 import type { CampingArea } from '../services/campingApi';
 import { escapeHTML } from '../utils/sanitize';
-import type { MapLibreMap, Marker } from '../types';
+import type { GeoJSONSource, MapLibreMap, Marker } from '../types';
 import './CampingAreasLayer.css';
 
 interface MarkerEntry {
@@ -266,10 +266,7 @@ function CampingAreasLayer({ map, visible, mapStyleVersion, onAreaClick, onCount
       });
     } else {
       // Update existing source
-      const source = map.getSource('camping-area-boundaries');
-      if (source && 'setData' in source) {
-        source.setData(geojson);
-      }
+      map.getSource<GeoJSONSource>('camping-area-boundaries')?.setData(geojson);
     }
 
     // Add fill layer if it doesn't exist (prominent brown zones like stargazing)

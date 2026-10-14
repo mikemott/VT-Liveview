@@ -9,7 +9,7 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
-import { INTERVALS, RADAR_CONFIG } from '../utils/constants';
+import { RADAR_CONFIG } from '../utils/constants';
 import type { MapLibreMap } from '../types';
 import './RadarOverlay.css';
 
@@ -95,6 +95,7 @@ export default function RadarOverlay({ map, isDark = false, collapsed = false }:
       const addSourcesSequentially = async () => {
         for (let index = 0; index < frames.length; index++) {
           const frame = frames[index];
+          if (!frame) continue;
           const sourceId = `radar-source-${index}`;
           const layerId = `radar-layer-${index}`;
 
@@ -167,6 +168,7 @@ export default function RadarOverlay({ map, isDark = false, collapsed = false }:
         const updateSourcesSequentially = async () => {
           for (let index = 0; index < frames.length; index++) {
             const frame = frames[index];
+            if (!frame) continue;
             const sourceId = `radar-source-${index}`;
             const layerId = `radar-layer-${index}`;
 

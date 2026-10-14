@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Tent, Flame, MapPin } from 'lucide-react';
+import { Tent, Flame } from 'lucide-react';
 import './CampingContent.css';
 
 interface CampingContentProps {
