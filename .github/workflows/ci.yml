@@ -9,12 +9,29 @@ on:
     branches:
       - main
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build-and-test:
+  check:
+    name: ${{ matrix.package.name }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - name: frontend
+            dir: .
+          - name: backend
+            dir: backend
+
+    defaults:
+      run:
+        working-directory: ${{ matrix.package.dir }}
 
     steps:
       - name: Checkout
@@ -23,15 +40,30 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          # Pinned in .nvmrc; keep in sync with backend/Dockerfile
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: ${{ matrix.package.dir }}/package-lock.json
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests
-        run: npm test
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests with coverage
+        run: npm run test:coverage
 
       - name: Build
         run: npm run build
 
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.package.name }}
+          path: ${{ matrix.package.dir }}/coverage
+          if-no-files-found: ignore
