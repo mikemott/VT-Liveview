@@ -25,7 +25,7 @@ interface SourceStand {
   description?: string;
   specialties?: string[];
   featured?: boolean;
-  latitude?: number;  // Manual coordinate override
+  latitude?: number; // Manual coordinate override
   longitude?: number; // Manual coordinate override
 }
 
@@ -46,283 +46,287 @@ interface CreemeeStand {
 const sourceStands: SourceStand[] = [
   // Featured stands (top-rated from multiple sources)
   {
-    name: "Burlington Bay Market & Cafe",
-    town: "Burlington",
+    name: 'Burlington Bay Market & Cafe',
+    town: 'Burlington',
     latitude: 44.4788,
     longitude: -73.2178,
-    description: "Maple creemee is their best seller. Battery Street near waterfront.",
-    specialties: ["Maple Creemee"],
-    featured: true
+    description: 'Maple creemee is their best seller. Battery Street near waterfront.',
+    specialties: ['Maple Creemee'],
+    featured: true,
   },
   {
-    name: "Morse Farm Maple Sugarworks",
-    town: "Montpelier",
-    description: "Eighth-generation sugaring family. Specializes in maple creemees.",
-    specialties: ["Maple Creemee", "Working Sugarhouse"],
-    featured: true
+    name: 'Morse Farm Maple Sugarworks',
+    town: 'Montpelier',
+    description: 'Eighth-generation sugaring family. Specializes in maple creemees.',
+    specialties: ['Maple Creemee', 'Working Sugarhouse'],
+    featured: true,
   },
   {
-    name: "Canteen Creemee Company",
-    town: "Waitsfield",
+    name: 'Canteen Creemee Company',
+    town: 'Waitsfield',
     latitude: 44.1879,
     longitude: -72.8279,
-    description: "Unique flavors: toasted marshmallow, ginger, coffee. Creative sundaes.",
-    specialties: ["Toasted Marshmallow", "Ginger", "Coffee"],
-    featured: true
+    description: 'Unique flavors: toasted marshmallow, ginger, coffee. Creative sundaes.',
+    specialties: ['Toasted Marshmallow', 'Ginger', 'Coffee'],
+    featured: true,
   },
   {
-    name: "Red Hen Baking Co. Cafe",
-    town: "Middlesex",
+    name: 'Red Hen Baking Co. Cafe',
+    town: 'Middlesex',
     latitude: 44.3447,
     longitude: -72.6151,
-    description: "Vermont Public 2025 featured stand.",
-    featured: true
+    description: 'Vermont Public 2025 featured stand.',
+    featured: true,
   },
   {
-    name: "Palmer Lane Maple",
-    town: "Jericho",
-    description: "Seven Days VT 2024 Best Creemee winner.",
-    specialties: ["Maple Creemee"],
-    featured: true
+    name: 'Palmer Lane Maple',
+    town: 'Jericho',
+    description: 'Seven Days VT 2024 Best Creemee winner.',
+    specialties: ['Maple Creemee'],
+    featured: true,
   },
   {
-    name: "Vermont Cookie Love",
-    town: "North Ferrisburgh",
+    name: 'Vermont Cookie Love',
+    town: 'North Ferrisburgh',
     latitude: 44.2415,
     longitude: -73.2493,
     description: "Creates 'love-wiches' - creemee between cookies. Maple-coffee twist.",
-    specialties: ["Love-wiches", "Maple-Coffee Twist"],
-    featured: true
+    specialties: ['Love-wiches', 'Maple-Coffee Twist'],
+    featured: true,
   },
   {
-    name: "Bragg Farm Sugarhouse & Gift Shop",
-    town: "East Montpelier",
-    description: "Working sugarhouse with maple creemees. Farm-fresh experience.",
-    specialties: ["Maple Creemee"],
-    featured: true
+    name: 'Bragg Farm Sugarhouse & Gift Shop',
+    town: 'East Montpelier',
+    description: 'Working sugarhouse with maple creemees. Farm-fresh experience.',
+    specialties: ['Maple Creemee'],
+    featured: true,
   },
 
   // Northern VT stands from Find & Go Seek
-  { name: "Al's French Frys", town: "South Burlington" },
-  { name: "Allenholm Farm", town: "South Hero" },
+  { name: "Al's French Frys", town: 'South Burlington' },
+  { name: 'Allenholm Farm', town: 'South Hero' },
   {
     name: "April's Maple",
-    town: "Canaan",
+    town: 'Canaan',
     latitude: 44.9603,
-    longitude: -71.5395
+    longitude: -71.5395,
   },
-  { name: "Archie's Grill", town: "Shelburne" },
+  { name: "Archie's Grill", town: 'Shelburne' },
   {
     name: "Beansie's Bus",
-    town: "Burlington",
+    town: 'Burlington',
     latitude: 44.4778,
     longitude: -73.2165,
-    description: "Battery Park edge"
+    description: 'Battery Park edge',
   },
   {
-    name: "Broad Acres Creemee Stand",
-    town: "Colchester",
+    name: 'Broad Acres Creemee Stand',
+    town: 'Colchester',
     latitude: 44.5398,
-    longitude: -73.1817
+    longitude: -73.1817,
   },
-  { name: "C Village Store", town: "Craftsbury" },
+  { name: 'C Village Store', town: 'Craftsbury' },
   {
     name: "Champ's Legendary Creemees",
-    town: "Burlington",
+    town: 'Burlington',
     latitude: 44.4786,
     longitude: -73.2166,
-    description: "At ECHO"
+    description: 'At ECHO',
   },
   {
     name: "Chef's Corner Café & Bakery",
-    town: "Williston",
+    town: 'Williston',
     latitude: 44.4358,
-    longitude: -73.0819
+    longitude: -73.0819,
   },
-  { name: "Dairy Creme", town: "Montpelier" },
+  { name: 'Dairy Creme', town: 'Montpelier' },
   {
     name: "Devyn's Restaurant Creemee Stand",
-    town: "Swanton",
+    town: 'Swanton',
     latitude: 44.9177,
-    longitude: -73.1237
+    longitude: -73.1237,
   },
-  { name: "Duke's Creemees", town: "Milton" },
-  { name: "Full Belly Farm", town: "Monkton" },
+  { name: "Duke's Creemees", town: 'Milton' },
+  { name: 'Full Belly Farm', town: 'Monkton' },
   {
-    name: "Gagne Maple",
-    town: "Highgate",
+    name: 'Gagne Maple',
+    town: 'Highgate',
     latitude: 44.9531,
-    longitude: -73.0142
+    longitude: -73.0142,
   },
   {
-    name: "Georgia Farmhouse",
-    town: "Milton",
+    name: 'Georgia Farmhouse',
+    town: 'Milton',
     latitude: 44.6534,
-    longitude: -73.1078
+    longitude: -73.1078,
   },
   {
     name: "Goodie's Snack Bar",
-    town: "Addison",
+    town: 'Addison',
     latitude: 44.0813,
     longitude: -73.3155,
-    description: "Oversized creemee for low prices. Cash or check only."
+    description: 'Oversized creemee for low prices. Cash or check only.',
   },
   {
-    name: "Hardwick House of Pizza",
-    town: "Hardwick",
+    name: 'Hardwick House of Pizza',
+    town: 'Hardwick',
     latitude: 44.5071,
-    longitude: -72.3705
+    longitude: -72.3705,
   },
-  { name: "Hero's Welcome General Store", town: "North Hero", description: "Lake Champlain shore" },
+  { name: "Hero's Welcome General Store", town: 'North Hero', description: 'Lake Champlain shore' },
   {
     name: "Hoss's Dogg House",
-    town: "St. Albans",
+    town: 'St. Albans',
     latitude: 44.8099,
-    longitude: -73.0808
+    longitude: -73.0808,
   },
   {
-    name: "Ice Cream Window @ Lake Champlain Chocolates",
-    town: "Burlington",
+    name: 'Ice Cream Window @ Lake Champlain Chocolates',
+    town: 'Burlington',
     latitude: 44.4759,
-    longitude: -73.2123
+    longitude: -73.2123,
   },
   {
-    name: "Jericho Center Country Store",
-    town: "Jericho",
+    name: 'Jericho Center Country Store',
+    town: 'Jericho',
     latitude: 44.5043,
-    longitude: -72.9819
+    longitude: -72.9819,
   },
-  { name: "Joe's Snack Bar", town: "Jericho", description: "Adjacent to Old Mill Park" },
-  { name: "Kate's Food Truck", town: "Jericho" },
+  { name: "Joe's Snack Bar", town: 'Jericho', description: 'Adjacent to Old Mill Park' },
+  { name: "Kate's Food Truck", town: 'Jericho' },
   {
     name: "Kellee's Creemee & Grill",
-    town: "Waterbury",
+    town: 'Waterbury',
     latitude: 44.3383,
-    longitude: -72.7563
+    longitude: -72.7563,
   },
   {
-    name: "LegenDairy Maple & Ice Cream",
-    town: "Williamstown",
+    name: 'LegenDairy Maple & Ice Cream',
+    town: 'Williamstown',
     latitude: 44.1273,
-    longitude: -72.5416
+    longitude: -72.5416,
   },
-  { name: "Little Gordo Creemee Stand", town: "Burlington" },
-  { name: "Lu Lu", town: "Vergennes" },
+  { name: 'Little Gordo Creemee Stand', town: 'Burlington' },
+  { name: 'Lu Lu', town: 'Vergennes' },
   {
-    name: "Maple City Candy & Ice Cream Stand",
-    town: "Swanton",
+    name: 'Maple City Candy & Ice Cream Stand',
+    town: 'Swanton',
     latitude: 44.9177,
-    longitude: -73.1238
+    longitude: -73.1238,
   },
-  { name: "Maple Wind Farm", town: "Richmond" },
-  { name: "Milkhouse Ice Cream", town: "St. Johnsbury" },
-  { name: "Offbeat Creemee", town: "Winooski", description: "Myers Memorial Pool" },
+  { name: 'Maple Wind Farm', town: 'Richmond' },
+  { name: 'Milkhouse Ice Cream', town: 'St. Johnsbury' },
+  { name: 'Offbeat Creemee', town: 'Winooski', description: 'Myers Memorial Pool' },
   {
     name: "Papa Nick's Family Restaurant",
-    town: "Hinesburg",
+    town: 'Hinesburg',
     latitude: 44.3291,
-    longitude: -73.1133
+    longitude: -73.1133,
   },
-  { name: "Scout & Co.", town: "Burlington" },
-  { name: "Seb's Snack Bar", town: "South Hero", description: "Village green" },
-  { name: "Shelburne Country Store", town: "Shelburne" },
+  { name: 'Scout & Co.', town: 'Burlington' },
+  { name: "Seb's Snack Bar", town: 'South Hero', description: 'Village green' },
+  { name: 'Shelburne Country Store', town: 'Shelburne' },
   {
-    name: "Silloway Maple",
-    town: "Randolph Center",
+    name: 'Silloway Maple',
+    town: 'Randolph Center',
     latitude: 43.9337,
-    longitude: -72.5966
+    longitude: -72.5966,
   },
   {
-    name: "Sisters of Anarchy @ Fisher Brothers Farm",
-    town: "Shelburne",
+    name: 'Sisters of Anarchy @ Fisher Brothers Farm',
+    town: 'Shelburne',
     latitude: 44.3721,
-    longitude: -73.2264
+    longitude: -73.2264,
   },
-  { name: "Sweet Roots Farm", town: "Charlotte" },
+  { name: 'Sweet Roots Farm', town: 'Charlotte' },
   {
-    name: "Sweet Scoops",
-    town: "Essex Junction",
+    name: 'Sweet Scoops',
+    town: 'Essex Junction',
     latitude: 44.4903,
-    longitude: -73.1106
+    longitude: -73.1106,
   },
-  { name: "The Bay Store", town: "St. Albans", description: "Lake Champlain views" },
-  { name: "The Mill Market & Deli", town: "South Burlington" },
+  { name: 'The Bay Store', town: 'St. Albans', description: 'Lake Champlain views' },
+  { name: 'The Mill Market & Deli', town: 'South Burlington' },
   {
-    name: "The Scoop",
-    town: "Shelburne",
+    name: 'The Scoop',
+    town: 'Shelburne',
     latitude: 44.3799,
-    longitude: -73.2272
+    longitude: -73.2272,
   },
   {
-    name: "The Shiretown Marketplace",
-    town: "Middlebury",
+    name: 'The Shiretown Marketplace',
+    town: 'Middlebury',
     latitude: 44.0147,
-    longitude: -73.1673
+    longitude: -73.1673,
   },
-  { name: "The Village Scoop", town: "Colchester", description: "Drive-through and indoor seating" },
+  {
+    name: 'The Village Scoop',
+    town: 'Colchester',
+    description: 'Drive-through and indoor seating',
+  },
   {
     name: "Toby's Treats",
-    town: "St. Albans",
+    town: 'St. Albans',
     latitude: 44.8099,
-    longitude: -73.0809
+    longitude: -73.0809,
   },
 
   // Central VT stands (improving coverage)
   {
-    name: "Mountain Creamery",
-    town: "Woodstock",
+    name: 'Mountain Creamery',
+    town: 'Woodstock',
     latitude: 43.6244,
     longitude: -72.5184,
-    description: "Historic village location, homemade creemees"
+    description: 'Historic village location, homemade creemees',
   },
   {
     name: "Dot's Restaurant",
-    town: "Wilmington",
+    town: 'Wilmington',
     latitude: 42.8675,
     longitude: -72.8729,
-    description: "Classic Vermont diner with creemees"
+    description: 'Classic Vermont diner with creemees',
   },
   {
     name: "Curtis' All American BBQ",
-    town: "Putney",
+    town: 'Putney',
     latitude: 42.9707,
     longitude: -72.5195,
-    description: "BBQ and creemees combo"
+    description: 'BBQ and creemees combo',
   },
   {
-    name: "Village Cup Restaurant & Bakery",
-    town: "Ludlow",
+    name: 'Village Cup Restaurant & Bakery',
+    town: 'Ludlow',
     latitude: 43.3947,
     longitude: -72.6987,
-    description: "Ski town favorite"
+    description: 'Ski town favorite',
   },
   {
-    name: "Poppies Bagels",
-    town: "Manchester",
+    name: 'Poppies Bagels',
+    town: 'Manchester',
     latitude: 43.1637,
     longitude: -73.0779,
-    description: "Bagels and creemees in southern VT"
+    description: 'Bagels and creemees in southern VT',
   },
   {
-    name: "Brattleboro Bowl & Country Club Snack Bar",
-    town: "Brattleboro",
+    name: 'Brattleboro Bowl & Country Club Snack Bar',
+    town: 'Brattleboro',
     latitude: 42.8509,
     longitude: -72.5579,
-    description: "Local bowling alley classic"
+    description: 'Local bowling alley classic',
   },
   {
-    name: "Maple Landmark Woodcraft Creemee Stand",
-    town: "Middlebury",
+    name: 'Maple Landmark Woodcraft Creemee Stand',
+    town: 'Middlebury',
     latitude: 44.0119,
     longitude: -73.1679,
-    description: "Toy factory with creemee stand"
+    description: 'Toy factory with creemee stand',
   },
   {
-    name: "Robie Farm Store",
-    town: "Piermont, NH",
+    name: 'Robie Farm Store',
+    town: 'Piermont, NH',
     latitude: 43.9736,
     longitude: -72.0765,
-    description: "Just across the CT River from VT"
+    description: 'Just across the CT River from VT',
   },
 ];
 
@@ -336,8 +340,8 @@ async function geocode(name: string, town: string): Promise<{ lat: number; lng: 
 
   const response = await fetch(url, {
     headers: {
-      'User-Agent': 'VT-LiveView/1.0 (Educational; mike@mottvt.com)'
-    }
+      'User-Agent': 'VT-LiveView/1.0 (Educational; mike@mottvt.com)',
+    },
   });
 
   if (!response.ok) {
@@ -353,7 +357,7 @@ async function geocode(name: string, town: string): Promise<{ lat: number; lng: 
 
   return {
     lat: parseFloat(match.lat),
-    lng: parseFloat(match.lon)
+    lng: parseFloat(match.lon),
   };
 }
 
@@ -361,7 +365,7 @@ async function geocode(name: string, town: string): Promise<{ lat: number; lng: 
  * Sleep for specified milliseconds
  */
 function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -419,7 +423,6 @@ async function buildCreemeeData(): Promise<void> {
 
       console.log(`  ✓ Success: ${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`);
       successCount++;
-
     } catch (error) {
       console.error(`  ✗ Failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       failCount++;
@@ -439,7 +442,7 @@ async function buildCreemeeData(): Promise<void> {
   console.log(`✗ Failed:     ${failCount}`);
   console.log(`📁 Output:    ${outputPath}`);
   console.log(`🍦 Total stands: ${stands.length}`);
-  console.log(`⭐ Featured stands: ${stands.filter(s => s.featured).length}`);
+  console.log(`⭐ Featured stands: ${stands.filter((s) => s.featured).length}`);
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
   if (failCount > 0) {
@@ -451,7 +454,7 @@ async function buildCreemeeData(): Promise<void> {
 }
 
 // Run the script
-buildCreemeeData().catch(error => {
+buildCreemeeData().catch((error) => {
   console.error('\n❌ Build failed:', error);
   process.exit(1);
 });

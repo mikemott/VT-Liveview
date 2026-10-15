@@ -81,17 +81,14 @@ export async function fetchZoneBoundary(zoneId: string): Promise<ZoneBoundary | 
   }
 
   try {
-    const response = await fetch(
-      `${NOAA_BASE}/zones/forecast/${zoneId}`,
-      getFetchOptions()
-    );
+    const response = await fetch(`${NOAA_BASE}/zones/forecast/${zoneId}`, getFetchOptions());
 
     if (!response.ok) {
       console.warn(`[ZONES] Failed to fetch zone ${zoneId}: ${response.status}`);
       return null;
     }
 
-    const data = await response.json() as {
+    const data = (await response.json()) as {
       geometry: {
         type: 'Polygon' | 'MultiPolygon';
         coordinates: number[][][] | number[][][][];
@@ -122,7 +119,7 @@ export async function fetchZoneBoundary(zoneId: string): Promise<ZoneBoundary | 
   } catch (error) {
     console.warn(
       `[ZONES] Error fetching zone ${zoneId}:`,
-      error instanceof Error ? error.message : 'Unknown error'
+      error instanceof Error ? error.message : 'Unknown error',
     );
     return null;
   }
@@ -150,9 +147,7 @@ function cacheZoneBoundary(zoneId: string, boundary: ZoneBoundary): void {
  * Fetch multiple zone boundaries in parallel.
  * Returns a Map of zoneId -> ZoneBoundary for successfully fetched zones.
  */
-export async function fetchZoneBoundaries(
-  zoneUrls: string[]
-): Promise<Map<string, ZoneBoundary>> {
+export async function fetchZoneBoundaries(zoneUrls: string[]): Promise<Map<string, ZoneBoundary>> {
   const results = new Map<string, ZoneBoundary>();
   const toFetch: string[] = [];
 

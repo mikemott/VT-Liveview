@@ -19,7 +19,8 @@ export const METEOR_SHOWERS: MeteorShower[] = [
     radiantConstellation: 'Boötes',
     parentBody: 'Asteroid 2003 EH1',
     description: 'One of the strongest annual showers with a sharp peak lasting only a few hours.',
-    viewingTips: 'Best after midnight. Radiant is high in the northeast. Dress warmly - January in Vermont!'
+    viewingTips:
+      'Best after midnight. Radiant is high in the northeast. Dress warmly - January in Vermont!',
   },
   {
     id: 'lyrids',
@@ -34,7 +35,8 @@ export const METEOR_SHOWERS: MeteorShower[] = [
     radiantConstellation: 'Lyra',
     parentBody: 'Comet C/1861 G1 Thatcher',
     description: 'One of the oldest known meteor showers, observed for 2,700 years.',
-    viewingTips: 'Best after midnight when Lyra is high. Look for bright fireballs with persistent trains.'
+    viewingTips:
+      'Best after midnight when Lyra is high. Look for bright fireballs with persistent trains.',
   },
   {
     id: 'eta-aquariids',
@@ -48,8 +50,10 @@ export const METEOR_SHOWERS: MeteorShower[] = [
     zenithalHourlyRate: 50,
     radiantConstellation: 'Aquarius',
     parentBody: 'Comet 1P/Halley',
-    description: 'Debris from Halley\'s Comet. Better viewing in southern latitudes, but still visible from Vermont.',
-    viewingTips: 'Best in pre-dawn hours. Radiant is low in the east, so look for long "earthgrazer" meteors.'
+    description:
+      "Debris from Halley's Comet. Better viewing in southern latitudes, but still visible from Vermont.",
+    viewingTips:
+      'Best in pre-dawn hours. Radiant is low in the east, so look for long "earthgrazer" meteors.',
   },
   {
     id: 'delta-aquariids',
@@ -63,7 +67,7 @@ export const METEOR_SHOWERS: MeteorShower[] = [
     zenithalHourlyRate: 20,
     radiantConstellation: 'Aquarius',
     description: 'A warm-weather shower that overlaps with the early Perseids.',
-    viewingTips: 'Best after midnight. Faint meteors - find the darkest site possible.'
+    viewingTips: 'Best after midnight. Faint meteors - find the darkest site possible.',
   },
   {
     id: 'perseids',
@@ -77,8 +81,10 @@ export const METEOR_SHOWERS: MeteorShower[] = [
     zenithalHourlyRate: 100,
     radiantConstellation: 'Perseus',
     parentBody: 'Comet 109P/Swift-Tuttle',
-    description: 'The most popular meteor shower - warm summer nights and high rates make it a crowd favorite.',
-    viewingTips: 'Best after midnight. Perseus rises in the northeast. Bring a blanket and enjoy the warm August night!'
+    description:
+      'The most popular meteor shower - warm summer nights and high rates make it a crowd favorite.',
+    viewingTips:
+      'Best after midnight. Perseus rises in the northeast. Bring a blanket and enjoy the warm August night!',
   },
   {
     id: 'orionids',
@@ -92,8 +98,9 @@ export const METEOR_SHOWERS: MeteorShower[] = [
     zenithalHourlyRate: 20,
     radiantConstellation: 'Orion',
     parentBody: 'Comet 1P/Halley',
-    description: 'Another shower from Halley\'s Comet. Fast meteors known for bright fireballs.',
-    viewingTips: 'Best after midnight when Orion is high. Look for fast meteors with persistent trains.'
+    description: "Another shower from Halley's Comet. Fast meteors known for bright fireballs.",
+    viewingTips:
+      'Best after midnight when Orion is high. Look for fast meteors with persistent trains.',
   },
   {
     id: 'leonids',
@@ -107,8 +114,10 @@ export const METEOR_SHOWERS: MeteorShower[] = [
     zenithalHourlyRate: 15,
     radiantConstellation: 'Leo',
     parentBody: 'Comet 55P/Tempel-Tuttle',
-    description: 'Famous for occasional meteor storms. The 1833 storm sparked modern meteor science.',
-    viewingTips: 'Best after midnight. Bundle up - November nights are cold! Watch for bright fireballs.'
+    description:
+      'Famous for occasional meteor storms. The 1833 storm sparked modern meteor science.',
+    viewingTips:
+      'Best after midnight. Bundle up - November nights are cold! Watch for bright fireballs.',
   },
   {
     id: 'geminids',
@@ -122,8 +131,10 @@ export const METEOR_SHOWERS: MeteorShower[] = [
     zenithalHourlyRate: 150,
     radiantConstellation: 'Gemini',
     parentBody: 'Asteroid 3200 Phaethon',
-    description: 'The strongest annual shower with multi-colored meteors. Often exceeds 100 meteors/hour.',
-    viewingTips: 'Best around 2am when Gemini is highest. Dress very warmly - December in Vermont is brutal!'
+    description:
+      'The strongest annual shower with multi-colored meteors. Often exceeds 100 meteors/hour.',
+    viewingTips:
+      'Best around 2am when Gemini is highest. Dress very warmly - December in Vermont is brutal!',
   },
   {
     id: 'ursids',
@@ -137,23 +148,27 @@ export const METEOR_SHOWERS: MeteorShower[] = [
     zenithalHourlyRate: 10,
     radiantConstellation: 'Ursa Minor',
     parentBody: 'Comet 8P/Tuttle',
-    description: 'A modest shower that peaks near the winter solstice - the longest night of the year.',
-    viewingTips: 'Radiant is near Polaris, so it\'s visible all night. Low rates but long viewing window.'
-  }
+    description:
+      'A modest shower that peaks near the winter solstice - the longest night of the year.',
+    viewingTips:
+      "Radiant is near Polaris, so it's visible all night. Low rates but long viewing window.",
+  },
 ];
 
 /**
  * Get meteor showers that are currently active or upcoming within N days
  */
-export function getUpcomingShowers(withinDays: number = 60): Array<MeteorShower & {
-  daysUntilPeak: number;
-  isActive: boolean;
-  isPeak: boolean;
-}> {
+export function getUpcomingShowers(withinDays: number = 60): Array<
+  MeteorShower & {
+    daysUntilPeak: number;
+    isActive: boolean;
+    isPeak: boolean;
+  }
+> {
   const now = new Date();
   const currentYear = now.getFullYear();
 
-  return METEOR_SHOWERS.map(shower => {
+  return METEOR_SHOWERS.map((shower) => {
     // Calculate this year's peak date
     let peakDate = new Date(currentYear, shower.peakMonth - 1, shower.peakDay);
 
@@ -176,24 +191,23 @@ export function getUpcomingShowers(withinDays: number = 60): Array<MeteorShower 
     }
 
     // Check if today is peak day (within 1 day)
-    const isPeak = Math.abs(daysUntilPeak) <= 1 ||
-      (daysUntilPeak > 364 && daysUntilPeak < 366); // Handle year boundary
+    const isPeak = Math.abs(daysUntilPeak) <= 1 || (daysUntilPeak > 364 && daysUntilPeak < 366); // Handle year boundary
 
     return {
       ...shower,
       daysUntilPeak,
       isActive,
-      isPeak
+      isPeak,
     };
   })
-  .filter(shower => shower.daysUntilPeak <= withinDays || shower.isActive)
-  .sort((a, b) => a.daysUntilPeak - b.daysUntilPeak);
+    .filter((shower) => shower.daysUntilPeak <= withinDays || shower.isActive)
+    .sort((a, b) => a.daysUntilPeak - b.daysUntilPeak);
 }
 
 /**
  * Get the next meteor shower peak
  */
-export function getNextShowerPeak(): MeteorShower & { daysUntilPeak: number } | null {
+export function getNextShowerPeak(): (MeteorShower & { daysUntilPeak: number }) | null {
   const upcoming = getUpcomingShowers(365);
   return upcoming[0] ?? null;
 }
@@ -203,6 +217,6 @@ export function getNextShowerPeak(): MeteorShower & { daysUntilPeak: number } | 
  */
 export function getActiveShowerTonight(): MeteorShower | null {
   const upcoming = getUpcomingShowers(30);
-  const active = upcoming.find(s => s.isActive);
-  return active ? METEOR_SHOWERS.find(s => s.id === active.id) ?? null : null;
+  const active = upcoming.find((s) => s.isActive);
+  return active ? (METEOR_SHOWERS.find((s) => s.id === active.id) ?? null) : null;
 }

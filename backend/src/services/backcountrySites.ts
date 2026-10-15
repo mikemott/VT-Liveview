@@ -43,7 +43,8 @@ interface ArcGISResponse {
 // Constants
 // =============================================================================
 
-const API_BASE_URL = 'https://anrmaps.vermont.gov/arcgis/rest/services/Open_Data/OPENDATA_ANR_TOURISM_SP_NOCACHE_v2/MapServer/175/query';
+const API_BASE_URL =
+  'https://anrmaps.vermont.gov/arcgis/rest/services/Open_Data/OPENDATA_ANR_TOURISM_SP_NOCACHE_v2/MapServer/175/query';
 
 // Vermont State Plane coordinates (EPSG:32145) to WGS84 conversion constants
 const STATE_PLANE_TO_WGS84 = {
@@ -72,7 +73,9 @@ const SITE_TYPE_MAP: Record<number, string> = {
  */
 function statePlaneToWGS84(x: number, y: number): { lat: number; lng: number } {
   // Rough linear approximation for Vermont (good enough for display)
-  const lng = STATE_PLANE_TO_WGS84.centralMeridian + (x - STATE_PLANE_TO_WGS84.falseEasting) / 111000 / Math.cos(44.5 * Math.PI / 180);
+  const lng =
+    STATE_PLANE_TO_WGS84.centralMeridian +
+    (x - STATE_PLANE_TO_WGS84.falseEasting) / 111000 / Math.cos((44.5 * Math.PI) / 180);
   const lat = STATE_PLANE_TO_WGS84.latitudeOrigin + y / 111000;
 
   return { lat, lng };
@@ -99,8 +102,11 @@ function parseBackcountrySite(feature: ArcGISFeature): BackcountrySite | null {
   // Validate coordinates are within Vermont bounds (relaxed slightly)
   if (lat < 42.0 || lat > 46.0 || lng < -74.0 || lng > -71.0) {
     // Log first few invalid coordinates for debugging
-    if (process.env.NODE_ENV !== 'production' && Math.random() < 0.01) { // 1% sample
-      console.warn(`Invalid coordinates for site ${a.OBJECTID}: lat=${lat}, lng=${lng} (x=${geometry.x}, y=${geometry.y})`);
+    if (process.env.NODE_ENV !== 'production' && Math.random() < 0.01) {
+      // 1% sample
+      console.warn(
+        `Invalid coordinates for site ${a.OBJECTID}: lat=${lat}, lng=${lng} (x=${geometry.x}, y=${geometry.y})`,
+      );
     }
     return null;
   }
@@ -149,7 +155,7 @@ async function fetchFromAPI(): Promise<BackcountrySite[]> {
     throw new Error(`Vermont ANR API error: ${response.status} ${response.statusText}`);
   }
 
-  const data = await response.json() as ArcGISResponse;
+  const data = (await response.json()) as ArcGISResponse;
 
   if (!data.features || data.features.length === 0) {
     throw new Error('No backcountry sites returned from API');
@@ -158,7 +164,9 @@ async function fetchFromAPI(): Promise<BackcountrySite[]> {
   // Check if response was truncated
   if (data.exceededTransferLimit) {
     if (process.env.NODE_ENV !== 'production') {
-      console.warn(`WARNING: Vermont ANR API exceeded transfer limit. Data may be incomplete (received ${data.features.length} features)`);
+      console.warn(
+        `WARNING: Vermont ANR API exceeded transfer limit. Data may be incomplete (received ${data.features.length} features)`,
+      );
     }
     // Note: For now we accept partial data. Could implement pagination in the future.
   }
@@ -173,7 +181,9 @@ async function fetchFromAPI(): Promise<BackcountrySite[]> {
     .filter((site): site is BackcountrySite => site !== null);
 
   if (process.env.NODE_ENV !== 'production') {
-    console.log(`Parsed ${sites.length} valid backcountry sites (filtered ${data.features.length - sites.length} invalid)`);
+    console.log(
+      `Parsed ${sites.length} valid backcountry sites (filtered ${data.features.length - sites.length} invalid)`,
+    );
   }
 
   // Validate minimum expected sites - relaxed to 50 since it's backcountry only
@@ -220,7 +230,6 @@ export async function fetchBackcountrySites(): Promise<BackcountrySite[]> {
     }, CACHE_TTL_MS);
 
     return sites;
-
   } catch (error) {
     // Log error
     if (process.env.NODE_ENV !== 'production') {

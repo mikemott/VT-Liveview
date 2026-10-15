@@ -12,7 +12,10 @@
   background: var(--popup-bg);
   backdrop-filter: blur(12px);
   box-shadow: 0 8px 32px var(--shadow-lg);
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
 }
 
 .camping-areas-popup-container .maplibregl-popup-tip {

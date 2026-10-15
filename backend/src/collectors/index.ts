@@ -22,7 +22,7 @@ export async function withRetry<T>(
   fn: () => Promise<T>,
   name: string,
   maxRetries: number = 3,
-  baseDelay: number = 1000
+  baseDelay: number = 1000,
 ): Promise<T | null> {
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
@@ -34,14 +34,12 @@ export async function withRetry<T>(
       if (attempt < maxRetries - 1) {
         if (isDev()) {
           console.warn(
-            `[Collector:${name}] Attempt ${attempt + 1}/${maxRetries} failed: ${message}. Retrying in ${delay}ms...`
+            `[Collector:${name}] Attempt ${attempt + 1}/${maxRetries} failed: ${message}. Retrying in ${delay}ms...`,
           );
         }
         await new Promise((resolve) => setTimeout(resolve, delay));
       } else {
-        console.error(
-          `[Collector:${name}] All ${maxRetries} attempts failed: ${message}`
-        );
+        console.error(`[Collector:${name}] All ${maxRetries} attempts failed: ${message}`);
       }
     }
   }
@@ -75,7 +73,7 @@ async function withRetryResult<T>(
   fn: () => Promise<T>,
   name: string,
   maxRetries: number = 3,
-  baseDelay: number = 1000
+  baseDelay: number = 1000,
 ): Promise<RetryResult<T>> {
   let lastError: string | null = null;
 
@@ -90,14 +88,12 @@ async function withRetryResult<T>(
       if (attempt < maxRetries - 1) {
         if (isDev()) {
           console.warn(
-            `[Collector:${name}] Attempt ${attempt + 1}/${maxRetries} failed: ${lastError}. Retrying in ${delay}ms...`
+            `[Collector:${name}] Attempt ${attempt + 1}/${maxRetries} failed: ${lastError}. Retrying in ${delay}ms...`,
           );
         }
         await new Promise((resolve) => setTimeout(resolve, delay));
       } else {
-        console.error(
-          `[Collector:${name}] All ${maxRetries} attempts failed: ${lastError}`
-        );
+        console.error(`[Collector:${name}] All ${maxRetries} attempts failed: ${lastError}`);
       }
     }
   }

@@ -189,7 +189,7 @@ function createCampgroundPopupHTML(site: RecreationSite): string {
     amenitiesHTML += '<div class="amenity-section">';
     amenitiesHTML += '<h4>Additional Amenities</h4>';
     amenitiesHTML += '<div class="amenity-grid">';
-    otherAmenities.forEach(a => {
+    otherAmenities.forEach((a) => {
       amenitiesHTML += `<div>${a}</div>`;
     });
     amenitiesHTML += '</div>';
@@ -220,9 +220,13 @@ function createBackcountryPopupHTML(site: BackcountrySite): string {
   const safeNotes = site.notes ? escapeHTML(site.notes) : null;
 
   // Determine icon based on site type
-  const siteIcon = safeSiteType.toLowerCase().includes('lean-to') ? '⛺' :
-                   safeSiteType.toLowerCase().includes('cabin') || safeSiteType.toLowerCase().includes('cottage') ? '🏠' :
-                   safeSiteType.toLowerCase().includes('shelter') ? '🛖' : '🏕️';
+  const siteIcon = safeSiteType.toLowerCase().includes('lean-to')
+    ? '⛺'
+    : safeSiteType.toLowerCase().includes('cabin') || safeSiteType.toLowerCase().includes('cottage')
+      ? '🏠'
+      : safeSiteType.toLowerCase().includes('shelter')
+        ? '🛖'
+        : '🏕️';
 
   // Build features list
   const features = [];
@@ -233,7 +237,7 @@ function createBackcountryPopupHTML(site: BackcountrySite): string {
   let featuresHTML = '';
   if (features.length > 0) {
     featuresHTML = '<div class="backcountry-features">';
-    features.forEach(f => {
+    features.forEach((f) => {
       featuresHTML += `<div class="feature-item"><span class="feature-icon">${f.icon}</span><span>${f.label}</span></div>`;
     });
     featuresHTML += '</div>';
@@ -245,7 +249,10 @@ function createBackcountryPopupHTML(site: BackcountrySite): string {
     infoHTML += '<div class="info-item">📍 Three-sided shelter, typically sleeps 4-8 people</div>';
   } else if (safeSiteType.toLowerCase().includes('tent site')) {
     infoHTML += '<div class="info-item">📍 Designated tent camping area</div>';
-  } else if (safeSiteType.toLowerCase().includes('cabin') || safeSiteType.toLowerCase().includes('cottage')) {
+  } else if (
+    safeSiteType.toLowerCase().includes('cabin') ||
+    safeSiteType.toLowerCase().includes('cottage')
+  ) {
     infoHTML += '<div class="info-item">📍 Enclosed shelter with amenities</div>';
   }
 
@@ -277,7 +284,13 @@ function createBackcountryPopupHTML(site: BackcountrySite): string {
 // Component
 // =============================================================================
 
-function CampingLayer({ map, visible, showCampgrounds, showBackcountry, onCountsChange }: CampingLayerProps) {
+function CampingLayer({
+  map,
+  visible,
+  showCampgrounds,
+  showBackcountry,
+  onCountsChange,
+}: CampingLayerProps) {
   const [campgrounds, setCampgrounds] = useState<RecreationSite[]>([]);
   const [backcountrySites, setBackcountrySites] = useState<BackcountrySite[]>([]);
 
@@ -287,7 +300,12 @@ function CampingLayer({ map, visible, showCampgrounds, showBackcountry, onCounts
   // Fetch both types of sites on mount (or when toggle states change)
   useEffect(() => {
     if (import.meta.env.DEV) {
-      console.log('CampingLayer: useEffect triggered', { map: !!map, visible, showCampgrounds, showBackcountry });
+      console.log('CampingLayer: useEffect triggered', {
+        map: !!map,
+        visible,
+        showCampgrounds,
+        showBackcountry,
+      });
     }
 
     if (!map) return;
@@ -306,8 +324,8 @@ function CampingLayer({ map, visible, showCampgrounds, showBackcountry, onCounts
         // Only fetch campgrounds if they will be shown
         if (showCampgrounds) {
           const recreationData = await fetchRecreationSites();
-          campingData = recreationData.filter(site =>
-            site.type === 'camping' || site.type === 'mixed'
+          campingData = recreationData.filter(
+            (site) => site.type === 'camping' || site.type === 'mixed',
           );
           setCampgrounds(campingData);
 

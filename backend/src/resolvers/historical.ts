@@ -47,7 +47,7 @@ export const historicalResolvers = {
         startDate: string;
         endDate: string;
         limit?: number;
-      }
+      },
     ) => {
       const db = getDb();
       if (!db) {
@@ -97,7 +97,7 @@ export const historicalResolvers = {
         startDate: string;
         endDate: string;
         limit?: number;
-      }
+      },
     ) => {
       const db = getDb();
       if (!db) {
@@ -150,7 +150,7 @@ export const historicalResolvers = {
         startDate: string;
         endDate: string;
         limit?: number;
-      }
+      },
     ) => {
       const db = getDb();
       if (!db) {
@@ -202,7 +202,7 @@ export const historicalResolvers = {
         startDate: string;
         endDate: string;
         limit?: number;
-      }
+      },
     ) => {
       const db = getDb();
       if (!db) {
@@ -220,8 +220,8 @@ export const historicalResolvers = {
           and(
             eq(riverGauges.siteCode, args.siteCode),
             gte(riverGauges.observedAt, startDate),
-            lte(riverGauges.observedAt, endDate)
-          )
+            lte(riverGauges.observedAt, endDate),
+          ),
         )
         .orderBy(desc(riverGauges.observedAt))
         .limit(effectiveLimit);
@@ -244,7 +244,7 @@ export const historicalResolvers = {
       args: {
         stationId?: string;
         date: string;
-      }
+      },
     ) => {
       const db = getDb();
       if (!db) {
@@ -253,18 +253,12 @@ export const historicalResolvers = {
 
       const date = parseDate(args.date);
       // Use UTC to ensure consistent day boundaries regardless of server timezone
-      const startOfDay = new Date(Date.UTC(
-        date.getUTCFullYear(),
-        date.getUTCMonth(),
-        date.getUTCDate(),
-        0, 0, 0, 0
-      ));
-      const endOfDay = new Date(Date.UTC(
-        date.getUTCFullYear(),
-        date.getUTCMonth(),
-        date.getUTCDate(),
-        23, 59, 59, 999
-      ));
+      const startOfDay = new Date(
+        Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 0, 0, 0, 0),
+      );
+      const endOfDay = new Date(
+        Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 23, 59, 59, 999),
+      );
 
       const conditions = [
         gte(weatherObservations.observedAt, startOfDay),

@@ -25,7 +25,7 @@ if (!window.map) {
 
   // 3. Check sources
   const sources = Object.keys(style.sources || {});
-  const radarSources = sources.filter(s => s.startsWith('radar-source-'));
+  const radarSources = sources.filter((s) => s.startsWith('radar-source-'));
 
   console.log(`\n📡 SOURCES (${sources.length} total, ${radarSources.length} radar):`);
 
@@ -33,7 +33,7 @@ if (!window.map) {
     console.error('❌ NO RADAR SOURCES FOUND!');
     console.log('   This means useRadarAnimation is not adding sources to the map');
   } else {
-    radarSources.forEach(sourceId => {
+    radarSources.forEach((sourceId) => {
       const source = map.getSource(sourceId);
       console.log(`\n  ${sourceId}:`);
       console.log(`    Type: ${source.type}`);
@@ -44,14 +44,14 @@ if (!window.map) {
 
   // 4. Check layers
   const layers = style.layers || [];
-  const radarLayers = layers.filter(l => l.id.startsWith('radar-layer-'));
+  const radarLayers = layers.filter((l) => l.id.startsWith('radar-layer-'));
 
   console.log(`\n🗺️  LAYERS (${layers.length} total, ${radarLayers.length} radar):`);
 
   if (radarLayers.length === 0) {
     console.error('❌ NO RADAR LAYERS FOUND!');
   } else {
-    radarLayers.forEach(layer => {
+    radarLayers.forEach((layer) => {
       const visibility = map.getLayoutProperty(layer.id, 'visibility');
       const opacity = map.getPaintProperty(layer.id, 'raster-opacity');
 
@@ -73,9 +73,10 @@ if (!window.map) {
   // 6. Summary
   console.log('\n📊 SUMMARY:');
 
-  const visibleLayers = radarLayers.filter(l =>
-    map.getLayoutProperty(l.id, 'visibility') === 'visible' &&
-    map.getPaintProperty(l.id, 'raster-opacity') > 0
+  const visibleLayers = radarLayers.filter(
+    (l) =>
+      map.getLayoutProperty(l.id, 'visibility') === 'visible' &&
+      map.getPaintProperty(l.id, 'raster-opacity') > 0,
   );
 
   if (radarSources.length === 0 || radarLayers.length === 0) {

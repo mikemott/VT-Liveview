@@ -39,7 +39,7 @@ export async function collectRiverGauges(): Promise<number> {
     const response = await fetch(url, {
       headers: {
         'User-Agent': 'VT-Liveview/1.0',
-        'Accept': 'application/json',
+        Accept: 'application/json',
       },
     });
 
@@ -77,10 +77,7 @@ export async function collectRiverGauges(): Promise<number> {
     }));
 
     // Insert readings, ignoring duplicates (same site + timestamp)
-    await db
-      .insert(riverGauges)
-      .values(readings)
-      .onConflictDoNothing();
+    await db.insert(riverGauges).values(readings).onConflictDoNothing();
 
     if (isDev()) {
       console.log(`[Collector:Gauges] Stored ${readings.length} gauge readings`);

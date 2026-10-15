@@ -1,5 +1,20 @@
 import { useState, useEffect, useRef, useCallback, useMemo, ReactNode, memo } from 'react';
-import { AlertTriangle, Construction, Ban, Waves, AlertOctagon, ChevronDown, ChevronRight, Thermometer, Mountain, IceCream, Star, Car, ZoomIn, Tent } from 'lucide-react';
+import {
+  AlertTriangle,
+  Construction,
+  Ban,
+  Waves,
+  AlertOctagon,
+  ChevronDown,
+  ChevronRight,
+  Thermometer,
+  Mountain,
+  IceCream,
+  Star,
+  Car,
+  ZoomIn,
+  Tent,
+} from 'lucide-react';
 import maplibregl from 'maplibre-gl';
 import { fetchAllIncidents, type TravelIncident } from '../services/travelApi';
 import { getIncidentColor, shouldShowIncident } from '../utils/incidentColors';
@@ -84,7 +99,7 @@ function getTypeLabel(type: IncidentType, short: boolean = false): string {
     CONSTRUCTION: 'Construction',
     CLOSURE: short ? 'Closures' : 'Road Closures',
     FLOODING: short ? 'Floods' : 'Flooding',
-    HAZARD: 'Hazards'
+    HAZARD: 'Hazards',
   };
   return labels[type] || 'Other';
 }
@@ -93,7 +108,34 @@ function getTypeLabel(type: IncidentType, short: boolean = false): string {
 // Component
 // =============================================================================
 
-function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, onToggleWeatherStations, showSkiResorts, onToggleSkiResorts, showCreemeeStands, onToggleCreemeeStands, showCampingSites, onToggleCampingSites, showCampgrounds, onToggleCampgrounds, showBackcountrySites, onToggleBackcountrySites, campgroundCount, backcountryCount, showBeachSites, onToggleBeachSites, showStargazing, onToggleStargazing, showTrafficFlow, onToggleTrafficFlow, globalPopupRef, mapStyleVersion }: TravelLayerProps) {
+function TravelLayer({
+  map,
+  visible,
+  currentZoom,
+  isDark,
+  showWeatherStations,
+  onToggleWeatherStations,
+  showSkiResorts,
+  onToggleSkiResorts,
+  showCreemeeStands,
+  onToggleCreemeeStands,
+  showCampingSites,
+  onToggleCampingSites,
+  showCampgrounds,
+  onToggleCampgrounds,
+  showBackcountrySites,
+  onToggleBackcountrySites,
+  campgroundCount,
+  backcountryCount,
+  showBeachSites,
+  onToggleBeachSites,
+  showStargazing,
+  onToggleStargazing,
+  showTrafficFlow,
+  onToggleTrafficFlow,
+  globalPopupRef,
+  mapStyleVersion,
+}: TravelLayerProps) {
   const [incidents, setIncidents] = useState<TravelIncident[]>([]);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(true);
@@ -103,7 +145,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
     CONSTRUCTION: false,
     CLOSURE: false,
     FLOODING: false,
-    HAZARD: false
+    HAZARD: false,
   });
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -140,9 +182,9 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
 
   // Toggle filter for incident type
   const toggleFilter = (type: IncidentType): void => {
-    setActiveFilters(prev => ({
+    setActiveFilters((prev) => ({
       ...prev,
-      [type]: !prev[type]
+      [type]: !prev[type],
     }));
   };
 
@@ -188,8 +230,8 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
         data: {
           type: 'Feature',
           properties: {},
-          geometry: incident.geometry
-        }
+          geometry: incident.geometry,
+        },
       });
 
       const color = getIncidentColor(incident.type);
@@ -203,8 +245,8 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
           paint: {
             'line-color': color.primary,
             'line-width': 8,
-            'line-opacity': 0.4
-          }
+            'line-opacity': 0.4,
+          },
         });
 
         map.addLayer({
@@ -214,20 +256,23 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
           paint: {
             'line-color': color.primary,
             'line-width': 4,
-            'line-opacity': 0.8
-          }
+            'line-opacity': 0.8,
+          },
         });
       }
 
       // Fit map to show the entire route
       const coordinates = incident.geometry.coordinates;
-      const bounds = coordinates.reduce((bnds, coord) => {
-        return bnds.extend(coord);
-      }, new maplibregl.LngLatBounds(coordinates[0], coordinates[0]));
+      const bounds = coordinates.reduce(
+        (bnds, coord) => {
+          return bnds.extend(coord);
+        },
+        new maplibregl.LngLatBounds(coordinates[0], coordinates[0]),
+      );
 
       map.fitBounds(bounds, {
         padding: { top: 100, bottom: 100, left: 450, right: 100 },
-        maxZoom: 14
+        maxZoom: 14,
       });
     } else if (incident.location && incident.location.lat && incident.location.lng) {
       // For point locations (like flooding), fly to the location
@@ -235,7 +280,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
         center: [incident.location.lng, incident.location.lat],
         zoom: 13,
         duration: 1500,
-        padding: { top: 100, bottom: 100, left: 450, right: 100 }
+        padding: { top: 100, bottom: 100, left: 450, right: 100 },
       });
     }
   };
@@ -243,7 +288,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
   // Filter incidents by active filters and zoom level
   // Memoize to prevent unnecessary marker recreation
   const visibleIncidents = useMemo(() => {
-    return incidents.filter(incident => {
+    return incidents.filter((incident) => {
       const typeMatch = activeFilters[incident.type];
       const zoomMatch = shouldShowIncident(incident, currentZoom);
       return typeMatch && zoomMatch;
@@ -276,7 +321,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
     cleanupMarkers(markersRef.current);
 
     // Add new markers for visible incidents
-    visibleIncidents.forEach(incident => {
+    visibleIncidents.forEach((incident) => {
       if (!incident.location || !incident.location.lat || !incident.location.lng) {
         return;
       }
@@ -291,42 +336,45 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
       // Create popup with theme-aware colors matching chip design
 
       // Vintage topographic colors matching detail cards - solid cream background
-      const categoryColors: Record<IncidentType, { bg: string; border: string; text: string; badgeBg: string; badgeBorder: string }> = {
+      const categoryColors: Record<
+        IncidentType,
+        { bg: string; border: string; text: string; badgeBg: string; badgeBorder: string }
+      > = {
         ACCIDENT: {
           bg: '#fbfdf4',
           border: 'rgba(204, 102, 82, 0.4)',
           text: '#6b3528',
           badgeBg: 'rgba(204, 102, 82, 0.2)',
-          badgeBorder: 'rgba(204, 102, 82, 0.4)'
+          badgeBorder: 'rgba(204, 102, 82, 0.4)',
         },
         CONSTRUCTION: {
           bg: '#fbfdf4',
           border: 'rgba(218, 165, 32, 0.4)',
           text: '#6b5210',
           badgeBg: 'rgba(218, 165, 32, 0.2)',
-          badgeBorder: 'rgba(218, 165, 32, 0.4)'
+          badgeBorder: 'rgba(218, 165, 32, 0.4)',
         },
         CLOSURE: {
           bg: '#fbfdf4',
           border: 'rgba(219, 112, 147, 0.4)',
           text: '#6d3849',
           badgeBg: 'rgba(219, 112, 147, 0.2)',
-          badgeBorder: 'rgba(219, 112, 147, 0.4)'
+          badgeBorder: 'rgba(219, 112, 147, 0.4)',
         },
         FLOODING: {
           bg: '#fbfdf4',
           border: 'rgba(72, 157, 153, 0.4)',
           text: '#254d4b',
           badgeBg: 'rgba(72, 157, 153, 0.2)',
-          badgeBorder: 'rgba(72, 157, 153, 0.4)'
+          badgeBorder: 'rgba(72, 157, 153, 0.4)',
         },
         HAZARD: {
           bg: '#fbfdf4',
           border: 'rgba(214, 126, 44, 0.4)',
           text: '#6a3e16',
           badgeBg: 'rgba(214, 126, 44, 0.2)',
-          badgeBorder: 'rgba(214, 126, 44, 0.4)'
-        }
+          badgeBorder: 'rgba(214, 126, 44, 0.4)',
+        },
       };
 
       const catColors = categoryColors[incident.type];
@@ -341,7 +389,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
         categoryBorder: catColors.border,
         categoryText: catColors.text,
         badgeBg: catColors.badgeBg,
-        badgeBorder: catColors.badgeBorder
+        badgeBorder: catColors.badgeBorder,
       };
 
       // Escape user-controlled content to prevent XSS
@@ -358,7 +406,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
         closeButton: true,
         closeOnClick: false,
         maxWidth: '320px',
-        className: 'incident-popup'
+        className: 'incident-popup',
       }).setHTML(`
         <div style="
           padding: var(--space-7, 16px);
@@ -393,7 +441,9 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
             font-weight: 700;
             line-height: 1.2;
           ">${safeTitle}</h3>
-          ${safeRoadName ? `
+          ${
+            safeRoadName
+              ? `
             <div style="
               display: flex;
               align-items: center;
@@ -406,15 +456,21 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
               ${pinIcon}
               <span>${safeRoadName}</span>
             </div>
-          ` : ''}
-          ${safeDescription ? `
+          `
+              : ''
+          }
+          ${
+            safeDescription
+              ? `
             <p style="
               margin: 0 0 10px 0;
               color: ${themeColors.textSecondary};
               font-size: 12px;
               line-height: 1.5;
             ">${safeDescription}</p>
-          ` : ''}
+          `
+              : ''
+          }
           <div style="
             display: flex;
             justify-content: space-between;
@@ -428,7 +484,9 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
               font-style: italic;
               font-weight: 500;
             ">${safeSource}</span>
-            ${incident.startTime ? `
+            ${
+              incident.startTime
+                ? `
               <span style="
                 font-size: 10px;
                 color: ${themeColors.metadata};
@@ -437,9 +495,11 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
                 month: 'short',
                 day: 'numeric',
                 hour: 'numeric',
-                minute: '2-digit'
+                minute: '2-digit',
               })}</span>
-            ` : ''}
+            `
+                : ''
+            }
           </div>
         </div>
       `);
@@ -471,7 +531,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
       markersRef.current.push({
         marker: marker,
         element: el,
-        handler: handleMarkerClick
+        handler: handleMarkerClick,
       });
     });
 
@@ -554,7 +614,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
               </button>
 
               {/* Incident type chips */}
-              {(Object.keys(activeFilters) as IncidentType[]).map(type => {
+              {(Object.keys(activeFilters) as IncidentType[]).map((type) => {
                 const count = incidentsByType[type]?.length || 0;
 
                 return (
@@ -565,9 +625,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
                     aria-pressed={activeFilters[type]}
                     data-chip-type={type.toLowerCase()}
                   >
-                    <span className="chip-icon">
-                      {getIcon(type, 14)}
-                    </span>
+                    <span className="chip-icon">{getIcon(type, 14)}</span>
                     {getTypeLabel(type, true)}
                     {count > 0 && <span className="chip-count">{count}</span>}
                   </button>
@@ -648,13 +706,7 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
           </div>
 
           {/* Stargazing content - shown when stargazing chip is active */}
-          {showStargazing && (
-            <StargazingLayer
-              map={map}
-              isDark={isDark}
-              key={mapStyleVersion}
-            />
-          )}
+          {showStargazing && <StargazingLayer map={map} isDark={isDark} key={mapStyleVersion} />}
 
           {/* Camping content - shown when camping chip is active */}
           {showCampingSites && (
@@ -671,112 +723,117 @@ function TravelLayer({ map, visible, currentZoom, isDark, showWeatherStations, o
           {/* Incidents content - hidden when stargazing or camping is active */}
           {!showStargazing && !showCampingSites && (
             <>
-          {/* Loading state with skeleton */}
-          {loading && (
-            <div className="incidents-skeleton" aria-live="polite" aria-busy="true">
-              <div className="skeleton-item" />
-              <div className="skeleton-item" />
-              <div className="skeleton-item" />
-            </div>
-          )}
+              {/* Loading state with skeleton */}
+              {loading && (
+                <div className="incidents-skeleton" aria-live="polite" aria-busy="true">
+                  <div className="skeleton-item" />
+                  <div className="skeleton-item" />
+                  <div className="skeleton-item" />
+                </div>
+              )}
 
-          {/* Last updated timestamp */}
-          {lastUpdated && !loading && (
-            <div className="last-updated" aria-live="polite">
-              <span style={{ fontSize: '11px', opacity: 0.7 }}>
-                Updated {lastUpdated.toLocaleTimeString('en-US', {
-                  hour: 'numeric',
-                  minute: '2-digit'
-                })}
-              </span>
-            </div>
-          )}
+              {/* Last updated timestamp */}
+              {lastUpdated && !loading && (
+                <div className="last-updated" aria-live="polite">
+                  <span style={{ fontSize: '11px', opacity: 0.7 }}>
+                    Updated{' '}
+                    {lastUpdated.toLocaleTimeString('en-US', {
+                      hour: 'numeric',
+                      minute: '2-digit',
+                    })}
+                  </span>
+                </div>
+              )}
 
-          {/* Error state with retry */}
-          {error && !loading && (
-            <div className="incidents-error" role="alert" aria-live="assertive">
-              <p style={{ margin: '0 0 8px 0', color: '#ef4444' }}>
-                ⚠️ Failed to load incidents
-              </p>
-              <p style={{ margin: '0 0 8px 0', fontSize: '12px', opacity: 0.8 }}>
-                {error}
-              </p>
-              <button
-                className="retry-button"
-                onClick={() => {
-                  void fetchIncidentsData();
-                }}
-                aria-label="Retry loading incidents"
-              >
-                Retry
-              </button>
-            </div>
-          )}
+              {/* Error state with retry */}
+              {error && !loading && (
+                <div className="incidents-error" role="alert" aria-live="assertive">
+                  <p style={{ margin: '0 0 8px 0', color: '#ef4444' }}>
+                    ⚠️ Failed to load incidents
+                  </p>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '12px', opacity: 0.8 }}>{error}</p>
+                  <button
+                    className="retry-button"
+                    onClick={() => {
+                      void fetchIncidentsData();
+                    }}
+                    aria-label="Retry loading incidents"
+                  >
+                    Retry
+                  </button>
+                </div>
+              )}
 
-          {/* Incidents list */}
-          {!loading && totalCount === 0 && (
-            <div className="no-incidents">
-              <span className="success-icon">✓</span>
-              <p>No travel incidents reported</p>
-            </div>
-          )}
+              {/* Incidents list */}
+              {!loading && totalCount === 0 && (
+                <div className="no-incidents">
+                  <span className="success-icon">✓</span>
+                  <p>No travel incidents reported</p>
+                </div>
+              )}
 
-          {!loading && totalCount > 0 && (
-            <div className="incidents-list">
-              {(Object.keys(incidentsByType) as IncidentType[])
-                .sort()
-                .map(type => (
-                  <div key={type} className="incident-group">
-                    <div className="group-header">
-                      <span
-                        className="group-icon"
-                        style={{ color: getIncidentColor(type).primary }}
-                      >
-                        {getIcon(type)}
-                      </span>
-                      <span className="group-title">
-                        {getTypeLabel(type)} ({incidentsByType[type]?.length ?? 0})
-                      </span>
-                    </div>
-                    {(incidentsByType[type] ?? []).map(incident => (
-                      // TODO(VTL-45 Phase 4/H15): keyboard access for incident items
-                      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
-                      <div
-                        key={incident.id}
-                        className={`incident-item ${selectedIncident?.id === incident.id ? 'selected' : ''} ${(incident.geometry || incident.location) ? 'clickable' : ''}`}
-                        data-incident-type={incident.type.toLowerCase()}
-                        onClick={() => (incident.geometry || incident.location) && handleIncidentClick(incident)}
-                      >
-                        <div className="incident-title">
-                          {incident.title}
-                          {(incident.geometry || incident.location) && selectedIncident?.id === incident.id && (
-                            <span style={{ marginLeft: '8px', fontSize: '12px' }}>📍</span>
-                          )}
-                        </div>
-                        {incident.roadName && (
-                          <div className="incident-road">{incident.roadName}</div>
-                        )}
-                        {incident.description && (
-                          <div className="incident-desc">{incident.description}</div>
-                        )}
-                        <div className="incident-source">
-                          {incident.source}
-                          {(incident.geometry || incident.location) && <span style={{ marginLeft: '8px', fontSize: '11px', opacity: 0.7 }}>• Click to view</span>}
-                        </div>
+              {!loading && totalCount > 0 && (
+                <div className="incidents-list">
+                  {(Object.keys(incidentsByType) as IncidentType[]).sort().map((type) => (
+                    <div key={type} className="incident-group">
+                      <div className="group-header">
+                        <span
+                          className="group-icon"
+                          style={{ color: getIncidentColor(type).primary }}
+                        >
+                          {getIcon(type)}
+                        </span>
+                        <span className="group-title">
+                          {getTypeLabel(type)} ({incidentsByType[type]?.length ?? 0})
+                        </span>
                       </div>
-                    ))}
-                  </div>
-                ))}
-            </div>
-          )}
+                      {(incidentsByType[type] ?? []).map((incident) => (
+                        // TODO(VTL-45 Phase 4/H15): keyboard access for incident items
+                        // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
+                        <div
+                          key={incident.id}
+                          className={`incident-item ${selectedIncident?.id === incident.id ? 'selected' : ''} ${incident.geometry || incident.location ? 'clickable' : ''}`}
+                          data-incident-type={incident.type.toLowerCase()}
+                          onClick={() =>
+                            (incident.geometry || incident.location) &&
+                            handleIncidentClick(incident)
+                          }
+                        >
+                          <div className="incident-title">
+                            {incident.title}
+                            {(incident.geometry || incident.location) &&
+                              selectedIncident?.id === incident.id && (
+                                <span style={{ marginLeft: '8px', fontSize: '12px' }}>📍</span>
+                              )}
+                          </div>
+                          {incident.roadName && (
+                            <div className="incident-road">{incident.roadName}</div>
+                          )}
+                          {incident.description && (
+                            <div className="incident-desc">{incident.description}</div>
+                          )}
+                          <div className="incident-source">
+                            {incident.source}
+                            {(incident.geometry || incident.location) && (
+                              <span style={{ marginLeft: '8px', fontSize: '11px', opacity: 0.7 }}>
+                                • Click to view
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              )}
 
-          {/* Zoom hint */}
-          {currentZoom < 8 && (
-            <div className="zoom-hint">
-              <ZoomIn size={16} />
-              <span>Zoom in to see more incidents</span>
-            </div>
-          )}
+              {/* Zoom hint */}
+              {currentZoom < 8 && (
+                <div className="zoom-hint">
+                  <ZoomIn size={16} />
+                  <span>Zoom in to see more incidents</span>
+                </div>
+              )}
             </>
           )}
         </div>

@@ -147,13 +147,7 @@ describe('shouldShowIncident', () => {
     const highZoom = 12;
 
     it('should show all incident types', () => {
-      const types: IncidentType[] = [
-        'CLOSURE',
-        'ACCIDENT',
-        'FLOODING',
-        'CONSTRUCTION',
-        'HAZARD',
-      ];
+      const types: IncidentType[] = ['CLOSURE', 'ACCIDENT', 'FLOODING', 'CONSTRUCTION', 'HAZARD'];
 
       types.forEach((type) => {
         expect(shouldShowIncident({ type }, highZoom)).toBe(true);

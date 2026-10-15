@@ -62,7 +62,10 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
     const instanceId = Math.random().toString(36).substring(7);
     if (import.meta.env.DEV) {
       console.log(`TrafficFlowLayer: MOUNTING - Instance ID: ${instanceId}`);
-      console.log('TrafficFlowLayer: API key value:', TOMTOM_API_KEY ? `${TOMTOM_API_KEY.substring(0, 10)}...` : 'UNDEFINED');
+      console.log(
+        'TrafficFlowLayer: API key value:',
+        TOMTOM_API_KEY ? `${TOMTOM_API_KEY.substring(0, 10)}...` : 'UNDEFINED',
+      );
     }
 
     const addTrafficLayers = (retryCount = 0) => {
@@ -78,7 +81,9 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
           setTimeout(() => addTrafficLayers(retryCount + 1), 200);
         } else {
           if (import.meta.env.DEV) {
-            console.error('TrafficFlowLayer: Failed to add layers after 10 retries - style never loaded');
+            console.error(
+              'TrafficFlowLayer: Failed to add layers after 10 retries - style never loaded',
+            );
           }
         }
         return;
@@ -114,7 +119,10 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
         if (!map.getSource(SOURCE_ID)) {
           const tileUrl = `https://api.tomtom.com/traffic/map/4/tile/flow/relative/{z}/{x}/{y}.pbf?key=${TOMTOM_API_KEY}`;
           if (import.meta.env.DEV) {
-            console.log('TrafficFlowLayer: Adding source with tile URL:', tileUrl.substring(0, 80) + '...');
+            console.log(
+              'TrafficFlowLayer: Adding source with tile URL:',
+              tileUrl.substring(0, 80) + '...',
+            );
           }
 
           try {
@@ -123,7 +131,7 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
               tiles: [tileUrl],
               minzoom: 0,
               maxzoom: 22,
-              attribution: '© TomTom'
+              attribution: '© TomTom',
             });
           } catch (sourceError) {
             if (import.meta.env.DEV) {
@@ -154,28 +162,36 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
 
         const visibilityValue = visible ? 'visible' : 'none';
         if (import.meta.env.DEV) {
-          console.log('TrafficFlowLayer: Creating layers with visible =', visible, 'visibility =', visibilityValue);
+          console.log(
+            'TrafficFlowLayer: Creating layers with visible =',
+            visible,
+            'visibility =',
+            visibilityValue,
+          );
         }
 
         // Add casing layer (outline for visibility)
         if (!map.getLayer(LAYER_ID_CASING)) {
           const casingColor = isDarkRef.current ? '#000000' : '#ffffff';
 
-          map.addLayer({
-            id: LAYER_ID_CASING,
-            type: 'line',
-            source: SOURCE_ID,
-            'source-layer': 'Traffic flow',
-            layout: {
-              'line-cap': 'round',
-              'line-join': 'round'
+          map.addLayer(
+            {
+              id: LAYER_ID_CASING,
+              type: 'line',
+              source: SOURCE_ID,
+              'source-layer': 'Traffic flow',
+              layout: {
+                'line-cap': 'round',
+                'line-join': 'round',
+              },
+              paint: {
+                'line-color': casingColor,
+                'line-width': 4,
+                'line-opacity': 0.5,
+              },
             },
-            paint: {
-              'line-color': casingColor,
-              'line-width': 4,
-              'line-opacity': 0.5
-            }
-          }, firstLabelLayer); // Insert before labels
+            firstLabelLayer,
+          ); // Insert before labels
 
           // Explicitly set visibility after layer creation
           map.setLayoutProperty(LAYER_ID_CASING, 'visibility', visibilityValue);
@@ -187,31 +203,39 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
 
         // Add main traffic layer
         if (!map.getLayer(LAYER_ID)) {
-          map.addLayer({
-            id: LAYER_ID,
-            type: 'line',
-            source: SOURCE_ID,
-            'source-layer': 'Traffic flow',
-            layout: {
-              'line-cap': 'round',
-              'line-join': 'round'
+          map.addLayer(
+            {
+              id: LAYER_ID,
+              type: 'line',
+              source: SOURCE_ID,
+              'source-layer': 'Traffic flow',
+              layout: {
+                'line-cap': 'round',
+                'line-join': 'round',
+              },
+              paint: {
+                // Color: red (stopped) -> orange -> yellow -> green (free flow)
+                'line-color': [
+                  'interpolate',
+                  ['linear'],
+                  ['get', 'traffic_level'],
+                  0,
+                  '#dc2626', // Red (stopped)
+                  0.25,
+                  '#ea580c', // Orange
+                  0.5,
+                  '#eab308', // Yellow
+                  0.75,
+                  '#84cc16', // Light green
+                  1,
+                  '#22c55e', // Green (free flow)
+                ],
+                'line-width': 3,
+                'line-opacity': 0.85,
+              },
             },
-            paint: {
-              // Color: red (stopped) -> orange -> yellow -> green (free flow)
-              'line-color': [
-                'interpolate',
-                ['linear'],
-                ['get', 'traffic_level'],
-                0, '#dc2626',      // Red (stopped)
-                0.25, '#ea580c',   // Orange
-                0.5, '#eab308',    // Yellow
-                0.75, '#84cc16',   // Light green
-                1, '#22c55e'       // Green (free flow)
-              ],
-              'line-width': 3,
-              'line-opacity': 0.85
-            }
-          }, firstLabelLayer); // Insert before labels
+            firstLabelLayer,
+          ); // Insert before labels
 
           // Explicitly set visibility after layer creation
           map.setLayoutProperty(LAYER_ID, 'visibility', visibilityValue);
@@ -230,7 +254,7 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
             casingLayerExists: !!map.getLayer(LAYER_ID_CASING),
             mainVisibility: mainVis,
             casingVisibility: casingVis,
-            visibleProp: visible
+            visibleProp: visible,
           });
         }
 
@@ -245,7 +269,7 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
               console.error(`TrafficFlowLayer: Layers were removed within 1 second!`, {
                 mainLayerExists: stillExists,
                 casingExists: casingStillExists,
-                sourceExists: sourceStillExists
+                sourceExists: sourceStillExists,
               });
             }
           }

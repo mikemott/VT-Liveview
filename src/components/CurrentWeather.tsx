@@ -1,6 +1,11 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { fetchCurrentWeather, fetchForecast, type CurrentWeatherData, type ForecastPeriodData } from '../services/graphqlClient';
+import {
+  fetchCurrentWeather,
+  fetchForecast,
+  type CurrentWeatherData,
+  type ForecastPeriodData,
+} from '../services/graphqlClient';
 import { Wind, Droplets, ChevronDown } from 'lucide-react';
 import WeatherIcon from './WeatherIcon';
 import { getWeatherIconName, getWeatherIconFromNOAAUrl } from '../utils/weatherIconMapping';
@@ -18,17 +23,26 @@ interface CurrentWeatherProps {
   isMobile?: boolean;
 }
 
-export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, isDark = false, isMobile = false }: CurrentWeatherProps) {
+export default function CurrentWeather({
+  lat = DEFAULT_LAT,
+  lon = DEFAULT_LON,
+  isDark = false,
+  isMobile = false,
+}: CurrentWeatherProps) {
   // Default to collapsed for better map visibility
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const { data, isLoading, error: _error } = useQuery<CurrentWeatherData | null>({
+  const {
+    data,
+    isLoading,
+    error: _error,
+  } = useQuery<CurrentWeatherData | null>({
     queryKey: ['currentWeather', lat, lon],
     queryFn: () => fetchCurrentWeather(lat, lon),
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
     retry: 2,
-    placeholderData: (previousData) => previousData // Keep previous data during refetch to prevent flashing
+    placeholderData: (previousData) => previousData, // Keep previous data during refetch to prevent flashing
   });
 
   const { data: forecastData } = useQuery<ForecastPeriodData[] | null>({
@@ -37,7 +51,7 @@ export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, i
     staleTime: 15 * 60 * 1000, // 15 minutes (forecast changes less often)
     refetchInterval: 15 * 60 * 1000,
     retry: 2,
-    placeholderData: (previousData) => previousData // Keep previous data during refetch
+    placeholderData: (previousData) => previousData, // Keep previous data during refetch
   });
 
   if (isLoading) {
@@ -60,26 +74,59 @@ export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, i
     windSpeed: 8,
     windDirection: 'NW',
     humidity: 65,
-    location: 'Montpelier, VT'
+    location: 'Montpelier, VT',
   };
 
   // Filter to 3-day forecast (6 periods = 3 days of day/night) or use dummy data
   const forecast3Day = forecastData?.slice(0, 6) || [];
-  const forecast = forecast3Day.length > 0 ? forecast3Day : [
-    { name: 'Tonight', temperature: 28, shortForecast: 'Mostly Clear', icon: 'https://api.weather.gov/icons/land/night/few?size=medium' },
-    { name: 'Wednesday', temperature: 38, shortForecast: 'Sunny', icon: 'https://api.weather.gov/icons/land/day/skc?size=medium' },
-    { name: 'Wednesday Night', temperature: 25, shortForecast: 'Clear', icon: 'https://api.weather.gov/icons/land/night/skc?size=medium' },
-    { name: 'Thursday', temperature: 41, shortForecast: 'Partly Cloudy', icon: 'https://api.weather.gov/icons/land/day/sct?size=medium' },
-    { name: 'Thursday Night', temperature: 30, shortForecast: 'Cloudy', icon: 'https://api.weather.gov/icons/land/night/ovc?size=medium' },
-    { name: 'Friday', temperature: 36, shortForecast: 'Chance Snow', icon: 'https://api.weather.gov/icons/land/day/snow?size=medium' }
-  ];
+  const forecast =
+    forecast3Day.length > 0
+      ? forecast3Day
+      : [
+          {
+            name: 'Tonight',
+            temperature: 28,
+            shortForecast: 'Mostly Clear',
+            icon: 'https://api.weather.gov/icons/land/night/few?size=medium',
+          },
+          {
+            name: 'Wednesday',
+            temperature: 38,
+            shortForecast: 'Sunny',
+            icon: 'https://api.weather.gov/icons/land/day/skc?size=medium',
+          },
+          {
+            name: 'Wednesday Night',
+            temperature: 25,
+            shortForecast: 'Clear',
+            icon: 'https://api.weather.gov/icons/land/night/skc?size=medium',
+          },
+          {
+            name: 'Thursday',
+            temperature: 41,
+            shortForecast: 'Partly Cloudy',
+            icon: 'https://api.weather.gov/icons/land/day/sct?size=medium',
+          },
+          {
+            name: 'Thursday Night',
+            temperature: 30,
+            shortForecast: 'Cloudy',
+            icon: 'https://api.weather.gov/icons/land/night/ovc?size=medium',
+          },
+          {
+            name: 'Friday',
+            temperature: 36,
+            shortForecast: 'Chance Snow',
+            icon: 'https://api.weather.gov/icons/land/day/snow?size=medium',
+          },
+        ];
 
   // Mobile collapsed: ultra-minimal view (just temp + icon)
   const showMinimalView = isMobile && !isExpanded;
 
   return (
-      // TODO(VTL-45 Phase 4): expandable card needs keyboard support (see docs/review/FINDINGS.md, a11y)
-      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
+    // TODO(VTL-45 Phase 4): expandable card needs keyboard support (see docs/review/FINDINGS.md, a11y)
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
     <div
       className={`current-weather ${isDark ? 'dark' : ''} ${isExpanded ? 'expanded' : 'collapsed'} ${isMobile ? 'mobile' : ''}`}
       onClick={() => setIsExpanded(!isExpanded)}
@@ -101,7 +148,9 @@ export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, i
               {weatherData.windSpeed && (
                 <>
                   <Wind size={14} />
-                  <span>{weatherData.windSpeed} {weatherData.windDirection}</span>
+                  <span>
+                    {weatherData.windSpeed} {weatherData.windDirection}
+                  </span>
                 </>
               )}
               {weatherData.humidity !== null && weatherData.humidity !== undefined && (
@@ -117,11 +166,7 @@ export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, i
       </div>
 
       {/* Hide description when mobile collapsed */}
-      {!showMinimalView && (
-        <div className="weather-description">
-          {weatherData.description}
-        </div>
-      )}
+      {!showMinimalView && <div className="weather-description">{weatherData.description}</div>}
 
       {isExpanded && (
         <>
@@ -134,25 +179,16 @@ export default function CurrentWeather({ lat = DEFAULT_LAT, lon = DEFAULT_LON, i
                   <div key={index} className="forecast-card">
                     <div className="forecast-period-label">{period.name}</div>
                     <div className="forecast-icon">
-                      <WeatherIcon
-                        name={getWeatherIconFromNOAAUrl(period.icon)}
-                        size={48}
-                      />
+                      <WeatherIcon name={getWeatherIconFromNOAAUrl(period.icon)} size={48} />
                     </div>
-                    <div className="forecast-temperature">
-                      {Math.round(period.temperature)}°
-                    </div>
+                    <div className="forecast-temperature">{Math.round(period.temperature)}°</div>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {data?.stationName && (
-            <div className="station-name">
-              {data.stationName}
-            </div>
-          )}
+          {data?.stationName && <div className="station-name">{data.stationName}</div>}
         </>
       )}
 

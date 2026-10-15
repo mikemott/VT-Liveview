@@ -59,7 +59,8 @@ interface ArcGISResponse {
 // Constants
 // =============================================================================
 
-const API_BASE_URL = 'https://anrmaps.vermont.gov/arcgis/rest/services/Open_Data/OPENDATA_ANR_TOURISM_SP_NOCACHE_v2/MapServer/166/query';
+const API_BASE_URL =
+  'https://anrmaps.vermont.gov/arcgis/rest/services/Open_Data/OPENDATA_ANR_TOURISM_SP_NOCACHE_v2/MapServer/166/query';
 
 // Vermont State Plane coordinates (EPSG:32145) to WGS84 conversion constants
 const STATE_PLANE_TO_WGS84 = {
@@ -85,7 +86,9 @@ function statePlaneToWGS84(x: number, y: number): { lat: number; lng: number } {
   // More accurate conversion would use proj4 or similar library
 
   // Rough linear approximation for Vermont (good enough for display)
-  const lng = STATE_PLANE_TO_WGS84.centralMeridian + (x - STATE_PLANE_TO_WGS84.falseEasting) / 111000 / Math.cos(44.5 * Math.PI / 180);
+  const lng =
+    STATE_PLANE_TO_WGS84.centralMeridian +
+    (x - STATE_PLANE_TO_WGS84.falseEasting) / 111000 / Math.cos((44.5 * Math.PI) / 180);
   const lat = STATE_PLANE_TO_WGS84.latitudeOrigin + y / 111000;
 
   return { lat, lng };
@@ -100,7 +103,11 @@ function statePlaneToWGS84(x: number, y: number): { lat: number; lng: number } {
  */
 function determineSiteType(attrs: ArcGISFeature['attributes']): 'camping' | 'beach' | 'mixed' {
   const hasCamping = attrs.F_CAMP === 'Y' || (attrs.N_TENTS ?? 0) > 0 || (attrs.N_VEHICLE ?? 0) > 0;
-  const hasSwimming = attrs.AC_SWIMLAK === 'Y' || attrs.AB_SWIMPOO === 'Y' || attrs.AD_SWIMRIV === 'Y' || (attrs.F_BEACH ?? 0) > 0;
+  const hasSwimming =
+    attrs.AC_SWIMLAK === 'Y' ||
+    attrs.AB_SWIMPOO === 'Y' ||
+    attrs.AD_SWIMRIV === 'Y' ||
+    (attrs.F_BEACH ?? 0) > 0;
 
   if (hasCamping && hasSwimming) return 'mixed';
   if (hasSwimming) return 'beach';
@@ -129,27 +136,33 @@ function parseRecreationSite(feature: ArcGISFeature): RecreationSite | null {
   const siteType = determineSiteType(a);
 
   // Build amenities object
-  const camping = a.F_CAMP === 'Y' ? {
-    tentSites: a.N_TENTS ?? 0,
-    rvSites: a.N_VEHICLE ?? 0,
-    shelters: a.N_SHELTER ?? 0,
-    hookups: {
-      electric: a.N_ELECTRY ?? 0,
-      water: a.N_WATER ?? 0,
-      both: a.N_BOTH ?? 0,
-    },
-    groupCamping: a.Q_GROUP === 'Y',
-    primitiveCamping: a.Q_PRIM === 'Y',
-    winterCamping: a.Q_WINCAMP === 'Y',
-  } : null;
+  const camping =
+    a.F_CAMP === 'Y'
+      ? {
+          tentSites: a.N_TENTS ?? 0,
+          rvSites: a.N_VEHICLE ?? 0,
+          shelters: a.N_SHELTER ?? 0,
+          hookups: {
+            electric: a.N_ELECTRY ?? 0,
+            water: a.N_WATER ?? 0,
+            both: a.N_BOTH ?? 0,
+          },
+          groupCamping: a.Q_GROUP === 'Y',
+          primitiveCamping: a.Q_PRIM === 'Y',
+          winterCamping: a.Q_WINCAMP === 'Y',
+        }
+      : null;
 
-  const swimming = (a.AC_SWIMLAK === 'Y' || a.AB_SWIMPOO === 'Y' || a.AD_SWIMRIV === 'Y' || (a.F_BEACH ?? 0) > 0) ? {
-    lakeSwimming: a.AC_SWIMLAK === 'Y',
-    poolSwimming: a.AB_SWIMPOO === 'Y',
-    riverSwimming: a.AD_SWIMRIV === 'Y',
-    hasBeach: (a.F_BEACH ?? 0) > 0,
-    waterBodyName: a.WATER_NM ?? null,
-  } : null;
+  const swimming =
+    a.AC_SWIMLAK === 'Y' || a.AB_SWIMPOO === 'Y' || a.AD_SWIMRIV === 'Y' || (a.F_BEACH ?? 0) > 0
+      ? {
+          lakeSwimming: a.AC_SWIMLAK === 'Y',
+          poolSwimming: a.AB_SWIMPOO === 'Y',
+          riverSwimming: a.AD_SWIMRIV === 'Y',
+          hasBeach: (a.F_BEACH ?? 0) > 0,
+          waterBodyName: a.WATER_NM ?? null,
+        }
+      : null;
 
   const site: RecreationSite = {
     id: `rec-${a.OBJECTID}`,
@@ -200,7 +213,7 @@ async function fetchFromAPI(): Promise<RecreationSite[]> {
     throw new Error(`Vermont ANR API error: ${response.status} ${response.statusText}`);
   }
 
-  const data = await response.json() as ArcGISResponse;
+  const data = (await response.json()) as ArcGISResponse;
 
   if (!data.features || data.features.length === 0) {
     throw new Error('No recreation sites returned from API');
@@ -209,7 +222,9 @@ async function fetchFromAPI(): Promise<RecreationSite[]> {
   // Check if response was truncated
   if (data.exceededTransferLimit) {
     if (process.env.NODE_ENV !== 'production') {
-      console.warn(`WARNING: Vermont ANR API exceeded transfer limit. Data may be incomplete (received ${data.features.length} features)`);
+      console.warn(
+        `WARNING: Vermont ANR API exceeded transfer limit. Data may be incomplete (received ${data.features.length} features)`,
+      );
     }
     // Note: For now we accept partial data. Could implement pagination in the future.
   }
@@ -263,7 +278,6 @@ export async function fetchRecreationSites(): Promise<RecreationSite[]> {
     }, CACHE_TTL_MS);
 
     return sites;
-
   } catch (error) {
     // Log error
     if (process.env.NODE_ENV !== 'production') {

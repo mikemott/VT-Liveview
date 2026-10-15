@@ -162,7 +162,7 @@ function SkiLayer({ map, visible }: SkiLayerProps) {
 
       const marker = new maplibregl.Marker({
         element: el,
-        anchor: 'center' // Pin marker to center (prevents zoom drift)
+        anchor: 'center', // Pin marker to center (prevents zoom drift)
       })
         .setLngLat([resort.longitude, resort.latitude])
         .addTo(map);

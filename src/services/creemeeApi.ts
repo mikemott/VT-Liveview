@@ -39,7 +39,7 @@ const CREEMEE_STANDS_QUERY = gql`
 export async function fetchCreemeeStands(): Promise<CreemeeStand[]> {
   try {
     const data = await graphqlClient.request<{ creemeeStands: CreemeeStand[] }>(
-      CREEMEE_STANDS_QUERY
+      CREEMEE_STANDS_QUERY,
     );
     return data.creemeeStands;
   } catch (error) {

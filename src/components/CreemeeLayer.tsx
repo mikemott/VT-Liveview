@@ -47,14 +47,18 @@ function createPopupHTML(stand: CreemeeStand): string {
       ${stand.featured ? '<div class="featured-badge">⭐ Featured</div>' : ''}
       <div class="stand-location">📍 ${safeTown}, VT</div>
       ${stand.description ? `<div class="stand-description">${safeDescription}</div>` : ''}
-      ${stand.specialties && stand.specialties.length > 0 ? `
+      ${
+        stand.specialties && stand.specialties.length > 0
+          ? `
         <div class="stand-specialties">
           <strong>Specialties:</strong>
           <ul>
-            ${stand.specialties.map(s => `<li>${escapeHTML(s)}</li>`).join('')}
+            ${stand.specialties.map((s) => `<li>${escapeHTML(s)}</li>`).join('')}
           </ul>
         </div>
-      ` : ''}
+      `
+          : ''
+      }
       <div class="stand-meta">
         <span class="licensed-badge">✓ Licensed by VT Dept of Agriculture</span>
       </div>

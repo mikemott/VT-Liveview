@@ -37,9 +37,7 @@ function loadSchema(): string {
     }
   }
 
-  throw new Error(
-    `Could not find schema.graphql. Searched: ${possiblePaths.join(', ')}`
-  );
+  throw new Error(`Could not find schema.graphql. Searched: ${possiblePaths.join(', ')}`);
 }
 
 const typeDefs = loadSchema();
@@ -58,12 +56,15 @@ interface HealthResponse {
   };
   collector?: {
     enabled: boolean;
-    collectors: Record<string, {
-      lastRun: Date | null;
-      lastResult: number | null;
-      lastError: string | null;
-      nextRun: Date | null;
-    }>;
+    collectors: Record<
+      string,
+      {
+        lastRun: Date | null;
+        lastResult: number | null;
+        lastError: string | null;
+        nextRun: Date | null;
+      }
+    >;
   };
 }
 
@@ -96,7 +97,7 @@ async function start(): Promise<void> {
     (env.ALLOWED_ORIGINS ?? 'https://vtliveview.com')
       .split(',')
       .map((origin) => origin.trim())
-      .filter(Boolean)
+      .filter(Boolean),
   );
 
   // Enable CORS with origin validation callback
@@ -186,7 +187,7 @@ async function start(): Promise<void> {
     '/admin/clear-cache',
     async (
       request: FastifyRequest,
-      reply: FastifyReply
+      reply: FastifyReply,
     ): Promise<CacheClearResponse | ErrorResponse> => {
       // Require auth token in production
       if (isProd()) {
@@ -209,16 +210,14 @@ async function start(): Promise<void> {
           // Log failed access attempts with IP (but not the attempted token)
           // Note: Only use request.ip (derived from socket) since trustProxy is not enabled.
           // x-forwarded-for can be spoofed without a trusted proxy configuration.
-          fastify.log.warn(
-            `Failed admin access attempt from IP: ${request.ip}`
-          );
+          fastify.log.warn(`Failed admin access attempt from IP: ${request.ip}`);
           reply.code(401);
           return { error: 'Unauthorized' };
         }
       }
       const result = clearStationsCache();
       return { ...result, message: 'Weather station cache cleared' };
-    }
+    },
   );
 
   // VT 511 proxy endpoints
@@ -235,14 +234,14 @@ async function start(): Promise<void> {
       try {
         const response = await fetch(
           `${VT_511_BASE}?networks=Vermont&dataTypes=incidentData`,
-          vt511FetchOptions
+          vt511FetchOptions,
         );
         const xmlText = await response.text();
         reply.type('text/xml').send(xmlText);
       } catch {
         reply.code(500).send({ error: 'Failed to fetch VT 511 incident data' });
       }
-    }
+    },
   );
 
   fastify.get(
@@ -251,14 +250,14 @@ async function start(): Promise<void> {
       try {
         const response = await fetch(
           `${VT_511_BASE}?networks=Vermont&dataTypes=laneClosureData`,
-          vt511FetchOptions
+          vt511FetchOptions,
         );
         const xmlText = await response.text();
         reply.type('text/xml').send(xmlText);
       } catch {
         reply.code(500).send({ error: 'Failed to fetch VT 511 lane closure data' });
       }
-    }
+    },
   );
 
   // Traffic flow data endpoints
@@ -268,14 +267,14 @@ async function start(): Promise<void> {
       try {
         const response = await fetch(
           `${VT_511_BASE}?networks=Vermont&dataTypes=trafficCondData`,
-          vt511FetchOptions
+          vt511FetchOptions,
         );
         const xmlText = await response.text();
         reply.type('text/xml').send(xmlText);
       } catch {
         reply.code(500).send({ error: 'Failed to fetch VT 511 traffic condition data' });
       }
-    }
+    },
   );
 
   fastify.get(
@@ -284,14 +283,14 @@ async function start(): Promise<void> {
       try {
         const response = await fetch(
           `${VT_511_BASE}?networks=Vermont&dataTypes=networkData`,
-          vt511FetchOptions
+          vt511FetchOptions,
         );
         const xmlText = await response.text();
         reply.type('text/xml').send(xmlText);
       } catch {
         reply.code(500).send({ error: 'Failed to fetch VT 511 network data' });
       }
-    }
+    },
   );
 
   // Ski conditions cache refresh endpoint
@@ -313,7 +312,7 @@ async function start(): Promise<void> {
           error: errorMessage,
         };
       }
-    }
+    },
   );
 
   // Initialize database connection (if configured)

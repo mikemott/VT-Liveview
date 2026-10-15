@@ -44,7 +44,8 @@ export async function collectWeatherObservations(): Promise<number> {
         latitude: String(station.location.lat),
         longitude: String(station.location.lng),
         observedAt: new Date(station.weather.timestamp),
-        temperatureF: station.weather.temperature !== null ? String(station.weather.temperature) : null,
+        temperatureF:
+          station.weather.temperature !== null ? String(station.weather.temperature) : null,
         humidity: station.weather.humidity !== null ? String(station.weather.humidity) : null,
         windSpeedMph: station.weather.windSpeed ? parseWindSpeed(station.weather.windSpeed) : null,
         windDirection: station.weather.windDirection || null,
@@ -61,10 +62,7 @@ export async function collectWeatherObservations(): Promise<number> {
     }
 
     // Insert observations, ignoring duplicates (same station + timestamp)
-    await db
-      .insert(weatherObservations)
-      .values(observations)
-      .onConflictDoNothing();
+    await db.insert(weatherObservations).values(observations).onConflictDoNothing();
 
     if (isDev()) {
       console.log(`[Collector:Weather] Stored ${observations.length} observations`);

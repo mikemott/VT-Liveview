@@ -4,13 +4,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import {
-  INTERVALS,
-  VERMONT,
-  MAP_CONFIG,
-  RADAR_CONFIG,
-  CACHE_CONFIG,
-} from '../constants';
+import { INTERVALS, VERMONT, MAP_CONFIG, RADAR_CONFIG, CACHE_CONFIG } from '../constants';
 
 describe('INTERVALS', () => {
   it('should have all refresh intervals as positive numbers', () => {

@@ -10,12 +10,7 @@ import type { IncidentType } from '@/types';
 // =============================================================================
 
 /** Icon name mapping for display purposes */
-type IncidentIconName =
-  | 'alert-triangle'
-  | 'hard-hat'
-  | 'ban'
-  | 'waves'
-  | 'alert-octagon';
+type IncidentIconName = 'alert-triangle' | 'hard-hat' | 'ban' | 'waves' | 'alert-octagon';
 
 /** Map of incident types to icon names */
 const ICON_NAMES: Record<IncidentType, IncidentIconName> = {
@@ -96,38 +91,46 @@ export function getIncidentIcon(type: IncidentType, size = 20, color?: string): 
  * Get category-specific colors for map markers
  * Vibrant, eye-catching colors for visibility on map
  */
-function getCategoryColors(type: IncidentType): { bg: string; border: string; shadow: string; iconColor: string } {
-  const categoryColors: Record<IncidentType, { bg: string; border: string; shadow: string; iconColor: string }> = {
+function getCategoryColors(type: IncidentType): {
+  bg: string;
+  border: string;
+  shadow: string;
+  iconColor: string;
+} {
+  const categoryColors: Record<
+    IncidentType,
+    { bg: string; border: string; shadow: string; iconColor: string }
+  > = {
     ACCIDENT: {
       bg: '#cc6652', // Vibrant terracotta red
       border: '#ffffff', // White border for contrast
       shadow: 'rgba(0, 0, 0, 0.3)',
-      iconColor: '#ffffff' // White icon
+      iconColor: '#ffffff', // White icon
     },
     CONSTRUCTION: {
       bg: '#daa520', // Vibrant goldenrod
       border: '#ffffff',
       shadow: 'rgba(0, 0, 0, 0.3)',
-      iconColor: '#ffffff'
+      iconColor: '#ffffff',
     },
     CLOSURE: {
       bg: '#db7093', // Vibrant rose pink
       border: '#ffffff',
       shadow: 'rgba(0, 0, 0, 0.3)',
-      iconColor: '#ffffff'
+      iconColor: '#ffffff',
     },
     FLOODING: {
       bg: '#489d99', // Vibrant teal
       border: '#ffffff',
       shadow: 'rgba(0, 0, 0, 0.3)',
-      iconColor: '#ffffff'
+      iconColor: '#ffffff',
     },
     HAZARD: {
       bg: '#d67e2c', // Vibrant burnt orange
       border: '#ffffff',
       shadow: 'rgba(0, 0, 0, 0.3)',
-      iconColor: '#ffffff'
-    }
+      iconColor: '#ffffff',
+    },
   };
   return categoryColors[type] || categoryColors.HAZARD;
 }

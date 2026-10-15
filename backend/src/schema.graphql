@@ -8,10 +8,30 @@ type Query {
   historicalData(lat: Float!, lng: Float!): HistoricalData!
 
   # Historical data queries (from database)
-  weatherHistory(stationId: String, startDate: String!, endDate: String!, limit: Int): [WeatherObservation!]!
-  alertHistory(eventType: String, startDate: String!, endDate: String!, limit: Int): [HistoricalAlert!]!
-  incidentHistory(type: String, startDate: String!, endDate: String!, limit: Int): [HistoricalIncident!]!
-  gaugeHistory(siteCode: String!, startDate: String!, endDate: String!, limit: Int): [GaugeReading!]!
+  weatherHistory(
+    stationId: String
+    startDate: String!
+    endDate: String!
+    limit: Int
+  ): [WeatherObservation!]!
+  alertHistory(
+    eventType: String
+    startDate: String!
+    endDate: String!
+    limit: Int
+  ): [HistoricalAlert!]!
+  incidentHistory(
+    type: String
+    startDate: String!
+    endDate: String!
+    limit: Int
+  ): [HistoricalIncident!]!
+  gaugeHistory(
+    siteCode: String!
+    startDate: String!
+    endDate: String!
+    limit: Int
+  ): [GaugeReading!]!
   dailyWeatherStats(stationId: String, date: String!): DailyWeatherStats
 }
 
@@ -362,4 +382,3 @@ extend type Query {
   backcountrySites: [BackcountrySite!]!
   campingAreas(minSites: Int, types: [String!]): [CampingArea!]!
 }
-

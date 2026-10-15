@@ -40,7 +40,7 @@ export const weatherObservations = pgTable(
   (table) => [
     unique('uq_weather_obs_station_time').on(table.stationId, table.observedAt),
     index('idx_weather_obs_observed_at').on(table.observedAt),
-  ]
+  ],
 );
 
 /**
@@ -72,7 +72,7 @@ export const weatherAlerts = pgTable(
     index('idx_alerts_event_type').on(table.eventType),
     index('idx_alerts_expires').on(table.expiresAt),
     index('idx_alerts_severity').on(table.severity),
-  ]
+  ],
 );
 
 /**
@@ -104,7 +104,7 @@ export const trafficIncidents = pgTable(
     index('idx_incidents_type').on(table.incidentType),
     index('idx_incidents_active').on(table.resolvedAt),
     index('idx_incidents_time').on(table.firstSeenAt),
-  ]
+  ],
 );
 
 /**
@@ -126,7 +126,7 @@ export const riverGauges = pgTable(
   (table) => [
     unique('uq_river_gauges_site_time').on(table.siteCode, table.observedAt),
     index('idx_gauges_observed_at').on(table.observedAt),
-  ]
+  ],
 );
 
 // Type exports for use in collectors and resolvers

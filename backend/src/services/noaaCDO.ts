@@ -23,8 +23,8 @@ const VT_STATIONS: VTStation[] = [
   { id: 'GHCND:USC00437494', name: 'Rutland', lat: 43.61, lng: -72.97 },
   { id: 'GHCND:USC00436928', name: 'Saint Johnsbury', lat: 44.42, lng: -72.01 },
   { id: 'GHCND:USC00431977', name: 'Cavendish', lat: 43.39, lng: -72.61 },
-  { id: 'GHCND:USC00437612', name: 'South Lincoln', lat: 44.08, lng: -73.00 },
-  { id: 'GHCND:USC00434765', name: 'Irasburg', lat: 44.80, lng: -72.27 },
+  { id: 'GHCND:USC00437612', name: 'South Lincoln', lat: 44.08, lng: -73.0 },
+  { id: 'GHCND:USC00434765', name: 'Irasburg', lat: 44.8, lng: -72.27 },
 ];
 
 // ============================================================================
@@ -180,7 +180,7 @@ function processWeatherData(datapoints: NOAACDODatapoint[]): WeatherDay[] {
  */
 export async function getHistoricalWeather(
   lat: number,
-  lng: number
+  lng: number,
 ): Promise<HistoricalWeatherData> {
   const cacheKey = `${lat.toFixed(3)},${lng.toFixed(3)}`;
 
@@ -198,7 +198,7 @@ export async function getHistoricalWeather(
 
   if (isDev()) {
     console.log(
-      `[Historical Weather] Nearest station to (${lat}, ${lng}): ${station.name} (${station.distance.toFixed(1)}mi away)`
+      `[Historical Weather] Nearest station to (${lat}, ${lng}): ${station.name} (${station.distance.toFixed(1)}mi away)`,
     );
   }
 
@@ -217,7 +217,7 @@ export async function getHistoricalWeather(
 
   if (!token) {
     throw new Error(
-      'NOAA_CDO_TOKEN environment variable is required. Get a free token at https://www.ncdc.noaa.gov/cdo-web/token'
+      'NOAA_CDO_TOKEN environment variable is required. Get a free token at https://www.ncdc.noaa.gov/cdo-web/token',
     );
   }
 
@@ -266,7 +266,9 @@ export async function getHistoricalWeather(
 
   if (!data.results || data.results.length === 0) {
     if (isDev()) {
-      console.warn(`[Historical Weather] No data returned from NOAA CDO for station ${station.name}`);
+      console.warn(
+        `[Historical Weather] No data returned from NOAA CDO for station ${station.name}`,
+      );
     }
     // Return empty weather days for the requested range
     const emptyDays: WeatherDay[] = [];

@@ -25,7 +25,8 @@
    ============================================================================= */
 
 .stargazing-conditions {
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     rgba(99, 102, 241, 0.08) 0%,
     rgba(139, 92, 246, 0.06) 50%,
     rgba(99, 102, 241, 0.04) 100%
@@ -76,11 +77,22 @@
 }
 
 /* Moon phase shadows based on illumination */
-.moon-icon.new::before { width: 100%; border-radius: 50%; }
-.moon-icon.waxing-crescent::before { width: 75%; }
-.moon-icon.first-quarter::before { width: 50%; }
-.moon-icon.waxing-gibbous::before { width: 25%; }
-.moon-icon.full::before { width: 0%; }
+.moon-icon.new::before {
+  width: 100%;
+  border-radius: 50%;
+}
+.moon-icon.waxing-crescent::before {
+  width: 75%;
+}
+.moon-icon.first-quarter::before {
+  width: 50%;
+}
+.moon-icon.waxing-gibbous::before {
+  width: 25%;
+}
+.moon-icon.full::before {
+  width: 0%;
+}
 .moon-icon.waning-gibbous::before {
   width: 25%;
   right: auto;
@@ -144,7 +156,9 @@
   fill: none;
   stroke-width: 4;
   stroke-linecap: round;
-  transition: stroke-dashoffset 0.5s ease, stroke 0.3s ease;
+  transition:
+    stroke-dashoffset 0.5s ease,
+    stroke 0.3s ease;
 }
 
 .quality-meter-text {
@@ -198,7 +212,7 @@
   color: var(--color-text-secondary);
 }
 
-.stargazing-layer .toggle-control input[type="checkbox"] {
+.stargazing-layer .toggle-control input[type='checkbox'] {
   width: 14px;
   height: 14px;
   accent-color: #6366f1;
@@ -241,7 +255,7 @@
   min-width: 44px;
 }
 
-.stargazing-layer .opacity-control input[type="range"] {
+.stargazing-layer .opacity-control input[type='range'] {
   flex: 1;
   height: 4px;
   -webkit-appearance: none;
@@ -251,7 +265,7 @@
   cursor: pointer;
 }
 
-.stargazing-layer .opacity-control input[type="range"]::-webkit-slider-thumb {
+.stargazing-layer .opacity-control input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 14px;
@@ -262,7 +276,7 @@
   box-shadow: var(--shadow-sm);
 }
 
-.stargazing-layer .opacity-control input[type="range"]::-moz-range-thumb {
+.stargazing-layer .opacity-control input[type='range']::-moz-range-thumb {
   width: 14px;
   height: 14px;
   background: #6366f1;
@@ -386,8 +400,14 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .bortle-detail-header {
@@ -531,7 +551,8 @@
    ============================================================================= */
 
 .stargazing-layer.dark .stargazing-conditions {
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     rgba(99, 102, 241, 0.15) 0%,
     rgba(139, 92, 246, 0.12) 50%,
     rgba(99, 102, 241, 0.08) 100%
@@ -567,7 +588,7 @@
   color: #c5c5c5;
 }
 
-.stargazing-layer.dark .toggle-control input[type="checkbox"] {
+.stargazing-layer.dark .toggle-control input[type='checkbox'] {
   accent-color: #818cf8;
 }
 
@@ -591,15 +612,15 @@
   color: #a5a5a5;
 }
 
-.stargazing-layer.dark .opacity-control input[type="range"] {
+.stargazing-layer.dark .opacity-control input[type='range'] {
   background: rgba(99, 102, 241, 0.3);
 }
 
-.stargazing-layer.dark .opacity-control input[type="range"]::-webkit-slider-thumb {
+.stargazing-layer.dark .opacity-control input[type='range']::-webkit-slider-thumb {
   background: #818cf8;
 }
 
-.stargazing-layer.dark .opacity-control input[type="range"]::-moz-range-thumb {
+.stargazing-layer.dark .opacity-control input[type='range']::-moz-range-thumb {
   background: #818cf8;
 }
 

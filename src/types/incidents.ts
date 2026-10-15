@@ -6,19 +6,10 @@
 import type { Feature, Point, FeatureCollection } from 'geojson';
 
 /** Incident type categories */
-export type IncidentType =
-  | 'ACCIDENT'
-  | 'CONSTRUCTION'
-  | 'CLOSURE'
-  | 'FLOODING'
-  | 'HAZARD';
+export type IncidentType = 'ACCIDENT' | 'CONSTRUCTION' | 'CLOSURE' | 'FLOODING' | 'HAZARD';
 
 /** Incident severity levels for zoom-based filtering */
-export type IncidentSeverity =
-  | 'CRITICAL'
-  | 'MAJOR'
-  | 'MODERATE'
-  | 'MINOR';
+export type IncidentSeverity = 'CRITICAL' | 'MAJOR' | 'MODERATE' | 'MINOR';
 
 /** Data source identifier */
 export type IncidentSource = 'VT511' | 'USGS';

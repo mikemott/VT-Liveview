@@ -73,14 +73,15 @@ export async function collectTrafficIncidents(): Promise<number> {
     const dedupedIncidents = Array.from(dedupedBySourceId.entries());
     const currentIds = dedupedIncidents.map(([sourceId]) => sourceId);
 
-    const existingIncidents = currentIds.length > 0
-      ? await db
-          .select({ sourceId: trafficIncidents.sourceId })
-          .from(trafficIncidents)
-          .where(inArray(trafficIncidents.sourceId, currentIds))
-      : [];
+    const existingIncidents =
+      currentIds.length > 0
+        ? await db
+            .select({ sourceId: trafficIncidents.sourceId })
+            .from(trafficIncidents)
+            .where(inArray(trafficIncidents.sourceId, currentIds))
+        : [];
 
-    const existingIdSet = new Set(existingIncidents.map(i => i.sourceId));
+    const existingIdSet = new Set(existingIncidents.map((i) => i.sourceId));
 
     // Separate incidents into update vs insert batches
     const idsToUpdate: string[] = [];
@@ -118,10 +119,7 @@ export async function collectTrafficIncidents(): Promise<number> {
     // Batch insert: Insert all new incidents in ONE query
     // Use onConflictDoNothing() to handle concurrent collector runs
     if (incidentsToInsert.length > 0) {
-      await db
-        .insert(trafficIncidents)
-        .values(incidentsToInsert)
-        .onConflictDoNothing();
+      await db.insert(trafficIncidents).values(incidentsToInsert).onConflictDoNothing();
     }
 
     const processedCount = incidents.length;
@@ -134,8 +132,8 @@ export async function collectTrafficIncidents(): Promise<number> {
         .where(
           and(
             isNull(trafficIncidents.resolvedAt),
-            notInArray(trafficIncidents.sourceId, currentIds)
-          )
+            notInArray(trafficIncidents.sourceId, currentIds),
+          ),
         );
     }
 
@@ -196,9 +194,10 @@ function parseIncidentXml(xmlText: string): ParsedIncident[] {
     }
 
     // Extract road name
-    const roadName = extractXmlValue(incidentXml, 'roadName') ||
-                     extractXmlValue(incidentXml, 'road') ||
-                     extractXmlValue(incidentXml, 'routeDesignator');
+    const roadName =
+      extractXmlValue(incidentXml, 'roadName') ||
+      extractXmlValue(incidentXml, 'road') ||
+      extractXmlValue(incidentXml, 'routeDesignator');
 
     // Extract start time
     const startTimeStr = extractXmlValue(incidentXml, 'startTime');

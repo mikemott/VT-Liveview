@@ -24,7 +24,7 @@
     "name": "Leddy Beach South",
     "town": "Burlington",
     "latitude": 44.5003,
-    "longitude": -73.2340,
+    "longitude": -73.234,
     "parkType": "municipal",
     "amenities": ["parking", "restrooms", "lifeguards", "concessions"],
     "burlingtonLocationId": 3
@@ -53,7 +53,7 @@
     "id": "texaco-beach",
     "name": "Texaco Beach",
     "town": "Burlington",
-    "latitude": 44.4900,
+    "latitude": 44.49,
     "longitude": -73.2227,
     "parkType": "municipal",
     "amenities": ["parking"],

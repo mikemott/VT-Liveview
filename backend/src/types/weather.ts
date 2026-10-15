@@ -192,7 +192,7 @@ export interface NOAAAlertFeature {
     areaDesc: string;
     effective: string;
     expires: string;
-    affectedZones: string[];  // URLs to zone endpoints (e.g., "https://api.weather.gov/zones/forecast/VTZ001")
+    affectedZones: string[]; // URLs to zone endpoints (e.g., "https://api.weather.gov/zones/forecast/VTZ001")
   };
   geometry: {
     type: string;
@@ -220,9 +220,9 @@ export interface ClearCacheResult {
 // ============================================================================
 
 export interface ZoneBoundary {
-  id: string;           // e.g., "VTZ001"
-  name: string;         // e.g., "Grand Isle"
-  state: string;        // e.g., "VT"
+  id: string; // e.g., "VTZ001"
+  name: string; // e.g., "Grand Isle"
+  state: string; // e.g., "VT"
   geometry: {
     type: 'Polygon' | 'MultiPolygon';
     coordinates: number[][][] | number[][][][];
@@ -239,20 +239,20 @@ export interface ZoneCacheEntry {
 // ============================================================================
 
 export interface MergedAlert {
-  id: string;                    // Composite ID (e.g., "merged-extreme-cold-watch")
-  event: string;                 // Event type (e.g., "Extreme Cold Watch")
-  headline: string | null;       // From most severe alert
-  severity: string;              // Highest severity in group
-  certainty: string;             // Highest certainty in group
-  urgency: string;               // Highest urgency in group
-  description: string;           // From most severe alert
-  instruction: string | null;    // From most severe alert
-  areaDesc: string;              // Combined area descriptions
-  effective: string;             // Earliest effective time
-  expires: string;               // Latest expires time
+  id: string; // Composite ID (e.g., "merged-extreme-cold-watch")
+  event: string; // Event type (e.g., "Extreme Cold Watch")
+  headline: string | null; // From most severe alert
+  severity: string; // Highest severity in group
+  certainty: string; // Highest certainty in group
+  urgency: string; // Highest urgency in group
+  description: string; // From most severe alert
+  instruction: string | null; // From most severe alert
+  areaDesc: string; // Combined area descriptions
+  effective: string; // Earliest effective time
+  expires: string; // Latest expires time
   geometry: MergedAlertGeometry;
-  mergedFrom: string[];          // Original alert IDs
-  affectedZoneIds: string[];     // List of VT zone IDs (e.g., ["VTZ001", "VTZ002"])
+  mergedFrom: string[]; // Original alert IDs
+  affectedZoneIds: string[]; // List of VT zone IDs (e.g., ["VTZ001", "VTZ002"])
 }
 
 export interface MergedAlertGeometry {

@@ -1,8 +1,8 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import WeatherMap from './WeatherMap'
-import ErrorBoundary from './components/ErrorBoundary'
-import { getEnv } from './types'
-import './App.css'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import WeatherMap from './WeatherMap';
+import ErrorBoundary from './components/ErrorBoundary';
+import { getEnv } from './types';
+import './App.css';
 
 // Validate environment variables on startup using Zod schema.
 // In production, this throws if required variables are missing,
@@ -15,10 +15,10 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 5 * 60 * 1000, // 5 minutes
       retry: 2,
-      refetchOnWindowFocus: false
-    }
-  }
-})
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function App(): React.ReactNode {
   return (
@@ -29,7 +29,7 @@ function App(): React.ReactNode {
         </div>
       </QueryClientProvider>
     </ErrorBoundary>
-  )
+  );
 }
 
-export default App
+export default App;

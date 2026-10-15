@@ -76,9 +76,7 @@ export const SKI_RESORTS_QUERY = gql`
  */
 export async function fetchSkiResorts(): Promise<SkiResort[]> {
   try {
-    const data = await graphqlClient.request<SkiResortsResponse>(
-      SKI_RESORTS_QUERY
-    );
+    const data = await graphqlClient.request<SkiResortsResponse>(SKI_RESORTS_QUERY);
     return data.skiResorts;
   } catch (error) {
     if (import.meta.env.DEV) {

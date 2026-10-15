@@ -1,14 +1,6 @@
 import { useEffect, useRef, useState, useCallback, ChangeEvent } from 'react';
 import { useRadarAnimation, type RadarFrameData } from '../hooks/useRadarAnimation';
-import {
-  Play,
-  Pause,
-  SkipBack,
-  SkipForward,
-  RefreshCw,
-  Eye,
-  EyeOff
-} from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, RefreshCw, Eye, EyeOff } from 'lucide-react';
 import { RADAR_CONFIG } from '../utils/constants';
 import type { MapLibreMap } from '../types';
 import './RadarOverlay.css';
@@ -19,7 +11,11 @@ interface RadarOverlayProps {
   collapsed?: boolean;
 }
 
-export default function RadarOverlay({ map, isDark = false, collapsed = false }: RadarOverlayProps) {
+export default function RadarOverlay({
+  map,
+  isDark = false,
+  collapsed = false,
+}: RadarOverlayProps) {
   const [visible, setVisible] = useState(true);
   const [opacity, setOpacity] = useState(0.7);
   const [tilesLoaded, setTilesLoaded] = useState(false);
@@ -37,31 +33,37 @@ export default function RadarOverlay({ map, isDark = false, collapsed = false }:
     nextFrame,
     prevFrame,
     goToFrame,
-    refresh
+    refresh,
   } = useRadarAnimation(map, {
     frameCount: RADAR_CONFIG.frameCount,
     frameDelay: RADAR_CONFIG.frameDelay,
   });
 
   // Helper to safely check if layer exists
-  const hasLayer = useCallback((layerId: string): boolean => {
-    if (!map || !map.isStyleLoaded()) return false;
-    try {
-      return !!map.getLayer(layerId);
-    } catch {
-      return false;
-    }
-  }, [map]);
+  const hasLayer = useCallback(
+    (layerId: string): boolean => {
+      if (!map || !map.isStyleLoaded()) return false;
+      try {
+        return !!map.getLayer(layerId);
+      } catch {
+        return false;
+      }
+    },
+    [map],
+  );
 
   // Helper to safely check if source exists
-  const hasSource = useCallback((sourceId: string): boolean => {
-    if (!map || !map.isStyleLoaded()) return false;
-    try {
-      return !!map.getSource(sourceId);
-    } catch {
-      return false;
-    }
-  }, [map]);
+  const hasSource = useCallback(
+    (sourceId: string): boolean => {
+      if (!map || !map.isStyleLoaded()) return false;
+      try {
+        return !!map.getSource(sourceId);
+      } catch {
+        return false;
+      }
+    },
+    [map],
+  );
 
   // Initialize multiple radar layers (one per frame) for smooth transitions
   useEffect(() => {
@@ -114,9 +116,9 @@ export default function RadarOverlay({ map, isDark = false, collapsed = false }:
             tiles: [frame.tileUrl],
             tileSize: 256,
             minzoom: 0,
-            maxzoom: 7,  // RainViewer maximum zoom level
+            maxzoom: 7, // RainViewer maximum zoom level
             scheme: 'xyz',
-            attribution: index === 0 ? 'Weather radar: RainViewer / NOAA' : ''
+            attribution: index === 0 ? 'Weather radar: RainViewer / NOAA' : '',
           });
 
           // Add layer - start hidden to prevent tile loading
@@ -126,18 +128,18 @@ export default function RadarOverlay({ map, isDark = false, collapsed = false }:
             type: 'raster',
             source: sourceId,
             layout: {
-              visibility: index === frames.length - 1 ? 'visible' : 'none' // Only show most recent frame initially
+              visibility: index === frames.length - 1 ? 'visible' : 'none', // Only show most recent frame initially
             },
             paint: {
               'raster-opacity': 0, // Start transparent, increase after tiles load
-              'raster-fade-duration': 0 // No fade during preload
-            }
+              'raster-fade-duration': 0, // No fade during preload
+            },
           });
 
           // Wait 400ms before adding next source to avoid rate limiting
           // This prevents RainViewer from returning 429 (Too Many Requests)
           if (index < frames.length - 1) {
-            await new Promise(resolve => setTimeout(resolve, 400));
+            await new Promise((resolve) => setTimeout(resolve, 400));
           }
         }
       };
@@ -186,9 +188,9 @@ export default function RadarOverlay({ map, isDark = false, collapsed = false }:
                 tiles: [frame.tileUrl],
                 tileSize: 256,
                 minzoom: 0,
-                maxzoom: 7,  // RainViewer maximum zoom level
+                maxzoom: 7, // RainViewer maximum zoom level
                 scheme: 'xyz',
-                attribution: index === 0 ? 'Weather radar: RainViewer / NOAA' : ''
+                attribution: index === 0 ? 'Weather radar: RainViewer / NOAA' : '',
               });
 
               map.addLayer({
@@ -196,17 +198,17 @@ export default function RadarOverlay({ map, isDark = false, collapsed = false }:
                 type: 'raster',
                 source: sourceId,
                 layout: {
-                  visibility: index === frames.length - 1 ? 'visible' : 'none'
+                  visibility: index === frames.length - 1 ? 'visible' : 'none',
                 },
                 paint: {
                   'raster-opacity': 0,
-                  'raster-fade-duration': 0
-                }
+                  'raster-fade-duration': 0,
+                },
               });
 
               // Wait 400ms before updating next source
               if (index < frames.length - 1) {
-                await new Promise(resolve => setTimeout(resolve, 400));
+                await new Promise((resolve) => setTimeout(resolve, 400));
               }
             }
           }
@@ -232,7 +234,6 @@ export default function RadarOverlay({ map, isDark = false, collapsed = false }:
       previousFrameCount.current = 0;
       sources.clear();
     };
-   
   }, [map, frames, hasSource, hasLayer]);
 
   // Mark tiles as loaded immediately since we're using lazy loading
@@ -257,7 +258,7 @@ export default function RadarOverlay({ map, isDark = false, collapsed = false }:
         currentFrame,
         visible,
         opacity,
-        totalFrames: frames.length
+        totalFrames: frames.length,
       });
     }
 
@@ -376,7 +377,11 @@ export default function RadarOverlay({ map, isDark = false, collapsed = false }:
             aria-valuemin={0}
             aria-valuemax={Math.max(0, frames.length - 1)}
             aria-valuenow={Math.max(0, Math.min(currentFrame, Math.max(0, frames.length - 1)))}
-            aria-valuetext={frames.length === 0 ? 'No frames available' : `Frame ${currentFrame + 1} of ${frames.length}: ${formatTime(currentFrameData?.time)}`}
+            aria-valuetext={
+              frames.length === 0
+                ? 'No frames available'
+                : `Frame ${currentFrame + 1} of ${frames.length}: ${formatTime(currentFrameData?.time)}`
+            }
             tabIndex={frames.length === 0 ? -1 : 0}
             aria-disabled={frames.length === 0}
             onKeyDown={(e) => {

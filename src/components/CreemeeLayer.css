@@ -5,9 +5,9 @@
   --creemee-popup-text: #5d7c5a;
   --creemee-popup-border: rgba(93, 124, 90, 0.2);
   --creemee-popup-shadow: rgba(150, 150, 140, 0.15);
-  --creemee-marker-bg: #F5DEB3;
-  --creemee-marker-border: #8B4513;
-  --creemee-marker-color: #8B4513;
+  --creemee-marker-bg: #f5deb3;
+  --creemee-marker-border: #8b4513;
+  --creemee-marker-color: #8b4513;
 }
 
 .dark {
@@ -15,14 +15,18 @@
   --creemee-popup-text: #c5d8c2;
   --creemee-popup-border: rgba(150, 190, 145, 0.3);
   --creemee-popup-shadow: rgba(0, 0, 0, 0.3);
-  --creemee-marker-bg: #8B7355;
-  --creemee-marker-border: #D2B48C;
-  --creemee-marker-color: #D2B48C;
+  --creemee-marker-bg: #8b7355;
+  --creemee-marker-border: #d2b48c;
+  --creemee-marker-color: #d2b48c;
 }
 
 .creemee-popup-content {
   padding: 12px;
-  font-family: 'Public Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family:
+    'Public Sans',
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
   background: var(--creemee-popup-bg);
   color: var(--creemee-popup-text);
 }
@@ -43,7 +47,7 @@
   padding: 4px 8px;
   font-size: 11px;
   font-weight: 600;
-  color: #8B7500;
+  color: #8b7500;
   margin-bottom: 8px;
 }
 
@@ -133,10 +137,14 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: box-shadow 0.2s ease, border-width 0.2s ease;
+  transition:
+    box-shadow 0.2s ease,
+    border-width 0.2s ease;
 }
 
 .creemee-stand-marker:hover {
-  box-shadow: 0 0 12px var(--creemee-marker-bg), 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow:
+    0 0 12px var(--creemee-marker-bg),
+    0 2px 8px rgba(0, 0, 0, 0.3);
   border-width: 3px;
 }

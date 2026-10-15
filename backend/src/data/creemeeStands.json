@@ -6,9 +6,7 @@
     "latitude": 44.4788,
     "longitude": -73.2178,
     "description": "Maple creemee is their best seller. Battery Street near waterfront.",
-    "specialties": [
-      "Maple Creemee"
-    ],
+    "specialties": ["Maple Creemee"],
     "featured": true
   },
   {
@@ -18,10 +16,7 @@
     "latitude": 44.2865197,
     "longitude": -72.5433719,
     "description": "Eighth-generation sugaring family. Specializes in maple creemees.",
-    "specialties": [
-      "Maple Creemee",
-      "Working Sugarhouse"
-    ],
+    "specialties": ["Maple Creemee", "Working Sugarhouse"],
     "featured": true
   },
   {
@@ -31,11 +26,7 @@
     "latitude": 44.1879,
     "longitude": -72.8279,
     "description": "Unique flavors: toasted marshmallow, ginger, coffee. Creative sundaes.",
-    "specialties": [
-      "Toasted Marshmallow",
-      "Ginger",
-      "Coffee"
-    ],
+    "specialties": ["Toasted Marshmallow", "Ginger", "Coffee"],
     "featured": true
   },
   {
@@ -54,9 +45,7 @@
     "latitude": 44.5066748,
     "longitude": -72.992375,
     "description": "Seven Days VT 2024 Best Creemee winner.",
-    "specialties": [
-      "Maple Creemee"
-    ],
+    "specialties": ["Maple Creemee"],
     "featured": true
   },
   {
@@ -66,10 +55,7 @@
     "latitude": 44.2415,
     "longitude": -73.2493,
     "description": "Creates 'love-wiches' - creemee between cookies. Maple-coffee twist.",
-    "specialties": [
-      "Love-wiches",
-      "Maple-Coffee Twist"
-    ],
+    "specialties": ["Love-wiches", "Maple-Coffee Twist"],
     "featured": true
   },
   {
@@ -79,9 +65,7 @@
     "latitude": 44.2812876,
     "longitude": -72.473537,
     "description": "Working sugarhouse with maple creemees. Farm-fresh experience.",
-    "specialties": [
-      "Maple Creemee"
-    ],
+    "specialties": ["Maple Creemee"],
     "featured": true
   },
   {

@@ -3,7 +3,13 @@
  * Categorical colors for different incident types
  */
 
-import type { IncidentType, IncidentSeverity, IncidentColor, IncidentColorMap, Incident } from '@/types';
+import type {
+  IncidentType,
+  IncidentSeverity,
+  IncidentColor,
+  IncidentColorMap,
+  Incident,
+} from '@/types';
 
 /** Color configuration for each incident type */
 export const INCIDENT_COLORS: IncidentColorMap = {

@@ -123,8 +123,7 @@ interface RadarInfoResponse {
 // =============================================================================
 
 /** GraphQL endpoint - defaults to localhost for development */
-const GRAPHQL_ENDPOINT =
-  import.meta.env.VITE_GRAPHQL_ENDPOINT || 'http://localhost:4000/graphql';
+const GRAPHQL_ENDPOINT = import.meta.env.VITE_GRAPHQL_ENDPOINT || 'http://localhost:4000/graphql';
 
 /** Configured GraphQL client instance */
 export const graphqlClient = new GraphQLClient(GRAPHQL_ENDPOINT);
@@ -244,12 +243,12 @@ interface WeatherCoordinates {
  */
 export async function fetchCurrentWeather(
   lat: number,
-  lon: number
+  lon: number,
 ): Promise<CurrentWeatherData | null> {
-  const data = await graphqlClient.request<CurrentWeatherResponse>(
-    CURRENT_WEATHER_QUERY,
-    { lat, lon } satisfies WeatherCoordinates
-  );
+  const data = await graphqlClient.request<CurrentWeatherResponse>(CURRENT_WEATHER_QUERY, {
+    lat,
+    lon,
+  } satisfies WeatherCoordinates);
   return data.currentWeather;
 }
 
@@ -259,10 +258,7 @@ export async function fetchCurrentWeather(
  * @param lon - Longitude
  * @returns Array of forecast periods
  */
-export async function fetchForecast(
-  lat: number,
-  lon: number
-): Promise<ForecastPeriodData[]> {
+export async function fetchForecast(lat: number, lon: number): Promise<ForecastPeriodData[]> {
   const data = await graphqlClient.request<ForecastResponse>(FORECAST_QUERY, {
     lat,
     lon,
@@ -301,7 +297,6 @@ export async function fetchMergedAlerts(state = 'VT'): Promise<MergedAlertData[]
  * @returns Radar configuration and timestamp data
  */
 export async function fetchRadarInfo(): Promise<RadarInfoData> {
-  const data =
-    await graphqlClient.request<RadarInfoResponse>(RADAR_INFO_QUERY);
+  const data = await graphqlClient.request<RadarInfoResponse>(RADAR_INFO_QUERY);
   return data.radarInfo;
 }

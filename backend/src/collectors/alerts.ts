@@ -33,23 +33,24 @@ export async function collectWeatherAlerts(): Promise<number> {
     }
 
     // Batch optimization: Deduplicate alerts by ID (API may return duplicates)
-    const dedupedById = new Map<string, typeof alerts[number]>();
+    const dedupedById = new Map<string, (typeof alerts)[number]>();
     for (const alert of alerts) {
       if (!dedupedById.has(alert.id)) {
         dedupedById.set(alert.id, alert);
       }
     }
     const dedupedAlerts = Array.from(dedupedById.values());
-    const alertIds = dedupedAlerts.map(alert => alert.id);
+    const alertIds = dedupedAlerts.map((alert) => alert.id);
 
-    const existingAlerts = alertIds.length > 0
-      ? await db
-          .select({ noaaAlertId: weatherAlerts.noaaAlertId })
-          .from(weatherAlerts)
-          .where(inArray(weatherAlerts.noaaAlertId, alertIds))
-      : [];
+    const existingAlerts =
+      alertIds.length > 0
+        ? await db
+            .select({ noaaAlertId: weatherAlerts.noaaAlertId })
+            .from(weatherAlerts)
+            .where(inArray(weatherAlerts.noaaAlertId, alertIds))
+        : [];
 
-    const existingIdSet = new Set(existingAlerts.map(a => a.noaaAlertId));
+    const existingIdSet = new Set(existingAlerts.map((a) => a.noaaAlertId));
 
     // Separate alerts into update vs insert batches
     const idsToUpdate: string[] = [];
@@ -88,10 +89,7 @@ export async function collectWeatherAlerts(): Promise<number> {
     // Batch insert: Insert all new alerts in ONE query
     // Use onConflictDoNothing() to handle concurrent collector runs
     if (alertsToInsert.length > 0) {
-      await db
-        .insert(weatherAlerts)
-        .values(alertsToInsert)
-        .onConflictDoNothing();
+      await db.insert(weatherAlerts).values(alertsToInsert).onConflictDoNothing();
     }
 
     const processedCount = alerts.length;

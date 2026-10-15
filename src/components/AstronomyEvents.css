@@ -40,8 +40,15 @@
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(1.2); }
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.2);
+  }
 }
 
 .astronomy-events .expand-toggle {
@@ -51,7 +58,9 @@
   cursor: pointer;
   color: var(--color-text-muted, #6b7280);
   border-radius: var(--radius-sm, 4px);
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .astronomy-events .expand-toggle:hover {
@@ -94,7 +103,9 @@
   border-radius: var(--radius-md, 6px);
   padding: var(--space-3, 8px) var(--space-4, 10px);
   cursor: pointer;
-  transition: background-color 0.15s ease, transform 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    transform 0.15s ease;
   border: 1px solid transparent;
 }
 
@@ -163,8 +174,13 @@
 }
 
 @keyframes glow {
-  0%, 100% { box-shadow: 0 0 4px rgba(245, 158, 11, 0.5); }
-  50% { box-shadow: 0 0 8px rgba(245, 158, 11, 0.8); }
+  0%,
+  100% {
+    box-shadow: 0 0 4px rgba(245, 158, 11, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.8);
+  }
 }
 
 .badge.active {

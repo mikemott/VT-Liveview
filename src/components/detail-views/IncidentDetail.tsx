@@ -60,23 +60,23 @@ export default function IncidentDetail({ incident, isDark }: IncidentDetailProps
   const incidentType = incident.type.toLowerCase();
 
   return (
-    <div className={`detail-view incident-detail ${isDark ? 'dark' : ''}`} data-incident-type={incidentType}>
+    <div
+      className={`detail-view incident-detail ${isDark ? 'dark' : ''}`}
+      data-incident-type={incidentType}
+    >
       {/* Type badge */}
-      <div
-        className="incident-type-badge"
-        data-incident-type={incidentType}
-      >
+      <div className="incident-type-badge" data-incident-type={incidentType}>
         {getIcon()}
         <span>{colors.name}</span>
       </div>
 
       {/* Title */}
-      <div className="incident-title" data-incident-type={incidentType}>{incident.title}</div>
+      <div className="incident-title" data-incident-type={incidentType}>
+        {incident.title}
+      </div>
 
       {/* Severity */}
-      <div className="incident-severity-label">
-        Severity: {getSeverityLabel(incident.severity)}
-      </div>
+      <div className="incident-severity-label">Severity: {getSeverityLabel(incident.severity)}</div>
 
       {/* Location */}
       {incident.road && (
@@ -116,9 +116,7 @@ export default function IncidentDetail({ incident, isDark }: IncidentDetailProps
       </div>
 
       {/* Source */}
-      <div className="incident-source">
-        Source: {incident.source}
-      </div>
+      <div className="incident-source">Source: {incident.source}</div>
     </div>
   );
 }

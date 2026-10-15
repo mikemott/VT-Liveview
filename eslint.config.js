@@ -1,10 +1,10 @@
-import js from '@eslint/js'
-import globals from 'globals'
-import tseslint from 'typescript-eslint'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import jsxA11y from 'eslint-plugin-jsx-a11y'
-import { defineConfig, globalIgnores } from 'eslint/config'
+import js from '@eslint/js';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
+import jsxA11y from 'eslint-plugin-jsx-a11y';
+import { defineConfig, globalIgnores } from 'eslint/config';
 
 // Frontend lint config. The backend has its own config in backend/eslint.config.js
 // so it can be linted (and installed) independently in CI.
@@ -40,4 +40,4 @@ export default defineConfig([
     extends: [js.configs.recommended, tseslint.configs.recommended],
     languageOptions: { globals: globals.node },
   },
-])
+]);

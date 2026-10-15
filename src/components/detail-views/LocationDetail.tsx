@@ -3,16 +3,7 @@
  * Shows forecast, astronomy data, and historical comparison when clicking on map
  */
 
-import {
-  MapPin,
-  Thermometer,
-  Cloud,
-  Sunrise,
-  Sunset,
-  Moon,
-  Clock,
-  Sun
-} from 'lucide-react';
+import { MapPin, Thermometer, Cloud, Sunrise, Sunset, Moon, Clock, Sun } from 'lucide-react';
 import { useForecast } from '../../hooks/useForecast';
 import { calculateSunTimes, calculateMoonPhase } from '../../utils/astronomy';
 import './DetailViews.css';
@@ -26,7 +17,11 @@ export default function LocationDetail({ coordinates, isDark }: LocationDetailPr
   const { lat, lng } = coordinates;
 
   // Fetch forecast data
-  const { data: forecastData, isLoading: forecastLoading, error: forecastError } = useForecast({
+  const {
+    data: forecastData,
+    isLoading: forecastLoading,
+    error: forecastError,
+  } = useForecast({
     lat,
     lng,
     enabled: true,
@@ -97,12 +92,13 @@ export default function LocationDetail({ coordinates, isDark }: LocationDetailPr
                   {period.temperature}°{period.temperatureUnit}
                 </div>
                 <div className="period-conditions">{period.shortForecast}</div>
-                {period.probabilityOfPrecipitation?.value && period.probabilityOfPrecipitation.value > 0 && (
-                  <div className="period-precip">
-                    <Cloud size={12} />
-                    {period.probabilityOfPrecipitation.value}% chance
-                  </div>
-                )}
+                {period.probabilityOfPrecipitation?.value &&
+                  period.probabilityOfPrecipitation.value > 0 && (
+                    <div className="period-precip">
+                      <Cloud size={12} />
+                      {period.probabilityOfPrecipitation.value}% chance
+                    </div>
+                  )}
               </div>
             ))}
           </div>
@@ -142,7 +138,9 @@ export default function LocationDetail({ coordinates, isDark }: LocationDetailPr
               <Sun size={14} />
               Morning Golden Hour
             </div>
-            <div className="astro-value">{formatTime(sunTimes.sunrise)} - {formatTime(morningGoldenHourEnd)}</div>
+            <div className="astro-value">
+              {formatTime(sunTimes.sunrise)} - {formatTime(morningGoldenHourEnd)}
+            </div>
           </div>
 
           <div className="astro-item">
@@ -150,7 +148,9 @@ export default function LocationDetail({ coordinates, isDark }: LocationDetailPr
               <Sun size={14} />
               Evening Golden Hour
             </div>
-            <div className="astro-value">{formatTime(eveningGoldenHourStart)} - {formatTime(sunTimes.sunset)}</div>
+            <div className="astro-value">
+              {formatTime(eveningGoldenHourStart)} - {formatTime(sunTimes.sunset)}
+            </div>
           </div>
 
           <div className="astro-item">

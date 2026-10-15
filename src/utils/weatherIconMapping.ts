@@ -32,10 +32,13 @@ function parseNOAAIconUrl(iconUrl: string): { isNight: boolean; codes: string[] 
     const isNight = pathParts[timeIndex] === 'night';
 
     // Weather codes are after day/night
-    const codes = pathParts.slice(timeIndex + 1).map(code => {
-      // Remove probability percentages (e.g., "snow,20" -> "snow")
-      return code.split(',')[0] ?? '';
-    }).filter(code => code !== '');
+    const codes = pathParts
+      .slice(timeIndex + 1)
+      .map((code) => {
+        // Remove probability percentages (e.g., "snow,20" -> "snow")
+        return code.split(',')[0] ?? '';
+      })
+      .filter((code) => code !== '');
 
     return { isNight, codes };
   } catch (error) {
@@ -74,7 +77,8 @@ export function getWeatherIconFromNOAAUrl(iconUrl: string | null | undefined): s
   // Thunderstorms
   if (primaryCode === 'tsra' || primaryCode === 'tsra_sct' || primaryCode === 'tsra_hi') {
     if (secondaryCode === 'snow') return `thunderstorms-${timePrefix}-snow`;
-    if (secondaryCode === 'rain' || secondaryCode === 'rain_showers') return `thunderstorms-${timePrefix}-rain`;
+    if (secondaryCode === 'rain' || secondaryCode === 'rain_showers')
+      return `thunderstorms-${timePrefix}-rain`;
     return `thunderstorms-${timePrefix}`;
   }
 
@@ -99,7 +103,11 @@ export function getWeatherIconFromNOAAUrl(iconUrl: string | null | undefined): s
   }
 
   // Rain
-  if (primaryCode === 'rain' || primaryCode === 'rain_showers' || primaryCode === 'rain_showers_hi') {
+  if (
+    primaryCode === 'rain' ||
+    primaryCode === 'rain_showers' ||
+    primaryCode === 'rain_showers_hi'
+  ) {
     // Check cloud cover from secondary code
     if (secondaryCode === 'few' || secondaryCode === 'sct') {
       return `partly-cloudy-${timePrefix}-rain`;
@@ -158,7 +166,10 @@ export function getWeatherIconFromNOAAUrl(iconUrl: string | null | undefined): s
  * @param isNight - Whether it's nighttime (default: false)
  * @returns Meteocons icon name (e.g., "sleet", "partly-cloudy-day-rain")
  */
-export function getWeatherIconName(description: string | null | undefined, isNight = false): string {
+export function getWeatherIconName(
+  description: string | null | undefined,
+  isNight = false,
+): string {
   if (!description) {
     return isNight ? 'clear-night' : 'clear-day';
   }

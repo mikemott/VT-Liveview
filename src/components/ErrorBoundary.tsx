@@ -34,7 +34,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
     this.setState({
       error,
-      errorInfo
+      errorInfo,
     });
   }
 
@@ -45,8 +45,9 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
   render(): ReactNode {
     if (this.state.hasError) {
-      const isDark = document.documentElement.classList.contains('dark') ||
-                     window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const isDark =
+        document.documentElement.classList.contains('dark') ||
+        window.matchMedia('(prefers-color-scheme: dark)').matches;
 
       return (
         <div className={`error-boundary ${isDark ? 'dark' : ''}`}>
@@ -59,9 +60,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
               <details className="error-details">
                 <summary>Error Details (Development Only)</summary>
                 <pre>{this.state.error.toString()}</pre>
-                {this.state.errorInfo && (
-                  <pre>{this.state.errorInfo.componentStack}</pre>
-                )}
+                {this.state.errorInfo && <pre>{this.state.errorInfo.componentStack}</pre>}
               </details>
             )}
 
