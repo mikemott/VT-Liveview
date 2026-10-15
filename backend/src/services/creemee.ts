@@ -22,31 +22,31 @@ export interface CreemeeStand {
  * Fetch all creemee stands
  * Returns static dataset loaded from JSON file
  */
-export async function fetchCreemeeStands(): Promise<CreemeeStand[]> {
-  return creemeeData as CreemeeStand[];
+export function fetchCreemeeStands(): Promise<CreemeeStand[]> {
+  return Promise.resolve(creemeeData);
 }
 
 /**
  * Fetch only featured creemee stands
  * Featured stands are award-winners or highly rated
  */
-export async function fetchFeaturedStands(): Promise<CreemeeStand[]> {
-  return (creemeeData as CreemeeStand[]).filter(stand => stand.featured);
+export function fetchFeaturedStands(): Promise<CreemeeStand[]> {
+  return Promise.resolve((creemeeData as CreemeeStand[]).filter(stand => stand.featured));
 }
 
 /**
  * Get a specific creemee stand by ID
  */
-export async function getCreemeeStandById(id: string): Promise<CreemeeStand | null> {
+export function getCreemeeStandById(id: string): Promise<CreemeeStand | null> {
   const stand = (creemeeData as CreemeeStand[]).find(s => s.id === id);
-  return stand || null;
+  return Promise.resolve(stand || null);
 }
 
 /**
  * Get creemee stands by town
  */
-export async function getCreemeeStandsByTown(town: string): Promise<CreemeeStand[]> {
-  return (creemeeData as CreemeeStand[]).filter(
+export function getCreemeeStandsByTown(town: string): Promise<CreemeeStand[]> {
+  return Promise.resolve((creemeeData as CreemeeStand[]).filter(
     s => s.town.toLowerCase() === town.toLowerCase()
-  );
+  ));
 }

@@ -1,6 +1,13 @@
 import beachData from '../data/vtBeaches.json' with { type: 'json' };
 import type { Beach, BeachCache, BurlingtonApiResponse } from '../types/beach.js';
 
+/** Static beach record from vtBeaches.json, before water quality is merged in */
+type StaticBeach = Pick<Beach, 'id' | 'name' | 'town' | 'latitude' | 'longitude' | 'parkType' | 'amenities'> & {
+  burlingtonLocationId?: number;
+};
+
+const staticBeaches: StaticBeach[] = beachData;
+
 const beachCache = new Map<string, BeachCache>();
 let cacheTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -107,7 +114,7 @@ export async function fetchBeachWaterQuality(): Promise<Beach[]> {
     const burlingtonData = await fetchBurlingtonBeachData();
 
     // Merge with static beach data
-    const beaches: Beach[] = (beachData as any[]).map(staticBeach => {
+    const beaches: Beach[] = staticBeaches.map(staticBeach => {
       // Check if this beach has Burlington water quality data
       const waterQualityData = staticBeach.burlingtonLocationId
         ? burlingtonData.get(staticBeach.burlingtonLocationId)
@@ -198,7 +205,7 @@ export async function fetchBeachWaterQuality(): Promise<Beach[]> {
     }
 
     // Last resort: return beaches with no quality data
-    return (beachData as any[]).map(beach => ({
+    return staticBeaches.map(beach => ({
       ...beach,
       waterQualityGrade: null,
       waterTemp: null,

@@ -365,8 +365,11 @@ async function start(): Promise<void> {
     process.exit(0);
   };
 
-  process.on('SIGTERM', () => shutdown('SIGTERM'));
-  process.on('SIGINT', () => shutdown('SIGINT'));
+  process.on('SIGTERM', () => void shutdown('SIGTERM'));
+  process.on('SIGINT', () => void shutdown('SIGINT'));
 }
 
-start();
+start().catch((error: unknown) => {
+  console.error('Failed to start server:', error);
+  process.exit(1);
+});

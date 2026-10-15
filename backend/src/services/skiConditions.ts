@@ -191,7 +191,7 @@ export async function fetchSkiConditions(): Promise<SkiResort[]> {
 
         // Today's Low/High
         else if (text.includes('Low/High')) {
-          const match = span.match(/(-?\d+)[^\/]*\/\s*(-?\d+)/);
+          const match = span.match(/(-?\d+)[^/]*\/\s*(-?\d+)/);
           if (match && match[1] && match[2]) {
             tempLow = parseInt(match[1]);
             tempHigh = parseInt(match[2]);

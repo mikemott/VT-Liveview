@@ -36,4 +36,7 @@ async function runMigrations() {
   process.exit(exitCode);
 }
 
-runMigrations();
+runMigrations().catch((error: unknown) => {
+  console.error('Migration failed:', error);
+  process.exit(1);
+});
