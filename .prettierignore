@@ -1,0 +1,11 @@
+# Generated / vendored
+node_modules
+dist
+coverage
+.worktrees
+backend
+package-lock.json
+public
+
+# Prose is hand-formatted (and CLAUDE.md is owner-maintained)
+*.md

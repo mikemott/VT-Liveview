@@ -15,7 +15,9 @@
     "db:migrate": "tsx src/db/migrate.ts",
     "db:studio": "drizzle-kit studio",
     "lint": "eslint . --max-warnings 0",
-    "check": "npm run lint && npm run typecheck && npm test"
+    "check": "npm run lint && npm run typecheck && npm run format:check && npm test",
+    "format": "prettier --write src \"*.{js,ts}\" package.json tsconfig.json",
+    "format:check": "prettier --check src \"*.{js,ts}\" package.json tsconfig.json"
   },
   "dependencies": {
     "@apollo/server": "^4.11.0",
@@ -39,6 +41,7 @@
     "drizzle-kit": "^0.30.0",
     "eslint": "^9.39.5",
     "globals": "^16.5.0",
+    "prettier": "^3.9.10",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.71.2",

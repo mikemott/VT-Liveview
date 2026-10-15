@@ -12,7 +12,10 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
-    "check": "npm run lint && npm run typecheck && npm test"
+    "check": "npm run lint && npm run typecheck && npm run format:check && npm test",
+    "format": "prettier --write src scripts .github \"*.{js,ts,html}\" package.json tsconfig.json",
+    "format:check": "prettier --check src scripts .github \"*.{js,ts,html}\" package.json tsconfig.json",
+    "prepare": "husky"
   },
   "dependencies": {
     "@bybas/weather-icons": "^2.0.0",
@@ -42,6 +45,9 @@
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
     "happy-dom": "^20.3.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
+    "prettier": "^3.9.10",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.71.2",
     "vite": "^7.2.4",
