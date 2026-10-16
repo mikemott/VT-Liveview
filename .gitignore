@@ -35,3 +35,8 @@ public/maps/*.pmtiles
 
 # Real upstream captures from scripts/record-fixtures.sh
 fixtures-recorded
+
+# Playwright output (snapshot baselines in e2e/*-snapshots/ ARE committed)
+playwright-report
+test-results
+blob-report

@@ -70,3 +70,61 @@ jobs:
           name: coverage-${{ matrix.package.name }}
           path: ${{ matrix.package.dir }}/coverage
           if-no-files-found: ignore
+
+  e2e:
+    name: e2e (${{ matrix.project }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [chromium, webkit, mobile]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm ci --prefix backend
+
+      - name: Install Playwright browser
+        # The mobile project emulates Pixel 7 on Chromium
+        run: npx playwright install --with-deps ${{ matrix.project == 'webkit' && 'webkit' || 'chromium' }}
+
+      - name: Run E2E tests
+        # Missing snapshot baselines are written (and uploaded below) instead of
+        # failing; committed baselines are compared strictly. See ADR 0002.
+        run: npx playwright test --project=${{ matrix.project }} --update-snapshots=missing
+
+      - name: Upload report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.project }}
+          path: |
+            playwright-report
+            test-results
+          retention-days: 14
+
+      - name: Upload new snapshot baselines
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: snapshots-${{ matrix.project }}
+          path: e2e/**/*-snapshots/*-${{ matrix.project }}-linux.png
+          if-no-files-found: ignore
+          retention-days: 14

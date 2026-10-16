@@ -11,10 +11,12 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc --noEmit",
+    "test:e2e": "playwright test",
+    "test:e2e:update": "playwright test --update-snapshots",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.e2e.json",
     "check": "npm run lint && npm run typecheck && npm run format:check && npm test",
-    "format": "prettier --write src scripts .github \"*.{js,ts,html}\" package.json tsconfig.json",
-    "format:check": "prettier --check src scripts .github \"*.{js,ts,html}\" package.json tsconfig.json",
+    "format": "prettier --write src e2e scripts .github \"*.{js,ts,html}\" package.json tsconfig.json tsconfig.e2e.json",
+    "format:check": "prettier --check src e2e scripts .github \"*.{js,ts,html}\" package.json tsconfig.json tsconfig.e2e.json",
     "prepare": "husky"
   },
   "dependencies": {
@@ -31,7 +33,9 @@
     "zod": "^4.3.5"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@eslint/js": "^9.39.1",
+    "@playwright/test": "^1.64.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
     "@types/node": "^25.0.8",
