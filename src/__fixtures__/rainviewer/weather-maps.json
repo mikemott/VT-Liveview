@@ -1,0 +1,19 @@
+{
+  "version": "2.0",
+  "generated": 1792166400,
+  "host": "https://tilecache.rainviewer.com",
+  "radar": {
+    "past": [
+      { "time": 1792164600, "path": "/v2/radar/1792164600" },
+      { "time": 1792165200, "path": "/v2/radar/1792165200" },
+      { "time": 1792165800, "path": "/v2/radar/1792165800" },
+      { "time": 1792166400, "path": "/v2/radar/1792166400" },
+      { "time": 1792167000, "path": "/v2/radar/1792167000" }
+    ],
+    "nowcast": [
+      { "time": 1792167600, "path": "/v2/radar/nowcast_1792167600" },
+      { "time": 1792168200, "path": "/v2/radar/nowcast_1792168200" },
+      { "time": 1792168800, "path": "/v2/radar/nowcast_1792168800" }
+    ]
+  }
+}

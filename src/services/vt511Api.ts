@@ -214,7 +214,7 @@ function parseIncident(incidentElement: Element): VT511ParsedIncident | null {
     return {
       id: `vt511-incident-${incidentElement.getAttribute('id') ?? Date.now()}`,
       type: mapIncidentType(typeElement),
-      title: titleParts[0] ?? 'Traffic Incident',
+      title: titleParts[0] || 'Traffic Incident',
       description: desc,
       location: {
         lat: microDegreesToDecimal(lat),
@@ -253,7 +253,7 @@ function parseLaneClosure(closureElement: Element): VT511ParsedIncident | null {
     // Extract work schedule from description if present
     const hasSchedule = desc.includes('AM') || desc.includes('PM');
     const titleParts = desc.split('.');
-    let title = titleParts[0] ?? 'Construction';
+    let title = titleParts[0] || 'Construction';
     if (title.length > 100) {
       title = title.substring(0, 97) + '...';
     }

@@ -252,6 +252,8 @@ export function useRadarAnimation(
             tileUrl: IEM_RADAR_URL,
           },
         ]);
+        // Reset the index: a previous successful fetch may have left it beyond the single fallback frame
+        setCurrentFrame(0);
       } finally {
         setIsLoading(false);
       }

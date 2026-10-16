@@ -1,0 +1,36 @@
+{
+  "data": {
+    "forecast": [
+      {
+        "number": 1,
+        "name": "Tonight",
+        "startTime": "2026-10-16T18:00:00-04:00",
+        "endTime": "2026-10-17T06:00:00-04:00",
+        "isDaytime": false,
+        "temperature": 38,
+        "temperatureUnit": "F",
+        "windSpeed": "5 mph",
+        "windDirection": "NW",
+        "icon": "https://api.weather.gov/icons/land/night/sct?size=medium",
+        "shortForecast": "Partly Cloudy",
+        "detailedForecast": "Partly cloudy, with a low around 38.",
+        "probabilityOfPrecipitation": { "value": null }
+      },
+      {
+        "number": 2,
+        "name": "Saturday",
+        "startTime": "2026-10-17T06:00:00-04:00",
+        "endTime": "2026-10-17T18:00:00-04:00",
+        "isDaytime": true,
+        "temperature": 55,
+        "temperatureUnit": "F",
+        "windSpeed": "10 mph",
+        "windDirection": "W",
+        "icon": "https://api.weather.gov/icons/land/day/rain_showers,40/bkn?size=medium",
+        "shortForecast": "Chance Rain Showers",
+        "detailedForecast": "A chance of rain showers. Mostly cloudy, with a high near 55.",
+        "probabilityOfPrecipitation": { "value": 40 }
+      }
+    ]
+  }
+}

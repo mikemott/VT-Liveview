@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SYNTHETIC fixture: shape inferred from src/services/vt511Api.ts, not captured upstream. -->
+<laneClosures>
+  <laneClosure id="2001">
+    <desc>Lane closure for bridge joint repair 7:00 AM to 3:00 PM. Expect delays.</desc>
+    <severity>Low</severity>
+    <createdTimestamp>2026-10-15T07:00:00-04:00</createdTimestamp>
+    <affectedLanesDescription>Left lane</affectedLanesDescription>
+    <startLocation>
+      <lat>43610000</lat>
+      <lon>-72970000</lon>
+      <roadway>US-4</roadway>
+      <city>Rutland</city>
+    </startLocation>
+    <endLocation>
+      <lat>43620000</lat>
+      <lon>-72960000</lon>
+    </endLocation>
+  </laneClosure>
+  <laneClosure id="2002">
+    <desc>Shoulder work on VT-100 between Waterbury and Stowe with intermittent flagging and occasional full stops for paving equipment</desc>
+    <startLocation>
+      <lat>44400000</lat>
+      <lon>-72740000</lon>
+      <roadway>VT-100</roadway>
+      <city>Waterbury</city>
+    </startLocation>
+  </laneClosure>
+</laneClosures>
