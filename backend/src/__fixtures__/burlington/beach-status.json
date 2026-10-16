@@ -1,0 +1,92 @@
+{
+  "displayFieldName": "LocationName",
+  "geometryType": "esriGeometryPoint",
+  "spatialReference": { "wkid": 102100, "latestWkid": 3857 },
+  "features": [
+    {
+      "attributes": {
+        "OBJECTID": 101,
+        "LocationId": 1,
+        "ResultId": 5001,
+        "LocationName": "North Shore Natural Area",
+        "DisplayOrder": 1,
+        "ResultDateTime": "2026-07-14T13:30:00Z",
+        "CreatedBy": "parks",
+        "CyanobacteriaCategory": 1,
+        "CyanobacteriaDescription": "Open",
+        "EColi": 20,
+        "Notes": null,
+        "StatusReason": "Routine"
+      },
+      "geometry": { "x": -8150960.1, "y": 5543601.2 }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 102,
+        "LocationId": 2,
+        "ResultId": 5002,
+        "LocationName": "Leddy Beach North",
+        "DisplayOrder": 2,
+        "ResultDateTime": "2026-07-14T13:35:00Z",
+        "CreatedBy": "parks",
+        "CyanobacteriaCategory": 2,
+        "CyanobacteriaDescription": "Alert",
+        "EColi": 75,
+        "Notes": "Resampling tomorrow.",
+        "StatusReason": "Cyanobacteria"
+      },
+      "geometry": { "x": -8151200.5, "y": 5542410.8 }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 103,
+        "LocationId": 3,
+        "ResultId": 5003,
+        "LocationName": "Leddy Beach South",
+        "DisplayOrder": 3,
+        "ResultDateTime": "2026-07-14T13:40:00Z",
+        "CreatedBy": "parks",
+        "CyanobacteriaCategory": 3,
+        "CyanobacteriaDescription": "Closed",
+        "EColi": 10,
+        "Notes": null,
+        "StatusReason": "Cyanobacteria bloom"
+      },
+      "geometry": { "x": -8151250.0, "y": 5542210.0 }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 104,
+        "LocationId": 4,
+        "ResultId": 5004,
+        "LocationName": "North Beach North",
+        "DisplayOrder": 4,
+        "ResultDateTime": "2026-07-14T13:45:00Z",
+        "CreatedBy": "parks",
+        "CyanobacteriaCategory": 1,
+        "CyanobacteriaDescription": "Open",
+        "EColi": 410,
+        "Notes": null,
+        "StatusReason": "E. coli"
+      },
+      "geometry": { "x": -8151400.0, "y": 5541900.0 }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 105,
+        "LocationId": 5,
+        "ResultId": 5005,
+        "LocationName": "North Beach South",
+        "DisplayOrder": 5,
+        "ResultDateTime": "2026-07-14T13:50:00Z",
+        "CreatedBy": "parks",
+        "CyanobacteriaCategory": null,
+        "CyanobacteriaDescription": "",
+        "EColi": 0,
+        "Notes": null,
+        "StatusReason": "Not sampled"
+      },
+      "geometry": { "x": -8152400.0, "y": 5537800.0 }
+    }
+  ]
+}

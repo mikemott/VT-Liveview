@@ -1,0 +1,26 @@
+{
+  "id": "https://api.weather.gov/zones/forecast/VTZ005",
+  "type": "Feature",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [-73.35, 44.35],
+        [-73.05, 44.35],
+        [-73.05, 44.6],
+        [-73.35, 44.6],
+        [-73.35, 44.35]
+      ]
+    ]
+  },
+  "properties": {
+    "@id": "https://api.weather.gov/zones/forecast/VTZ005",
+    "@type": "wx:Zone",
+    "id": "VTZ005",
+    "type": "public",
+    "name": "Western Chittenden",
+    "state": "VT",
+    "forecastOffices": ["https://api.weather.gov/offices/BTV"],
+    "timeZone": ["America/New_York"]
+  }
+}

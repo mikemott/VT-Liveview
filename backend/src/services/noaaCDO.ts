@@ -59,7 +59,7 @@ interface NOAACDOResponse {
 }
 
 interface NOAACDODatapoint {
-  date: string; // YYYY-MM-DD
+  date: string; // YYYY-MM-DDT00:00:00
   datatype: 'TMAX' | 'TMIN' | 'PRCP' | 'SNOW';
   value: number;
 }
@@ -129,11 +129,13 @@ function processWeatherData(datapoints: NOAACDODatapoint[]): WeatherDay[] {
   const byDate = new Map<string, Partial<WeatherDay>>();
 
   for (const point of datapoints) {
-    if (!byDate.has(point.date)) {
-      byDate.set(point.date, { date: point.date });
+    // CDO returns "YYYY-MM-DDT00:00:00"; normalise to the documented YYYY-MM-DD
+    const date = point.date.slice(0, 10);
+    if (!byDate.has(date)) {
+      byDate.set(date, { date });
     }
 
-    const day = byDate.get(point.date)!;
+    const day = byDate.get(date)!;
 
     switch (point.datatype) {
       case 'TMAX':
@@ -167,6 +169,40 @@ function processWeatherData(datapoints: NOAACDODatapoint[]): WeatherDay[] {
   days.sort((a, b) => a.date.localeCompare(b.date));
 
   return days;
+}
+
+/**
+ * Store a result with a 1-hour TTL and FIFO eviction at MAX_CACHE_SIZE.
+ * Any existing timer for the key is cleared first, so a concurrent miss can't
+ * leave an orphaned timer that deletes the fresher entry early.
+ */
+function cacheResult(cacheKey: string, result: HistoricalWeatherData): void {
+  const existing = cacheTimeouts.get(cacheKey);
+  if (existing) {
+    clearTimeout(existing);
+    cacheTimeouts.delete(cacheKey);
+  }
+
+  if (historicalCache.size >= MAX_CACHE_SIZE && !historicalCache.has(cacheKey)) {
+    const firstKey = historicalCache.keys().next().value;
+    if (firstKey !== undefined) {
+      historicalCache.delete(firstKey);
+      const timeout = cacheTimeouts.get(firstKey);
+      if (timeout) {
+        clearTimeout(timeout);
+        cacheTimeouts.delete(firstKey);
+      }
+    }
+  }
+
+  historicalCache.set(cacheKey, result);
+  cacheTimeouts.set(
+    cacheKey,
+    setTimeout(() => {
+      historicalCache.delete(cacheKey);
+      cacheTimeouts.delete(cacheKey);
+    }, CACHE_TTL),
+  );
 }
 
 // ============================================================================
@@ -287,26 +323,8 @@ export async function getHistoricalWeather(
       stationDistance: station.distance,
     };
 
-    // Cache empty results with LRU eviction to avoid repeated API calls
-    if (historicalCache.size >= MAX_CACHE_SIZE) {
-      const firstKey = historicalCache.keys().next().value as string;
-      historicalCache.delete(firstKey);
-      const timeout = cacheTimeouts.get(firstKey);
-      if (timeout) {
-        clearTimeout(timeout);
-        cacheTimeouts.delete(firstKey);
-      }
-    }
-
-    historicalCache.set(cacheKey, result);
-
-    // Clear cache after 1 hour
-    const timeout = setTimeout(() => {
-      historicalCache.delete(cacheKey);
-      cacheTimeouts.delete(cacheKey);
-    }, CACHE_TTL);
-
-    cacheTimeouts.set(cacheKey, timeout);
+    // Cache empty results too, to avoid repeated API calls
+    cacheResult(cacheKey, result);
 
     return result;
   }
@@ -323,30 +341,7 @@ export async function getHistoricalWeather(
     stationDistance: station.distance,
   };
 
-  // Cache with LRU eviction
-  if (historicalCache.size >= MAX_CACHE_SIZE) {
-    const firstKey = historicalCache.keys().next().value;
-    if (firstKey !== undefined) {
-      historicalCache.delete(firstKey);
-
-      // Clear associated timeout
-      const timeout = cacheTimeouts.get(firstKey);
-      if (timeout) {
-        clearTimeout(timeout);
-        cacheTimeouts.delete(firstKey);
-      }
-    }
-  }
-
-  historicalCache.set(cacheKey, result);
-
-  // Clear cache after 1 hour
-  const timeout = setTimeout(() => {
-    historicalCache.delete(cacheKey);
-    cacheTimeouts.delete(cacheKey);
-  }, CACHE_TTL);
-
-  cacheTimeouts.set(cacheKey, timeout);
+  cacheResult(cacheKey, result);
 
   return result;
 }

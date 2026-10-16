@@ -1,0 +1,41 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "id": "https://api.weather.gov/stations/KBTV",
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-73.15, 44.47] },
+      "properties": {
+        "@id": "https://api.weather.gov/stations/KBTV",
+        "stationIdentifier": "KBTV",
+        "name": "Burlington International Airport",
+        "elevation": { "unitCode": "wmoUnit:m", "value": 100.89 },
+        "timeZone": "America/New_York"
+      }
+    },
+    {
+      "id": "https://api.weather.gov/stations/KMPV",
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-72.56, 44.2] },
+      "properties": {
+        "@id": "https://api.weather.gov/stations/KMPV",
+        "stationIdentifier": "KMPV",
+        "name": "Barre-Montpelier, Knapp State Airport",
+        "elevation": { "unitCode": "wmoUnit:m", "value": 342.9 },
+        "timeZone": "America/New_York"
+      }
+    },
+    {
+      "id": "https://api.weather.gov/stations/KMVL",
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-72.61, 44.53] },
+      "properties": {
+        "@id": "https://api.weather.gov/stations/KMVL",
+        "stationIdentifier": "KMVL",
+        "name": "Morrisville-Stowe State Airport",
+        "elevation": { "unitCode": "wmoUnit:m", "value": null },
+        "timeZone": "America/New_York"
+      }
+    }
+  ]
+}

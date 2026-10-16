@@ -1,0 +1,54 @@
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [-73.2, 44.46],
+        [-73.19, 44.48],
+        [-73.22, 44.49],
+        [-73.2, 44.46]
+      ]
+    ]
+  },
+  "properties": {
+    "units": "us",
+    "forecastGenerator": "BaselineForecastGenerator",
+    "generatedAt": "2026-01-15T14:30:00+00:00",
+    "updated": "2026-01-15T13:00:00+00:00",
+    "periods": [
+      {
+        "number": 1,
+        "name": "Today",
+        "startTime": "2026-01-15T09:00:00-05:00",
+        "endTime": "2026-01-15T18:00:00-05:00",
+        "isDaytime": true,
+        "temperature": 25,
+        "temperatureUnit": "F",
+        "temperatureTrend": null,
+        "probabilityOfPrecipitation": { "unitCode": "wmoUnit:percent", "value": 60 },
+        "windSpeed": "5 to 10 mph",
+        "windDirection": "S",
+        "icon": "https://api.weather.gov/icons/land/day/snow,60?size=medium",
+        "shortForecast": "Snow Likely",
+        "detailedForecast": "Snow likely. Cloudy, with a high near 25. New snow accumulation of 1 to 2 inches possible."
+      },
+      {
+        "number": 2,
+        "name": "Tonight",
+        "startTime": "2026-01-15T18:00:00-05:00",
+        "endTime": "2026-01-16T06:00:00-05:00",
+        "isDaytime": false,
+        "temperature": 12,
+        "temperatureUnit": "F",
+        "temperatureTrend": null,
+        "probabilityOfPrecipitation": { "unitCode": "wmoUnit:percent", "value": 20 },
+        "windSpeed": "5 mph",
+        "windDirection": "NW",
+        "icon": "https://api.weather.gov/icons/land/night/sct?size=medium",
+        "shortForecast": "Partly Cloudy",
+        "detailedForecast": "Partly cloudy, with a low around 12."
+      }
+    ]
+  }
+}

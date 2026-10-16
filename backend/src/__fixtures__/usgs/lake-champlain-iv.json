@@ -1,0 +1,38 @@
+{
+  "name": "ns1:timeSeriesResponseType",
+  "declaredType": "org.cuahsi.waterml.TimeSeriesResponseType",
+  "value": {
+    "queryInfo": {
+      "queryURL": "http://waterservices.usgs.gov/nwis/iv/format=json&sites=04294500&parameterCd=00010&siteStatus=active"
+    },
+    "timeSeries": [
+      {
+        "sourceInfo": {
+          "siteName": "LAKE CHAMPLAIN AT BURLINGTON, VT",
+          "siteCode": [{ "value": "04294500", "network": "NWIS", "agencyCode": "USGS" }],
+          "geoLocation": {
+            "geogLocation": {
+              "srs": "EPSG:4326",
+              "latitude": 44.47588889,
+              "longitude": -73.2214444
+            }
+          }
+        },
+        "variable": {
+          "variableCode": [{ "value": "00010", "network": "NWIS" }],
+          "variableName": "Temperature, water, &#176;C",
+          "unit": { "unitCode": "deg C" }
+        },
+        "values": [
+          {
+            "value": [
+              { "value": "3.9", "qualifiers": ["P"], "dateTime": "2026-01-15T09:00:00.000-05:00" },
+              { "value": "4.0", "qualifiers": ["P"], "dateTime": "2026-01-15T09:15:00.000-05:00" }
+            ]
+          }
+        ],
+        "name": "USGS:04294500:00010:00000"
+      }
+    ]
+  }
+}

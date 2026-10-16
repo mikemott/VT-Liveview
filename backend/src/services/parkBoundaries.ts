@@ -118,7 +118,6 @@ async function fetchFromAPI(): Promise<ParkBoundary[]> {
 // =============================================================================
 
 const boundaryCache = new Map<string, ParkBoundaryCache>();
-let cacheTimeout: ReturnType<typeof setTimeout> | null = null;
 
 const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
@@ -127,8 +126,10 @@ const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
  */
 export async function fetchParkBoundaries(): Promise<ParkBoundary[]> {
   // Check cache first
+  // Freshness is checked by age (not by a timer clearing the Map) so an
+  // expired entry is still available as a stale-on-error fallback.
   const cached = boundaryCache.get('boundaries');
-  if (cached) {
+  if (cached && Date.now() - Date.parse(cached.fetchedAt) < CACHE_TTL_MS) {
     return cached.boundaries;
   }
 
@@ -141,12 +142,6 @@ export async function fetchParkBoundaries(): Promise<ParkBoundary[]> {
       fetchedAt: new Date().toISOString(),
     };
     boundaryCache.set('boundaries', cacheData);
-
-    // Set timeout to clear cache
-    if (cacheTimeout) clearTimeout(cacheTimeout);
-    cacheTimeout = setTimeout(() => {
-      boundaryCache.clear();
-    }, CACHE_TTL_MS);
 
     return boundaries;
   } catch (error) {
@@ -174,8 +169,4 @@ export async function fetchParkBoundaries(): Promise<ParkBoundary[]> {
  */
 export function clearCache(): void {
   boundaryCache.clear();
-  if (cacheTimeout) {
-    clearTimeout(cacheTimeout);
-    cacheTimeout = null;
-  }
 }
