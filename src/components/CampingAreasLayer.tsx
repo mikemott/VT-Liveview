@@ -107,7 +107,7 @@ function createAreaMarker(area: CampingArea): HTMLDivElement {
 
 function createPopupHTML(area: CampingArea): string {
   const safeName = escapeHTML(area.name);
-  const typeLabel = PARK_TYPE_LABELS[area.type] || area.type;
+  const typeLabel = escapeHTML(PARK_TYPE_LABELS[area.type] || area.type);
   const color =
     PARK_TYPE_COLORS[area.type as keyof typeof PARK_TYPE_COLORS] || PARK_TYPE_COLORS.other;
 

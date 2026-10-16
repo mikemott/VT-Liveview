@@ -68,6 +68,16 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
       );
     }
 
+    // Pending retry / verification timers, cleared on unmount
+    const timers = new Set<ReturnType<typeof setTimeout>>();
+    const schedule = (fn: () => void, ms: number) => {
+      const id = setTimeout(() => {
+        timers.delete(id);
+        fn();
+      }, ms);
+      timers.add(id);
+    };
+
     const addTrafficLayers = (retryCount = 0) => {
       const styleLoaded = map.isStyleLoaded();
 
@@ -78,7 +88,7 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
             console.log('TrafficFlowLayer: Style not loaded, scheduling retry');
           }
           // Increased delay to 200ms to give style more time to stabilize
-          setTimeout(() => addTrafficLayers(retryCount + 1), 200);
+          schedule(() => addTrafficLayers(retryCount + 1), 200);
         } else {
           if (import.meta.env.DEV) {
             console.error(
@@ -160,11 +170,12 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
           }
         }
 
-        const visibilityValue = visible ? 'visible' : 'none';
+        // Read the ref: this closure outlives renders (style.load re-adds layers)
+        const visibilityValue = visibleRef.current ? 'visible' : 'none';
         if (import.meta.env.DEV) {
           console.log(
             'TrafficFlowLayer: Creating layers with visible =',
-            visible,
+            visibleRef.current,
             'visibility =',
             visibilityValue,
           );
@@ -254,12 +265,12 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
             casingLayerExists: !!map.getLayer(LAYER_ID_CASING),
             mainVisibility: mainVis,
             casingVisibility: casingVis,
-            visibleProp: visible,
+            visibleProp: visibleRef.current,
           });
         }
 
         // Single check after 1 second to verify layers survived
-        setTimeout(() => {
+        schedule(() => {
           const stillExists = !!map.getLayer(LAYER_ID);
           const casingStillExists = !!map.getLayer(LAYER_ID_CASING);
           const sourceStillExists = !!map.getSource(SOURCE_ID);
@@ -288,7 +299,7 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
     // Add small delay after style.load to ensure style is fully ready
     const handleStyleLoad = () => {
       // Wait for next tick to ensure style is fully settled
-      setTimeout(() => addTrafficLayers(), 50);
+      schedule(() => addTrafficLayers(), 50);
     };
 
     map.on('style.load', handleStyleLoad);
@@ -299,7 +310,8 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
         console.log(`TrafficFlowLayer: CLEANUP RUNNING - Instance ID: ${instanceId}`);
       }
       map.off('style.load', handleStyleLoad);
-      if (!map) return;
+      timers.forEach(clearTimeout);
+      timers.clear();
       try {
         if (map.getLayer(LAYER_ID)) {
           map.removeLayer(LAYER_ID);
@@ -315,8 +327,6 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
       }
       layersAdded.current = false;
     };
-    // TODO(VTL-45 Medium): stale `visible` closure re-shows hidden traffic after a style swap (see docs/review/FINDINGS.md)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map]); // isDark removed - handled in separate effect below
 
   // Separate effect for isDark changes (update paint colors only)
