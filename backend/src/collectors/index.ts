@@ -17,17 +17,20 @@ export { collectRiverGauges } from './gauges.js';
 
 /**
  * Retry wrapper for collectors with exponential backoff.
+ * Rethrows the last error once all attempts fail, so callers can record it.
  */
 export async function withRetry<T>(
   fn: () => Promise<T>,
   name: string,
   maxRetries: number = 3,
   baseDelay: number = 1000,
-): Promise<T | null> {
+): Promise<T> {
+  let lastError: unknown = new Error(`[Collector:${name}] maxRetries must be >= 1`);
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       return await fn();
     } catch (error) {
+      lastError = error;
       const delay = baseDelay * Math.pow(2, attempt);
       const message = error instanceof Error ? error.message : 'Unknown error';
 
@@ -43,7 +46,7 @@ export async function withRetry<T>(
       }
     }
   }
-  return null;
+  throw lastError;
 }
 
 /**

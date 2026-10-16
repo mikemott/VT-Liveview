@@ -157,7 +157,9 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
   fastify.get('/graphql', fastifyApolloHandler(apollo));
 
   // Health check endpoint
-  fastify.get('/health', async (): Promise<HealthResponse> => {
+  // Returns 503 when degraded so Fly's HTTP check (top-level [checks] in fly.toml:
+  // monitoring/deploy gating, not routing) reflects a database outage.
+  fastify.get('/health', async (_request, reply): Promise<HealthResponse> => {
     const response: HealthResponse = {
       status: 'ok',
       timestamp: new Date().toISOString(),
@@ -188,6 +190,9 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
     // Add collector status
     response.collector = getCollectorStatus();
 
+    if (response.status !== 'ok') {
+      reply.code(503);
+    }
     return response;
   });
 
@@ -237,70 +242,31 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
     },
   };
 
-  fastify.get(
-    '/api/vt511/incidents',
-    async (_request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+  // Relay upstream XML; a non-2xx upstream is reported as 502 instead of a 200 XML body.
+  const proxyVt511 = (path: string, dataType: string, label: string): void => {
+    fastify.get(path, async (_request: FastifyRequest, reply: FastifyReply): Promise<void> => {
       try {
         const response = await fetch(
-          `${VT_511_BASE}?networks=Vermont&dataTypes=incidentData`,
+          `${VT_511_BASE}?networks=Vermont&dataTypes=${dataType}`,
           vt511FetchOptions,
         );
+        if (!response.ok) {
+          reply.code(502).send({ error: `VT 511 upstream returned ${response.status}` });
+          return;
+        }
         const xmlText = await response.text();
         reply.type('text/xml').send(xmlText);
       } catch {
-        reply.code(500).send({ error: 'Failed to fetch VT 511 incident data' });
+        reply.code(500).send({ error: `Failed to fetch VT 511 ${label} data` });
       }
-    },
-  );
+    });
+  };
 
-  fastify.get(
-    '/api/vt511/closures',
-    async (_request: FastifyRequest, reply: FastifyReply): Promise<void> => {
-      try {
-        const response = await fetch(
-          `${VT_511_BASE}?networks=Vermont&dataTypes=laneClosureData`,
-          vt511FetchOptions,
-        );
-        const xmlText = await response.text();
-        reply.type('text/xml').send(xmlText);
-      } catch {
-        reply.code(500).send({ error: 'Failed to fetch VT 511 lane closure data' });
-      }
-    },
-  );
-
+  proxyVt511('/api/vt511/incidents', 'incidentData', 'incident');
+  proxyVt511('/api/vt511/closures', 'laneClosureData', 'lane closure');
   // Traffic flow data endpoints
-  fastify.get(
-    '/api/vt511/traffic-conditions',
-    async (_request: FastifyRequest, reply: FastifyReply): Promise<void> => {
-      try {
-        const response = await fetch(
-          `${VT_511_BASE}?networks=Vermont&dataTypes=trafficCondData`,
-          vt511FetchOptions,
-        );
-        const xmlText = await response.text();
-        reply.type('text/xml').send(xmlText);
-      } catch {
-        reply.code(500).send({ error: 'Failed to fetch VT 511 traffic condition data' });
-      }
-    },
-  );
-
-  fastify.get(
-    '/api/vt511/network',
-    async (_request: FastifyRequest, reply: FastifyReply): Promise<void> => {
-      try {
-        const response = await fetch(
-          `${VT_511_BASE}?networks=Vermont&dataTypes=networkData`,
-          vt511FetchOptions,
-        );
-        const xmlText = await response.text();
-        reply.type('text/xml').send(xmlText);
-      } catch {
-        reply.code(500).send({ error: 'Failed to fetch VT 511 network data' });
-      }
-    },
-  );
+  proxyVt511('/api/vt511/traffic-conditions', 'trafficCondData', 'traffic condition');
+  proxyVt511('/api/vt511/network', 'networkData', 'network');
 
   // Ski conditions cache refresh endpoint
   fastify.post(

@@ -59,6 +59,11 @@ export async function collectTrafficIncidents(): Promise<number> {
       if (isDev()) {
         console.log('[Collector:Traffic] No incidents from VT 511');
       }
+      // Feed is empty (and the upstream responded OK): every open incident has cleared
+      await db
+        .update(trafficIncidents)
+        .set({ resolvedAt: new Date() })
+        .where(isNull(trafficIncidents.resolvedAt));
       return 0;
     }
 
