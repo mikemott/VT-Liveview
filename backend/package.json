@@ -41,6 +41,7 @@
     "drizzle-kit": "^0.30.0",
     "eslint": "^9.39.5",
     "globals": "^16.5.0",
+    "msw": "^2.15.0",
     "prettier": "^3.9.10",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
