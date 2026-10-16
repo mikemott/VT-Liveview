@@ -32,3 +32,6 @@ coverage
 *.sln
 *.sw?
 public/maps/*.pmtiles
+
+# Real upstream captures from scripts/record-fixtures.sh
+fixtures-recorded

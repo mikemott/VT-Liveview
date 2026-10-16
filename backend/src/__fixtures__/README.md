@@ -38,3 +38,5 @@ valid sites. The tests pad these fixtures by cloning the first record
 (`src/services/__tests__/arcgisFixtures.ts`), so the files can stay small.
 
 Other directories (for example `collectors/`) belong to other test suites.
+
+To capture real responses for comparison, run `scripts/record-fixtures.sh` from the repo root (writes to the gitignored `fixtures-recorded/`).
