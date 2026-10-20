@@ -178,11 +178,19 @@ describe('RadarOverlay', () => {
     expect(fake.layerIds()).toEqual([]);
   });
 
-  it('shows the tile-loading hint until layers can be added', () => {
+  it('adds layers, enables controls and cleans up while isStyleLoaded() is false (FINDINGS H11)', async () => {
+    // isStyleLoaded() is false whenever tiles are still loading; it must not block init.
     fake.styleLoaded = false;
-    render(<RadarOverlay map={fake.asMap()} />);
-    expect(screen.getByText('Loading radar tiles...')).toBeInTheDocument();
+    const { unmount } = render(<RadarOverlay map={fake.asMap()} />);
+    await flushSequentialAdds();
+    expect(fake.layerIds()).toEqual(layerIds(3));
+    expect(screen.queryByText('Loading radar tiles...')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Previous radar frame' })).toBeEnabled();
+
+    unmount();
     expect(fake.layerIds()).toEqual([]);
+    expect(fake.sourceIds()).toEqual([]);
+    expect(fake.errors).toEqual([]);
   });
 
   it('renders the collapsed variant', () => {
@@ -191,9 +199,57 @@ describe('RadarOverlay', () => {
     expect(screen.queryByRole('button')).toBeNull();
   });
 
-  it.todo(
-    'makes the current frame visible once its layer is added by the async loop (FINDINGS H10)',
-  );
-  it.todo('cancels the sequential layer-add loop on unmount / refresh (FINDINGS H10)');
-  it.todo('removes radar layers on unmount even while isStyleLoaded() is false (FINDINGS H11)');
+  it('makes the current frame visible once its layer is added by the async loop (FINDINGS H10)', async () => {
+    // The newest frame is current, so its layer is the last one the loop adds.
+    hook.value = makeHook({ currentFrame: 2 });
+    render(<RadarOverlay map={fake.asMap()} />);
+    await flushSequentialAdds();
+    expect(fake.getLayoutProperty('radar-layer-2', 'visibility')).toBe('visible');
+    expect(fake.getPaintProperty('radar-layer-2', 'raster-opacity')).toBe(0.7);
+    expect(fake.getLayoutProperty('radar-layer-0', 'visibility')).toBe('none');
+  });
+
+  it('cancels the sequential layer-add loop on unmount (FINDINGS H10)', async () => {
+    const { unmount } = render(<RadarOverlay map={fake.asMap()} />);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(400);
+    });
+    expect(fake.layerIds().length).toBeGreaterThan(0);
+    expect(fake.layerIds().length).toBeLessThan(3);
+
+    unmount();
+    await flushSequentialAdds();
+    expect(fake.layerIds()).toEqual([]);
+    expect(fake.sourceIds()).toEqual([]);
+    expect(fake.errors).toEqual([]);
+  });
+
+  it('does not interleave an old add loop with a refreshed one (FINDINGS H10)', async () => {
+    const { rerender } = render(<RadarOverlay map={fake.asMap()} />);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(400);
+    });
+    const refreshed = makeRadarFrames(3).map((f) => ({ ...f, tileUrl: `${f.tileUrl}?v=2` }));
+    hook.value = { ...state, frames: refreshed, currentFrameData: refreshed[0] ?? null };
+    rerender(<RadarOverlay map={fake.asMap()} />);
+    await flushSequentialAdds();
+
+    expect(fake.layerIds()).toEqual(layerIds(3));
+    for (const id of sourceIds(3)) {
+      expect((fake.getSource(id)?.spec.tiles as string[])[0]).toContain('?v=2');
+    }
+    expect(fake.errors).toEqual([]);
+  });
+
+  it('stops adding layers if the map rejects them (style being replaced)', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const addSource = vi.spyOn(fake, 'addSource').mockImplementation(() => {
+      throw new Error('Style is not done loading');
+    });
+    render(<RadarOverlay map={fake.asMap()} />);
+    await flushSequentialAdds();
+    expect(addSource).toHaveBeenCalledTimes(1);
+    expect(fake.layerIds()).toEqual([]);
+    expect(screen.getByText('Loading radar tiles...')).toBeInTheDocument();
+  });
 });
