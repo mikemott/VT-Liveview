@@ -47,6 +47,27 @@ test.describe('alerts', () => {
     // Activating an alert fits the map to it; the app must stay healthy.
     await expect(page.locator('.maplibregl-canvas')).toBeVisible();
   });
+
+  test('dismissing an alert removes it from the list', async ({ page, isMobile }) => {
+    await openApp(page);
+    if (isMobile) await page.getByRole('button', { name: 'Open menu' }).click();
+
+    const heading = page.getByRole('heading', { name: /Active Alerts \(\d+\)/ });
+    await expect(heading).toBeVisible();
+    const count = Number(/\((\d+)\)/.exec((await heading.textContent()) ?? '')?.[1]);
+
+    await page.getByRole('button', { name: 'Dismiss Winter Weather Advisory alert' }).click();
+    await expect(
+      page.getByRole('button', { name: 'Zoom to Winter Weather Advisory affected area' }),
+    ).toHaveCount(0);
+    if (count > 1) {
+      await expect(
+        page.getByRole('heading', { name: `Active Alerts (${count - 1})` }),
+      ).toBeVisible();
+    } else {
+      await expect(page.getByRole('heading', { name: /Active Alerts/ })).toHaveCount(0);
+    }
+  });
 });
 
 test.describe('radar controls', () => {

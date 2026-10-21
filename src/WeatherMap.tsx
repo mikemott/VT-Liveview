@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback, KeyboardEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import maplibregl, { type MapLayerMouseEvent } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './WeatherMap.css';
@@ -47,6 +47,11 @@ const VERMONT_CENTER = {
 // =============================================================================
 
 // Get Lucide icon based on severity - defined outside component for performance
+// Stable identity for an alert across refetches (merged alert ids are stable, FINDINGS H1)
+function alertKey(alert: AlertFeature): string {
+  return alert.properties.id || alert.properties.event;
+}
+
 function getSeverityIcon(severity: string): React.ReactNode {
   switch (severity) {
     case 'Extreme':
@@ -75,10 +80,20 @@ function WeatherMap() {
   const [manualThemeOverride, setManualThemeOverride] = useState(false);
   const [mapStyleVersion, setMapStyleVersion] = useState(0); // Track map style changes
   const [alerts, setAlerts] = useState<AlertFeature[]>([]);
+  // Alerts the user dismissed; kept across refetches so they don't reappear
+  const [dismissedAlertKeys, setDismissedAlertKeys] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  const visibleAlerts = useMemo(
+    () => alerts.filter((a) => !dismissedAlertKeys.has(alertKey(a))),
+    [alerts, dismissedAlertKeys],
+  );
+  // Key of the alert whose boundary is currently highlighted
+  const highlightedAlertKey = useRef<string | null>(null);
 
   // Refs to avoid stale closures in WebGL context event listeners
   const isDarkRef = useRef(isDark);
-  const alertsRef = useRef(alerts);
+  const alertsRef = useRef(visibleAlerts);
   const addAlertsToMapRef = useRef<((alerts: AlertFeature[]) => void) | null>(null);
 
   // Keep refs in sync
@@ -87,8 +102,8 @@ function WeatherMap() {
   }, [isDark]);
 
   useEffect(() => {
-    alertsRef.current = alerts;
-  }, [alerts]);
+    alertsRef.current = visibleAlerts;
+  }, [visibleAlerts]);
 
   const [mapCenter, setMapCenter] = useState<MapCenterState>({
     lat: VERMONT_CENTER.lat,
@@ -267,6 +282,21 @@ function WeatherMap() {
     addAlertsToMapRef.current = addAlertsToMap;
   }, [addAlertsToMap]);
 
+  // Remove the highlighted alert boundary, if any
+  const removeAlertHighlight = useCallback((): void => {
+    if (!map.current) return;
+    if (map.current.getLayer('alert-highlight-border')) {
+      map.current.removeLayer('alert-highlight-border');
+    }
+    if (map.current.getLayer('alert-highlight-fill')) {
+      map.current.removeLayer('alert-highlight-fill');
+    }
+    if (map.current.getSource('alert-highlight')) {
+      map.current.removeSource('alert-highlight');
+    }
+    highlightedAlertKey.current = null;
+  }, []);
+
   // Handle alert item click to fly to affected area and highlight boundary
   const handleAlertClick = useCallback(
     (alert: AlertFeature): void => {
@@ -277,16 +307,8 @@ function WeatherMap() {
         setControlsPanelOpen(false);
       }
 
-      // Remove existing alert highlight if present
-      if (map.current.getLayer('alert-highlight-border')) {
-        map.current.removeLayer('alert-highlight-border');
-      }
-      if (map.current.getLayer('alert-highlight-fill')) {
-        map.current.removeLayer('alert-highlight-fill');
-      }
-      if (map.current.getSource('alert-highlight')) {
-        map.current.removeSource('alert-highlight');
-      }
+      removeAlertHighlight();
+      highlightedAlertKey.current = alertKey(alert);
 
       // Add highlight source for this specific alert
       map.current.addSource('alert-highlight', {
@@ -387,7 +409,7 @@ function WeatherMap() {
       // Open the detail panel with full alert information
       setDetailPanelContent({ type: 'alert', data: alert });
     },
-    [isMobile],
+    [isMobile, removeAlertHighlight],
   );
 
   // Convert MergedAlertData to AlertFeature format for map display
@@ -418,20 +440,40 @@ function WeatherMap() {
   const fetchAlertsFromBackend = useCallback(async (): Promise<void> => {
     try {
       const mergedAlerts = await fetchMergedAlerts('VT');
-
-      if (mergedAlerts.length > 0) {
-        const alertFeatures = mergedAlerts.map(mergedAlertToFeature);
-        setAlerts(alertFeatures);
-        addAlertsToMap(alertFeatures);
-      } else {
-        setAlerts([]);
-      }
+      // The map layer follows visibleAlerts (see the sync effect below)
+      setAlerts(mergedAlerts.map(mergedAlertToFeature));
     } catch (error) {
       if (import.meta.env.DEV) {
         console.error('Error fetching merged alerts:', error);
       }
     }
-  }, [addAlertsToMap, mergedAlertToFeature]);
+  }, [mergedAlertToFeature]);
+
+  // Keep the alert polygons in sync with the non-dismissed alerts. After a style
+  // swap the style.load handlers re-add them from alertsRef.
+  useEffect(() => {
+    if (!mapLoaded) return;
+    try {
+      addAlertsToMap(visibleAlerts);
+    } catch (error) {
+      // The style is being replaced; its style.load handler re-adds the alerts.
+      if (import.meta.env.DEV) {
+        console.warn('Could not update alert layers:', error);
+      }
+    }
+  }, [mapLoaded, visibleAlerts, addAlertsToMap]);
+
+  const handleDismissAlert = useCallback(
+    (alert: AlertFeature): void => {
+      const key = alertKey(alert);
+      setDismissedAlertKeys((prev) => new Set(prev).add(key));
+      if (highlightedAlertKey.current === key) removeAlertHighlight();
+      setDetailPanelContent((content) =>
+        content?.type === 'alert' && alertKey(content.data) === key ? null : content,
+      );
+    },
+    [removeAlertHighlight],
+  );
 
   // Initialize map with Protomaps basemap
   useEffect(() => {
@@ -726,14 +768,6 @@ function WeatherMap() {
     setDetailPanelContent({ type: 'station', data: station });
   }, []);
 
-  // Handle alert keyboard navigation
-  const handleAlertKeyDown = (e: KeyboardEvent<HTMLDivElement>, alert: AlertFeature): void => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      handleAlertClick(alert);
-    }
-  };
-
   return (
     <div className={`weather-map-container ${isDark ? 'dark' : ''}`}>
       <div ref={mapContainer} className="map-container" />
@@ -898,36 +932,38 @@ function WeatherMap() {
           )}
 
           {/* Active Alerts */}
-          {alerts.length > 0 && (
+          {visibleAlerts.length > 0 && (
             <div className="control-section">
-              <h3>Active Alerts ({alerts.length})</h3>
+              <h3>Active Alerts ({visibleAlerts.length})</h3>
               <div className="alerts-list">
-                {alerts.map((alert) => (
+                {visibleAlerts.map((alert) => (
                   <div
-                    key={alert.properties.id || alert.properties.event}
+                    key={alertKey(alert)}
                     className={`alert-card severity-${alert.properties.severity?.toLowerCase()} ${isDark ? 'dark' : ''}`}
-                    onClick={() => handleAlertClick(alert)}
-                    onKeyDown={(e) => handleAlertKeyDown(e, alert)}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Zoom to ${alert.properties.event} affected area`}
                   >
-                    <div className="alert-icon-container">
-                      {getSeverityIcon(alert.properties.severity || 'Minor')}
-                    </div>
-                    <div className="alert-body">
-                      <div className="alert-event">{alert.properties.event}</div>
-                      <div className="alert-headline">
-                        {alert.properties.headline || alert.properties.areaDesc}
-                      </div>
-                    </div>
+                    {/* Sibling buttons: nesting the dismiss button inside a role="button"
+                        card made it unreachable for assistive tech (FINDINGS H16) */}
                     <button
+                      type="button"
+                      className="alert-select"
+                      onClick={() => handleAlertClick(alert)}
+                      aria-label={`Zoom to ${alert.properties.event} affected area`}
+                    >
+                      <span className="alert-icon-container">
+                        {getSeverityIcon(alert.properties.severity || 'Minor')}
+                      </span>
+                      <span className="alert-body">
+                        <span className="alert-event">{alert.properties.event}</span>
+                        <span className="alert-headline">
+                          {alert.properties.headline || alert.properties.areaDesc}
+                        </span>
+                      </span>
+                    </button>
+                    <button
+                      type="button"
                       className="alert-dismiss"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Close button functionality - could dismiss alert
-                      }}
-                      aria-label="Dismiss alert"
+                      onClick={() => handleDismissAlert(alert)}
+                      aria-label={`Dismiss ${alert.properties.event} alert`}
                     >
                       <X size={14} />
                     </button>
