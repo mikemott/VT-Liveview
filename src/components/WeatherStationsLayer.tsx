@@ -80,16 +80,17 @@ function createWeatherStationMarker(station: ObservationStation): HTMLDivElement
   // Check if this is a water temperature sensor (USGS station)
   const isWaterTemp = station.id.startsWith('USGS-');
 
-  // Different colors for water temp vs air temp
+  // Different colors for water temp vs air temp. Both backgrounds keep white
+  // 10-11px text at >= 4.5:1 contrast (WCAG AA, FINDINGS H17).
   const stationColors = isWaterTemp
     ? {
-        bg: '#3b82f6', // Vibrant blue for water
+        bg: '#2563eb', // Vibrant blue for water
         border: '#ffffff',
-        shadow: 'rgba(59, 130, 246, 0.4)',
+        shadow: 'rgba(37, 99, 235, 0.4)',
         text: '#ffffff',
       }
     : {
-        bg: '#588bae', // Soft blue for air
+        bg: '#41749a', // Soft blue for air
         border: '#ffffff',
         shadow: 'rgba(0, 0, 0, 0.3)',
         text: '#ffffff',
@@ -165,6 +166,20 @@ function createWeatherStationMarker(station: ObservationStation): HTMLDivElement
   });
 
   el.appendChild(inner);
+
+  // maplibre gives markers role="button" but a generic "Map marker" name and no tab
+  // stop. Lead the name with the visible reading so speech/voice control matches what
+  // is shown, and make Enter/Space activate it like a click (FINDINGS H15).
+  const reading = isWaterTemp ? `${tempDisplay} water temperature` : tempDisplay;
+  el.setAttribute('aria-label', `${reading}, ${station.name}`);
+  el.tabIndex = 0;
+  el.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      el.click();
+    }
+  });
+
   return el;
 }
 
