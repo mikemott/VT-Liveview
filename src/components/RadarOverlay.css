@@ -154,6 +154,9 @@
 }
 
 .timeline-dot {
+  display: block;
+  box-sizing: border-box;
+  flex-shrink: 0;
   width: 10px;
   height: 10px;
   border-radius: var(--radius-full);

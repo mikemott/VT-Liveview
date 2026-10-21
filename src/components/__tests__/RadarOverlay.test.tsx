@@ -143,19 +143,34 @@ describe('RadarOverlay', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Next radar frame' }));
     fireEvent.click(screen.getByRole('button', { name: 'Previous radar frame' }));
     fireEvent.click(screen.getByRole('button', { name: 'Refresh radar data' }));
-    fireEvent.click(screen.getByRole('button', { name: /Go to frame 3/ }));
     expect(state.toggle).toHaveBeenCalledTimes(1);
     expect(state.nextFrame).toHaveBeenCalledTimes(1);
     expect(state.prevFrame).toHaveBeenCalledTimes(1);
     expect(state.refresh).toHaveBeenCalledTimes(1);
-    expect(state.goToFrame).toHaveBeenCalledWith(2);
 
     const timeline = screen.getByRole('slider', { name: 'Radar timeline' });
     fireEvent.keyDown(timeline, { key: 'ArrowRight' });
     fireEvent.keyDown(timeline, { key: 'ArrowLeft' });
     expect(state.nextFrame).toHaveBeenCalledTimes(2);
     expect(state.prevFrame).toHaveBeenCalledTimes(2);
+    fireEvent.keyDown(timeline, { key: 'End' });
+    expect(state.goToFrame).toHaveBeenLastCalledWith(2);
+    fireEvent.keyDown(timeline, { key: 'Home' });
+    expect(state.goToFrame).toHaveBeenLastCalledWith(0);
     expect(timeline).toHaveAttribute('aria-valuemax', '2');
+  });
+
+  it('jumps to a frame when its timeline dot is clicked, without nested controls (FINDINGS H16)', async () => {
+    render(<RadarOverlay map={fake.asMap()} />);
+    await flushSequentialAdds();
+    const timeline = screen.getByRole('slider', { name: 'Radar timeline' });
+    // A slider's children are presentational: nothing inside may be focusable.
+    expect(timeline.querySelectorAll('button, [tabindex]')).toHaveLength(0);
+
+    const dots = timeline.querySelectorAll<HTMLElement>('[data-frame]');
+    expect(dots).toHaveLength(3);
+    fireEvent.click(dots[2]!);
+    expect(state.goToFrame).toHaveBeenCalledWith(2);
   });
 
   it('shows the pause label and forecast badge for nowcast frames', async () => {

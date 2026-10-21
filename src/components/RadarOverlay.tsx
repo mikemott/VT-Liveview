@@ -281,17 +281,28 @@ export default function RadarOverlay({
               } else if (e.key === 'ArrowRight') {
                 e.preventDefault();
                 nextFrame();
+              } else if (e.key === 'Home') {
+                e.preventDefault();
+                goToFrame(0);
+              } else if (e.key === 'End') {
+                e.preventDefault();
+                goToFrame(frames.length - 1);
               }
             }}
+            onClick={(e) => {
+              // Dots are pointer shortcuts only; a slider must not contain focusable
+              // controls (FINDINGS H16). Keyboard users step with the arrow keys.
+              const dot = (e.target as HTMLElement).closest<HTMLElement>('[data-frame]');
+              if (dot?.dataset.frame) goToFrame(Number(dot.dataset.frame));
+            }}
           >
-            <div className="timeline-track">
+            <div className="timeline-track" aria-hidden="true">
               {frames.map((frame: RadarFrameData, idx: number) => (
-                <button
+                <span
                   key={idx}
+                  data-frame={idx}
                   className={`timeline-dot ${idx === currentFrame ? 'active' : ''} ${frame.isNowcast ? 'nowcast' : ''}`}
-                  onClick={() => goToFrame(idx)}
-                  title={formatTime(frame.time)}
-                  aria-label={`Go to frame ${idx + 1}: ${formatTime(frame.time)}${frame.isNowcast ? ' (forecast)' : ''}`}
+                  title={`${formatTime(frame.time)}${frame.isNowcast ? ' (forecast)' : ''}`}
                 />
               ))}
             </div>
