@@ -144,4 +144,18 @@ describe('TrafficFlowLayer without an API key', () => {
     spy.mockRestore();
     vi.unstubAllEnvs();
   });
+
+  it('stays silent in production builds', async () => {
+    vi.resetModules();
+    vi.stubEnv('VITE_TOMTOM_API_KEY', '');
+    vi.stubEnv('DEV', false);
+    const { default: Layer } = await import('../TrafficFlowLayer');
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const fake = new FakeMap();
+    render(<Layer map={fake.asMap()} visible isDark={false} />);
+    expect(spy).not.toHaveBeenCalled();
+    expect(fake.layerIds()).toEqual([]);
+    spy.mockRestore();
+    vi.unstubAllEnvs();
+  });
 });
