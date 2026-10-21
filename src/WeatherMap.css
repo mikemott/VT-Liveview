@@ -23,6 +23,15 @@
   z-index: var(--z-dropdown);
 }
 
+/* CurrentWeather takes the top-right corner on mobile and would cover the toggle */
+@media (max-width: 768px) {
+  .standalone-theme-toggle {
+    top: var(--space-3);
+    right: auto;
+    left: var(--space-3);
+  }
+}
+
 .loading-overlay {
   position: absolute;
   top: 0;

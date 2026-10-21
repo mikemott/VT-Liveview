@@ -117,13 +117,14 @@ test.describe('degraded backend', () => {
   }) => {
     await backendDown();
     await openApp(page);
+    // Toggle the theme first: the open mobile menu's backdrop covers the toggle.
+    await page.getByRole('button', { name: 'Switch to dark mode' }).click();
+    await expect(page.locator('.weather-map-container')).toHaveClass(/\bdark\b/);
     if (isMobile) await page.getByRole('button', { name: 'Open menu' }).click();
 
     // Radar comes straight from RainViewer, so it keeps working without the backend.
     await expect(page.getByRole('slider', { name: 'Radar timeline' })).toBeVisible();
     await expect(page.getByRole('heading', { name: /Active Alerts/ })).toHaveCount(0);
-    await page.getByRole('button', { name: 'Switch to dark mode' }).click();
-    await expect(page.locator('.weather-map-container')).toHaveClass(/\bdark\b/);
     await expect(page.locator('.error-boundary')).toHaveCount(0);
   });
 });
