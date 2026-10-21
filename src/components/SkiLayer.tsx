@@ -122,8 +122,8 @@ function SkiLayer({ map, visible }: SkiLayerProps) {
       }
     };
 
-    fetchResorts();
-    const interval = setInterval(fetchResorts, 6 * 60 * 60 * 1000); // 6 hours
+    void fetchResorts();
+    const interval = setInterval(() => void fetchResorts(), 6 * 60 * 60 * 1000); // 6 hours
     return () => clearInterval(interval);
   }, [map]);
 
@@ -201,7 +201,7 @@ function SkiLayer({ map, visible }: SkiLayerProps) {
       el.addEventListener('click', handleMarkerClick as EventListener);
 
       markersRef.current.push({
-        marker: marker as Marker,
+        marker: marker,
         element: el,
         handler: handleMarkerClick,
       });

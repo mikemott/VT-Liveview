@@ -160,7 +160,7 @@ export function useRadarAnimation(
         throw new Error(`RainViewer API returned ${response.status}`);
       }
 
-      const data: RainViewerResponse = await response.json();
+      const data = (await response.json()) as RainViewerResponse;
       const radarData = data.radar;
 
       if (!radarData?.past?.length) {

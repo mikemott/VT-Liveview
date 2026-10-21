@@ -220,8 +220,8 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
         layersAdded.current = true;
 
         // Verify visibility was set correctly
-        const mainVis = map.getLayoutProperty(LAYER_ID, 'visibility');
-        const casingVis = map.getLayoutProperty(LAYER_ID_CASING, 'visibility');
+        const mainVis: unknown = map.getLayoutProperty(LAYER_ID, 'visibility');
+        const casingVis: unknown = map.getLayoutProperty(LAYER_ID_CASING, 'visibility');
 
         if (import.meta.env.DEV) {
           console.log('TrafficFlowLayer: Successfully added traffic layers', {
@@ -291,6 +291,8 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
       }
       layersAdded.current = false;
     };
+    // TODO(VTL-45 Medium): stale `visible` closure re-shows hidden traffic after a style swap (see docs/review/FINDINGS.md)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map]); // isDark removed - handled in separate effect below
 
   // Separate effect for isDark changes (update paint colors only)

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback, KeyboardEvent } from 'react';
-import maplibregl from 'maplibre-gl';
+import maplibregl, { type MapLayerMouseEvent } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './WeatherMap.css';
 import TravelLayer from './components/TravelLayer';
@@ -141,16 +141,46 @@ function WeatherMap() {
   // DetailPanel state
   const [detailPanelContent, setDetailPanelContent] = useState<DetailPanelContent>(null);
 
+  // Alert layer event handlers. These must keep a stable identity so map.off() can
+  // remove them: off(type, layerId) without the listener is a no-op in maplibre, and
+  // delegated layer listeners survive setStyle(), so they would otherwise accumulate.
+  const handleAlertFillClick = useCallback((e: MapLayerMouseEvent): void => {
+    const feature = e.features?.[0];
+    if (!feature) return;
+
+    // Convert GeoJSON feature to AlertFeature type
+    const alertFeature: AlertFeature = {
+      type: 'Feature',
+      properties: feature.properties as AlertFeature['properties'],
+      geometry: feature.geometry as AlertFeature['geometry'],
+    };
+
+    setDetailPanelContent({
+      type: 'alert',
+      data: alertFeature,
+    });
+  }, []);
+
+  const handleAlertFillEnter = useCallback((): void => {
+    if (map.current) {
+      map.current.getCanvas().style.cursor = 'pointer';
+    }
+  }, []);
+
+  const handleAlertFillLeave = useCallback((): void => {
+    if (map.current) {
+      map.current.getCanvas().style.cursor = '';
+    }
+  }, []);
+
   // Add alerts to map
   const addAlertsToMap = useCallback((alertFeatures: AlertFeature[]): void => {
     if (!map.current) return;
 
-    // Remove existing event handlers to prevent memory leak
-    if (map.current.getLayer('alert-fills')) {
-      (map.current as any).off('click', 'alert-fills');
-      (map.current as any).off('mouseenter', 'alert-fills');
-      (map.current as any).off('mouseleave', 'alert-fills');
-    }
+    // Remove existing event handlers to prevent duplicate handlers
+    map.current.off('click', 'alert-fills', handleAlertFillClick);
+    map.current.off('mouseenter', 'alert-fills', handleAlertFillEnter);
+    map.current.off('mouseleave', 'alert-fills', handleAlertFillLeave);
 
     // Remove existing alert layers if present
     if (map.current.getLayer('alert-fills')) {
@@ -211,38 +241,12 @@ function WeatherMap() {
     });
 
     // Add click handlers for alerts - open DetailPanel
-    map.current.on('click', 'alert-fills', (e) => {
-      if (!e.features || e.features.length === 0) return;
-
-      const feature = e.features[0];
-      if (!feature) return;
-
-      // Convert GeoJSON feature to AlertFeature type
-      const alertFeature: AlertFeature = {
-        type: 'Feature',
-        properties: feature.properties as AlertFeature['properties'],
-        geometry: feature.geometry as AlertFeature['geometry'],
-      };
-
-      setDetailPanelContent({
-        type: 'alert',
-        data: alertFeature,
-      });
-    });
+    map.current.on('click', 'alert-fills', handleAlertFillClick);
 
     // Change cursor on hover
-    map.current.on('mouseenter', 'alert-fills', () => {
-      if (map.current) {
-        map.current.getCanvas().style.cursor = 'pointer';
-      }
-    });
-
-    map.current.on('mouseleave', 'alert-fills', () => {
-      if (map.current) {
-        map.current.getCanvas().style.cursor = '';
-      }
-    });
-  }, []);
+    map.current.on('mouseenter', 'alert-fills', handleAlertFillEnter);
+    map.current.on('mouseleave', 'alert-fills', handleAlertFillLeave);
+  }, [handleAlertFillClick, handleAlertFillEnter, handleAlertFillLeave]);
 
   // Store addAlertsToMap in ref for WebGL context restore handler
   useEffect(() => {
@@ -444,7 +448,8 @@ function WeatherMap() {
         // Use refs to get latest values (avoid stale closure)
         map.current.setStyle(getMapStyle(isDarkRef.current));
 
-        map.current.once('style.load', () => {
+        // once() with a listener returns the map, not a promise; its typing is a union
+        void map.current.once('style.load', () => {
           if (!map.current) return;
           map.current.setCenter(currentCenter);
           map.current.setZoom(currentZoom);
@@ -493,7 +498,7 @@ function WeatherMap() {
         if (import.meta.env.DEV) {
           console.log('WeatherMap: mapLoaded state set to true');
         }
-        fetchAlertsFromBackend();
+        void fetchAlertsFromBackend();
       } catch (error) {
         if (import.meta.env.DEV) {
           console.error('WeatherMap: Error in load callback:', error);
@@ -607,7 +612,7 @@ function WeatherMap() {
       map.current.setStyle(getMapStyle(isDark));
 
       // Restore center and zoom after style load
-      map.current.once('style.load', () => {
+      void map.current.once('style.load', () => {
         if (!map.current) return;
 
         map.current.setCenter(center);
@@ -624,6 +629,8 @@ function WeatherMap() {
     }, 150); // 150ms debounce - prevents rapid toggles from stacking
 
     return () => clearTimeout(debounceTimer);
+    // TODO(VTL-45 C1): theme handling is entangled with map init (see docs/review/FINDINGS.md)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDark]); // ONLY run when theme actually changes, not when map loads or alerts change
 
   // Toggle theme manually

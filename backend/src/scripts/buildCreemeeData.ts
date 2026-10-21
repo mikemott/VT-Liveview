@@ -344,15 +344,16 @@ async function geocode(name: string, town: string): Promise<{ lat: number; lng: 
     throw new Error(`Nominatim API error: ${response.status}`);
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as Array<{ lat: string; lon: string }>;
+  const match = data[0];
 
-  if (data.length === 0) {
+  if (!match) {
     throw new Error(`Could not geocode: ${name}, ${town}`);
   }
 
   return {
-    lat: parseFloat(data[0].lat),
-    lng: parseFloat(data[0].lon)
+    lat: parseFloat(match.lat),
+    lng: parseFloat(match.lon)
   };
 }
 
@@ -385,8 +386,7 @@ async function buildCreemeeData(): Promise<void> {
   let successCount = 0;
   let failCount = 0;
 
-  for (let i = 0; i < sourceStands.length; i++) {
-    const source = sourceStands[i];
+  for (const [i, source] of sourceStands.entries()) {
     const progress = `[${i + 1}/${sourceStands.length}]`;
 
     try {
@@ -412,8 +412,8 @@ async function buildCreemeeData(): Promise<void> {
         town: source.town,
         latitude: coords.lat,
         longitude: coords.lng,
-        description: source.description,
-        specialties: source.specialties,
+        ...(source.description !== undefined && { description: source.description }),
+        ...(source.specialties !== undefined && { specialties: source.specialties }),
         featured: source.featured || false,
       });
 

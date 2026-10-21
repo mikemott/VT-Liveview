@@ -19,8 +19,9 @@ export interface CampingArea {
     latitude: number;
     longitude: number;
   };
+  /** Backend normalizes all park boundaries to MultiPolygon */
   boundary?: {
-    type: string;
+    type: 'MultiPolygon';
     coordinates: number[][][][];
   };
 }

@@ -165,7 +165,7 @@ export async function fetchFloodGauges(): Promise<FloodIncident[]> {
       throw new Error(`USGS API error: ${response.status}`);
     }
 
-    const data: USGSResponse = await response.json();
+    const data = (await response.json()) as USGSResponse;
     const floods: FloodIncident[] = [];
 
     // Parse USGS data and identify flooding conditions

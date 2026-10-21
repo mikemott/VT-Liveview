@@ -345,7 +345,9 @@ function CampingLayer({ map, visible, showCampgrounds, showBackcountry, onCounts
       }
     };
 
-    fetchSites();
+    void fetchSites();
+    // TODO(VTL-45 C3): fetch ignores `visible` and re-runs on every parent render (see docs/review/FINDINGS.md)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, showCampgrounds, showBackcountry, onCountsChange]);
 
   // Manage campground markers (non-clustered)
@@ -397,7 +399,7 @@ function CampingLayer({ map, visible, showCampgrounds, showBackcountry, onCounts
       el.addEventListener('click', handleMarkerClick as EventListener);
 
       campgroundMarkersRef.current.push({
-        marker: marker as Marker,
+        marker: marker,
         element: el,
         handler: handleMarkerClick,
       });
@@ -464,7 +466,7 @@ function CampingLayer({ map, visible, showCampgrounds, showBackcountry, onCounts
       el.addEventListener('click', handleMarkerClick as EventListener);
 
       backcountryMarkersRef.current.push({
-        marker: marker as Marker,
+        marker: marker,
         element: el,
         handler: handleMarkerClick,
       });

@@ -54,7 +54,8 @@ function scheduleCollector(
   schedule: string,
   collector: () => Promise<number>
 ): ScheduledTask {
-  const task = cron.schedule(schedule, async () => {
+  // runCollector handles its own errors, so the cron callback can fire-and-forget it
+  const runCollector = async (): Promise<void> => {
     const status = collectorStatus[name];
     if (!status) return;
 
@@ -76,6 +77,9 @@ function scheduleCollector(
       // Update next run time after each execution
       status.nextRun = getNextRunTime(schedule);
     }
+  };
+  const task = cron.schedule(schedule, () => {
+    void runCollector();
   });
 
   // Calculate next run time

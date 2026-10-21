@@ -33,7 +33,7 @@ function createBeachMarker(beach: Beach): HTMLDivElement {
   const el = document.createElement('div');
   el.className = 'beach-marker';
 
-  const color = BEACH_COLORS[beach.color as keyof typeof BEACH_COLORS] || BEACH_COLORS.yellow;
+  const color = BEACH_COLORS[beach.color] || BEACH_COLORS.yellow;
 
   el.style.cssText = `
     width: 32px;
@@ -168,8 +168,8 @@ function BeachLayer({ map, visible }: BeachLayerProps) {
       }
     };
 
-    fetchBeachData();
-    const interval = setInterval(fetchBeachData, 12 * 60 * 60 * 1000); // 12 hours
+    void fetchBeachData();
+    const interval = setInterval(() => void fetchBeachData(), 12 * 60 * 60 * 1000); // 12 hours
     return () => clearInterval(interval);
   }, [map]);
 
@@ -239,7 +239,7 @@ function BeachLayer({ map, visible }: BeachLayerProps) {
       el.addEventListener('click', handleMarkerClick as EventListener);
 
       markersRef.current.push({
-        marker: marker as Marker,
+        marker: marker,
         element: el,
         handler: handleMarkerClick,
       });

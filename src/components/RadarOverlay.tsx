@@ -9,7 +9,7 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
-import { INTERVALS, RADAR_CONFIG } from '../utils/constants';
+import { RADAR_CONFIG } from '../utils/constants';
 import type { MapLibreMap } from '../types';
 import './RadarOverlay.css';
 
@@ -65,6 +65,7 @@ export default function RadarOverlay({ map, isDark = false, collapsed = false }:
 
   // Initialize multiple radar layers (one per frame) for smooth transitions
   useEffect(() => {
+    const sources = loadedSources.current;
     if (!map || !map.isStyleLoaded() || frames.length === 0) return;
 
     const currentCount = frames.length;
@@ -95,6 +96,7 @@ export default function RadarOverlay({ map, isDark = false, collapsed = false }:
       const addSourcesSequentially = async () => {
         for (let index = 0; index < frames.length; index++) {
           const frame = frames[index];
+          if (!frame) continue;
           const sourceId = `radar-source-${index}`;
           const layerId = `radar-layer-${index}`;
 
@@ -167,6 +169,7 @@ export default function RadarOverlay({ map, isDark = false, collapsed = false }:
         const updateSourcesSequentially = async () => {
           for (let index = 0; index < frames.length; index++) {
             const frame = frames[index];
+            if (!frame) continue;
             const sourceId = `radar-source-${index}`;
             const layerId = `radar-layer-${index}`;
 
@@ -227,9 +230,9 @@ export default function RadarOverlay({ map, isDark = false, collapsed = false }:
       }
       layersInitialized.current = false;
       previousFrameCount.current = 0;
-      loadedSources.current.clear();
+      sources.clear();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [map, frames, hasSource, hasLayer]);
 
   // Mark tiles as loaded immediately since we're using lazy loading
@@ -240,6 +243,8 @@ export default function RadarOverlay({ map, isDark = false, collapsed = false }:
     // With lazy loading (visibility: 'none'), tiles load on-demand
     // No need to wait for all sources - mark as ready immediately
     setTilesLoaded(true);
+    // TODO(VTL-45 H10): ref.current in deps never triggers a re-run; fix with the radar layer race (see docs/review/FINDINGS.md)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, frames, layersInitialized.current]);
 
   // Toggle visibility and opacity between layers based on current frame
@@ -348,7 +353,7 @@ export default function RadarOverlay({ map, isDark = false, collapsed = false }:
               <SkipForward size={18} />
             </button>
             <button
-              onClick={refresh}
+              onClick={() => void refresh()}
               disabled={isLoading}
               title="Refresh radar"
               aria-label="Refresh radar data"
