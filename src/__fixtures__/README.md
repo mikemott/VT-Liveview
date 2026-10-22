@@ -17,3 +17,5 @@ and the parser together.
 
 Timestamps in the USGS and RainViewer fixtures are fixed. Tests that depend on
 "recent data" pin the clock with `vi.setSystemTime`.
+
+To capture real responses for comparison, run `scripts/record-fixtures.sh` from the repo root (writes to the gitignored `fixtures-recorded/`).

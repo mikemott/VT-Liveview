@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback, ChangeEvent } from 'react';
+import { useEffect, useState, useCallback, ChangeEvent } from 'react';
 import { useRadarAnimation, type RadarFrameData } from '../hooks/useRadarAnimation';
 import { Play, Pause, SkipBack, SkipForward, RefreshCw, Eye, EyeOff } from 'lucide-react';
 import { RADAR_CONFIG } from '../utils/constants';
@@ -18,10 +18,9 @@ export default function RadarOverlay({
 }: RadarOverlayProps) {
   const [visible, setVisible] = useState(true);
   const [opacity, setOpacity] = useState(0.7);
-  const [tilesLoaded, setTilesLoaded] = useState(false);
-  const layersInitialized = useRef(false);
-  const previousFrameCount = useRef(0);
-  const loadedSources = useRef(new Set<string>());
+  // Number of frame layers the current add loop has put on the map
+  const [layersAdded, setLayersAdded] = useState(0);
+  const tilesLoaded = layersAdded > 0;
 
   const {
     frames,
@@ -39,10 +38,11 @@ export default function RadarOverlay({
     frameDelay: RADAR_CONFIG.frameDelay,
   });
 
-  // Helper to safely check if layer exists
+  // Look layers/sources up directly: map.isStyleLoaded() is false while tiles are
+  // loading, so guarding on it skipped init and cleanup (FINDINGS H11).
   const hasLayer = useCallback(
     (layerId: string): boolean => {
-      if (!map || !map.isStyleLoaded()) return false;
+      if (!map) return false;
       try {
         return !!map.getLayer(layerId);
       } catch {
@@ -52,10 +52,9 @@ export default function RadarOverlay({
     [map],
   );
 
-  // Helper to safely check if source exists
   const hasSource = useCallback(
     (sourceId: string): boolean => {
-      if (!map || !map.isStyleLoaded()) return false;
+      if (!map) return false;
       try {
         return !!map.getSource(sourceId);
       } catch {
@@ -65,52 +64,29 @@ export default function RadarOverlay({
     [map],
   );
 
-  // Initialize multiple radar layers (one per frame) for smooth transitions
+  // Build one radar layer per frame for smooth transitions, rebuilt whenever the
+  // frame list changes (count or URLs). Sources are added one at a time, 400ms apart,
+  // to avoid RainViewer rate limiting: its 429 responses lack CORS headers and surface
+  // as CORS errors. The loop is cancelled on cleanup so a stale loop never writes into
+  // a refreshed frame set or a replaced style (FINDINGS H10).
   useEffect(() => {
-    const sources = loadedSources.current;
-    if (!map || !map.isStyleLoaded() || frames.length === 0) return;
+    if (!map || frames.length === 0) return;
 
-    const currentCount = frames.length;
-    const previousCount = previousFrameCount.current;
+    let cancelled = false;
+    const count = frames.length;
 
-    // If frame count changed, we need to add/remove layers
-    if (currentCount !== previousCount) {
-      // Reset tile loading state
-      setTilesLoaded(false);
-      loadedSources.current.clear();
+    const addSourcesSequentially = async () => {
+      for (let index = 0; index < count; index++) {
+        if (cancelled) return;
+        const frame = frames[index];
+        if (!frame) continue;
+        const sourceId = `radar-source-${index}`;
+        const layerId = `radar-layer-${index}`;
 
-      // Remove extra layers if count decreased
-      if (currentCount < previousCount) {
-        for (let i = currentCount; i < previousCount; i++) {
-          const layerId = `radar-layer-${i}`;
-          const sourceId = `radar-source-${i}`;
-          if (hasLayer(layerId)) {
-            map.removeLayer(layerId);
-          }
-          if (hasSource(sourceId)) {
-            map.removeSource(sourceId);
-          }
-        }
-      }
+        try {
+          if (hasLayer(layerId)) map.removeLayer(layerId);
+          if (hasSource(sourceId)) map.removeSource(sourceId);
 
-      // Add sources sequentially with delays to avoid RainViewer rate limiting (429 errors)
-      // Loading all 4 frames at once causes CORS errors due to 429 responses lacking CORS headers
-      const addSourcesSequentially = async () => {
-        for (let index = 0; index < frames.length; index++) {
-          const frame = frames[index];
-          if (!frame) continue;
-          const sourceId = `radar-source-${index}`;
-          const layerId = `radar-layer-${index}`;
-
-          // If source exists, remove and recreate with new URL
-          if (hasSource(sourceId)) {
-            if (hasLayer(layerId)) {
-              map.removeLayer(layerId);
-            }
-            map.removeSource(sourceId);
-          }
-
-          // Add source with current frame URL
           map.addSource(sourceId, {
             type: 'raster',
             tiles: [frame.tileUrl],
@@ -121,137 +97,53 @@ export default function RadarOverlay({
             attribution: index === 0 ? 'Weather radar: RainViewer / NOAA' : '',
           });
 
-          // Add layer - start hidden to prevent tile loading
-          // Only the current frame will be set to visible, avoiding rate limits
+          // Start hidden and transparent; the visibility effect below shows only the
+          // current frame, so hidden frames never load tiles.
           map.addLayer({
             id: layerId,
             type: 'raster',
             source: sourceId,
-            layout: {
-              visibility: index === frames.length - 1 ? 'visible' : 'none', // Only show most recent frame initially
-            },
+            layout: { visibility: 'none' },
             paint: {
-              'raster-opacity': 0, // Start transparent, increase after tiles load
-              'raster-fade-duration': 0, // No fade during preload
+              'raster-opacity': 0,
+              'raster-fade-duration': 0,
             },
           });
-
-          // Wait 400ms before adding next source to avoid rate limiting
-          // This prevents RainViewer from returning 429 (Too Many Requests)
-          if (index < frames.length - 1) {
-            await new Promise((resolve) => setTimeout(resolve, 400));
+        } catch (err) {
+          // The style is being replaced (theme change); the remounted overlay rebuilds.
+          if (import.meta.env.DEV) {
+            console.warn('[RadarOverlay] Could not add radar layer:', err);
           }
+          return;
         }
-      };
 
-      void addSourcesSequentially();
+        setLayersAdded(index + 1);
 
-      layersInitialized.current = true;
-      previousFrameCount.current = currentCount;
-    } else if (currentCount > 0 && layersInitialized.current) {
-      // Frame count same but URLs may have changed (refresh)
-      // Update sources without full layer recreation to avoid flicker
-      let needsUpdate = false;
-
-      frames.forEach((_frame: RadarFrameData, index: number) => {
-        const sourceId = `radar-source-${index}`;
-        if (hasSource(sourceId)) {
-          // Check if URL changed by comparing with previous frame
-          // Since we can't directly compare, we'll update on every refresh
-          // This is triggered by the 5-minute interval
-          needsUpdate = true;
+        if (index < count - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 400));
         }
-      });
-
-      if (needsUpdate) {
-        setTilesLoaded(false);
-        loadedSources.current.clear();
-
-        // Update sources sequentially with delays to avoid rate limiting
-        const updateSourcesSequentially = async () => {
-          for (let index = 0; index < frames.length; index++) {
-            const frame = frames[index];
-            if (!frame) continue;
-            const sourceId = `radar-source-${index}`;
-            const layerId = `radar-layer-${index}`;
-
-            if (hasSource(sourceId) && hasLayer(layerId)) {
-              // Hide layer temporarily
-              map.setPaintProperty(layerId, 'raster-opacity', 0);
-
-              // Remove and recreate source with new URL
-              map.removeLayer(layerId);
-              map.removeSource(sourceId);
-
-              map.addSource(sourceId, {
-                type: 'raster',
-                tiles: [frame.tileUrl],
-                tileSize: 256,
-                minzoom: 0,
-                maxzoom: 7, // RainViewer maximum zoom level
-                scheme: 'xyz',
-                attribution: index === 0 ? 'Weather radar: RainViewer / NOAA' : '',
-              });
-
-              map.addLayer({
-                id: layerId,
-                type: 'raster',
-                source: sourceId,
-                layout: {
-                  visibility: index === frames.length - 1 ? 'visible' : 'none',
-                },
-                paint: {
-                  'raster-opacity': 0,
-                  'raster-fade-duration': 0,
-                },
-              });
-
-              // Wait 400ms before updating next source
-              if (index < frames.length - 1) {
-                await new Promise((resolve) => setTimeout(resolve, 400));
-              }
-            }
-          }
-        };
-
-        void updateSourcesSequentially();
       }
-    }
+    };
+
+    void addSourcesSequentially();
 
     return () => {
-      // Cleanup all layers and sources
-      for (let i = 0; i < previousFrameCount.current; i++) {
+      cancelled = true;
+      for (let i = 0; i < count; i++) {
         const layerId = `radar-layer-${i}`;
         const sourceId = `radar-source-${i}`;
-        if (hasLayer(layerId)) {
-          map.removeLayer(layerId);
-        }
-        if (hasSource(sourceId)) {
-          map.removeSource(sourceId);
-        }
+        if (hasLayer(layerId)) map.removeLayer(layerId);
+        if (hasSource(sourceId)) map.removeSource(sourceId);
       }
-      layersInitialized.current = false;
-      previousFrameCount.current = 0;
-      sources.clear();
+      setLayersAdded(0);
     };
   }, [map, frames, hasSource, hasLayer]);
 
-  // Mark tiles as loaded immediately since we're using lazy loading
-  // Each frame loads its tiles only when visible, so no preload wait needed
+  // Show only the current frame. visibility:'none' stops MapLibre loading tiles for
+  // hidden frames, avoiding rate limits. Re-runs as each layer is added, so the
+  // current frame appears as soon as its layer exists.
   useEffect(() => {
-    if (!map || !layersInitialized.current || frames.length === 0) return;
-
-    // With lazy loading (visibility: 'none'), tiles load on-demand
-    // No need to wait for all sources - mark as ready immediately
-    setTilesLoaded(true);
-    // TODO(VTL-45 H10): ref.current in deps never triggers a re-run; fix with the radar layer race (see docs/review/FINDINGS.md)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map, frames, layersInitialized.current]);
-
-  // Toggle visibility and opacity between layers based on current frame
-  // Using visibility:'none' prevents MapLibre from loading tiles, avoiding rate limits
-  useEffect(() => {
-    if (!map || !layersInitialized.current || frames.length === 0) return;
+    if (!map || layersAdded === 0) return;
 
     if (import.meta.env.DEV) {
       console.log('[RadarOverlay] Toggling frame visibility:', {
@@ -262,7 +154,6 @@ export default function RadarOverlay({
       });
     }
 
-    // Show only the current frame by adjusting both visibility and opacity
     frames.forEach((_: RadarFrameData, index: number) => {
       const layerId = `radar-layer-${index}`;
       if (hasLayer(layerId)) {
@@ -272,17 +163,15 @@ export default function RadarOverlay({
           console.log(`[RadarOverlay] Making ${layerId} visible with opacity ${opacity}`);
         }
 
-        // Set visibility - 'none' prevents tile loading (avoids rate limits)
         map.setLayoutProperty(layerId, 'visibility', shouldShow ? 'visible' : 'none');
 
-        // Set opacity - only visible layer gets opacity
         if (shouldShow) {
           map.setPaintProperty(layerId, 'raster-fade-duration', 0);
           map.setPaintProperty(layerId, 'raster-opacity', opacity);
         }
       }
     });
-  }, [map, currentFrame, visible, frames, hasLayer, opacity]);
+  }, [map, currentFrame, visible, frames, hasLayer, opacity, layersAdded]);
 
   // Note: Opacity is now handled in the frame switching effect above
   // to avoid conflicts and ensure smooth transitions
@@ -392,17 +281,28 @@ export default function RadarOverlay({
               } else if (e.key === 'ArrowRight') {
                 e.preventDefault();
                 nextFrame();
+              } else if (e.key === 'Home') {
+                e.preventDefault();
+                goToFrame(0);
+              } else if (e.key === 'End') {
+                e.preventDefault();
+                goToFrame(frames.length - 1);
               }
             }}
+            onClick={(e) => {
+              // Dots are pointer shortcuts only; a slider must not contain focusable
+              // controls (FINDINGS H16). Keyboard users step with the arrow keys.
+              const dot = (e.target as HTMLElement).closest<HTMLElement>('[data-frame]');
+              if (dot?.dataset.frame) goToFrame(Number(dot.dataset.frame));
+            }}
           >
-            <div className="timeline-track">
+            <div className="timeline-track" aria-hidden="true">
               {frames.map((frame: RadarFrameData, idx: number) => (
-                <button
+                <span
                   key={idx}
+                  data-frame={idx}
                   className={`timeline-dot ${idx === currentFrame ? 'active' : ''} ${frame.isNowcast ? 'nowcast' : ''}`}
-                  onClick={() => goToFrame(idx)}
-                  title={formatTime(frame.time)}
-                  aria-label={`Go to frame ${idx + 1}: ${formatTime(frame.time)}${frame.isNowcast ? ' (forecast)' : ''}`}
+                  title={`${formatTime(frame.time)}${frame.isNowcast ? ' (forecast)' : ''}`}
                 />
               ))}
             </div>

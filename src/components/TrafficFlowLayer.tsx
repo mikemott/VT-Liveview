@@ -53,9 +53,11 @@ function TrafficFlowLayer({ map, visible, isDark }: TrafficFlowLayerProps) {
     }
 
     if (!TOMTOM_API_KEY) {
-      console.error('TrafficFlowLayer: VITE_TOMTOM_API_KEY environment variable is not set!');
-      console.error('TrafficFlowLayer: Traffic flow layer will not work without an API key');
-      console.error('TrafficFlowLayer: Get a free API key at https://developer.tomtom.com/');
+      if (import.meta.env.DEV) {
+        console.error('TrafficFlowLayer: VITE_TOMTOM_API_KEY environment variable is not set!');
+        console.error('TrafficFlowLayer: Traffic flow layer will not work without an API key');
+        console.error('TrafficFlowLayer: Get a free API key at https://developer.tomtom.com/');
+      }
       return;
     }
 

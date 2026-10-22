@@ -61,6 +61,8 @@ Severity: **C** critical · **H** high · **M** medium · **L** low. Line number
 |---|---|---|---|---|
 | H14 | `src/App.css` vs `src/styles/design-system.css` | Two token systems. App.css has 63 vars, 28 unused, and overrides design-system `--shadow-*` because it loads later. Raw hex: 347 lines in CSS plus 150+ in TS. | Consolidate in Phase 4. | Verified |
 | H15 | Every marker factory | Markers are click-only `div`s with no `role`, `tabIndex`, `aria-label` or key handler. No POI can be reached by keyboard or screen reader. | Add a button role, focusability, a label and an Enter/Space handler, or an accessible list. | Verified |
+| H16 | `src/WeatherMap.tsx` alert cards, `src/components/RadarOverlay.tsx` timeline | Nested interactive controls (axe `nested-interactive`, serious). Each alert card was a `role="button"` div containing a dismiss `<button>` that did nothing. The radar `role="slider"` contained one `<button>` per frame. | Make the card a container with sibling zoom and dismiss buttons, and implement dismiss. Make the timeline dots non-focusable, with the slider handling clicks on them. | Verified by axe in the first E2E run (CI 39462801094); fixed on `agent/vtl-45` |
+| H17 | `src/components/WeatherStationsLayer.tsx` marker colours | White 10-11px marker text on `#588bae` / `#3b82f6` is 3.7:1, below WCAG AA's 4.5:1 (axe `color-contrast`). | Darken to `#41749a` / `#2563eb` (5.0:1 / 5.2:1). | Verified by axe in the first E2E run (CI 39462801094); fixed on `agent/vtl-45` |
 
 ## Medium
 

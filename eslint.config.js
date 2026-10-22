@@ -35,7 +35,20 @@ export default defineConfig([
     },
   },
   {
-    // Root-level tooling config files (vite, vitest, sentry, eslint)
+    // Playwright E2E specs (Node + browser globals, type-aware)
+    files: ['e2e/**/*.ts'],
+    extends: [js.configs.recommended, tseslint.configs.recommendedTypeChecked],
+    languageOptions: {
+      ecmaVersion: 2022,
+      globals: { ...globals.node, ...globals.browser },
+      parserOptions: {
+        project: './tsconfig.e2e.json',
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  },
+  {
+    // Root-level tooling config files (vite, vitest, playwright, sentry, eslint)
     files: ['*.{js,ts}'],
     extends: [js.configs.recommended, tseslint.configs.recommended],
     languageOptions: { globals: globals.node },

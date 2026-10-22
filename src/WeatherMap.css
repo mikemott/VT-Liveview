@@ -23,6 +23,15 @@
   z-index: var(--z-dropdown);
 }
 
+/* CurrentWeather takes the top-right corner on mobile and would cover the toggle */
+@media (max-width: 768px) {
+  .standalone-theme-toggle {
+    top: var(--space-3);
+    right: auto;
+    left: var(--space-3);
+  }
+}
+
 .loading-overlay {
   position: absolute;
   top: 0;
@@ -345,9 +354,32 @@
   transform: translateX(1px);
 }
 
-.alert-card:focus-visible {
+.alert-card:has(.alert-select:focus-visible) {
   outline: 2px solid var(--color-accent-primary);
   outline-offset: 2px;
+}
+
+/* The card is a container; its main area is a button so the dismiss button is a
+   sibling rather than nested inside an interactive element. The focus ring is drawn
+   on the card via :has() because the card's overflow: hidden would clip it. */
+.alert-select {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.alert-select:focus-visible {
+  outline: none;
 }
 
 /* Small icon container - clean and minimal */
@@ -368,8 +400,14 @@
 
 /* Alert body */
 .alert-body {
+  display: block;
   flex: 1;
   min-width: 0;
+}
+
+.alert-event,
+.alert-headline {
+  display: block;
 }
 
 .alert-event {
@@ -793,14 +831,14 @@
 /* Keyboard Focus Styles */
 .mobile-menu-toggle:focus-visible,
 .mobile-panel-close:focus-visible,
-.alert-card:focus-visible {
+.alert-card:has(.alert-select:focus-visible) {
   outline: 2px solid var(--color-accent-primary);
   outline-offset: 2px;
 }
 
 /* Improve alert card keyboard navigation */
 .alert-card:hover,
-.alert-card:focus-visible {
+.alert-card:has(.alert-select:focus-visible) {
   background: var(--color-accent-subtle);
 }
 

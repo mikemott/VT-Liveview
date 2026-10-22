@@ -117,6 +117,32 @@ describe('WeatherStationsLayer', () => {
     expect(onStationClick).toHaveBeenCalledWith(expect.objectContaining({ id: 'USGS-04282500' }));
   });
 
+  it('makes markers keyboard-operable with a name that leads with the visible reading (FINDINGS H15)', async () => {
+    const onStationClick = vi.fn();
+    render(
+      <WeatherStationsLayer
+        map={fake.asMap()}
+        visible
+        globalPopupRef={popupRef()}
+        onStationClick={onStationClick}
+      />,
+    );
+    await waitFor(() => expect(liveMarkers()).toHaveLength(2));
+    const [air, water] = liveMarkers().map((m) => m.getElement());
+
+    expect(air).toHaveAttribute('aria-label', '45°, Barre-Montpelier Airport');
+    expect(air!.getAttribute('aria-label')).toContain(air!.textContent?.trim());
+    expect(water).toHaveAttribute('aria-label', '45° water temperature, Otter Creek water temp');
+    expect(air!.tabIndex).toBe(0);
+
+    air!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    expect(onStationClick).toHaveBeenCalledTimes(1);
+    water!.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+    expect(onStationClick).toHaveBeenCalledTimes(2);
+    air!.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', bubbles: true }));
+    expect(onStationClick).toHaveBeenCalledTimes(2);
+  });
+
   it('shows 0°F and 0% as values, not N/A', async () => {
     const base = makeStation();
     useStations([makeStation({ weather: { ...base.weather, temperature: 0, humidity: 0 } })]);
