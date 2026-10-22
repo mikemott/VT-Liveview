@@ -13,6 +13,9 @@ let db: ReturnType<typeof drizzle<typeof schema>> | null = null;
 let sql: ReturnType<typeof postgres> | null = null;
 let warnedNoDatabaseUrl = false;
 
+/** Upper bound for the /health database ping. */
+export const HEALTH_CHECK_TIMEOUT_MS = 2000;
+
 /**
  * Get the database connection.
  * Creates a new connection if one doesn't exist.
@@ -70,9 +73,17 @@ export async function checkDatabaseHealth(): Promise<{
     return { connected: false, latencyMs: null };
   }
 
+  let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     const start = Date.now();
-    await sql`SELECT 1`;
+    // Bound the ping well below Fly's 5s health-check timeout (connect_timeout is 10s)
+    const timeout = new Promise<never>((_resolve, reject) => {
+      timer = setTimeout(
+        () => reject(new Error(`Database ping timed out after ${HEALTH_CHECK_TIMEOUT_MS}ms`)),
+        HEALTH_CHECK_TIMEOUT_MS,
+      );
+    });
+    await Promise.race([sql`SELECT 1`, timeout]);
     const latencyMs = Date.now() - start;
     return { connected: true, latencyMs };
   } catch (error) {
@@ -81,6 +92,8 @@ export async function checkDatabaseHealth(): Promise<{
       latencyMs: null,
       error: error instanceof Error ? error.message : 'Unknown error',
     };
+  } finally {
+    clearTimeout(timer);
   }
 }
 

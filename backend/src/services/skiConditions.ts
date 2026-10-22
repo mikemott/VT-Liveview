@@ -20,7 +20,7 @@ function normalizeResortName(name: string): string {
       // Remove common suffixes
       .replace(/\s+(Resort|Mountain Resort|Ski Area|Cross Country|Nordic Center)$/i, '')
       // Normalize apostrophes (curly to straight)
-      .replace(/'/g, "'")
+      .replace(/[\u2018\u2019]/g, "'")
       // Normalize "Snowbowl" vs "Snow Bowl"
       .replace(/Snowbowl/i, 'Snow Bowl')
       // Normalize "Cochran's" vs "Cochrans"
@@ -83,7 +83,6 @@ export function calculateResortColor(input: ColorInput): 'green' | 'yellow' | 'r
 // ============================================================================
 
 const skiConditionsCache = new Map<string, SkiConditionsCache>();
-let cacheTimeout: ReturnType<typeof setTimeout> | null = null;
 
 const CACHE_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
 
@@ -92,8 +91,10 @@ const CACHE_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
  */
 export async function fetchSkiConditions(): Promise<SkiResort[]> {
   // Check cache first
+  // Freshness is checked by age (not by a timer clearing the Map) so an
+  // expired entry is still available as a stale-on-error fallback.
   const cached = skiConditionsCache.get('resorts');
-  if (cached) {
+  if (cached && Date.now() - Date.parse(cached.fetchedAt) < CACHE_TTL_MS) {
     return cached.resorts;
   }
 
@@ -258,12 +259,6 @@ export async function fetchSkiConditions(): Promise<SkiResort[]> {
     };
     skiConditionsCache.set('resorts', cacheData);
 
-    // Set timeout to clear cache
-    if (cacheTimeout) clearTimeout(cacheTimeout);
-    cacheTimeout = setTimeout(() => {
-      skiConditionsCache.clear();
-    }, CACHE_TTL_MS);
-
     return resorts;
   } catch (error) {
     // Log errors (will be captured by Sentry if configured)
@@ -286,8 +281,4 @@ export async function fetchSkiConditions(): Promise<SkiResort[]> {
  */
 export function clearCache(): void {
   skiConditionsCache.clear();
-  if (cacheTimeout) {
-    clearTimeout(cacheTimeout);
-    cacheTimeout = null;
-  }
 }

@@ -1,0 +1,100 @@
+{
+  "displayFieldName": "SITE_NAME",
+  "geometryType": "esriGeometryPoint",
+  "spatialReference": { "wkid": 32145, "latestWkid": 32145 },
+  "features": [
+    {
+      "attributes": {
+        "OBJECTID": 11,
+        "SITE_NAME": "Smugglers Notch State Park",
+        "S_ADDRESS": "6443 Mountain Rd",
+        "S_TOWN": "Stowe",
+        "S_PHONE": "802-253-4014",
+        "CONTACT": "Park Ranger",
+        "ORGANIZ": "VT FPR",
+        "PUBLIC_PRI": 1,
+        "F_CAMP": "Y",
+        "N_TENTS": 20,
+        "N_SHELTER": 14,
+        "N_VEHICLE": 0,
+        "N_ELECTRY": 0,
+        "N_WATER": 0,
+        "N_BOTH": 0,
+        "Q_GROUP": "N",
+        "Q_PRIM": "N",
+        "Q_WINCAMP": "Y",
+        "AC_SWIMLAK": "N",
+        "AB_SWIMPOO": "N",
+        "AD_SWIMRIV": "N",
+        "F_BEACH": 0,
+        "Q_PICNIC": "Y",
+        "PLYGND": "N",
+        "ACREAGE": 35,
+        "N_PARKSUM": 40
+      },
+      "geometry": { "x": 475000, "y": 226000 }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 12,
+        "SITE_NAME": "North Beach",
+        "S_TOWN": "Burlington",
+        "PUBLIC_PRI": 1,
+        "F_CAMP": "N",
+        "AC_SWIMLAK": "Y",
+        "AB_SWIMPOO": "N",
+        "AD_SWIMRIV": "N",
+        "F_BEACH": 1,
+        "WATER_NM": "Lake Champlain",
+        "Q_BOATRENT": "Y",
+        "Q_PICNIC": "Y",
+        "PLYGND": "Y"
+      },
+      "geometry": { "x": 440000, "y": 220000 }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 13,
+        "SITE_NAME": "Lake Carmi State Park",
+        "S_TOWN": "Enosburg",
+        "PUBLIC_PRI": 1,
+        "F_CAMP": "Y",
+        "N_TENTS": 100,
+        "N_SHELTER": 35,
+        "N_VEHICLE": 40,
+        "N_ELECTRY": 10,
+        "N_WATER": 5,
+        "N_BOTH": 5,
+        "Q_GROUP": "Y",
+        "Q_PRIM": "N",
+        "Q_WINCAMP": "N",
+        "AC_SWIMLAK": "Y",
+        "F_BEACH": 1,
+        "WATER_NM": "Lake Carmi",
+        "Q_BOATRENT": "Y"
+      },
+      "geometry": { "x": 487000, "y": 268000 }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 14,
+        "SITE_NAME": "Private Campground",
+        "S_TOWN": "Somewhere",
+        "PUBLIC_PRI": 2,
+        "F_CAMP": "N",
+        "N_TENTS": 12,
+        "AD_SWIMRIV": "N"
+      },
+      "geometry": { "x": 500000, "y": 150000 }
+    },
+    {
+      "attributes": { "OBJECTID": 15, "SITE_NAME": "", "F_CAMP": "Y" },
+      "geometry": { "x": 480000, "y": 200000 }
+    },
+    {
+      "attributes": { "OBJECTID": 16, "SITE_NAME": "Out Of State Site", "F_CAMP": "Y" },
+      "geometry": { "x": 500000, "y": 500000 }
+    }
+  ],
+  "exceededTransferLimit": false
+}

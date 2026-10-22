@@ -1,0 +1,133 @@
+{
+  "@context": ["https://geojson.org/geojson-ld/geojson-context.jsonld"],
+  "type": "FeatureCollection",
+  "title": "Current watches, warnings, and advisories for Vermont",
+  "updated": "2026-01-15T14:00:00+00:00",
+  "features": [
+    {
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.aaa.001.1",
+      "type": "Feature",
+      "geometry": null,
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.aaa.001.1",
+        "@type": "wx:Alert",
+        "id": "urn:oid:2.49.0.1.840.0.aaa.001.1",
+        "areaDesc": "Western Chittenden; Grand Isle",
+        "affectedZones": [
+          "https://api.weather.gov/zones/forecast/VTZ005",
+          "https://api.weather.gov/zones/forecast/VTZ001"
+        ],
+        "sent": "2026-01-15T09:00:00-05:00",
+        "effective": "2026-01-15T09:00:00-05:00",
+        "onset": "2026-01-15T19:00:00-05:00",
+        "expires": "2026-01-16T12:00:00-05:00",
+        "status": "Actual",
+        "messageType": "Alert",
+        "category": "Met",
+        "severity": "Moderate",
+        "certainty": "Likely",
+        "urgency": "Expected",
+        "event": "Winter Weather Advisory",
+        "headline": "Winter Weather Advisory issued January 15 at 9:00AM EST until January 16 at 7:00AM EST by NWS Burlington VT",
+        "description": "* WHAT...Snow expected. Total snow accumulations of 3 to 5 inches.",
+        "instruction": "Slow down and use caution while traveling.",
+        "response": "Execute"
+      }
+    },
+    {
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.aaa.002.1",
+      "type": "Feature",
+      "geometry": null,
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.aaa.002.1",
+        "@type": "wx:Alert",
+        "id": "urn:oid:2.49.0.1.840.0.aaa.002.1",
+        "areaDesc": "Washington; Lamoille",
+        "affectedZones": [
+          "https://api.weather.gov/zones/forecast/VTZ006",
+          "https://api.weather.gov/zones/forecast/VTZ005"
+        ],
+        "sent": "2026-01-15T10:00:00-05:00",
+        "effective": "2026-01-15T08:00:00-05:00",
+        "onset": "2026-01-15T19:00:00-05:00",
+        "expires": "2026-01-16T10:00:00-05:00",
+        "status": "Actual",
+        "messageType": "Alert",
+        "category": "Met",
+        "severity": "Severe",
+        "certainty": "Likely",
+        "urgency": "Expected",
+        "event": "Winter Weather Advisory",
+        "headline": "Winter Weather Advisory issued January 15 at 10:00AM EST until January 16 at 10:00AM EST by NWS Burlington VT",
+        "description": "* WHAT...Heavy snow expected. Total snow accumulations of 6 to 9 inches.",
+        "instruction": "If you must travel, keep an extra flashlight, food, and water in your vehicle.",
+        "response": "Execute"
+      }
+    },
+    {
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.bbb.001.1",
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-73.3, 44.4],
+            [-73.1, 44.4],
+            [-73.1, 44.6],
+            [-73.3, 44.6],
+            [-73.3, 44.4]
+          ]
+        ]
+      },
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.bbb.001.1",
+        "@type": "wx:Alert",
+        "id": "urn:oid:2.49.0.1.840.0.bbb.001.1",
+        "areaDesc": "Chittenden, VT",
+        "affectedZones": ["https://api.weather.gov/zones/forecast/VTZ005"],
+        "sent": "2026-01-15T11:00:00-05:00",
+        "effective": "2026-01-15T11:00:00-05:00",
+        "onset": "2026-01-15T11:00:00-05:00",
+        "expires": "2026-01-15T17:00:00-05:00",
+        "status": "Actual",
+        "messageType": "Alert",
+        "category": "Met",
+        "severity": "Minor",
+        "certainty": "Observed",
+        "urgency": "Immediate",
+        "event": "Special Weather Statement",
+        "headline": "Special Weather Statement issued January 15 at 11:00AM EST by NWS Burlington VT",
+        "description": "Snow squalls moving across Chittenden County.",
+        "instruction": null,
+        "response": "Execute"
+      }
+    },
+    {
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.ccc.001.1",
+      "type": "Feature",
+      "geometry": null,
+      "properties": {
+        "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.ccc.001.1",
+        "@type": "wx:Alert",
+        "id": "urn:oid:2.49.0.1.840.0.ccc.001.1",
+        "areaDesc": "Northern Franklin, NY",
+        "affectedZones": ["https://api.weather.gov/zones/forecast/NYZ026"],
+        "sent": "2026-01-15T09:30:00-05:00",
+        "effective": "2026-01-15T09:30:00-05:00",
+        "onset": "2026-01-15T19:00:00-05:00",
+        "expires": "2026-01-16T07:00:00-05:00",
+        "status": "Actual",
+        "messageType": "Alert",
+        "category": "Met",
+        "severity": "Moderate",
+        "certainty": "Likely",
+        "urgency": "Expected",
+        "event": "Lake Effect Snow Warning",
+        "headline": "Lake Effect Snow Warning issued January 15 by NWS Burlington VT",
+        "description": "Lake effect snow in northern New York.",
+        "instruction": null,
+        "response": "Execute"
+      }
+    }
+  ]
+}

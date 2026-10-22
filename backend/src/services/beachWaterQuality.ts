@@ -12,7 +12,6 @@ type StaticBeach = Pick<
 const staticBeaches: StaticBeach[] = beachData;
 
 const beachCache = new Map<string, BeachCache>();
-let cacheTimeout: ReturnType<typeof setTimeout> | null = null;
 
 const CACHE_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
 const BURLINGTON_API_URL =
@@ -110,8 +109,10 @@ async function fetchBurlingtonBeachData(): Promise<
  */
 export async function fetchBeachWaterQuality(): Promise<Beach[]> {
   // Check cache first
+  // Freshness is checked by age (not by a timer clearing the Map) so an
+  // expired entry is still available as a stale-on-error fallback.
   const cached = beachCache.get('beaches');
-  if (cached) {
+  if (cached && Date.now() - Date.parse(cached.fetchedAt) < CACHE_TTL_MS) {
     return cached.beaches;
   }
 
@@ -192,12 +193,6 @@ export async function fetchBeachWaterQuality(): Promise<Beach[]> {
     };
     beachCache.set('beaches', cacheData);
 
-    // Set timeout to clear cache
-    if (cacheTimeout) clearTimeout(cacheTimeout);
-    cacheTimeout = setTimeout(() => {
-      beachCache.clear();
-    }, CACHE_TTL_MS);
-
     return beaches;
   } catch (error) {
     // Log errors (will be captured by Sentry if configured)
@@ -231,8 +226,4 @@ export async function fetchBeachWaterQuality(): Promise<Beach[]> {
  */
 export function clearCache(): void {
   beachCache.clear();
-  if (cacheTimeout) {
-    clearTimeout(cacheTimeout);
-    cacheTimeout = null;
-  }
 }

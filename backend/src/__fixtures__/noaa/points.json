@@ -1,0 +1,23 @@
+{
+  "@context": ["https://geojson.org/geojson-ld/geojson-context.jsonld"],
+  "id": "https://api.weather.gov/points/44.4759,-73.2121",
+  "type": "Feature",
+  "geometry": { "type": "Point", "coordinates": [-73.2121, 44.4759] },
+  "properties": {
+    "@id": "https://api.weather.gov/points/44.4759,-73.2121",
+    "@type": "wx:Point",
+    "cwa": "BTV",
+    "gridId": "BTV",
+    "gridX": 89,
+    "gridY": 56,
+    "forecast": "https://api.weather.gov/gridpoints/BTV/89,56/forecast",
+    "forecastHourly": "https://api.weather.gov/gridpoints/BTV/89,56/forecast/hourly",
+    "observationStations": "https://api.weather.gov/gridpoints/BTV/89,56/stations",
+    "relativeLocation": {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-73.2121, 44.4759] },
+      "properties": { "city": "Burlington", "state": "VT" }
+    },
+    "timeZone": "America/New_York"
+  }
+}

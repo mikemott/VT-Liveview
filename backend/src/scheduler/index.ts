@@ -16,6 +16,7 @@ import { getEnv, isDev } from '../types/env.js';
 
 // Track scheduled tasks for graceful shutdown
 const scheduledTasks: ScheduledTask[] = [];
+let initialCollectionTimer: ReturnType<typeof setTimeout> | null = null;
 
 // Track last run times and results
 interface CollectorStatus {
@@ -66,7 +67,7 @@ function scheduleCollector(
       status.lastError = null;
 
       if (isDev()) {
-        console.log(`[Scheduler] ${name}: collected ${result ?? 0} records`);
+        console.log(`[Scheduler] ${name}: collected ${result} records`);
       }
     } catch (error) {
       status.lastRun = new Date();
@@ -134,7 +135,8 @@ export function startScheduler(): boolean {
   console.log('  - River gauges: every 10 minutes');
 
   // Run initial collection after a short delay
-  setTimeout(() => {
+  initialCollectionTimer = setTimeout(() => {
+    initialCollectionTimer = null;
     console.log('[Scheduler] Running initial data collection...');
     runImmediateCollection().catch((error) => {
       console.error('[Scheduler] Initial collection failed:', error);
@@ -166,7 +168,7 @@ async function runImmediateCollection(): Promise<void> {
       status.lastError = null;
 
       if (isDev()) {
-        console.log(`[Scheduler] Initial ${name}: collected ${result ?? 0} records`);
+        console.log(`[Scheduler] Initial ${name}: collected ${result} records`);
       }
     } catch (error) {
       status.lastRun = new Date();
@@ -181,6 +183,11 @@ async function runImmediateCollection(): Promise<void> {
  */
 export function stopScheduler(): void {
   console.log('[Scheduler] Stopping scheduler...');
+
+  if (initialCollectionTimer) {
+    clearTimeout(initialCollectionTimer);
+    initialCollectionTimer = null;
+  }
 
   for (const task of scheduledTasks) {
     task.stop();

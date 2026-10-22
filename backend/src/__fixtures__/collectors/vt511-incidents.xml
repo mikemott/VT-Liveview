@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<incidentData>
+  <incident type="Accident">
+    <id>INC-1</id>
+    <headline>Crash on I-89 northbound</headline>
+    <description>Two vehicles, right lane blocked</description>
+    <lat>44475000</lat>
+    <lon>-73212000</lon>
+    <severity>high</severity>
+    <roadName>I-89</roadName>
+    <affectedLanes>Right lane</affectedLanes>
+    <startTime>2026-10-16T12:00:00Z</startTime>
+  </incident>
+  <incident type="RoadWork">
+    <id>INC-2</id>
+    <headline>Paving</headline>
+    <lat>44260000</lat>
+    <lon>-72575000</lon>
+    <severity>low</severity>
+    <routeDesignator>US-2</routeDesignator>
+    <startTime>not-a-date</startTime>
+  </incident>
+  <incident type="Closure">
+    <id>INC-3</id>
+    <lat>43610000</lat>
+    <lon>-72970000</lon>
+  </incident>
+  <incident type="Accident">
+    <id>INC-1</id>
+    <headline>Duplicate of INC-1</headline>
+    <lat>44475000</lat>
+    <lon>-73212000</lon>
+  </incident>
+  <incident type="Debris">
+    <id>INC-NOLOC</id>
+    <headline>No location; must be skipped</headline>
+  </incident>
+</incidentData>

@@ -18,6 +18,7 @@ import type {
   MergedAlert,
   ZoneBoundary,
 } from '../types/index.js';
+import { createHash } from 'node:crypto';
 import { getEnv } from '../types/index.js';
 import { fetchZoneBoundaries, filterVermontZones, extractZoneId } from './zones.js';
 
@@ -73,8 +74,16 @@ async function getGridPoint(lat: number, lon: number): Promise<NOAAGridPointProp
 
   const data = (await response.json()) as { properties: NOAAGridPointProperties };
 
+  // Concurrent misses for the same key: drop the earlier entry's timer so it
+  // can't delete this fresher entry early.
+  const existingTimeout = cacheTimeouts.get(cacheKey);
+  if (existingTimeout) {
+    clearTimeout(existingTimeout);
+    cacheTimeouts.delete(cacheKey);
+  }
+
   // Implement LRU eviction if cache is full
-  if (gridPointCache.size >= MAX_CACHE_SIZE) {
+  if (gridPointCache.size >= MAX_CACHE_SIZE && !gridPointCache.has(cacheKey)) {
     const firstKey = gridPointCache.keys().next().value;
     if (firstKey !== undefined) {
       gridPointCache.delete(firstKey);
@@ -142,7 +151,6 @@ export async function getCurrentWeather(lat: number, lon: number): Promise<Weath
 
       // Extract values for type narrowing
       const tempValue = props.temperature?.value;
-      const windSpeedValue = props.windSpeed?.value;
       const windDirValue = props.windDirection?.value;
 
       // Check if we have valid temperature data
@@ -152,10 +160,7 @@ export async function getCurrentWeather(lat: number, lon: number): Promise<Weath
         temperature: celsiusToFahrenheit(tempValue),
         temperatureUnit: 'F',
         description: props.textDescription ?? 'Unknown',
-        windSpeed:
-          windSpeedValue !== null && windSpeedValue !== undefined
-            ? `${Math.round(windSpeedValue * 2.237)} mph`
-            : null,
+        windSpeed: formatWindSpeed(props.windSpeed),
         windDirection:
           windDirValue !== null && windDirValue !== undefined
             ? degreesToCardinal(windDirValue)
@@ -205,10 +210,22 @@ export async function getForecast(lat: number, lon: number): Promise<ForecastPer
 }
 
 /**
+ * Validate a two-letter state/area code before it is placed in a query string.
+ */
+function normalizeStateCode(state: string): string {
+  const code = state.trim().toUpperCase();
+  if (!/^[A-Z]{2}$/.test(code)) {
+    throw new Error(`Invalid state code: ${JSON.stringify(state)}`);
+  }
+  return code;
+}
+
+/**
  * Get active weather alerts for a state.
  */
 export async function getAlerts(state: string): Promise<Alert[]> {
-  const response = await fetch(`${NOAA_BASE}/alerts/active?area=${state}`, getFetchOptions());
+  const area = encodeURIComponent(normalizeStateCode(state));
+  const response = await fetch(`${NOAA_BASE}/alerts/active?area=${area}`, getFetchOptions());
 
   if (!response.ok) {
     throw new Error(`Failed to get alerts: ${response.status}`);
@@ -306,10 +323,11 @@ function zonesToMultiPolygon(zones: ZoneBoundary[]): number[][][][] {
  * Uses existing alert geometry when available, falls back to zone boundaries.
  */
 export async function getMergedAlerts(state: string): Promise<MergedAlert[]> {
+  const area = encodeURIComponent(normalizeStateCode(state));
   let data: NOAAAlertsResponse;
 
   try {
-    const response = await fetch(`${NOAA_BASE}/alerts/active?area=${state}`, getFetchOptions());
+    const response = await fetch(`${NOAA_BASE}/alerts/active?area=${area}`, getFetchOptions());
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
@@ -445,9 +463,17 @@ export async function getMergedAlerts(state: string): Promise<MergedAlert[]> {
     const areaDesc =
       vtZoneNames.length > 0 ? vtZoneNames.join('; ') : primaryAlert.properties.areaDesc;
 
+    // Stable id: same event + same source alerts => same id across polls
+    // (the alerts collector uses it as a dedupe key).
+    const mergedFrom = alerts.map((a) => a.properties.id);
+    const sourceHash = createHash('sha256')
+      .update([...mergedFrom].sort().join('|'))
+      .digest('hex')
+      .slice(0, 16);
+
     // Create merged alert
     const mergedAlert: MergedAlert = {
-      id: `merged-${event.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`,
+      id: `merged-${event.toLowerCase().replace(/\s+/g, '-')}-${sourceHash}`,
       event,
       headline: primaryAlert.properties.headline,
       severity: primaryAlert.properties.severity,
@@ -462,7 +488,7 @@ export async function getMergedAlerts(state: string): Promise<MergedAlert[]> {
         type: 'MultiPolygon',
         coordinates: geometryParts,
       },
-      mergedFrom: alerts.map((a) => a.properties.id),
+      mergedFrom,
       affectedZoneIds: [...vtZoneIds],
     };
 
@@ -483,6 +509,20 @@ export async function getMergedAlerts(state: string): Promise<MergedAlert[]> {
  */
 export function celsiusToFahrenheit(celsius: number): number {
   return Math.round((celsius * 9) / 5 + 32);
+}
+
+/**
+ * Format a NOAA wind speed quantity as "N mph".
+ * api.weather.gov observations report wind in km/h (unitCode "wmoUnit:km_h-1");
+ * m/s is handled for any other unit code, as before.
+ */
+export function formatWindSpeed(
+  quantity: { value: number | null; unitCode: string } | null | undefined,
+): string | null {
+  const value = quantity?.value;
+  if (value === null || value === undefined) return null;
+  const factor = quantity?.unitCode.includes('km_h') ? 0.621371 : 2.237;
+  return `${Math.round(value * factor)} mph`;
 }
 
 /**
@@ -791,7 +831,6 @@ export async function getObservationStations(): Promise<ObservationStation[]> {
 
         // Extract values for type narrowing
         const tempValue = props.temperature?.value;
-        const windSpeedValue = props.windSpeed?.value;
         const windDirValue = props.windDirection?.value;
         const dewpointValue = props.dewpoint?.value;
         const pressureValue = props.barometricPressure?.value;
@@ -817,10 +856,7 @@ export async function getObservationStations(): Promise<ObservationStation[]> {
             temperature: celsiusToFahrenheit(tempValue),
             temperatureUnit: 'F',
             description: props.textDescription ?? 'Unknown',
-            windSpeed:
-              windSpeedValue !== null && windSpeedValue !== undefined
-                ? `${Math.round(windSpeedValue * 2.237)} mph`
-                : null,
+            windSpeed: formatWindSpeed(props.windSpeed),
             windDirection:
               windDirValue !== null && windDirValue !== undefined
                 ? degreesToCardinal(windDirValue)
@@ -861,6 +897,12 @@ export async function getObservationStations(): Promise<ObservationStation[]> {
     total: validStations.length,
     stationIds: validStations.map((s) => s.id),
   });
+
+  // Total upstream failure: don't overwrite good data with an empty list.
+  // Serve the previous (possibly stale) result if we have one.
+  if (validStations.length === 0) {
+    return stationsCache.data ?? [];
+  }
 
   stationsCache.data = validStations;
   stationsCache.timestamp = Date.now();

@@ -19,7 +19,21 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json-summary', 'lcov', 'html'],
-      exclude: ['node_modules/', 'src/test/'],
+      // Measure all source files, not just the ones tests happen to import
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: [
+        'src/**/__tests__/**',
+        'src/__fixtures__/**',
+        'src/test/**',
+        'src/**/*.d.ts',
+        'src/main.tsx',
+      ],
+      // VTL-45 targets. Raise these as coverage grows; never lower them to pass CI.
+      thresholds: {
+        'src/utils/**': { lines: 80 },
+        'src/services/**': { lines: 80 },
+        'src/components/**': { lines: 60 },
+      },
     },
   },
   resolve: {

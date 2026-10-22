@@ -1,0 +1,98 @@
+{
+  "displayFieldName": "Site",
+  "geometryType": "esriGeometryPoint",
+  "spatialReference": { "wkid": 32145, "latestWkid": 32145 },
+  "features": [
+    {
+      "attributes": {
+        "OBJECTID": 501,
+        "Site": "LT-01",
+        "Type": 1,
+        "Surface": 2,
+        "ADA": 0,
+        "FireType": 1,
+        "Table_": 1,
+        "ANRUnit": 42,
+        "ParkDistrict": 3,
+        "Notes": "Lake view"
+      },
+      "geometry": { "x": 475000, "y": 226000 }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 502,
+        "Site": "",
+        "Type": 4,
+        "Surface": 1,
+        "ADA": 1,
+        "FireType": 0,
+        "Table_": 0,
+        "ANRUnit": 42,
+        "ParkDistrict": 3,
+        "Notes": null
+      },
+      "geometry": { "x": 475100, "y": 226100 }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 503,
+        "Site": "C-07",
+        "Type": 2,
+        "Surface": 1,
+        "ADA": 0,
+        "FireType": 2,
+        "Table_": 2,
+        "ANRUnit": 77,
+        "ParkDistrict": 1,
+        "Notes": ""
+      },
+      "geometry": { "x": 487000, "y": 268000 }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 504,
+        "Site": "X-99",
+        "Type": 9,
+        "Surface": 0,
+        "ADA": 0,
+        "FireType": 0,
+        "Table_": 0,
+        "ANRUnit": 0,
+        "ParkDistrict": 0,
+        "Notes": null
+      },
+      "geometry": { "x": 480000, "y": 200000 }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 505,
+        "Site": "NOGEOM",
+        "Type": 4,
+        "Surface": 0,
+        "ADA": 0,
+        "FireType": 0,
+        "Table_": 0,
+        "ANRUnit": 42,
+        "ParkDistrict": 3,
+        "Notes": null
+      },
+      "geometry": { "x": 0, "y": 0 }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 506,
+        "Site": "FAR",
+        "Type": 4,
+        "Surface": 0,
+        "ADA": 0,
+        "FireType": 0,
+        "Table_": 0,
+        "ANRUnit": 42,
+        "ParkDistrict": 3,
+        "Notes": null
+      },
+      "geometry": { "x": 900000, "y": 226000 }
+    }
+  ],
+  "exceededTransferLimit": false
+}

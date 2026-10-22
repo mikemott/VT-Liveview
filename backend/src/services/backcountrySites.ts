@@ -199,7 +199,6 @@ async function fetchFromAPI(): Promise<BackcountrySite[]> {
 // =============================================================================
 
 const backcountryCache = new Map<string, BackcountrySiteCache>();
-let cacheTimeout: ReturnType<typeof setTimeout> | null = null;
 
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -208,8 +207,10 @@ const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
  */
 export async function fetchBackcountrySites(): Promise<BackcountrySite[]> {
   // Check cache first
+  // Freshness is checked by age (not by a timer clearing the Map) so an
+  // expired entry is still available as a stale-on-error fallback.
   const cached = backcountryCache.get('sites');
-  if (cached) {
+  if (cached && Date.now() - Date.parse(cached.fetchedAt) < CACHE_TTL_MS) {
     return cached.sites;
   }
 
@@ -222,12 +223,6 @@ export async function fetchBackcountrySites(): Promise<BackcountrySite[]> {
       fetchedAt: new Date().toISOString(),
     };
     backcountryCache.set('sites', cacheData);
-
-    // Set timeout to clear cache
-    if (cacheTimeout) clearTimeout(cacheTimeout);
-    cacheTimeout = setTimeout(() => {
-      backcountryCache.clear();
-    }, CACHE_TTL_MS);
 
     return sites;
   } catch (error) {
@@ -255,8 +250,4 @@ export async function fetchBackcountrySites(): Promise<BackcountrySite[]> {
  */
 export function clearCache(): void {
   backcountryCache.clear();
-  if (cacheTimeout) {
-    clearTimeout(cacheTimeout);
-    cacheTimeout = null;
-  }
 }
