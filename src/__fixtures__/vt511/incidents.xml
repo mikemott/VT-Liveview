@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SYNTHETIC fixture: shape inferred from src/services/vt511Api.ts, not captured upstream. -->
+<incidents>
+  <incident id="1001">
+    <type Accident="true"/>
+    <desc>Crash on I-89 northbound. Right lane blocked.</desc>
+    <severity>High</severity>
+    <createdTimestamp>2026-10-16T12:00:00-04:00</createdTimestamp>
+    <affectedLanesDescription>Right lane</affectedLanesDescription>
+    <startLocation>
+      <lat>44260100</lat>
+      <lon>-72575400</lon>
+      <roadway>I-89</roadway>
+      <city>Montpelier</city>
+    </startLocation>
+    <endLocation>
+      <lat>44300000</lat>
+      <lon>-72500000</lon>
+    </endLocation>
+    <midpoints>
+      <point><order>2</order><lat>44290000</lat><lon>-72520000</lon></point>
+      <point><order>1</order><lat>44280000</lat><lon>-72540000</lon></point>
+    </midpoints>
+    <roadRestrictions>
+      <weight>10 tons</weight>
+      <width>12 ft</width>
+    </roadRestrictions>
+  </incident>
+  <incident id="1002">
+    <type RoadWork="true"/>
+    <desc>Paving operations</desc>
+    <severity>Medium</severity>
+    <startLocation>
+      <lat>44475000</lat>
+      <lon>-73212000</lon>
+      <roadway>US-2</roadway>
+      <city>Burlington</city>
+    </startLocation>
+  </incident>
+  <incident id="1003">
+    <type BridgeOut="true"/>
+    <desc>Bridge out. Detour posted.</desc>
+    <severity>Extreme</severity>
+    <startLocation>
+      <lat>43600000</lat>
+      <lon>-72970000</lon>
+    </startLocation>
+  </incident>
+  <incident id="1004">
+    <type Debris="true"/>
+    <desc></desc>
+  </incident>
+</incidents>

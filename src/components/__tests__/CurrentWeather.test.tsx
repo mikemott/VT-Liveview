@@ -1,0 +1,116 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { ReactElement } from 'react';
+import CurrentWeather from '../CurrentWeather';
+import {
+  fetchCurrentWeather,
+  fetchForecast,
+  type CurrentWeatherData,
+  type ForecastPeriodData,
+} from '../../services/graphqlClient';
+
+vi.mock('../../services/graphqlClient', () => ({
+  fetchCurrentWeather: vi.fn(),
+  fetchForecast: vi.fn(),
+}));
+
+const weatherMock = vi.mocked(fetchCurrentWeather);
+const forecastMock = vi.mocked(fetchForecast);
+
+const WEATHER: CurrentWeatherData = {
+  temperature: 51,
+  temperatureUnit: 'F',
+  description: 'Light Rain',
+  windSpeed: '12 mph',
+  windDirection: 'SW',
+  humidity: 88.4,
+  timestamp: '2026-10-16T12:00:00Z',
+  stationName: 'Montpelier Airport',
+  icon: null,
+};
+
+function period(name: string, temperature: number): ForecastPeriodData {
+  return {
+    name,
+    temperature,
+    temperatureUnit: 'F',
+    shortForecast: 'Rain',
+    detailedForecast: 'Rain likely',
+    startTime: '2026-10-16T18:00:00Z',
+    endTime: '2026-10-17T06:00:00Z',
+    isDaytime: false,
+    icon: 'https://api.weather.gov/icons/land/night/rain?size=medium',
+    windSpeed: '5 mph',
+    windDirection: 'S',
+  };
+}
+
+function renderWithClient(ui: ReactElement) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
+}
+
+describe('CurrentWeather', () => {
+  beforeEach(() => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    weatherMock.mockResolvedValue(WEATHER);
+    forecastMock.mockResolvedValue(
+      Array.from({ length: 8 }, (_, i) => period(`Period ${i + 1}`, 40 + i + 0.4)),
+    );
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.clearAllMocks();
+  });
+
+  it('shows a skeleton while loading', () => {
+    weatherMock.mockReturnValue(new Promise(() => {}));
+    const { container } = renderWithClient(<CurrentWeather />);
+    expect(container.querySelector('.current-weather.loading .weather-skeleton')).not.toBeNull();
+  });
+
+  it('renders current conditions for the default location', async () => {
+    renderWithClient(<CurrentWeather isDark />);
+    expect(await screen.findByText('51')).toBeInTheDocument();
+    expect(screen.getByText('°F')).toBeInTheDocument();
+    expect(screen.getByText('12 mph SW')).toBeInTheDocument();
+    expect(screen.getByText('88%')).toBeInTheDocument();
+    expect(screen.getByText('Light Rain')).toBeInTheDocument();
+    expect(weatherMock).toHaveBeenCalledWith(44.2601, -72.5754);
+    expect(document.querySelector('.current-weather.dark.collapsed')).not.toBeNull();
+  });
+
+  it('expands to a six-period forecast and the station name', async () => {
+    renderWithClient(<CurrentWeather lat={44.5} lon={-73.2} />);
+    fireEvent.click(await screen.findByText('Light Rain'));
+    expect(await screen.findByText('Next 3 Days')).toBeInTheDocument();
+    expect(screen.getByText('Period 1')).toBeInTheDocument();
+    expect(screen.getByText('Period 6')).toBeInTheDocument();
+    expect(screen.queryByText('Period 7')).toBeNull();
+    expect(screen.getByText('40°')).toBeInTheDocument();
+    expect(screen.getByText('Montpelier Airport')).toBeInTheDocument();
+    expect(forecastMock).toHaveBeenCalledWith(44.5, -73.2);
+  });
+
+  it('omits wind and humidity when they are missing', async () => {
+    weatherMock.mockResolvedValue({ ...WEATHER, windSpeed: null, humidity: null });
+    const { container } = renderWithClient(<CurrentWeather />);
+    await screen.findByText('51');
+    expect(container.querySelector('.weather-metrics')?.textContent).toBe('');
+  });
+
+  it('shows a minimal view on mobile until expanded', async () => {
+    renderWithClient(<CurrentWeather isMobile />);
+    await screen.findByText('51');
+    expect(screen.queryByText('Light Rain')).toBeNull();
+    fireEvent.click(screen.getByText('51'));
+    expect(screen.getByText('Light Rain')).toBeInTheDocument();
+  });
+
+  it.todo(
+    'shows an error state instead of fake placeholder weather when the request fails (FINDINGS Medium, CurrentWeather.tsx:56-75)',
+  );
+  it.todo('the expandable card is keyboard operable (FINDINGS H15 / a11y)');
+});

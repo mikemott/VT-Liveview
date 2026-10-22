@@ -1,0 +1,35 @@
+{
+  "data": {
+    "mergedAlerts": [
+      {
+        "id": "merged-winter-storm-warning",
+        "event": "Winter Storm Warning",
+        "headline": "Winter Storm Warning issued for northern Vermont",
+        "severity": "Severe",
+        "certainty": "Likely",
+        "urgency": "Expected",
+        "description": "Heavy snow expected. Total accumulations of 8 to 14 inches.",
+        "instruction": "Travel could be very difficult.",
+        "areaDesc": "Lamoille; Orleans",
+        "effective": "2026-10-16T10:00:00-04:00",
+        "expires": "2026-10-17T10:00:00-04:00",
+        "geometry": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [
+                [-72.6, 44.5],
+                [-72.4, 44.5],
+                [-72.4, 44.7],
+                [-72.6, 44.7],
+                [-72.6, 44.5]
+              ]
+            ]
+          ]
+        },
+        "mergedFrom": ["urn:oid:2.49.0.1.840.0.aaa", "urn:oid:2.49.0.1.840.0.bbb"],
+        "affectedZoneIds": ["VTZ006", "VTZ007"]
+      }
+    ]
+  }
+}

@@ -296,6 +296,12 @@ function CampingLayer({
 
   const campgroundMarkersRef = useRef<MarkerEntry[]>([]);
   const backcountryMarkersRef = useRef<MarkerEntry[]>([]);
+  // Single shared popup so markers don't stack popups or leak them on unmount
+  const popupRef = useRef<maplibregl.Popup | null>(null);
+  const closePopup = (): void => {
+    popupRef.current?.remove();
+    popupRef.current = null;
+  };
 
   // Fetch both types of sites on mount (or when toggle states change)
   useEffect(() => {
@@ -403,7 +409,8 @@ function CampingLayer({
       const handleMarkerClick = (e: MouseEvent): void => {
         e.stopPropagation();
 
-        new maplibregl.Popup({
+        closePopup();
+        popupRef.current = new maplibregl.Popup({
           closeButton: true,
           closeOnClick: true,
           className: 'camping-popup',
@@ -432,6 +439,7 @@ function CampingLayer({
         marker.remove();
       });
       campgroundMarkersRef.current = [];
+      closePopup();
     };
   }, [map, visible, showCampgrounds, campgrounds]);
 
@@ -470,7 +478,8 @@ function CampingLayer({
       const handleMarkerClick = (e: MouseEvent): void => {
         e.stopPropagation();
 
-        new maplibregl.Popup({
+        closePopup();
+        popupRef.current = new maplibregl.Popup({
           closeButton: true,
           closeOnClick: true,
           className: 'camping-popup backcountry-popup',
@@ -499,6 +508,7 @@ function CampingLayer({
         marker.remove();
       });
       backcountryMarkersRef.current = [];
+      closePopup();
     };
   }, [map, visible, showBackcountry, backcountrySites]);
 

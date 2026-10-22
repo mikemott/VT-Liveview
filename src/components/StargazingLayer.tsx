@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { createRoot } from 'react-dom/client';
 import maplibregl from 'maplibre-gl';
-import { Star } from 'lucide-react';
 import { VERMONT_DARK_SKY_ZONES } from '../data/lightPollution';
 import { DARK_SKY_SITES } from '../data/darkSkySites';
 import { BORTLE_COLORS, BORTLE_DESCRIPTIONS } from '../types/stargazing';
@@ -22,13 +20,12 @@ interface MarkerEntry {
   marker: maplibregl.Marker;
   element: HTMLDivElement;
   handler: (e: MouseEvent) => void;
-  root?: ReturnType<typeof createRoot>;
 }
 
-// Marker icon component
-function StarMarkerIcon({ bortleClass }: { bortleClass: BortleClass }) {
+// Lucide Star icon as static SVG (one React root per marker was never safely unmounted)
+function starMarkerSVG(bortleClass: BortleClass): string {
   const color = bortleClass <= 3 ? '#ffd700' : bortleClass <= 5 ? '#ffa500' : '#888888';
-  return <Star size={20} fill={color} color={color} strokeWidth={1.5} />;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="${color}" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg>`;
 }
 
 export default function StargazingLayer({
@@ -77,12 +74,9 @@ export default function StargazingLayer({
 
   // Cleanup markers
   const cleanupMarkers = useCallback(() => {
-    markersRef.current.forEach(({ marker, element, handler, root }) => {
+    markersRef.current.forEach(({ marker, element, handler }) => {
       if (element && handler) {
         element.removeEventListener('click', handler as EventListener);
-      }
-      if (root) {
-        root.unmount();
       }
       marker.remove();
     });
@@ -200,9 +194,7 @@ export default function StargazingLayer({
       el.className = `dark-sky-marker bortle-${site.bortleClass}`;
       el.title = site.name;
 
-      // Use React to render the icon
-      const root = createRoot(el);
-      root.render(<StarMarkerIcon bortleClass={site.bortleClass} />);
+      el.innerHTML = starMarkerSVG(site.bortleClass);
 
       const marker = new maplibregl.Marker({ element: el }).setLngLat(site.coordinates).addTo(map);
 
@@ -294,7 +286,7 @@ export default function StargazingLayer({
       };
 
       el.addEventListener('click', handleMarkerClick as EventListener);
-      markersRef.current.push({ marker, element: el, handler: handleMarkerClick, root });
+      markersRef.current.push({ marker, element: el, handler: handleMarkerClick });
     });
 
     // Close popup when clicking on map

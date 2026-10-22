@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef, memo } from 'react';
-import { createRoot } from 'react-dom/client';
-import { Droplet } from 'lucide-react';
 import maplibregl from 'maplibre-gl';
 import { graphqlClient } from '../services/graphqlClient';
 import { gql } from 'graphql-request';
 import { INTERVALS } from '../utils/constants';
+import { escapeHTML } from '../utils/sanitize';
 import type { MapLibreMap, Marker, ObservationStation } from '../types';
 import './WeatherStationsLayer.css';
 
@@ -61,6 +60,18 @@ const STATIONS_QUERY = gql`
 // =============================================================================
 // Helper Functions
 // =============================================================================
+
+// Lucide Droplet icon as static SVG (a React root per marker was never unmounted)
+const DROPLET_ICON = `
+  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+       fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+       stroke-linejoin="round">
+    <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>
+  </svg>
+`;
+
+const isNum = (v: number | null | undefined): v is number =>
+  typeof v === 'number' && Number.isFinite(v);
 
 function createWeatherStationMarker(station: ObservationStation): HTMLDivElement {
   const el = document.createElement('div');
@@ -125,9 +136,7 @@ function createWeatherStationMarker(station: ObservationStation): HTMLDivElement
       margin-bottom: -2px;
     `;
 
-    // Render React Droplet icon into the container
-    const root = createRoot(iconContainer);
-    root.render(<Droplet size={14} strokeWidth={2.5} />);
+    iconContainer.innerHTML = DROPLET_ICON;
 
     inner.appendChild(iconContainer);
 
@@ -166,7 +175,7 @@ function createWeatherStationMarker(station: ObservationStation): HTMLDivElement
 function WeatherStationsLayer({
   map,
   visible,
-  onStationClick: _onStationClick,
+  onStationClick,
   globalPopupRef,
 }: WeatherStationsLayerProps) {
   const [stations, setStations] = useState<ObservationStation[]>([]);
@@ -267,26 +276,13 @@ function WeatherStationsLayer({
             metadata: '#7a9576',
           };
 
-      // Escape HTML
-      const escapeHTML = (str: string): string => {
-        if (!str) return '';
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-      };
-
       const safeName = escapeHTML(station.name);
       const badgeText = isWaterTemp ? 'Water Temperature' : 'Weather Station';
-      const temp = station.weather?.temperature
-        ? `${Math.round(station.weather.temperature)}°F`
-        : 'N/A';
-      const wind = station.weather?.windSpeed ? station.weather.windSpeed : 'N/A';
-      const humidity = station.weather?.humidity
-        ? `${Math.round(station.weather.humidity)}%`
-        : 'N/A';
-      const pressure = station.weather?.pressure
-        ? `${(station.weather.pressure / 100).toFixed(2)} mb`
-        : 'N/A';
+      const w = station.weather;
+      const temp = isNum(w?.temperature) ? `${Math.round(w.temperature)}°F` : 'N/A';
+      const wind = w?.windSpeed ? escapeHTML(w.windSpeed) : 'N/A';
+      const humidity = isNum(w?.humidity) ? `${Math.round(w.humidity)}%` : 'N/A';
+      const pressure = isNum(w?.pressure) ? `${(w.pressure / 100).toFixed(2)} mb` : 'N/A';
 
       // Create popup
       const popup = new maplibregl.Popup({
@@ -399,6 +395,7 @@ function WeatherStationsLayer({
         } else {
           popup.setLngLat([station.location.lng, station.location.lat]).addTo(map);
           globalPopupRef.current = popup;
+          onStationClick?.(station);
         }
       };
 
@@ -428,7 +425,7 @@ function WeatherStationsLayer({
       }
       map.off('click', handleMapClick);
     };
-  }, [map, visible, stations, globalPopupRef]);
+  }, [map, visible, stations, globalPopupRef, onStationClick]);
 
   // No UI panel - markers only
   return null;

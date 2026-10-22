@@ -228,14 +228,20 @@ export async function fetchFloodGauges(): Promise<FloodIncident[]> {
  * Fetch all travel incidents from all sources
  */
 export async function fetchAllIncidents(): Promise<TravelIncident[]> {
-  try {
-    const [vt511Data, floods] = await Promise.all([fetchAllVT511Data(), fetchFloodGauges()]);
+  // allSettled: an outage in one source must not hide the other's incidents.
+  const [vt511Result, floodResult] = await Promise.allSettled([
+    fetchAllVT511Data(),
+    fetchFloodGauges(),
+  ]);
 
-    return [...vt511Data, ...floods];
-  } catch (error) {
+  if (vt511Result.status === 'rejected' && floodResult.status === 'rejected') {
     if (import.meta.env.DEV) {
-      console.error('Error fetching incidents:', error);
+      console.error('Error fetching incidents:', vt511Result.reason, floodResult.reason);
     }
-    throw error;
+    throw vt511Result.reason;
   }
+
+  const vt511Data = vt511Result.status === 'fulfilled' ? vt511Result.value : [];
+  const floods = floodResult.status === 'fulfilled' ? floodResult.value : [];
+  return [...vt511Data, ...floods];
 }

@@ -1,9 +1,12 @@
 /**
  * Vitest test setup
- * Configures testing-library matchers and global test utilities
+ * Configures testing-library matchers and the shared MSW server.
  */
 
 import '@testing-library/jest-dom/vitest';
+import { afterAll, afterEach, beforeAll } from 'vitest';
+import { server } from './msw';
 
-// Vitest automatically handles import.meta.env based on vitest.config.ts
-// Additional test environment setup can be added here if needed
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());

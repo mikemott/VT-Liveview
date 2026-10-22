@@ -432,7 +432,7 @@ function TravelLayer({
               font-weight: 600;
               text-transform: uppercase;
               letter-spacing: 0.05em;
-            ">${incident.type}</span>
+            ">${escapeHTML(incident.type)}</span>
           </div>
           <h3 style="
             margin: 0 0 var(--space-3, 8px) 0;
@@ -550,6 +550,22 @@ function TravelLayer({
       map.off('click', handleMapClick);
     };
   }, [map, visible, visibleIncidents, isDark, globalPopupRef]);
+
+  // Remove the highlight route when the layer unmounts
+  useEffect(() => {
+    if (!map) return;
+    return () => {
+      // The parent may already have removed the map (see FINDINGS C1)
+      try {
+        if (map.getLayer('incident-highlight')) map.removeLayer('incident-highlight');
+        if (map.getLayer('incident-highlight-outline'))
+          map.removeLayer('incident-highlight-outline');
+        if (map.getSource('incident-highlight')) map.removeSource('incident-highlight');
+      } catch {
+        // Map already destroyed; nothing to clean up
+      }
+    };
+  }, [map]);
 
   // Group incidents by type
   const incidentsByType: IncidentsByType = visibleIncidents.reduce((acc, incident) => {
