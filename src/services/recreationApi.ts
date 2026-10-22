@@ -128,9 +128,7 @@ export const RECREATION_SITES_QUERY = gql`
  */
 export async function fetchRecreationSites(): Promise<RecreationSite[]> {
   try {
-    const data = await graphqlClient.request<RecreationSitesResponse>(
-      RECREATION_SITES_QUERY
-    );
+    const data = await graphqlClient.request<RecreationSitesResponse>(RECREATION_SITES_QUERY);
     return data.recreationSites;
   } catch (error) {
     if (import.meta.env.DEV) {

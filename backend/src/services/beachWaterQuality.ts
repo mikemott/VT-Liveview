@@ -2,7 +2,10 @@ import beachData from '../data/vtBeaches.json' with { type: 'json' };
 import type { Beach, BeachCache, BurlingtonApiResponse } from '../types/beach.js';
 
 /** Static beach record from vtBeaches.json, before water quality is merged in */
-type StaticBeach = Pick<Beach, 'id' | 'name' | 'town' | 'latitude' | 'longitude' | 'parkType' | 'amenities'> & {
+type StaticBeach = Pick<
+  Beach,
+  'id' | 'name' | 'town' | 'latitude' | 'longitude' | 'parkType' | 'amenities'
+> & {
   burlingtonLocationId?: number;
 };
 
@@ -12,7 +15,8 @@ const beachCache = new Map<string, BeachCache>();
 let cacheTimeout: ReturnType<typeof setTimeout> | null = null;
 
 const CACHE_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
-const BURLINGTON_API_URL = 'https://maps.burlingtonvt.gov/arcgis/rest/services/BTV_Beach_Status/MapServer/0/query';
+const BURLINGTON_API_URL =
+  'https://maps.burlingtonvt.gov/arcgis/rest/services/BTV_Beach_Status/MapServer/0/query';
 
 /**
  * Calculate beach color based on cyanobacteria category and E. coli levels
@@ -68,7 +72,9 @@ function determineStatus(cyanobacteriaCategory: number | null): Beach['status'] 
 /**
  * Fetch Burlington beach data from ArcGIS REST API
  */
-async function fetchBurlingtonBeachData(): Promise<Map<number, BurlingtonApiResponse['features'][0]>> {
+async function fetchBurlingtonBeachData(): Promise<
+  Map<number, BurlingtonApiResponse['features'][0]>
+> {
   const url = `${BURLINGTON_API_URL}?where=1%3D1&outFields=*&f=json`;
 
   const controller = new AbortController();
@@ -76,9 +82,9 @@ async function fetchBurlingtonBeachData(): Promise<Map<number, BurlingtonApiResp
 
   const response = await fetch(url, {
     headers: {
-      'User-Agent': 'VT-LiveView/1.0 (Educational; mike@mottvt.com)'
+      'User-Agent': 'VT-LiveView/1.0 (Educational; mike@mottvt.com)',
     },
-    signal: controller.signal
+    signal: controller.signal,
   });
 
   clearTimeout(timeoutId);
@@ -87,7 +93,7 @@ async function fetchBurlingtonBeachData(): Promise<Map<number, BurlingtonApiResp
     throw new Error(`Burlington API error: ${response.status}`);
   }
 
-  const data = await response.json() as BurlingtonApiResponse;
+  const data = (await response.json()) as BurlingtonApiResponse;
 
   // Create a map of LocationId -> beach data for fast lookups
   const beachMap = new Map<number, BurlingtonApiResponse['features'][0]>();
@@ -114,7 +120,7 @@ export async function fetchBeachWaterQuality(): Promise<Beach[]> {
     const burlingtonData = await fetchBurlingtonBeachData();
 
     // Merge with static beach data
-    const beaches: Beach[] = staticBeaches.map(staticBeach => {
+    const beaches: Beach[] = staticBeaches.map((staticBeach) => {
       // Check if this beach has Burlington water quality data
       const waterQualityData = staticBeach.burlingtonLocationId
         ? burlingtonData.get(staticBeach.burlingtonLocationId)
@@ -152,7 +158,8 @@ export async function fetchBeachWaterQuality(): Promise<Beach[]> {
       // Generate advisory message if needed
       let advisory: string | null = null;
       if (attrs.CyanobacteriaCategory === 2) {
-        advisory = 'Cyanobacteria is present in low levels. Vulnerable groups (children and pets) are advised to avoid the water.';
+        advisory =
+          'Cyanobacteria is present in low levels. Vulnerable groups (children and pets) are advised to avoid the water.';
       } else if (attrs.CyanobacteriaCategory === 3) {
         advisory = 'Cyanobacteria bloom present at dangerous levels. Swimming prohibited.';
       } else if (eColiLevel && eColiLevel >= 235) {
@@ -192,7 +199,6 @@ export async function fetchBeachWaterQuality(): Promise<Beach[]> {
     }, CACHE_TTL_MS);
 
     return beaches;
-
   } catch (error) {
     // Log errors (will be captured by Sentry if configured)
     console.error('Beach water quality fetch failed:', error);
@@ -205,7 +211,7 @@ export async function fetchBeachWaterQuality(): Promise<Beach[]> {
     }
 
     // Last resort: return beaches with no quality data
-    return staticBeaches.map(beach => ({
+    return staticBeaches.map((beach) => ({
       ...beach,
       waterQualityGrade: null,
       waterTemp: null,

@@ -42,9 +42,7 @@ export default function StationDetail({ station, isDark }: StationDetailProps) {
       </div>
 
       {typeof elevation === 'number' && (
-        <div className="station-elevation">
-          Elevation: {elevation.toLocaleString()} ft
-        </div>
+        <div className="station-elevation">Elevation: {elevation.toLocaleString()} ft</div>
       )}
 
       {/* Current conditions */}
@@ -98,7 +96,9 @@ export default function StationDetail({ station, isDark }: StationDetailProps) {
               <Droplets size={24} />
             </div>
             <div className="condition-info">
-              <div className="condition-value">{weather.dewpoint}°{weather.temperatureUnit}</div>
+              <div className="condition-value">
+                {weather.dewpoint}°{weather.temperatureUnit}
+              </div>
               <div className="condition-label">Dewpoint</div>
             </div>
           </div>
@@ -122,9 +122,7 @@ export default function StationDetail({ station, isDark }: StationDetailProps) {
       <div className="station-description">{weather.description}</div>
 
       {/* Last updated */}
-      <div className="station-updated">
-        Last updated: {formatTimestamp(weather.timestamp)}
-      </div>
+      <div className="station-updated">Last updated: {formatTimestamp(weather.timestamp)}</div>
     </div>
   );
 }

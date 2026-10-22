@@ -19,11 +19,7 @@ import type {
   ZoneBoundary,
 } from '../types/index.js';
 import { getEnv } from '../types/index.js';
-import {
-  fetchZoneBoundaries,
-  filterVermontZones,
-  extractZoneId,
-} from './zones.js';
+import { fetchZoneBoundaries, filterVermontZones, extractZoneId } from './zones.js';
 
 const NOAA_BASE = 'https://api.weather.gov';
 
@@ -136,7 +132,7 @@ export async function getCurrentWeather(lat: number, lon: number): Promise<Weath
     try {
       const obsResponse = await fetch(
         `${NOAA_BASE}/stations/${stationId}/observations/latest`,
-        getFetchOptions()
+        getFetchOptions(),
       );
 
       if (!obsResponse.ok) continue;
@@ -446,9 +442,8 @@ export async function getMergedAlerts(state: string): Promise<MergedAlert[]> {
       }
     }
     // If we used existing geometry, zone names might be empty - use areaDesc from primary
-    const areaDesc = vtZoneNames.length > 0
-      ? vtZoneNames.join('; ')
-      : primaryAlert.properties.areaDesc;
+    const areaDesc =
+      vtZoneNames.length > 0 ? vtZoneNames.join('; ') : primaryAlert.properties.areaDesc;
 
     // Create merged alert
     const mergedAlert: MergedAlert = {
@@ -572,7 +567,7 @@ function logStationDebug(message: string, data?: Record<string, unknown>): void 
 async function fetchStationsFromGridPoint(
   gridPointName: string,
   lat: number,
-  lon: number
+  lon: number,
 ): Promise<NOAAStationsResponse['features']> {
   try {
     // Use cached getGridPoint to avoid duplicate API calls
@@ -582,7 +577,9 @@ async function fetchStationsFromGridPoint(
     // Fetch stations from this grid point
     const stationsResponse = await fetch(stationsUrl, getFetchOptions());
     if (!stationsResponse.ok) {
-      logStationDebug(`Stations fetch failed for ${gridPointName}`, { status: stationsResponse.status });
+      logStationDebug(`Stations fetch failed for ${gridPointName}`, {
+        status: stationsResponse.status,
+      });
       return [];
     }
 
@@ -640,7 +637,7 @@ async function fetchLakeChamplainSensor(): Promise<ObservationStation | null> {
       return null;
     }
 
-    const data = await response.json() as USGSResponse;
+    const data = (await response.json()) as USGSResponse;
     const timeSeries = data.value?.timeSeries?.[0];
 
     if (!timeSeries) {
@@ -729,7 +726,10 @@ export async function getObservationStations(): Promise<ObservationStation[]> {
   if (stationsCache.data && stationsCache.timestamp) {
     const age = Date.now() - stationsCache.timestamp;
     if (age < stationsCache.ttl) {
-      logStationDebug('Returning cached stations', { count: stationsCache.data.length, ageMs: age });
+      logStationDebug('Returning cached stations', {
+        count: stationsCache.data.length,
+        ageMs: age,
+      });
       return stationsCache.data;
     }
   }
@@ -740,8 +740,8 @@ export async function getObservationStations(): Promise<ObservationStation[]> {
   const [stationArrays, lakeChamplainSensor] = await Promise.all([
     Promise.all(
       VERMONT_GRID_POINTS.map((point) =>
-        fetchStationsFromGridPoint(point.name, point.lat, point.lon)
-      )
+        fetchStationsFromGridPoint(point.name, point.lat, point.lon),
+      ),
     ),
     fetchLakeChamplainSensor(),
   ]);
@@ -778,7 +778,7 @@ export async function getObservationStations(): Promise<ObservationStation[]> {
       try {
         const obsResponse = await fetch(
           `${NOAA_BASE}/stations/${stationId}/observations/latest`,
-          getFetchOptions()
+          getFetchOptions(),
         );
 
         if (!obsResponse.ok) {
@@ -841,13 +841,11 @@ export async function getObservationStations(): Promise<ObservationStation[]> {
         fetchErrors++;
         return null;
       }
-    })
+    }),
   );
 
   // Filter out null results
-  const validStations = stationsWithWeather.filter(
-    (s): s is ObservationStation => s !== null
-  );
+  const validStations = stationsWithWeather.filter((s): s is ObservationStation => s !== null);
 
   // Add Lake Champlain sensor if available
   if (lakeChamplainSensor) {

@@ -83,8 +83,22 @@ function createPopupHTML(beach: Beach): string {
   const safeAdvisory = beach.advisory ? escapeHTML(beach.advisory) : null;
 
   // Status badge
-  const statusEmoji = beach.status === 'open' ? '✅' : beach.status === 'alert' ? '⚠️' : beach.status === 'closed' ? '🚫' : '❓';
-  const statusLabel = beach.status === 'open' ? 'Open' : beach.status === 'alert' ? 'Alert' : beach.status === 'closed' ? 'Closed' : 'Unknown';
+  const statusEmoji =
+    beach.status === 'open'
+      ? '✅'
+      : beach.status === 'alert'
+        ? '⚠️'
+        : beach.status === 'closed'
+          ? '🚫'
+          : '❓';
+  const statusLabel =
+    beach.status === 'open'
+      ? 'Open'
+      : beach.status === 'alert'
+        ? 'Alert'
+        : beach.status === 'closed'
+          ? 'Closed'
+          : 'Unknown';
 
   return `
     <div class="beach-popup-content">
@@ -95,46 +109,68 @@ function createPopupHTML(beach: Beach): string {
         ${statusEmoji} ${statusLabel}
       </div>
 
-      ${beach.waterQualityGrade ? `
+      ${
+        beach.waterQualityGrade
+          ? `
         <div class="water-quality-section">
           <div class="quality-grade grade-${escapeHTML(beach.waterQualityGrade.toLowerCase())}">${escapeHTML(beach.waterQualityGrade)}</div>
-          ${beach.eColiLevel !== null ? `
+          ${
+            beach.eColiLevel !== null
+              ? `
             <div class="detail-row">
               <span>E. coli:</span>
               <span>${escapeHTML(String(beach.eColiLevel))} per 100mL</span>
             </div>
-          ` : ''}
-          ${beach.lastTested ? `
+          `
+              : ''
+          }
+          ${
+            beach.lastTested
+              ? `
             <div class="detail-row">
               <span>Tested:</span>
               <span>${formatDate(beach.lastTested)}</span>
             </div>
-          ` : ''}
+          `
+              : ''
+          }
         </div>
-      ` : ''}
+      `
+          : ''
+      }
 
-      ${safeAdvisory ? `
+      ${
+        safeAdvisory
+          ? `
         <div class="beach-advisory">${safeAdvisory}</div>
-      ` : ''}
+      `
+          : ''
+      }
 
-      ${beach.amenities.length > 0 ? `
+      ${
+        beach.amenities.length > 0
+          ? `
         <div class="beach-amenities">
-          ${beach.amenities.map(a => {
-            const amenityIcons: Record<string, string> = {
-              'parking': '🅿️',
-              'restrooms': '🚻',
-              'concessions': '🍔',
-              'lifeguards': '🏊',
-              'boat_launch': '🚤',
-              'picnic_area': '🧺',
-              'swimming': '🏊‍♀️',
-            };
-            const icon = amenityIcons[a] || '•';
-            const label = escapeHTML(a.replace(/_/g, ' '));
-            return `<span class="amenity">${icon} ${label}</span>`;
-          }).join('')}
+          ${beach.amenities
+            .map((a) => {
+              const amenityIcons: Record<string, string> = {
+                parking: '🅿️',
+                restrooms: '🚻',
+                concessions: '🍔',
+                lifeguards: '🏊',
+                boat_launch: '🚤',
+                picnic_area: '🧺',
+                swimming: '🏊‍♀️',
+              };
+              const icon = amenityIcons[a] || '•';
+              const label = escapeHTML(a.replace(/_/g, ' '));
+              return `<span class="amenity">${icon} ${label}</span>`;
+            })
+            .join('')}
         </div>
-      ` : ''}
+      `
+          : ''
+      }
 
       <div class="last-updated">Updated: ${formatDate(beach.lastUpdated)}</div>
     </div>
@@ -208,7 +244,7 @@ function BeachLayer({ map, visible }: BeachLayerProps) {
 
       const marker = new maplibregl.Marker({
         element: el,
-        anchor: 'center' // Pin marker to center (prevents zoom drift)
+        anchor: 'center', // Pin marker to center (prevents zoom drift)
       })
         .setLngLat([beach.longitude, beach.latitude])
         .addTo(map);

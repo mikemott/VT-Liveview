@@ -45,10 +45,7 @@ export default function AlertDetail({ alert, isDark }: AlertDetailProps) {
     <div className={`detail-view alert-detail ${isDark ? 'dark' : ''}`}>
       {/* Severity badge */}
       <div className="alert-severity" style={{ borderColor: getSeverityColor(severity) }}>
-        <AlertTriangle
-          size={18}
-          style={{ color: getSeverityColor(severity) }}
-        />
+        <AlertTriangle size={18} style={{ color: getSeverityColor(severity) }} />
         <span style={{ color: getSeverityColor(severity) }}>{severity || 'Alert'}</span>
       </div>
 

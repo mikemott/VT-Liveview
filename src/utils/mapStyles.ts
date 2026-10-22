@@ -71,14 +71,13 @@ export function getMapStyle(isDark = false): StyleSpecification {
 
   if (!apiKey && import.meta.env.DEV) {
     console.error(
-      'VITE_PROTOMAPS_API_KEY is not set. Get your free API key at https://protomaps.com/api'
+      'VITE_PROTOMAPS_API_KEY is not set. Get your free API key at https://protomaps.com/api',
     );
   }
 
   return {
     version: 8,
-    glyphs:
-      'https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf',
+    glyphs: 'https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf',
     sprite: `https://protomaps.github.io/basemaps-assets/sprites/v4/${isDark ? 'dark' : 'light'}`,
     sources: {
       [sourceName]: {

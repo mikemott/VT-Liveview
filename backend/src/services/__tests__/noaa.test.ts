@@ -3,11 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import {
-  celsiusToFahrenheit,
-  degreesToCardinal,
-  clearStationsCache,
-} from '../noaa.js';
+import { celsiusToFahrenheit, degreesToCardinal, clearStationsCache } from '../noaa.js';
 
 describe('celsiusToFahrenheit', () => {
   it('should convert 0°C to 32°F (freezing point)', () => {

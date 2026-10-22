@@ -98,13 +98,10 @@ export async function fetchCampingAreas(options?: {
       ? CAMPING_AREAS_WITH_BOUNDARIES_QUERY
       : CAMPING_AREAS_QUERY;
 
-    const data = await graphqlClient.request<{ campingAreas: CampingArea[] }>(
-      query,
-      {
-        minSites: options?.minSites,
-        types: options?.types,
-      }
-    );
+    const data = await graphqlClient.request<{ campingAreas: CampingArea[] }>(query, {
+      minSites: options?.minSites,
+      types: options?.types,
+    });
 
     return data.campingAreas;
   } catch (error) {

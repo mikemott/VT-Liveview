@@ -50,7 +50,8 @@ function createAreaMarker(area: CampingArea): HTMLDivElement {
   const el = document.createElement('div');
   el.className = 'camping-area-marker';
 
-  const color = PARK_TYPE_COLORS[area.type as keyof typeof PARK_TYPE_COLORS] || PARK_TYPE_COLORS.other;
+  const color =
+    PARK_TYPE_COLORS[area.type as keyof typeof PARK_TYPE_COLORS] || PARK_TYPE_COLORS.other;
 
   // Fixed dimensions like SkiLayer - prevents stretching
   el.style.cssText = `
@@ -107,12 +108,14 @@ function createAreaMarker(area: CampingArea): HTMLDivElement {
 function createPopupHTML(area: CampingArea): string {
   const safeName = escapeHTML(area.name);
   const typeLabel = PARK_TYPE_LABELS[area.type] || area.type;
-  const color = PARK_TYPE_COLORS[area.type as keyof typeof PARK_TYPE_COLORS] || PARK_TYPE_COLORS.other;
+  const color =
+    PARK_TYPE_COLORS[area.type as keyof typeof PARK_TYPE_COLORS] || PARK_TYPE_COLORS.other;
 
   // Generate park website URL if it's a state park
   let websiteLink = '';
   if (area.type === 'state_park') {
-    const parkSlug = area.name.toLowerCase()
+    const parkSlug = area.name
+      .toLowerCase()
       .replace(/\s+state\s+park$/i, '')
       .replace(/\s+/g, '-')
       .replace(/[^a-z0-9-]/g, '');
@@ -134,18 +137,28 @@ function createPopupHTML(area: CampingArea): string {
           </div>
         </div>
       </div>
-      ${websiteLink ? `
+      ${
+        websiteLink
+          ? `
         <div class="camping-areas-popup-footer">
           <a href="${websiteLink}" target="_blank" rel="noopener noreferrer" class="camping-areas-link-btn">
             Park Website →
           </a>
         </div>
-      ` : ''}
+      `
+          : ''
+      }
     </div>
   `;
 }
 
-function CampingAreasLayer({ map, visible, mapStyleVersion, onAreaClick, onCountChange }: CampingAreasLayerProps) {
+function CampingAreasLayer({
+  map,
+  visible,
+  mapStyleVersion,
+  onAreaClick,
+  onCountChange,
+}: CampingAreasLayerProps) {
   const [areas, setAreas] = useState<CampingArea[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -175,27 +188,32 @@ function CampingAreasLayer({ map, visible, mapStyleVersion, onAreaClick, onCount
     }
 
     fetchCampingAreas({ minSites: 1, includeBoundaries: true })
-      .then(data => {
+      .then((data) => {
         if (isMounted) {
           setAreas(data);
           setLoading(false);
 
           // Report total backcountry site count
           const totalBackcountrySites = data.reduce((sum, area) => sum + area.siteCount, 0);
-          const areasWithBoundaries = data.filter(a => a.boundary).length;
+          const areasWithBoundaries = data.filter((a) => a.boundary).length;
 
           if (onCountChange) {
             onCountChange(totalBackcountrySites);
           }
 
           if (import.meta.env.DEV) {
-            console.log(`CampingAreasLayer: Loaded ${data.length} camping areas with ${totalBackcountrySites} total sites`);
+            console.log(
+              `CampingAreasLayer: Loaded ${data.length} camping areas with ${totalBackcountrySites} total sites`,
+            );
             console.log(`CampingAreasLayer: ${areasWithBoundaries} areas have boundaries`);
-            console.log('CampingAreasLayer: First area with boundary:', data.find(a => a.boundary));
+            console.log(
+              'CampingAreasLayer: First area with boundary:',
+              data.find((a) => a.boundary),
+            );
           }
         }
       })
-      .catch(err => {
+      .catch((err) => {
         if (isMounted) {
           setError(err instanceof Error ? err.message : 'Failed to load camping areas');
           setLoading(false);
@@ -233,8 +251,8 @@ function CampingAreasLayer({ map, visible, mapStyleVersion, onAreaClick, onCount
 
     // Create GeoJSON from areas with boundaries
     const features = areas
-      .filter(area => area.boundary)
-      .map(area => ({
+      .filter((area) => area.boundary)
+      .map((area) => ({
         type: 'Feature' as const,
         properties: {
           name: area.name,
@@ -281,9 +299,12 @@ function CampingAreasLayer({ map, visible, mapStyleVersion, onAreaClick, onCount
           'fill-color': [
             'match',
             ['get', 'type'],
-            'state_park', '#92400e',      // Brown for state parks
-            'state_forest', '#78350f',     // Dark brown for state forests
-            'wildlife_management_area', '#b45309', // Medium brown for WMAs
+            'state_park',
+            '#92400e', // Brown for state parks
+            'state_forest',
+            '#78350f', // Dark brown for state forests
+            'wildlife_management_area',
+            '#b45309', // Medium brown for WMAs
             '#6b7280', // Gray for other
           ],
           'fill-opacity': 0.5, // Prominent like stargazing (50%)
@@ -301,9 +322,12 @@ function CampingAreasLayer({ map, visible, mapStyleVersion, onAreaClick, onCount
           'line-color': [
             'match',
             ['get', 'type'],
-            'state_park', '#d97706',      // Amber outline
-            'state_forest', '#b45309',     // Medium brown outline
-            'wildlife_management_area', '#f59e0b', // Bright amber outline
+            'state_park',
+            '#d97706', // Amber outline
+            'state_forest',
+            '#b45309', // Medium brown outline
+            'wildlife_management_area',
+            '#f59e0b', // Bright amber outline
             '#9ca3af', // Light gray for other
           ],
           'line-width': 2,
@@ -390,9 +414,7 @@ function CampingAreasLayer({ map, visible, mapStyleVersion, onAreaClick, onCount
 
       const markerLngLat: [number, number] = [area.centroid.longitude, area.centroid.latitude];
 
-      const marker = new maplibregl.Marker({ element })
-        .setLngLat(markerLngLat)
-        .addTo(map);
+      const marker = new maplibregl.Marker({ element }).setLngLat(markerLngLat).addTo(map);
 
       // Log first 3 markers with full details
       if (import.meta.env.DEV && index < 3) {

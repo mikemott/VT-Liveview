@@ -31,14 +31,14 @@ export function fetchCreemeeStands(): Promise<CreemeeStand[]> {
  * Featured stands are award-winners or highly rated
  */
 export function fetchFeaturedStands(): Promise<CreemeeStand[]> {
-  return Promise.resolve((creemeeData as CreemeeStand[]).filter(stand => stand.featured));
+  return Promise.resolve((creemeeData as CreemeeStand[]).filter((stand) => stand.featured));
 }
 
 /**
  * Get a specific creemee stand by ID
  */
 export function getCreemeeStandById(id: string): Promise<CreemeeStand | null> {
-  const stand = (creemeeData as CreemeeStand[]).find(s => s.id === id);
+  const stand = (creemeeData as CreemeeStand[]).find((s) => s.id === id);
   return Promise.resolve(stand || null);
 }
 
@@ -46,7 +46,7 @@ export function getCreemeeStandById(id: string): Promise<CreemeeStand | null> {
  * Get creemee stands by town
  */
 export function getCreemeeStandsByTown(town: string): Promise<CreemeeStand[]> {
-  return Promise.resolve((creemeeData as CreemeeStand[]).filter(
-    s => s.town.toLowerCase() === town.toLowerCase()
-  ));
+  return Promise.resolve(
+    (creemeeData as CreemeeStand[]).filter((s) => s.town.toLowerCase() === town.toLowerCase()),
+  );
 }

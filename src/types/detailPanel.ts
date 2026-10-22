@@ -25,13 +25,15 @@ export interface AlertProperties {
 }
 
 // Alert geometry - supports both Polygon and MultiPolygon
-export type AlertGeometry = {
-  type: 'Polygon';
-  coordinates: number[][][];
-} | {
-  type: 'MultiPolygon';
-  coordinates: number[][][][];
-};
+export type AlertGeometry =
+  | {
+      type: 'Polygon';
+      coordinates: number[][][];
+    }
+  | {
+      type: 'MultiPolygon';
+      coordinates: number[][][][];
+    };
 
 export interface AlertFeature {
   type: 'Feature';

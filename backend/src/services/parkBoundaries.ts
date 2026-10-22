@@ -41,7 +41,8 @@ interface ANRGeoJSONResponse {
 // Constants
 // =============================================================================
 
-const API_BASE_URL = 'https://anrmaps.vermont.gov/arcgis/rest/services/Open_Data/OPENDATA_ANR_CADASTRAL_SP_NOCACHE_v2/MapServer/38/query';
+const API_BASE_URL =
+  'https://anrmaps.vermont.gov/arcgis/rest/services/Open_Data/OPENDATA_ANR_CADASTRAL_SP_NOCACHE_v2/MapServer/38/query';
 
 // =============================================================================
 // Data Parsing
@@ -98,7 +99,7 @@ async function fetchFromAPI(): Promise<ParkBoundary[]> {
     throw new Error(`Vermont ANR API error: ${response.status} ${response.statusText}`);
   }
 
-  const data = await response.json() as ANRGeoJSONResponse;
+  const data = (await response.json()) as ANRGeoJSONResponse;
 
   if (!data.features || data.features.length === 0) {
     throw new Error('No park boundaries returned from API');
@@ -148,7 +149,6 @@ export async function fetchParkBoundaries(): Promise<ParkBoundary[]> {
     }, CACHE_TTL_MS);
 
     return boundaries;
-
   } catch (error) {
     // Log error
     if (process.env.NODE_ENV !== 'production') {

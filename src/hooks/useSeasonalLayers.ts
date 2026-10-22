@@ -36,13 +36,13 @@ export function useSeasonalLayers(): UseSeasonalLayersResult {
     };
 
     const inSeason = SEASONAL_LAYERS.filter(isInSeason);
-    const outOfSeason = SEASONAL_LAYERS.filter(config => !isInSeason(config));
+    const outOfSeason = SEASONAL_LAYERS.filter((config) => !isInSeason(config));
 
     return {
       inSeason,
       outOfSeason,
       isInSeason,
-      currentMonth
+      currentMonth,
     };
   }, [currentMonth]);
 

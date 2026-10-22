@@ -62,9 +62,7 @@ export const BACKCOUNTRY_SITES_QUERY = gql`
  */
 export async function fetchBackcountrySites(): Promise<BackcountrySite[]> {
   try {
-    const data = await graphqlClient.request<BackcountrySitesResponse>(
-      BACKCOUNTRY_SITES_QUERY
-    );
+    const data = await graphqlClient.request<BackcountrySitesResponse>(BACKCOUNTRY_SITES_QUERY);
     return data.backcountrySites;
   } catch (error) {
     if (import.meta.env.DEV) {

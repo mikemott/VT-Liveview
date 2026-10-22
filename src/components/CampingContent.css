@@ -139,7 +139,7 @@
   cursor: not-allowed;
 }
 
-.camping-layer-toggle input[type="checkbox"] {
+.camping-layer-toggle input[type='checkbox'] {
   margin: 3px 0 0 0;
   width: 16px;
   height: 16px;
@@ -147,7 +147,7 @@
   flex-shrink: 0;
 }
 
-.camping-layer-toggle.disabled input[type="checkbox"] {
+.camping-layer-toggle.disabled input[type='checkbox'] {
   cursor: not-allowed;
 }
 

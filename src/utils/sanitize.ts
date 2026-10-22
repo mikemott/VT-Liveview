@@ -48,10 +48,7 @@ export function escapeHTML(str: string | null | undefined): string {
  * @param maxLength - Maximum length before truncation (default: 500)
  * @returns Escaped and possibly truncated string
  */
-export function escapeAndTruncate(
-  str: string | null | undefined,
-  maxLength = 500
-): string {
+export function escapeAndTruncate(str: string | null | undefined, maxLength = 500): string {
   if (str == null) {
     return '';
   }

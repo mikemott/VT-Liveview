@@ -6,12 +6,12 @@ import { memo, useMemo } from 'react';
 // Note: glob patterns MUST be static string literals (Vite limitation)
 const lineIcons = import.meta.glob<string>(
   '../../node_modules/@bybas/weather-icons/production/line/all/*.svg',
-  { eager: true, query: '?url', import: 'default' }
+  { eager: true, query: '?url', import: 'default' },
 );
 
 const fillIcons = import.meta.glob<string>(
   '../../node_modules/@bybas/weather-icons/production/fill/all/*.svg',
-  { eager: true, query: '?url', import: 'default' }
+  { eager: true, query: '?url', import: 'default' },
 );
 
 interface WeatherIconProps {
@@ -43,15 +43,7 @@ const WeatherIcon = memo<WeatherIconProps>(({ name, size = 48, style = 'line' })
     return null;
   }
 
-  return (
-    <img
-      src={iconUrl}
-      alt={name}
-      width={size}
-      height={size}
-      style={{ display: 'block' }}
-    />
-  );
+  return <img src={iconUrl} alt={name} width={size} height={size} style={{ display: 'block' }} />;
 });
 
 WeatherIcon.displayName = 'WeatherIcon';

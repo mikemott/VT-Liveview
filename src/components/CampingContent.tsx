@@ -28,11 +28,7 @@ function CampingContent({
 
           {/* Campgrounds */}
           <label className="camping-layer-toggle">
-            <input
-              type="checkbox"
-              checked={showCampgrounds}
-              onChange={onToggleCampgrounds}
-            />
+            <input type="checkbox" checked={showCampgrounds} onChange={onToggleCampgrounds} />
             <span className="toggle-icon campground-icon">
               <Tent size={16} />
             </span>

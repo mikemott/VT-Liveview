@@ -28,14 +28,7 @@ interface MarkerEntry {
 // Marker icon component
 function StarMarkerIcon({ bortleClass }: { bortleClass: BortleClass }) {
   const color = bortleClass <= 3 ? '#ffd700' : bortleClass <= 5 ? '#ffa500' : '#888888';
-  return (
-    <Star
-      size={20}
-      fill={color}
-      color={color}
-      strokeWidth={1.5}
-    />
-  );
+  return <Star size={20} fill={color} color={color} strokeWidth={1.5} />;
 }
 
 export default function StargazingLayer({
@@ -53,28 +46,34 @@ export default function StargazingLayer({
   const moonPhase = calculateMoonPhase();
   const { score: qualityScore, rating: qualityRating } = calculateStargazingScore(
     cloudCoverPercent,
-    moonPhase.illumination
+    moonPhase.illumination,
   );
 
   // Helper to safely check if layer exists
-  const hasLayer = useCallback((layerId: string): boolean => {
-    if (!map || !map.isStyleLoaded()) return false;
-    try {
-      return !!map.getLayer(layerId);
-    } catch {
-      return false;
-    }
-  }, [map]);
+  const hasLayer = useCallback(
+    (layerId: string): boolean => {
+      if (!map || !map.isStyleLoaded()) return false;
+      try {
+        return !!map.getLayer(layerId);
+      } catch {
+        return false;
+      }
+    },
+    [map],
+  );
 
   // Helper to safely check if source exists
-  const hasSource = useCallback((sourceId: string): boolean => {
-    if (!map || !map.isStyleLoaded()) return false;
-    try {
-      return !!map.getSource(sourceId);
-    } catch {
-      return false;
-    }
-  }, [map]);
+  const hasSource = useCallback(
+    (sourceId: string): boolean => {
+      if (!map || !map.isStyleLoaded()) return false;
+      try {
+        return !!map.getSource(sourceId);
+      } catch {
+        return false;
+      }
+    },
+    [map],
+  );
 
   // Cleanup markers
   const cleanupMarkers = useCallback(() => {
@@ -119,8 +118,10 @@ export default function StargazingLayer({
           'fill-color': [
             'match',
             ['get', 'bortleClass'],
-            2, '#1a1a4e',  // Deepest blue-purple (best skies)
-            3, '#2d2d6b',  // Rich blue (excellent skies)
+            2,
+            '#1a1a4e', // Deepest blue-purple (best skies)
+            3,
+            '#2d2d6b', // Rich blue (excellent skies)
             '#2d2d6b',
           ],
           'fill-opacity': 0,
@@ -136,8 +137,10 @@ export default function StargazingLayer({
           'line-color': [
             'match',
             ['get', 'bortleClass'],
-            2, '#6366f1',  // Indigo glow for class 2
-            3, '#818cf8',  // Lighter indigo for class 3
+            2,
+            '#6366f1', // Indigo glow for class 2
+            3,
+            '#818cf8', // Lighter indigo for class 3
             '#818cf8',
           ],
           'line-width': 2,
@@ -201,9 +204,7 @@ export default function StargazingLayer({
       const root = createRoot(el);
       root.render(<StarMarkerIcon bortleClass={site.bortleClass} />);
 
-      const marker = new maplibregl.Marker({ element: el })
-        .setLngLat(site.coordinates)
-        .addTo(map);
+      const marker = new maplibregl.Marker({ element: el }).setLngLat(site.coordinates).addTo(map);
 
       // Create popup content safely using DOM methods
       const bortleInfo = BORTLE_DESCRIPTIONS[site.bortleClass];
@@ -314,11 +315,16 @@ export default function StargazingLayer({
   // Get quality color
   const getQualityColor = (rating: string): string => {
     switch (rating) {
-      case 'Excellent': return '#22c55e';
-      case 'Good': return '#84cc16';
-      case 'Fair': return '#eab308';
-      case 'Poor': return '#ef4444';
-      default: return '#6b7280';
+      case 'Excellent':
+        return '#22c55e';
+      case 'Good':
+        return '#84cc16';
+      case 'Fair':
+        return '#eab308';
+      case 'Poor':
+        return '#ef4444';
+      default:
+        return '#6b7280';
     }
   };
 
@@ -336,112 +342,108 @@ export default function StargazingLayer({
   return (
     <div className={`stargazing-layer ${isDark ? 'dark' : ''}`}>
       <div className="section-content">
-          {/* Tonight's Conditions - Hero Card */}
-          <div className="stargazing-conditions">
-            <div className="conditions-header">
-              {/* Moon Phase Display */}
-              <div className="moon-display">
-                <div className={`moon-icon ${getMoonPhaseClass(moonPhase.phaseName)}`} />
-                <div className="moon-info">
-                  <span className="moon-phase-name">{moonPhase.phaseName}</span>
-                  <span className="moon-illumination">{moonPhase.illumination}% illuminated</span>
-                </div>
+        {/* Tonight's Conditions - Hero Card */}
+        <div className="stargazing-conditions">
+          <div className="conditions-header">
+            {/* Moon Phase Display */}
+            <div className="moon-display">
+              <div className={`moon-icon ${getMoonPhaseClass(moonPhase.phaseName)}`} />
+              <div className="moon-info">
+                <span className="moon-phase-name">{moonPhase.phaseName}</span>
+                <span className="moon-illumination">{moonPhase.illumination}% illuminated</span>
               </div>
+            </div>
 
-              {/* Quality Score Meter */}
-              <div className="quality-display">
-                <div className="quality-meter">
-                  <svg width="44" height="44" viewBox="0 0 44 44">
-                    <circle
-                      className="quality-meter-bg"
-                      cx="22"
-                      cy="22"
-                      r={meterRadius}
-                    />
-                    <circle
-                      className="quality-meter-fill"
-                      cx="22"
-                      cy="22"
-                      r={meterRadius}
-                      stroke={getQualityColor(qualityRating)}
-                      strokeDasharray={meterCircumference}
-                      strokeDashoffset={meterOffset}
-                    />
-                  </svg>
-                  <span className="quality-meter-text">{qualityScore}</span>
-                </div>
-                <div className="quality-info">
-                  <span
-                    className="quality-rating"
-                    style={{ backgroundColor: getQualityColor(qualityRating) }}
-                  >
-                    {qualityRating}
-                  </span>
-                  <span className="quality-label">Tonight</span>
-                </div>
+            {/* Quality Score Meter */}
+            <div className="quality-display">
+              <div className="quality-meter">
+                <svg width="44" height="44" viewBox="0 0 44 44">
+                  <circle className="quality-meter-bg" cx="22" cy="22" r={meterRadius} />
+                  <circle
+                    className="quality-meter-fill"
+                    cx="22"
+                    cy="22"
+                    r={meterRadius}
+                    stroke={getQualityColor(qualityRating)}
+                    strokeDasharray={meterCircumference}
+                    strokeDashoffset={meterOffset}
+                  />
+                </svg>
+                <span className="quality-meter-text">{qualityScore}</span>
+              </div>
+              <div className="quality-info">
+                <span
+                  className="quality-rating"
+                  style={{ backgroundColor: getQualityColor(qualityRating) }}
+                >
+                  {qualityRating}
+                </span>
+                <span className="quality-label">Tonight</span>
               </div>
             </div>
           </div>
-
-          {/* Dark Sky Sites Description */}
-          <p className="dark-sky-description">
-            Shaded zones show Vermont's darkest skies. Star markers indicate accessible viewing sites with parking.
-          </p>
-
-          {/* Dark Sky Quality Legend */}
-              <div className="bortle-legend">
-                <div className="legend-title">Dark Sky Quality (Bortle Scale)</div>
-                <div className="legend-gradient dark-sky-gradient">
-                  {([2, 3] as BortleClass[]).map((bortle) => (
-                    <div
-                      key={bortle}
-                      className={`legend-segment ${hoveredBortle === bortle ? 'active' : ''}`}
-                      style={{ backgroundColor: bortle === 2 ? '#1a1a4e' : '#2d2d6b' }}
-                      onMouseEnter={() => setHoveredBortle(bortle)}
-                      onMouseLeave={() => setHoveredBortle(null)}
-                      title={`Class ${bortle}: ${BORTLE_DESCRIPTIONS[bortle].description}`}
-                    >
-                      <span className="legend-segment-label">{bortle}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="legend-labels">
-                  <span>Excellent</span>
-                  <span>Very Good</span>
-                </div>
-
-                {/* Expanded detail on hover */}
-                {hoveredBortle && (
-                  <div className="bortle-detail">
-                    <div className="bortle-detail-header">
-                      <span
-                        className="bortle-detail-badge"
-                        style={{
-                          backgroundColor: hoveredBortle === 2 ? '#1a1a4e' : '#2d2d6b',
-                          color: '#fff'
-                        }}
-                      >
-                        Bortle {hoveredBortle}
-                      </span>
-                      <span className="bortle-detail-name">
-                        {BORTLE_DESCRIPTIONS[hoveredBortle].description}
-                      </span>
-                    </div>
-                    <div className="bortle-detail-list">
-                      <span className="bortle-detail-label">What you can see:</span>
-                      <ul>
-                        {BORTLE_DESCRIPTIONS[hoveredBortle].canSee.slice(0, 3).map((item, idx) => (
-                          <li key={idx}>{item}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-          {/* Astronomy Events */}
-          <AstronomyEvents isDark={isDark} />
         </div>
+
+        {/* Dark Sky Sites Description */}
+        <p className="dark-sky-description">
+          Shaded zones show Vermont's darkest skies. Star markers indicate accessible viewing sites
+          with parking.
+        </p>
+
+        {/* Dark Sky Quality Legend */}
+        <div className="bortle-legend">
+          <div className="legend-title">Dark Sky Quality (Bortle Scale)</div>
+          <div className="legend-gradient dark-sky-gradient">
+            {([2, 3] as BortleClass[]).map((bortle) => (
+              <div
+                key={bortle}
+                className={`legend-segment ${hoveredBortle === bortle ? 'active' : ''}`}
+                style={{ backgroundColor: bortle === 2 ? '#1a1a4e' : '#2d2d6b' }}
+                onMouseEnter={() => setHoveredBortle(bortle)}
+                onMouseLeave={() => setHoveredBortle(null)}
+                title={`Class ${bortle}: ${BORTLE_DESCRIPTIONS[bortle].description}`}
+              >
+                <span className="legend-segment-label">{bortle}</span>
+              </div>
+            ))}
+          </div>
+          <div className="legend-labels">
+            <span>Excellent</span>
+            <span>Very Good</span>
+          </div>
+
+          {/* Expanded detail on hover */}
+          {hoveredBortle && (
+            <div className="bortle-detail">
+              <div className="bortle-detail-header">
+                <span
+                  className="bortle-detail-badge"
+                  style={{
+                    backgroundColor: hoveredBortle === 2 ? '#1a1a4e' : '#2d2d6b',
+                    color: '#fff',
+                  }}
+                >
+                  Bortle {hoveredBortle}
+                </span>
+                <span className="bortle-detail-name">
+                  {BORTLE_DESCRIPTIONS[hoveredBortle].description}
+                </span>
+              </div>
+              <div className="bortle-detail-list">
+                <span className="bortle-detail-label">What you can see:</span>
+                <ul>
+                  {BORTLE_DESCRIPTIONS[hoveredBortle].canSee.slice(0, 3).map((item, idx) => (
+                    <li key={idx}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Astronomy Events */}
+        <AstronomyEvents isDark={isDark} />
+      </div>
     </div>
   );
 }

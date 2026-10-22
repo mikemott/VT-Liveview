@@ -44,7 +44,7 @@ export function calculateResortColor(input: ColorInput): 'green' | 'yellow' | 'r
  * Matches Tailwind CSS utility colors for consistency
  */
 export const SKI_COLORS = {
-  green: '#22c55e',  // Tailwind green-500
+  green: '#22c55e', // Tailwind green-500
   yellow: '#eab308', // Tailwind yellow-500
-  red: '#ef4444',    // Tailwind red-500
+  red: '#ef4444', // Tailwind red-500
 } as const;

@@ -11,8 +11,14 @@
 - **Pre-existing violations that need a behaviour change** are not fixed in the tooling PR. Each one gets a one-line `eslint-disable-next-line` with a `TODO(VTL-45 <id>)` that points at `docs/review/FINDINGS.md`. The rules themselves stay at full strength.
 - **Scripts:** each package has `lint`, `typecheck`, `test`, `test:coverage` and `check` (`lint && typecheck && test`).
 - **CI** (`.github/workflows/ci.yml`) is a matrix over frontend and backend: lint, typecheck, test with v8 coverage, build, and upload coverage as an artifact.
-- **Node version:** pinned in `.nvmrc` to **20**, matching `backend/Dockerfile` (`node:20-alpine`).
-- **Prettier, lint-staged and husky** are not added yet. They wait for the owner's go-ahead.
+- **Node version:** pinned to **22** in `.nvmrc` and `backend/Dockerfile` (`node:22-alpine`). Node 20 reached end-of-life in April 2026. The owner approved the move on 2026-10-15.
+- **Prettier** is a dev dependency of each package, configured by the root `.prettierrc.json`.
+  - Markdown is excluded, because prose is hand-formatted and CLAUDE.md is owner-maintained.
+  - The `format`/`format:check` scripts target explicit paths, not `.`, so stray local dotfiles are never touched.
+  - `check` and CI include `format:check`.
+  - The one-time bulk reformat is listed in `.git-blame-ignore-revs`. To skip it in blame, run `git config blame.ignoreRevsFile .git-blame-ignore-revs`.
+- **Pre-commit:** a husky hook runs `lint-staged`, which is installed by the root `prepare` script.
+  - There is a `.lintstagedrc.json` in the root and one in `backend/`. lint-staged uses the closest config to each file and runs it in that directory, so backend files are linted with the backend ESLint config.
 
 ## Why
 - **ESLint scope:** the old config only matched `**/*.{js,jsx}`, so none of the TypeScript was linted.

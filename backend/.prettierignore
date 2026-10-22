@@ -1,0 +1,9 @@
+# Generated / vendored
+node_modules
+dist
+coverage
+package-lock.json
+src/db/migrations
+
+# Prose is hand-formatted (and CLAUDE.md is owner-maintained)
+*.md

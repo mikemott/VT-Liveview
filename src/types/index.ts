@@ -41,11 +41,7 @@ export type {
 } from './radar';
 
 // Historical data types
-export type {
-  WeatherDay,
-  HistoricalData,
-  HistoricalDataResponse,
-} from './historical';
+export type { WeatherDay, HistoricalData, HistoricalDataResponse } from './historical';
 
 // Detail panel types
 export type {

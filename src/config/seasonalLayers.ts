@@ -22,8 +22,8 @@ import type { MapLibreMap } from '../types';
 // =============================================================================
 
 export interface SeasonConfig {
-  months: number[];  // 1-12 (January = 1, December = 12)
-  label: string;     // Human-readable season name
+  months: number[]; // 1-12 (January = 1, December = 12)
+  label: string; // Human-readable season name
 }
 
 export interface LayerProps {
@@ -35,7 +35,7 @@ export interface LayerConfig {
   id: string;
   label: string;
   icon: ComponentType<{ size?: number; strokeWidth?: number }>;
-  season?: SeasonConfig;  // undefined = always available
+  season?: SeasonConfig; // undefined = always available
   component: ComponentType<LayerProps>;
 }
 
@@ -49,20 +49,20 @@ export const SEASONAL_LAYERS: LayerConfig[] = [
     label: 'Ski Resorts',
     icon: Mountain,
     season: {
-      months: [11, 12, 1, 2, 3],  // November - March
-      label: 'Ski Season'
+      months: [11, 12, 1, 2, 3], // November - March
+      label: 'Ski Season',
     },
-    component: SkiLayer
+    component: SkiLayer,
   },
   {
     id: 'creemeeStands',
     label: 'Creemee Stands',
     icon: IceCream,
     season: {
-      months: [4, 5, 6, 7, 8, 9],  // April - September
-      label: 'Creemee Season'
+      months: [4, 5, 6, 7, 8, 9], // April - September
+      label: 'Creemee Season',
     },
-    component: CreemeeLayer
+    component: CreemeeLayer,
   },
   // Uncomment when LakeConditionsLayer is implemented (future)
   // {

@@ -115,7 +115,7 @@ interface RainViewerResponse {
  */
 export function useRadarAnimation(
   _map: MapLibreMap | null,
-  options: UseRadarAnimationOptions = {}
+  options: UseRadarAnimationOptions = {},
 ): UseRadarAnimationReturn {
   const {
     frameCount = RADAR_CONFIG.frameCount,
@@ -131,122 +131,133 @@ export function useRadarAnimation(
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Fetch radar frames from RainViewer with retry logic
-  const fetchFrames = useCallback(async (signal?: AbortSignal, retryCount = 0) => {
-    const maxRetries = 2;
+  const fetchFrames = useCallback(
+    async (signal?: AbortSignal, retryCount = 0) => {
+      const maxRetries = 2;
 
-    try {
-      setIsLoading(true);
-      setError(null);
+      try {
+        setIsLoading(true);
+        setError(null);
 
-      // Create timeout controller for 10-second limit
-      const timeoutController = new AbortController();
-      const timeoutId = setTimeout(() => {
-        timeoutController.abort();
-        if (import.meta.env.DEV) {
-          console.warn(`[RADAR] RainViewer API timeout after 10 seconds (attempt ${retryCount + 1})`);
+        // Create timeout controller for 10-second limit
+        const timeoutController = new AbortController();
+        const timeoutId = setTimeout(() => {
+          timeoutController.abort();
+          if (import.meta.env.DEV) {
+            console.warn(
+              `[RADAR] RainViewer API timeout after 10 seconds (attempt ${retryCount + 1})`,
+            );
+          }
+        }, 10000);
+
+        // Combine parent signal with timeout signal (both can abort)
+        const fetchSignal = signal
+          ? AbortSignal.any([signal, timeoutController.signal])
+          : timeoutController.signal;
+
+        const response = await fetch(RAINVIEWER_API, { signal: fetchSignal });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          throw new Error(`RainViewer API returned ${response.status}`);
         }
-      }, 10000);
 
-      // Combine parent signal with timeout signal (both can abort)
-      const fetchSignal = signal
-        ? AbortSignal.any([signal, timeoutController.signal])
-        : timeoutController.signal;
+        const data = (await response.json()) as RainViewerResponse;
+        const radarData = data.radar;
 
-      const response = await fetch(RAINVIEWER_API, { signal: fetchSignal });
+        if (!radarData?.past?.length) {
+          throw new Error('No radar data available');
+        }
 
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        throw new Error(`RainViewer API returned ${response.status}`);
-      }
-
-      const data = (await response.json()) as RainViewerResponse;
-      const radarData = data.radar;
-
-      if (!radarData?.past?.length) {
-        throw new Error('No radar data available');
-      }
-
-      // Get the last N frames
-      const pastFrames: RadarFrameData[] = radarData.past
-        .slice(-frameCount)
-        .map((frame) => ({
+        // Get the last N frames
+        const pastFrames: RadarFrameData[] = radarData.past.slice(-frameCount).map((frame) => ({
           time: new Date(frame.time * 1000).toISOString(),
           timestamp: frame.time,
           path: frame.path,
           tileUrl: `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/2/1_1.png`,
         }));
 
-      // Add nowcast frames if available
-      const nowcastFrames: RadarFrameData[] = (radarData.nowcast ?? [])
-        .slice(0, 2)
-        .map((frame) => ({
-          time: new Date(frame.time * 1000).toISOString(),
-          timestamp: frame.time,
-          path: frame.path,
-          tileUrl: `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/2/1_1.png`,
-          isNowcast: true,
-        }));
+        // Add nowcast frames if available
+        const nowcastFrames: RadarFrameData[] = (radarData.nowcast ?? [])
+          .slice(0, 2)
+          .map((frame) => ({
+            time: new Date(frame.time * 1000).toISOString(),
+            timestamp: frame.time,
+            path: frame.path,
+            tileUrl: `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/2/1_1.png`,
+            isNowcast: true,
+          }));
 
-      const allFrames = [...pastFrames, ...nowcastFrames];
+        const allFrames = [...pastFrames, ...nowcastFrames];
 
-      if (import.meta.env.DEV) {
-        console.log('[useRadarAnimation] Fetched frames:', {
-          pastFrames: pastFrames.length,
-          nowcastFrames: nowcastFrames.length,
-          total: allFrames.length,
-          startingFrame: pastFrames.length - 1,
-          sampleTileUrl: allFrames[0]?.tileUrl
-        });
-      }
-
-      setFrames(allFrames);
-      setCurrentFrame(pastFrames.length - 1); // Start at most recent past frame
-    } catch (err) {
-      // Don't set error if aborted by parent
-      if (err instanceof Error && err.name === 'AbortError' && signal?.aborted) {
-        return;
-      }
-
-      // Retry logic for transient failures
-      if (retryCount < maxRetries) {
         if (import.meta.env.DEV) {
-          console.warn(`[RADAR] Retry ${retryCount + 1}/${maxRetries} after error:`, err instanceof Error ? err.message : err);
+          console.log('[useRadarAnimation] Fetched frames:', {
+            pastFrames: pastFrames.length,
+            nowcastFrames: nowcastFrames.length,
+            total: allFrames.length,
+            startingFrame: pastFrames.length - 1,
+            sampleTileUrl: allFrames[0]?.tileUrl,
+          });
         }
 
-        // Exponential backoff: wait 1s, then 2s before retry
-        const delay = Math.pow(2, retryCount) * 1000;
-        await new Promise(resolve => setTimeout(resolve, delay));
-
-        // Check if aborted during backoff
-        if (signal?.aborted) {
+        setFrames(allFrames);
+        setCurrentFrame(pastFrames.length - 1); // Start at most recent past frame
+      } catch (err) {
+        // Don't set error if aborted by parent
+        if (err instanceof Error && err.name === 'AbortError' && signal?.aborted) {
           return;
         }
 
-        // Retry recursively
-        return fetchFrames(signal, retryCount + 1);
+        // Retry logic for transient failures
+        if (retryCount < maxRetries) {
+          if (import.meta.env.DEV) {
+            console.warn(
+              `[RADAR] Retry ${retryCount + 1}/${maxRetries} after error:`,
+              err instanceof Error ? err.message : err,
+            );
+          }
+
+          // Exponential backoff: wait 1s, then 2s before retry
+          const delay = Math.pow(2, retryCount) * 1000;
+          await new Promise((resolve) => setTimeout(resolve, delay));
+
+          // Check if aborted during backoff
+          if (signal?.aborted) {
+            return;
+          }
+
+          // Retry recursively
+          return fetchFrames(signal, retryCount + 1);
+        }
+
+        // All retries exhausted - log error and fallback
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+        console.error(
+          '[RADAR] Failed to fetch radar frames after',
+          maxRetries + 1,
+          'attempts:',
+          errorMessage,
+        );
+
+        setError(errorMessage);
+
+        // Fallback to static IEM tile (but IEM is unreliable with 503s)
+        console.warn('[RADAR] Using fallback IEM radar (may be unreliable)');
+        setFrames([
+          {
+            time: new Date().toISOString(),
+            timestamp: Date.now() / 1000,
+            path: null,
+            tileUrl: IEM_RADAR_URL,
+          },
+        ]);
+      } finally {
+        setIsLoading(false);
       }
-
-      // All retries exhausted - log error and fallback
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      console.error('[RADAR] Failed to fetch radar frames after', maxRetries + 1, 'attempts:', errorMessage);
-
-      setError(errorMessage);
-
-      // Fallback to static IEM tile (but IEM is unreliable with 503s)
-      console.warn('[RADAR] Using fallback IEM radar (may be unreliable)');
-      setFrames([
-        {
-          time: new Date().toISOString(),
-          timestamp: Date.now() / 1000,
-          path: null,
-          tileUrl: IEM_RADAR_URL,
-        },
-      ]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [frameCount]);
+    },
+    [frameCount],
+  );
 
   // Initial fetch
   useEffect(() => {
@@ -300,7 +311,7 @@ export function useRadarAnimation(
         setCurrentFrame(index);
       }
     },
-    [frames.length]
+    [frames.length],
   );
 
   const nextFrame = useCallback(() => {

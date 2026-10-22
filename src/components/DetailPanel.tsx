@@ -97,18 +97,12 @@ export default function DetailPanel({ content, onClose, isDark }: DetailPanelPro
       <div className={`detail-panel ${isOpen ? 'open' : ''} ${isDark ? 'dark' : ''}`}>
         <div className="detail-panel-header">
           <h2>{getTitle()}</h2>
-          <button
-            className="detail-panel-close"
-            onClick={onClose}
-            aria-label="Close detail panel"
-          >
+          <button className="detail-panel-close" onClick={onClose} aria-label="Close detail panel">
             <X size={20} />
           </button>
         </div>
 
-        <div className="detail-panel-content">
-          {renderContent()}
-        </div>
+        <div className="detail-panel-content">{renderContent()}</div>
       </div>
     </>
   );

@@ -182,8 +182,7 @@ export async function fetchFloodGauges(): Promise<FloodIncident[]> {
         const gageHeight = parseFloat(latestValue.value);
         const latestTime = new Date(latestValue.dateTime);
         const now = new Date();
-        const hoursSinceReading =
-          (now.getTime() - latestTime.getTime()) / (1000 * 60 * 60);
+        const hoursSinceReading = (now.getTime() - latestTime.getTime()) / (1000 * 60 * 60);
 
         // Only show if data is recent (within last 3 hours) and height is significant
         // TODO: Improve with actual flood stage data from USGS flood categories
@@ -230,10 +229,7 @@ export async function fetchFloodGauges(): Promise<FloodIncident[]> {
  */
 export async function fetchAllIncidents(): Promise<TravelIncident[]> {
   try {
-    const [vt511Data, floods] = await Promise.all([
-      fetchAllVT511Data(),
-      fetchFloodGauges(),
-    ]);
+    const [vt511Data, floods] = await Promise.all([fetchAllVT511Data(), fetchFloodGauges()]);
 
     return [...vt511Data, ...floods];
   } catch (error) {

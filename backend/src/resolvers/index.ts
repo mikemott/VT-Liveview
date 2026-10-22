@@ -62,15 +62,12 @@ export const resolvers = {
   Query: {
     currentWeather: async (
       _parent: unknown,
-      { lat, lon }: CurrentWeatherArgs
+      { lat, lon }: CurrentWeatherArgs,
     ): Promise<WeatherConditions> => {
       return await getCurrentWeather(lat, lon);
     },
 
-    forecast: async (
-      _parent: unknown,
-      { lat, lon }: ForecastArgs
-    ): Promise<ForecastPeriod[]> => {
+    forecast: async (_parent: unknown, { lat, lon }: ForecastArgs): Promise<ForecastPeriod[]> => {
       return await getForecast(lat, lon);
     },
 

@@ -53,8 +53,7 @@ export interface VT511ParsedIncident {
 // =============================================================================
 
 /** Backend URL for proxy endpoints */
-const BACKEND_URL =
-  import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
 
 // =============================================================================
 // XML Parsing Utilities
@@ -120,10 +119,7 @@ function parseRouteGeometry(element: Element | null): RouteGeometry | null {
     const startLat = getElementText(startLocation, 'lat');
     const startLon = getElementText(startLocation, 'lon');
     if (startLat && startLon) {
-      coordinates.push([
-        microDegreesToDecimal(startLon),
-        microDegreesToDecimal(startLat),
-      ]);
+      coordinates.push([microDegreesToDecimal(startLon), microDegreesToDecimal(startLat)]);
     }
 
     // Add midpoints if available
@@ -139,10 +135,7 @@ function parseRouteGeometry(element: Element | null): RouteGeometry | null {
         const lat = getElementText(point, 'lat');
         const lon = getElementText(point, 'lon');
         if (lat && lon) {
-          coordinates.push([
-            microDegreesToDecimal(lon),
-            microDegreesToDecimal(lat),
-          ]);
+          coordinates.push([microDegreesToDecimal(lon), microDegreesToDecimal(lat)]);
         }
       });
     }
@@ -151,10 +144,7 @@ function parseRouteGeometry(element: Element | null): RouteGeometry | null {
     const endLat = getElementText(endLocation, 'lat');
     const endLon = getElementText(endLocation, 'lon');
     if (endLat && endLon) {
-      coordinates.push([
-        microDegreesToDecimal(endLon),
-        microDegreesToDecimal(endLat),
-      ]);
+      coordinates.push([microDegreesToDecimal(endLon), microDegreesToDecimal(endLat)]);
     }
 
     if (coordinates.length < 2) return null;
@@ -180,10 +170,8 @@ function mapIncidentType(typeElement: Element | null): IncidentType {
   const attrs = typeElement.attributes;
   for (let i = 0; i < attrs.length; i++) {
     const attrName = attrs[i]?.name;
-    if (attrName === 'Construction' || attrName === 'RoadWork')
-      return 'CONSTRUCTION';
-    if (attrName === 'BridgeOut' || attrName === 'BridgeMaintenance')
-      return 'CLOSURE';
+    if (attrName === 'Construction' || attrName === 'RoadWork') return 'CONSTRUCTION';
+    if (attrName === 'BridgeOut' || attrName === 'BridgeMaintenance') return 'CLOSURE';
     if (attrName === 'Accident') return 'ACCIDENT';
   }
 

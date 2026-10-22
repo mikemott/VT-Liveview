@@ -15,18 +15,20 @@ interface ColorInput {
  * Handles common variations in resort naming
  */
 function normalizeResortName(name: string): string {
-  return name
-    // Remove common suffixes
-    .replace(/\s+(Resort|Mountain Resort|Ski Area|Cross Country|Nordic Center)$/i, '')
-    // Normalize apostrophes (curly to straight)
-    .replace(/'/g, "'")
-    // Normalize "Snowbowl" vs "Snow Bowl"
-    .replace(/Snowbowl/i, 'Snow Bowl')
-    // Normalize "Cochran's" vs "Cochrans"
-    .replace(/Cochran's/i, 'Cochrans')
-    // Normalize "Smugglers'" vs "Smugglers"
-    .replace(/Smugglers'/i, 'Smugglers')
-    .trim();
+  return (
+    name
+      // Remove common suffixes
+      .replace(/\s+(Resort|Mountain Resort|Ski Area|Cross Country|Nordic Center)$/i, '')
+      // Normalize apostrophes (curly to straight)
+      .replace(/'/g, "'")
+      // Normalize "Snowbowl" vs "Snow Bowl"
+      .replace(/Snowbowl/i, 'Snow Bowl')
+      // Normalize "Cochran's" vs "Cochrans"
+      .replace(/Cochran's/i, 'Cochrans')
+      // Normalize "Smugglers'" vs "Smugglers"
+      .replace(/Smugglers'/i, 'Smugglers')
+      .trim()
+  );
 }
 
 /**
@@ -203,8 +205,7 @@ export async function fetchSkiConditions(): Promise<SkiResort[]> {
       const baseDepth: number | null = null; // Not provided in this format
 
       // Determine status
-      const status = liftsOpen === 0 ? 'closed' :
-                    (liftsOpen / liftsTotal < 0.5 ? 'partial' : 'open');
+      const status = liftsOpen === 0 ? 'closed' : liftsOpen / liftsTotal < 0.5 ? 'partial' : 'open';
 
       // Calculate color
       const color = calculateResortColor({
@@ -264,7 +265,6 @@ export async function fetchSkiConditions(): Promise<SkiResort[]> {
     }, CACHE_TTL_MS);
 
     return resorts;
-
   } catch (error) {
     // Log errors (will be captured by Sentry if configured)
     console.error('Ski conditions fetch failed:', error);

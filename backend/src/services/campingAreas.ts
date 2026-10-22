@@ -20,7 +20,7 @@ function calculateCentroid(sites: BackcountrySite[]): { latitude: number; longit
       lat: acc.lat + site.latitude,
       lng: acc.lng + site.longitude,
     }),
-    { lat: 0, lng: 0 }
+    { lat: 0, lng: 0 },
   );
 
   return {
@@ -73,13 +73,12 @@ export async function groupCampsitesByArea(): Promise<CampingArea[]> {
   }
 
   // Fetch both datasets in parallel
-  const [sites, boundaries] = await Promise.all([
-    fetchBackcountrySites(),
-    fetchParkBoundaries(),
-  ]);
+  const [sites, boundaries] = await Promise.all([fetchBackcountrySites(), fetchParkBoundaries()]);
 
   if (process.env.NODE_ENV !== 'production') {
-    console.log(`[campingAreas] Fetched ${sites.length} sites and ${boundaries.length} park boundaries`);
+    console.log(
+      `[campingAreas] Fetched ${sites.length} sites and ${boundaries.length} park boundaries`,
+    );
   }
 
   // Create a map of ANRUnit -> ParkBoundary for fast lookup
@@ -141,7 +140,10 @@ export async function groupCampsitesByArea(): Promise<CampingArea[]> {
   if (process.env.NODE_ENV !== 'production') {
     console.log(`[campingAreas] Created ${areas.length} camping areas`);
     if (areas.length > 0) {
-      console.log(`[campingAreas] Top 3 areas by site count:`, areas.slice(0, 3).map(a => `${a.name} (${a.siteCount} sites)`));
+      console.log(
+        `[campingAreas] Top 3 areas by site count:`,
+        areas.slice(0, 3).map((a) => `${a.name} (${a.siteCount} sites)`),
+      );
     }
   }
 
@@ -160,11 +162,11 @@ export async function getCampingAreas(options?: {
   // Apply filters
   if (options?.minSites !== undefined) {
     const minSites = options.minSites;
-    areas = areas.filter(area => area.siteCount >= minSites);
+    areas = areas.filter((area) => area.siteCount >= minSites);
   }
 
   if (options?.types && options.types.length > 0) {
-    areas = areas.filter(area => options.types!.includes(area.type));
+    areas = areas.filter((area) => options.types!.includes(area.type));
   }
 
   return areas;

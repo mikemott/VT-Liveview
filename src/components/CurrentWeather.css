@@ -68,8 +68,12 @@
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 .weather-main {
@@ -156,7 +160,7 @@
   color: var(--color-vermont-green);
   margin-bottom: var(--space-3);
   text-transform: uppercase;
-  letter-spacing: 0.10em;
+  letter-spacing: 0.1em;
   font-family: 'Space Mono', monospace;
 }
 
@@ -252,7 +256,9 @@
   align-items: center;
   justify-content: center;
   color: var(--color-vermont-green-light);
-  transition: transform var(--transition-base), color var(--transition-base);
+  transition:
+    transform var(--transition-base),
+    color var(--transition-base);
   animation: subtle-bounce 3s ease-in-out infinite;
   pointer-events: none;
 }
@@ -268,7 +274,11 @@
 }
 
 @keyframes subtle-bounce {
-  0%, 20%, 50%, 80%, 100% {
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
     transform: translateX(-50%) translateY(0);
   }
   40% {

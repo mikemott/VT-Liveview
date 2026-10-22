@@ -39,7 +39,7 @@ interface MapCenterState {
 const VERMONT_CENTER = {
   lng: VERMONT.centerLng,
   lat: VERMONT.centerLat,
-  zoom: VERMONT.centerZoom
+  zoom: VERMONT.centerZoom,
 };
 
 // =============================================================================
@@ -92,16 +92,16 @@ function WeatherMap() {
 
   const [mapCenter, setMapCenter] = useState<MapCenterState>({
     lat: VERMONT_CENTER.lat,
-    lng: VERMONT_CENTER.lng
+    lng: VERMONT_CENTER.lng,
   });
   // Unified layer visibility state
   // null = auto (follow season), true = forced on, false = forced off
   const [layerVisibility, setLayerVisibility] = useState<Record<string, boolean | null>>({
-    weatherStations: true,  // Core layer - always on by default
-    skiResorts: false,      // Off by default - user can enable manually
-    creemeeStands: false,   // Off by default - user can enable manually (was null for auto-show)
-    campingSites: false,    // Off by default - user can enable manually
-    beachSites: false,      // Off by default - user can enable manually
+    weatherStations: true, // Core layer - always on by default
+    skiResorts: false, // Off by default - user can enable manually
+    creemeeStands: false, // Off by default - user can enable manually (was null for auto-show)
+    campingSites: false, // Off by default - user can enable manually
+    beachSites: false, // Off by default - user can enable manually
   });
   const [showStargazing, setShowStargazing] = useState(false);
   const [showTrafficFlow, setShowTrafficFlow] = useState(true);
@@ -118,21 +118,24 @@ function WeatherMap() {
   const { isInSeason } = useSeasonalLayers();
 
   // Calculate actual layer visibility (user override or auto based on season)
-  const isLayerVisible = useCallback((layerId: string): boolean => {
-    const manualToggle = layerVisibility[layerId] ?? null;
+  const isLayerVisible = useCallback(
+    (layerId: string): boolean => {
+      const manualToggle = layerVisibility[layerId] ?? null;
 
-    // If user has manually toggled, respect that
-    if (manualToggle !== null) return manualToggle;
+      // If user has manually toggled, respect that
+      if (manualToggle !== null) return manualToggle;
 
-    // Otherwise, check if it's a seasonal layer and if it's in season
-    const seasonalConfig = SEASONAL_LAYERS.find(l => l.id === layerId);
-    if (seasonalConfig) {
-      return isInSeason(seasonalConfig);
-    }
+      // Otherwise, check if it's a seasonal layer and if it's in season
+      const seasonalConfig = SEASONAL_LAYERS.find((l) => l.id === layerId);
+      if (seasonalConfig) {
+        return isInSeason(seasonalConfig);
+      }
 
-    // Non-seasonal layers default to false if not in visibility state
-    return false;
-  }, [layerVisibility, isInSeason]);
+      // Non-seasonal layers default to false if not in visibility state
+      return false;
+    },
+    [layerVisibility, isInSeason],
+  );
 
   // Mobile responsiveness
   const isMobile = useIsMobile();
@@ -174,79 +177,90 @@ function WeatherMap() {
   }, []);
 
   // Add alerts to map
-  const addAlertsToMap = useCallback((alertFeatures: AlertFeature[]): void => {
-    if (!map.current) return;
+  const addAlertsToMap = useCallback(
+    (alertFeatures: AlertFeature[]): void => {
+      if (!map.current) return;
 
-    // Remove existing event handlers to prevent duplicate handlers
-    map.current.off('click', 'alert-fills', handleAlertFillClick);
-    map.current.off('mouseenter', 'alert-fills', handleAlertFillEnter);
-    map.current.off('mouseleave', 'alert-fills', handleAlertFillLeave);
+      // Remove existing event handlers to prevent duplicate handlers
+      map.current.off('click', 'alert-fills', handleAlertFillClick);
+      map.current.off('mouseenter', 'alert-fills', handleAlertFillEnter);
+      map.current.off('mouseleave', 'alert-fills', handleAlertFillLeave);
 
-    // Remove existing alert layers if present
-    if (map.current.getLayer('alert-fills')) {
-      map.current.removeLayer('alert-fills');
-    }
-    if (map.current.getLayer('alert-borders')) {
-      map.current.removeLayer('alert-borders');
-    }
-    if (map.current.getSource('alerts')) {
-      map.current.removeSource('alerts');
-    }
-
-    // Add alerts source
-    map.current.addSource('alerts', {
-      type: 'geojson',
-      data: {
-        type: 'FeatureCollection',
-        features: alertFeatures.filter(f => f.geometry) as GeoJSON.Feature[]
+      // Remove existing alert layers if present
+      if (map.current.getLayer('alert-fills')) {
+        map.current.removeLayer('alert-fills');
       }
-    });
-
-    // Add alert polygons with color based on severity
-    map.current.addLayer({
-      id: 'alert-fills',
-      type: 'fill',
-      source: 'alerts',
-      paint: {
-        'fill-color': [
-          'match',
-          ['get', 'severity'],
-          'Extreme', '#d00000',
-          'Severe', '#ff6d00',
-          'Moderate', '#ffba08',
-          'Minor', '#3b82f6',
-          '#8b8b8b'
-        ],
-        'fill-opacity': 0.3
+      if (map.current.getLayer('alert-borders')) {
+        map.current.removeLayer('alert-borders');
       }
-    });
-
-    // Add alert borders
-    map.current.addLayer({
-      id: 'alert-borders',
-      type: 'line',
-      source: 'alerts',
-      paint: {
-        'line-color': [
-          'match',
-          ['get', 'severity'],
-          'Extreme', '#d00000',
-          'Severe', '#ff6d00',
-          'Moderate', '#ffba08',
-          'Minor', '#3b82f6',
-          '#8b8b8b'
-        ],
-        'line-width': 2
+      if (map.current.getSource('alerts')) {
+        map.current.removeSource('alerts');
       }
-    });
 
-    // Add click handlers for alerts - open DetailPanel
-    map.current.on('click', 'alert-fills', handleAlertFillClick);
+      // Add alerts source
+      map.current.addSource('alerts', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: alertFeatures.filter((f) => f.geometry) as GeoJSON.Feature[],
+        },
+      });
 
-    // Change cursor on hover
-    map.current.on('mouseenter', 'alert-fills', handleAlertFillEnter);
-    map.current.on('mouseleave', 'alert-fills', handleAlertFillLeave);
-  }, [handleAlertFillClick, handleAlertFillEnter, handleAlertFillLeave]);
+      // Add alert polygons with color based on severity
+      map.current.addLayer({
+        id: 'alert-fills',
+        type: 'fill',
+        source: 'alerts',
+        paint: {
+          'fill-color': [
+            'match',
+            ['get', 'severity'],
+            'Extreme',
+            '#d00000',
+            'Severe',
+            '#ff6d00',
+            'Moderate',
+            '#ffba08',
+            'Minor',
+            '#3b82f6',
+            '#8b8b8b',
+          ],
+          'fill-opacity': 0.3,
+        },
+      });
+
+      // Add alert borders
+      map.current.addLayer({
+        id: 'alert-borders',
+        type: 'line',
+        source: 'alerts',
+        paint: {
+          'line-color': [
+            'match',
+            ['get', 'severity'],
+            'Extreme',
+            '#d00000',
+            'Severe',
+            '#ff6d00',
+            'Moderate',
+            '#ffba08',
+            'Minor',
+            '#3b82f6',
+            '#8b8b8b',
+          ],
+          'line-width': 2,
+        },
+      });
+
+      // Add click handlers for alerts - open DetailPanel
+      map.current.on('click', 'alert-fills', handleAlertFillClick);
+
+      // Change cursor on hover
+      map.current.on('mouseenter', 'alert-fills', handleAlertFillEnter);
+      map.current.on('mouseleave', 'alert-fills', handleAlertFillLeave);
+    },
+    [handleAlertFillClick, handleAlertFillEnter, handleAlertFillLeave],
+  );
 
   // Store addAlertsToMap in ref for WebGL context restore handler
   useEffect(() => {
@@ -254,136 +268,151 @@ function WeatherMap() {
   }, [addAlertsToMap]);
 
   // Handle alert item click to fly to affected area and highlight boundary
-  const handleAlertClick = useCallback((alert: AlertFeature): void => {
-    if (!map.current || !alert.geometry) return;
+  const handleAlertClick = useCallback(
+    (alert: AlertFeature): void => {
+      if (!map.current || !alert.geometry) return;
 
-    // Close mobile controls panel for better visibility
-    if (isMobile) {
-      setControlsPanelOpen(false);
-    }
-
-    // Remove existing alert highlight if present
-    if (map.current.getLayer('alert-highlight-border')) {
-      map.current.removeLayer('alert-highlight-border');
-    }
-    if (map.current.getLayer('alert-highlight-fill')) {
-      map.current.removeLayer('alert-highlight-fill');
-    }
-    if (map.current.getSource('alert-highlight')) {
-      map.current.removeSource('alert-highlight');
-    }
-
-    // Add highlight source for this specific alert
-    map.current.addSource('alert-highlight', {
-      type: 'geojson',
-      data: {
-        type: 'Feature',
-        properties: alert.properties,
-        geometry: alert.geometry
-      } as GeoJSON.Feature
-    });
-
-    // Get color based on severity
-    const severityColor =
-      alert.properties.severity === 'Extreme' ? '#d00000' :
-      alert.properties.severity === 'Severe' ? '#ff6d00' :
-      alert.properties.severity === 'Moderate' ? '#ffba08' :
-      alert.properties.severity === 'Minor' ? '#3b82f6' :
-      '#8b8b8b';
-
-    // Add highlighted fill layer
-    map.current.addLayer({
-      id: 'alert-highlight-fill',
-      type: 'fill',
-      source: 'alert-highlight',
-      paint: {
-        'fill-color': severityColor,
-        'fill-opacity': 0.25
+      // Close mobile controls panel for better visibility
+      if (isMobile) {
+        setControlsPanelOpen(false);
       }
-    });
 
-    // Add prominent highlighted border
-    map.current.addLayer({
-      id: 'alert-highlight-border',
-      type: 'line',
-      source: 'alert-highlight',
-      paint: {
-        'line-color': severityColor,
-        'line-width': 4,
-        'line-opacity': 0.9
+      // Remove existing alert highlight if present
+      if (map.current.getLayer('alert-highlight-border')) {
+        map.current.removeLayer('alert-highlight-border');
       }
-    });
-
-    // Calculate bounding box from geometry (handles both Polygon and MultiPolygon)
-    let minLng = Infinity, maxLng = -Infinity;
-    let minLat = Infinity, maxLat = -Infinity;
-
-    const processPoint = (point: number[]): void => {
-      const lng = point[0];
-      const lat = point[1];
-      if (lng !== undefined && lat !== undefined) {
-        minLng = Math.min(minLng, lng);
-        maxLng = Math.max(maxLng, lng);
-        minLat = Math.min(minLat, lat);
-        maxLat = Math.max(maxLat, lat);
+      if (map.current.getLayer('alert-highlight-fill')) {
+        map.current.removeLayer('alert-highlight-fill');
       }
-    };
+      if (map.current.getSource('alert-highlight')) {
+        map.current.removeSource('alert-highlight');
+      }
 
-    if (alert.geometry.type === 'MultiPolygon') {
-      // MultiPolygon: coordinates[polygon][ring][point]
-      for (const polygon of alert.geometry.coordinates) {
-        for (const ring of polygon) {
+      // Add highlight source for this specific alert
+      map.current.addSource('alert-highlight', {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          properties: alert.properties,
+          geometry: alert.geometry,
+        } as GeoJSON.Feature,
+      });
+
+      // Get color based on severity
+      const severityColor =
+        alert.properties.severity === 'Extreme'
+          ? '#d00000'
+          : alert.properties.severity === 'Severe'
+            ? '#ff6d00'
+            : alert.properties.severity === 'Moderate'
+              ? '#ffba08'
+              : alert.properties.severity === 'Minor'
+                ? '#3b82f6'
+                : '#8b8b8b';
+
+      // Add highlighted fill layer
+      map.current.addLayer({
+        id: 'alert-highlight-fill',
+        type: 'fill',
+        source: 'alert-highlight',
+        paint: {
+          'fill-color': severityColor,
+          'fill-opacity': 0.25,
+        },
+      });
+
+      // Add prominent highlighted border
+      map.current.addLayer({
+        id: 'alert-highlight-border',
+        type: 'line',
+        source: 'alert-highlight',
+        paint: {
+          'line-color': severityColor,
+          'line-width': 4,
+          'line-opacity': 0.9,
+        },
+      });
+
+      // Calculate bounding box from geometry (handles both Polygon and MultiPolygon)
+      let minLng = Infinity,
+        maxLng = -Infinity;
+      let minLat = Infinity,
+        maxLat = -Infinity;
+
+      const processPoint = (point: number[]): void => {
+        const lng = point[0];
+        const lat = point[1];
+        if (lng !== undefined && lat !== undefined) {
+          minLng = Math.min(minLng, lng);
+          maxLng = Math.max(maxLng, lng);
+          minLat = Math.min(minLat, lat);
+          maxLat = Math.max(maxLat, lat);
+        }
+      };
+
+      if (alert.geometry.type === 'MultiPolygon') {
+        // MultiPolygon: coordinates[polygon][ring][point]
+        for (const polygon of alert.geometry.coordinates) {
+          for (const ring of polygon) {
+            for (const point of ring) {
+              processPoint(point);
+            }
+          }
+        }
+      } else {
+        // Polygon: coordinates[ring][point]
+        for (const ring of alert.geometry.coordinates) {
           for (const point of ring) {
             processPoint(point);
           }
         }
       }
-    } else {
-      // Polygon: coordinates[ring][point]
-      for (const ring of alert.geometry.coordinates) {
-        for (const point of ring) {
-          processPoint(point);
-        }
-      }
-    }
 
-    // Ensure we have valid bounds
-    if (minLng === Infinity || maxLng === -Infinity) return;
+      // Ensure we have valid bounds
+      if (minLng === Infinity || maxLng === -Infinity) return;
 
-    // Fly to bounds with smooth animation (backed out for better context)
-    map.current.fitBounds(
-      [[minLng, minLat], [maxLng, maxLat]],
-      {
-        padding: 120,       // 120px buffer on all sides for more context
-        duration: 1500,     // 1.5 second smooth animation
-        maxZoom: 11         // Keep zoomed out to see surrounding area
-      }
-    );
+      // Fly to bounds with smooth animation (backed out for better context)
+      map.current.fitBounds(
+        [
+          [minLng, minLat],
+          [maxLng, maxLat],
+        ],
+        {
+          padding: 120, // 120px buffer on all sides for more context
+          duration: 1500, // 1.5 second smooth animation
+          maxZoom: 11, // Keep zoomed out to see surrounding area
+        },
+      );
 
-    // Open the detail panel with full alert information
-    setDetailPanelContent({ type: 'alert', data: alert });
-  }, [isMobile]);
+      // Open the detail panel with full alert information
+      setDetailPanelContent({ type: 'alert', data: alert });
+    },
+    [isMobile],
+  );
 
   // Convert MergedAlertData to AlertFeature format for map display
-  const mergedAlertToFeature = useCallback((alert: MergedAlertData): AlertFeature => ({
-    type: 'Feature',
-    properties: {
-      id: alert.id,
-      event: alert.event,
-      headline: alert.headline,
-      severity: alert.severity,
-      certainty: alert.certainty,
-      urgency: alert.urgency,
-      areaDesc: alert.areaDesc,
-      description: alert.description,
-      instruction: alert.instruction,
-      effective: alert.effective,
-      expires: alert.expires,
-      mergedFrom: alert.mergedFrom,
-      affectedZoneIds: alert.affectedZoneIds,
-    },
-    geometry: alert.geometry,
-  }), []);
+  const mergedAlertToFeature = useCallback(
+    (alert: MergedAlertData): AlertFeature => ({
+      type: 'Feature',
+      properties: {
+        id: alert.id,
+        event: alert.event,
+        headline: alert.headline,
+        severity: alert.severity,
+        certainty: alert.certainty,
+        urgency: alert.urgency,
+        areaDesc: alert.areaDesc,
+        description: alert.description,
+        instruction: alert.instruction,
+        effective: alert.effective,
+        expires: alert.expires,
+        mergedFrom: alert.mergedFrom,
+        affectedZoneIds: alert.affectedZoneIds,
+      },
+      geometry: alert.geometry,
+    }),
+    [],
+  );
 
   // Fetch merged weather alerts from backend
   const fetchAlertsFromBackend = useCallback(async (): Promise<void> => {
@@ -414,12 +443,12 @@ function WeatherMap() {
       style: getMapStyle(isDark),
       center: [VERMONT_CENTER.lng, VERMONT_CENTER.lat],
       zoom: VERMONT_CENTER.zoom,
-      minZoom: 5.5,  // Allow zooming out to see regional weather patterns
-      maxZoom: 18,   // Allow detailed street-level zoom
+      minZoom: 5.5, // Allow zooming out to see regional weather patterns
+      maxZoom: 18, // Allow detailed street-level zoom
       maxBounds: [
         [-77.5, 40.5], // Southwest corner - extends into NY for weather context
-        [-68.5, 47.5]  // Northeast corner - includes northern Maine/Quebec border
-      ]
+        [-68.5, 47.5], // Northeast corner - includes northern Maine/Quebec border
+      ],
     });
 
     map.current.addControl(new maplibregl.NavigationControl(), 'bottom-right');
@@ -488,7 +517,7 @@ function WeatherMap() {
         console.log('Map loaded!', {
           sources: Object.keys(map.current.getStyle().sources || {}),
           layers: (map.current.getStyle().layers || []).length,
-          firstLayer: (map.current.getStyle().layers || [])[0]
+          firstLayer: (map.current.getStyle().layers || [])[0],
         });
       }
 
@@ -538,11 +567,12 @@ function WeatherMap() {
         'alert-highlight-border',
         'incident-highlight',
         'incident-highlight-outline',
-      ].filter(layerId => map.current?.getLayer(layerId));
+      ].filter((layerId) => map.current?.getLayer(layerId));
 
-      const features = interactiveLayers.length > 0
-        ? map.current.queryRenderedFeatures(e.point, { layers: interactiveLayers })
-        : [];
+      const features =
+        interactiveLayers.length > 0
+          ? map.current.queryRenderedFeatures(e.point, { layers: interactiveLayers })
+          : [];
       const clickedOnFeature = features.length > 0;
 
       // If clicked on empty map, show location details
@@ -624,7 +654,7 @@ function WeatherMap() {
         }
 
         // Increment mapStyleVersion to trigger radar layer recreation
-        setMapStyleVersion(v => v + 1);
+        setMapStyleVersion((v) => v + 1);
       });
     }, 150); // 150ms debounce - prevents rapid toggles from stacking
 
@@ -635,18 +665,18 @@ function WeatherMap() {
 
   // Toggle theme manually
   const toggleTheme = useCallback((): void => {
-    setIsDark(prev => !prev);
+    setIsDark((prev) => !prev);
     setManualThemeOverride(true); // User has manually set the theme
   }, []);
 
   // Toggle layer visibility (unified function)
   const toggleLayer = useCallback((layerId: string): void => {
-    setLayerVisibility(prev => {
+    setLayerVisibility((prev) => {
       const current = prev[layerId];
 
       // Cycle: null (auto) → true (on) → false (off) → null (auto)
       // For core layers (always true/false), just toggle between true/false
-      const seasonalConfig = SEASONAL_LAYERS.find(l => l.id === layerId);
+      const seasonalConfig = SEASONAL_LAYERS.find((l) => l.id === layerId);
 
       if (seasonalConfig) {
         // Seasonal layer: cycle through null → true → false → null
@@ -683,12 +713,12 @@ function WeatherMap() {
 
   // Toggle stargazing visibility
   const toggleStargazing = useCallback((): void => {
-    setShowStargazing(prev => !prev);
+    setShowStargazing((prev) => !prev);
   }, []);
 
   // Toggle traffic flow visibility
   const toggleTrafficFlow = useCallback((): void => {
-    setShowTrafficFlow(prev => !prev);
+    setShowTrafficFlow((prev) => !prev);
   }, []);
 
   // Handle weather station click - memoized to prevent marker recreation
@@ -752,10 +782,12 @@ function WeatherMap() {
       </div>
 
       {/* Controls Panel - hidden on mobile unless toggled open */}
-      <div className={`controls-panel ${isDark ? 'dark' : ''} ${isMobile ? 'mobile' : ''} ${isMobile && !controlsPanelOpen ? 'hidden' : ''}`}>
+      <div
+        className={`controls-panel ${isDark ? 'dark' : ''} ${isMobile ? 'mobile' : ''} ${isMobile && !controlsPanelOpen ? 'hidden' : ''}`}
+      >
         <div className="logo-container">
           <img
-            src={isDark ? "/assets/vt-liveview-dark.svg" : "/assets/vt-liveview-vintage.svg"}
+            src={isDark ? '/assets/vt-liveview-dark.svg' : '/assets/vt-liveview-vintage.svg'}
             alt="VT LiveView"
             className="app-logo"
           />
@@ -775,7 +807,12 @@ function WeatherMap() {
           {/* Radar Controls */}
           {mapLoaded && (
             <div className="control-section">
-              <RadarOverlay map={map.current} isDark={isDark} key={mapStyleVersion} collapsed={showStargazing} />
+              <RadarOverlay
+                map={map.current}
+                isDark={isDark}
+                key={mapStyleVersion}
+                collapsed={showStargazing}
+              />
             </div>
           )}
 
@@ -822,12 +859,7 @@ function WeatherMap() {
           )}
 
           {/* Ski Resorts Layer */}
-          {mapLoaded && (
-            <SkiLayer
-              map={map.current}
-              visible={isLayerVisible('skiResorts')}
-            />
-          )}
+          {mapLoaded && <SkiLayer map={map.current} visible={isLayerVisible('skiResorts')} />}
 
           {/* Camping Sites Layer - Campgrounds shown individually */}
           {mapLoaded && showCampgrounds && (
@@ -853,28 +885,16 @@ function WeatherMap() {
           )}
 
           {/* Beach Sites Layer */}
-          {mapLoaded && (
-            <BeachLayer
-              map={map.current}
-              visible={isLayerVisible('beachSites')}
-            />
-          )}
+          {mapLoaded && <BeachLayer map={map.current} visible={isLayerVisible('beachSites')} />}
 
           {/* Creemee Stands Layer */}
           {mapLoaded && (
-            <CreemeeLayer
-              map={map.current}
-              visible={isLayerVisible('creemeeStands')}
-            />
+            <CreemeeLayer map={map.current} visible={isLayerVisible('creemeeStands')} />
           )}
 
           {/* Traffic Flow Layer */}
           {mapLoaded && (
-            <TrafficFlowLayer
-              map={map.current}
-              visible={showTrafficFlow}
-              isDark={isDark}
-            />
+            <TrafficFlowLayer map={map.current} visible={showTrafficFlow} isDark={isDark} />
           )}
 
           {/* Active Alerts */}
@@ -883,33 +903,35 @@ function WeatherMap() {
               <h3>Active Alerts ({alerts.length})</h3>
               <div className="alerts-list">
                 {alerts.map((alert) => (
-                    <div
-                      key={alert.properties.id || alert.properties.event}
-                      className={`alert-card severity-${alert.properties.severity?.toLowerCase()} ${isDark ? 'dark' : ''}`}
-                      onClick={() => handleAlertClick(alert)}
-                      onKeyDown={(e) => handleAlertKeyDown(e, alert)}
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`Zoom to ${alert.properties.event} affected area`}
-                    >
-                      <div className="alert-icon-container">
-                        {getSeverityIcon(alert.properties.severity || 'Minor')}
-                      </div>
-                      <div className="alert-body">
-                        <div className="alert-event">{alert.properties.event}</div>
-                        <div className="alert-headline">{alert.properties.headline || alert.properties.areaDesc}</div>
-                      </div>
-                      <button
-                        className="alert-dismiss"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          // Close button functionality - could dismiss alert
-                        }}
-                        aria-label="Dismiss alert"
-                      >
-                        <X size={14} />
-                      </button>
+                  <div
+                    key={alert.properties.id || alert.properties.event}
+                    className={`alert-card severity-${alert.properties.severity?.toLowerCase()} ${isDark ? 'dark' : ''}`}
+                    onClick={() => handleAlertClick(alert)}
+                    onKeyDown={(e) => handleAlertKeyDown(e, alert)}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Zoom to ${alert.properties.event} affected area`}
+                  >
+                    <div className="alert-icon-container">
+                      {getSeverityIcon(alert.properties.severity || 'Minor')}
                     </div>
+                    <div className="alert-body">
+                      <div className="alert-event">{alert.properties.event}</div>
+                      <div className="alert-headline">
+                        {alert.properties.headline || alert.properties.areaDesc}
+                      </div>
+                    </div>
+                    <button
+                      className="alert-dismiss"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Close button functionality - could dismiss alert
+                      }}
+                      aria-label="Dismiss alert"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
                 ))}
               </div>
             </div>

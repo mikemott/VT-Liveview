@@ -52,7 +52,7 @@ export function getCollectorStatus(): {
 function scheduleCollector(
   name: string,
   schedule: string,
-  collector: () => Promise<number>
+  collector: () => Promise<number>,
 ): ScheduledTask {
   // runCollector handles its own errors, so the cron callback can fire-and-forget it
   const runCollector = async (): Promise<void> => {
@@ -116,24 +116,16 @@ export function startScheduler(): boolean {
 
   // Schedule collectors at different intervals
   // Weather observations: every 5 minutes
-  scheduledTasks.push(
-    scheduleCollector('weather', '*/5 * * * *', collectWeatherObservations)
-  );
+  scheduledTasks.push(scheduleCollector('weather', '*/5 * * * *', collectWeatherObservations));
 
   // Weather alerts: every 2 minutes (more frequent for time-sensitive data)
-  scheduledTasks.push(
-    scheduleCollector('alerts', '*/2 * * * *', collectWeatherAlerts)
-  );
+  scheduledTasks.push(scheduleCollector('alerts', '*/2 * * * *', collectWeatherAlerts));
 
   // Traffic incidents: every 3 minutes
-  scheduledTasks.push(
-    scheduleCollector('traffic', '*/3 * * * *', collectTrafficIncidents)
-  );
+  scheduledTasks.push(scheduleCollector('traffic', '*/3 * * * *', collectTrafficIncidents));
 
   // River gauges: every 10 minutes (USGS updates less frequently)
-  scheduledTasks.push(
-    scheduleCollector('gauges', '*/10 * * * *', collectRiverGauges)
-  );
+  scheduledTasks.push(scheduleCollector('gauges', '*/10 * * * *', collectRiverGauges));
 
   console.log('[Scheduler] Scheduled jobs:');
   console.log('  - Weather observations: every 5 minutes');

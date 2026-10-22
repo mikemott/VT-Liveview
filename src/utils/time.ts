@@ -13,11 +13,7 @@ import type { SunTimes } from '@/types';
  * @param date - Date to calculate for (defaults to today)
  * @returns Object with sunrise and sunset Date objects
  */
-export function calculateSunTimes(
-  lat: number,
-  lng: number,
-  date: Date = new Date()
-): SunTimes {
+export function calculateSunTimes(lat: number, lng: number, date: Date = new Date()): SunTimes {
   // Get the day of year
   const start = new Date(date.getFullYear(), 0, 0);
   const diff = date.getTime() - start.getTime();
@@ -29,15 +25,12 @@ export function calculateSunTimes(
 
   // Calculate solar declination (simplified formula)
   const declination =
-    ((-23.45 * Math.cos(((360 / 365) * (dayOfYear + 10) * Math.PI) / 180)) *
-      Math.PI) /
-    180;
+    (-23.45 * Math.cos(((360 / 365) * (dayOfYear + 10) * Math.PI) / 180) * Math.PI) / 180;
 
   // Calculate hour angle for sunrise/sunset
   // -0.833 degrees accounts for atmospheric refraction and solar disc size
   const cosHourAngle =
-    (Math.sin((-0.833 * Math.PI) / 180) -
-      Math.sin(latRad) * Math.sin(declination)) /
+    (Math.sin((-0.833 * Math.PI) / 180) - Math.sin(latRad) * Math.sin(declination)) /
     (Math.cos(latRad) * Math.cos(declination));
 
   // Clamp to valid range (handles polar day/night)

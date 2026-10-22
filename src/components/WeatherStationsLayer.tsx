@@ -70,17 +70,19 @@ function createWeatherStationMarker(station: ObservationStation): HTMLDivElement
   const isWaterTemp = station.id.startsWith('USGS-');
 
   // Different colors for water temp vs air temp
-  const stationColors = isWaterTemp ? {
-    bg: '#3b82f6', // Vibrant blue for water
-    border: '#ffffff',
-    shadow: 'rgba(59, 130, 246, 0.4)',
-    text: '#ffffff'
-  } : {
-    bg: '#588bae', // Soft blue for air
-    border: '#ffffff',
-    shadow: 'rgba(0, 0, 0, 0.3)',
-    text: '#ffffff'
-  };
+  const stationColors = isWaterTemp
+    ? {
+        bg: '#3b82f6', // Vibrant blue for water
+        border: '#ffffff',
+        shadow: 'rgba(59, 130, 246, 0.4)',
+        text: '#ffffff',
+      }
+    : {
+        bg: '#588bae', // Soft blue for air
+        border: '#ffffff',
+        shadow: 'rgba(0, 0, 0, 0.3)',
+        text: '#ffffff',
+      };
 
   // Larger size for water temp sensors
   const size = isWaterTemp ? 42 : 34;
@@ -110,9 +112,8 @@ function createWeatherStationMarker(station: ObservationStation): HTMLDivElement
 
   // Validate temperature before rendering
   const temp = station.weather?.temperature;
-  const tempDisplay = (temp !== null && temp !== undefined && Number.isFinite(temp))
-    ? `${Math.round(temp)}°`
-    : 'N/A';
+  const tempDisplay =
+    temp !== null && temp !== undefined && Number.isFinite(temp) ? `${Math.round(temp)}°` : 'N/A';
 
   if (isWaterTemp) {
     // Create water droplet icon container
@@ -162,7 +163,12 @@ function createWeatherStationMarker(station: ObservationStation): HTMLDivElement
 // Component
 // =============================================================================
 
-function WeatherStationsLayer({ map, visible, onStationClick: _onStationClick, globalPopupRef }: WeatherStationsLayerProps) {
+function WeatherStationsLayer({
+  map,
+  visible,
+  onStationClick: _onStationClick,
+  globalPopupRef,
+}: WeatherStationsLayerProps) {
   const [stations, setStations] = useState<ObservationStation[]>([]);
   const [_loading, setLoading] = useState(false);
   const markersRef = useRef<MarkerEntry[]>([]);
@@ -241,23 +247,25 @@ function WeatherStationsLayer({ map, visible, onStationClick: _onStationClick, g
 
       // Weather station colors (soft blue from style guide) - solid cream background
       // Use vibrant blue for water temp sensors
-      const stationColors = isWaterTemp ? {
-        bg: '#fbfdf4',
-        border: 'rgba(59, 130, 246, 0.4)',
-        text: '#1e40af',
-        badgeBg: 'rgba(59, 130, 246, 0.2)',
-        badgeBorder: 'rgba(59, 130, 246, 0.4)',
-        secondary: '#3b82f6',
-        metadata: '#3b82f6'
-      } : {
-        bg: '#fbfdf4',
-        border: 'rgba(88, 139, 174, 0.4)',
-        text: '#2c5368',
-        badgeBg: 'rgba(88, 139, 174, 0.2)',
-        badgeBorder: 'rgba(88, 139, 174, 0.4)',
-        secondary: '#7a9576',
-        metadata: '#7a9576'
-      };
+      const stationColors = isWaterTemp
+        ? {
+            bg: '#fbfdf4',
+            border: 'rgba(59, 130, 246, 0.4)',
+            text: '#1e40af',
+            badgeBg: 'rgba(59, 130, 246, 0.2)',
+            badgeBorder: 'rgba(59, 130, 246, 0.4)',
+            secondary: '#3b82f6',
+            metadata: '#3b82f6',
+          }
+        : {
+            bg: '#fbfdf4',
+            border: 'rgba(88, 139, 174, 0.4)',
+            text: '#2c5368',
+            badgeBg: 'rgba(88, 139, 174, 0.2)',
+            badgeBorder: 'rgba(88, 139, 174, 0.4)',
+            secondary: '#7a9576',
+            metadata: '#7a9576',
+          };
 
       // Escape HTML
       const escapeHTML = (str: string): string => {
@@ -269,10 +277,16 @@ function WeatherStationsLayer({ map, visible, onStationClick: _onStationClick, g
 
       const safeName = escapeHTML(station.name);
       const badgeText = isWaterTemp ? 'Water Temperature' : 'Weather Station';
-      const temp = station.weather?.temperature ? `${Math.round(station.weather.temperature)}°F` : 'N/A';
+      const temp = station.weather?.temperature
+        ? `${Math.round(station.weather.temperature)}°F`
+        : 'N/A';
       const wind = station.weather?.windSpeed ? station.weather.windSpeed : 'N/A';
-      const humidity = station.weather?.humidity ? `${Math.round(station.weather.humidity)}%` : 'N/A';
-      const pressure = station.weather?.pressure ? `${(station.weather.pressure / 100).toFixed(2)} mb` : 'N/A';
+      const humidity = station.weather?.humidity
+        ? `${Math.round(station.weather.humidity)}%`
+        : 'N/A';
+      const pressure = station.weather?.pressure
+        ? `${(station.weather.pressure / 100).toFixed(2)} mb`
+        : 'N/A';
 
       // Create popup
       const popup = new maplibregl.Popup({
@@ -280,7 +294,7 @@ function WeatherStationsLayer({ map, visible, onStationClick: _onStationClick, g
         closeButton: true,
         closeOnClick: false,
         maxWidth: '280px',
-        className: 'station-popup'
+        className: 'station-popup',
       }).setHTML(`
         <div style="
           padding: var(--space-7, 16px);
@@ -350,7 +364,9 @@ function WeatherStationsLayer({ map, visible, onStationClick: _onStationClick, g
               <div style="font-size: var(--font-size-lg, 13px); color: ${stationColors.text}; font-weight: 600;">${pressure}</div>
             </div>
           </div>
-          ${station.elevation ? `
+          ${
+            station.elevation
+              ? `
             <div style="
               padding-top: var(--space-3, 8px);
               border-top: 1px solid rgba(93, 124, 90, 0.12);
@@ -360,7 +376,9 @@ function WeatherStationsLayer({ map, visible, onStationClick: _onStationClick, g
             ">
               Elevation: ${station.elevation.toLocaleString()} ft
             </div>
-          ` : ''}
+          `
+              : ''
+          }
         </div>
       `);
 
@@ -389,7 +407,7 @@ function WeatherStationsLayer({ map, visible, onStationClick: _onStationClick, g
       markersRef.current.push({
         marker: marker,
         element: el,
-        handler: handleMarkerClick
+        handler: handleMarkerClick,
       });
     });
 
