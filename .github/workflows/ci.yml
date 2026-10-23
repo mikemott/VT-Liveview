@@ -101,9 +101,26 @@ jobs:
           npm ci
           npm ci --prefix backend
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          # The mobile project emulates Pixel 7 on Chromium
+          key: playwright-${{ runner.os }}-${{ matrix.project == 'webkit' && 'webkit' || 'chromium' }}-${{ hashFiles('package-lock.json') }}
+
       - name: Install Playwright browser
-        # The mobile project emulates Pixel 7 on Chromium
-        run: npx playwright install --with-deps ${{ matrix.project == 'webkit' && 'webkit' || 'chromium' }}
+        # The browser download occasionally stalls and used to eat the whole
+        # 20-minute job (VTL-59). Bound each attempt and retry instead.
+        env:
+          BROWSER: ${{ matrix.project == 'webkit' && 'webkit' || 'chromium' }}
+        run: |
+          for attempt in 1 2 3; do
+            if timeout 300 npx playwright install --with-deps "$BROWSER"; then
+              exit 0
+            fi
+            echo "::warning::Playwright $BROWSER install attempt $attempt failed or timed out"
+          done
+          exit 1
 
       - name: Run E2E tests
         # Missing snapshot baselines are written (and uploaded below) instead of
