@@ -143,3 +143,15 @@
     transform: scale(1);
   }
 }
+
+/* Observation time in the station popup (VTL-50) */
+.station-popup-asof {
+  margin-bottom: var(--space-3, 8px);
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.station-popup-asof.stale {
+  color: #b45309;
+  font-weight: 600;
+}

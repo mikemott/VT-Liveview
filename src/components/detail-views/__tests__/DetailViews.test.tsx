@@ -168,6 +168,16 @@ describe('IncidentDetail', () => {
 });
 
 describe('StationDetail', () => {
+  it('warns when the reading is old (VTL-50)', () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-10-16T15:00:00Z'));
+    render(<StationDetail station={makeStation()} isDark={false} />);
+    expect(screen.getByRole('note')).toHaveTextContent(
+      /^This reading is from 3 hr ago \(as of .+\) and may not reflect current conditions\.$/,
+    );
+    vi.useRealTimers();
+  });
+
   it('renders all available readings', () => {
     render(<StationDetail station={makeStation()} isDark={false} />);
     expect(screen.getByText('Barre-Montpelier Airport')).toBeInTheDocument();
