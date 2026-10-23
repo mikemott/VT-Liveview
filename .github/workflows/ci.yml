@@ -73,7 +73,10 @@ jobs:
 
   e2e:
     name: e2e (${{ matrix.project }})
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest is migrating to Ubuntu 26 (from 2026-10-19), and
+    # during the rollout WebKit installs stalled and its rendering was unstable
+    # in visual snapshots. Revisit once Playwright supports 26 (VTL-59).
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
       contents: read
@@ -106,19 +109,23 @@ jobs:
         with:
           path: ~/.cache/ms-playwright
           # The mobile project emulates Pixel 7 on Chromium
-          key: playwright-${{ runner.os }}-${{ matrix.project == 'webkit' && 'webkit' || 'chromium' }}-${{ hashFiles('package-lock.json') }}
+          key: playwright-ubuntu-24.04-${{ matrix.project == 'webkit' && 'webkit' || 'chromium' }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Playwright system dependencies
+        timeout-minutes: 8
+        run: npx playwright install-deps ${{ matrix.project == 'webkit' && 'webkit' || 'chromium' }}
 
       - name: Install Playwright browser
-        # The browser download occasionally stalls and used to eat the whole
-        # 20-minute job (VTL-59). Bound each attempt and retry instead.
+        # Download only (no apt), so a stalled attempt can be killed and retried
+        # without leaving a dpkg lock behind (VTL-59).
         env:
           BROWSER: ${{ matrix.project == 'webkit' && 'webkit' || 'chromium' }}
         run: |
           for attempt in 1 2 3; do
-            if timeout 300 npx playwright install --with-deps "$BROWSER"; then
+            if timeout 240 npx playwright install "$BROWSER"; then
               exit 0
             fi
-            echo "::warning::Playwright $BROWSER install attempt $attempt failed or timed out"
+            echo "::warning::Playwright $BROWSER download attempt $attempt failed or timed out"
           done
           exit 1
 
