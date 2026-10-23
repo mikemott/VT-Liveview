@@ -73,10 +73,14 @@ jobs:
 
   e2e:
     name: e2e (${{ matrix.project }})
-    # Pinned: ubuntu-latest is migrating to Ubuntu 26 (from 2026-10-19), and
-    # during the rollout WebKit installs stalled and its rendering was unstable
-    # in visual snapshots. Revisit once Playwright supports 26 (VTL-59).
     runs-on: ubuntu-24.04
+    # Official Playwright image: browsers and their system libraries are
+    # preinstalled, so no apt or browser downloads at run time. Those stalled
+    # intermittently, mostly for WebKit (VTL-59). Keep the tag in sync with
+    # @playwright/test; the "Check Playwright image version" step enforces it.
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.1-noble
+      options: --ipc=host
     timeout-minutes: 20
     permissions:
       contents: read
@@ -104,30 +108,14 @@ jobs:
           npm ci
           npm ci --prefix backend
 
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          # The mobile project emulates Pixel 7 on Chromium
-          key: playwright-ubuntu-24.04-${{ matrix.project == 'webkit' && 'webkit' || 'chromium' }}-${{ hashFiles('package-lock.json') }}
-
-      - name: Install Playwright system dependencies
-        timeout-minutes: 8
-        run: npx playwright install-deps ${{ matrix.project == 'webkit' && 'webkit' || 'chromium' }}
-
-      - name: Install Playwright browser
-        # Download only (no apt), so a stalled attempt can be killed and retried
-        # without leaving a dpkg lock behind (VTL-59).
-        env:
-          BROWSER: ${{ matrix.project == 'webkit' && 'webkit' || 'chromium' }}
+      - name: Check Playwright image version
         run: |
-          for attempt in 1 2 3; do
-            if timeout 240 npx playwright install "$BROWSER"; then
-              exit 0
-            fi
-            echo "::warning::Playwright $BROWSER download attempt $attempt failed or timed out"
-          done
-          exit 1
+          IMAGE=1.64.1
+          INSTALLED=$(node -p "require('@playwright/test/package.json').version")
+          if [ "$INSTALLED" != "$IMAGE" ]; then
+            echo "::error::@playwright/test is $INSTALLED but the e2e container image is v$IMAGE. Update the image tag in ci.yml."
+            exit 1
+          fi
 
       - name: Run E2E tests
         # Missing snapshot baselines are written (and uploaded below) instead of
