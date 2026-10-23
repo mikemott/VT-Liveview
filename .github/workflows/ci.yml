@@ -73,7 +73,14 @@ jobs:
 
   e2e:
     name: e2e (${{ matrix.project }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    # Official Playwright image: browsers and their system libraries are
+    # preinstalled, so no apt or browser downloads at run time. Those stalled
+    # intermittently, mostly for WebKit (VTL-59). Keep the tag in sync with
+    # @playwright/test; the "Check Playwright image version" step enforces it.
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.1-noble
+      options: --ipc=host
     timeout-minutes: 20
     permissions:
       contents: read
@@ -101,26 +108,14 @@ jobs:
           npm ci
           npm ci --prefix backend
 
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          # The mobile project emulates Pixel 7 on Chromium
-          key: playwright-${{ runner.os }}-${{ matrix.project == 'webkit' && 'webkit' || 'chromium' }}-${{ hashFiles('package-lock.json') }}
-
-      - name: Install Playwright browser
-        # The browser download occasionally stalls and used to eat the whole
-        # 20-minute job (VTL-59). Bound each attempt and retry instead.
-        env:
-          BROWSER: ${{ matrix.project == 'webkit' && 'webkit' || 'chromium' }}
+      - name: Check Playwright image version
         run: |
-          for attempt in 1 2 3; do
-            if timeout 300 npx playwright install --with-deps "$BROWSER"; then
-              exit 0
-            fi
-            echo "::warning::Playwright $BROWSER install attempt $attempt failed or timed out"
-          done
-          exit 1
+          IMAGE=1.64.1
+          INSTALLED=$(node -p "require('@playwright/test/package.json').version")
+          if [ "$INSTALLED" != "$IMAGE" ]; then
+            echo "::error::@playwright/test is $INSTALLED but the e2e container image is v$IMAGE. Update the image tag in ci.yml."
+            exit 1
+          fi
 
       - name: Run E2E tests
         # Missing snapshot baselines are written (and uploaded below) instead of
