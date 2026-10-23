@@ -47,6 +47,23 @@ export default function MapUnavailable({ reason }: MapUnavailableProps) {
     refetchInterval: INTERVALS.INCIDENTS_REFRESH,
   });
 
+  const alertCount = alertsQuery.data?.length ?? 0;
+  const incidentCount = incidentsQuery.data?.length ?? 0;
+  const alertsStatus = alertsQuery.isLoading
+    ? 'Loading alerts…'
+    : alertsQuery.isError
+      ? "Couldn't load alerts right now."
+      : alertCount === 0
+        ? 'No active weather alerts for Vermont.'
+        : `${alertCount} active weather alert${alertCount === 1 ? '' : 's'}.`;
+  const incidentsStatus = incidentsQuery.isLoading
+    ? 'Loading incidents…'
+    : incidentsQuery.isError
+      ? "Couldn't load travel incidents right now."
+      : incidentCount === 0
+        ? 'No travel incidents reported.'
+        : `${incidentCount} travel incident${incidentCount === 1 ? '' : 's'}.`;
+
   const incidentsByType = INCIDENT_ORDER.map((type) => ({
     type,
     items: (incidentsQuery.data ?? []).filter((i) => i.type === type),
@@ -93,13 +110,14 @@ export default function MapUnavailable({ reason }: MapUnavailableProps) {
 
         <section aria-labelledby="fallback-alerts">
           <h2 id="fallback-alerts">Weather alerts</h2>
-          {alertsQuery.isLoading && <p className="map-unavailable-muted">Loading alerts…</p>}
-          {alertsQuery.isError && (
-            <p className="map-unavailable-muted">Couldn't load alerts right now.</p>
-          )}
-          {alertsQuery.data && alertsQuery.data.length === 0 && (
-            <p className="map-unavailable-muted">No active weather alerts for Vermont.</p>
-          )}
+          {/* Short polite summary; the list itself stays outside the live region */}
+          <p
+            className={alertCount > 0 ? 'sr-only' : 'map-unavailable-muted'}
+            role="status"
+            aria-live="polite"
+          >
+            {alertsStatus}
+          </p>
           <ul className="map-unavailable-list">
             {alertsQuery.data?.map((alert) => (
               <li
@@ -118,13 +136,13 @@ export default function MapUnavailable({ reason }: MapUnavailableProps) {
 
         <section aria-labelledby="fallback-incidents">
           <h2 id="fallback-incidents">Roads &amp; travel</h2>
-          {incidentsQuery.isLoading && <p className="map-unavailable-muted">Loading incidents…</p>}
-          {incidentsQuery.isError && (
-            <p className="map-unavailable-muted">Couldn't load travel incidents right now.</p>
-          )}
-          {incidentsQuery.data && incidentsQuery.data.length === 0 && (
-            <p className="map-unavailable-muted">No travel incidents reported.</p>
-          )}
+          <p
+            className={incidentCount > 0 ? 'sr-only' : 'map-unavailable-muted'}
+            role="status"
+            aria-live="polite"
+          >
+            {incidentsStatus}
+          </p>
           {incidentsByType.map((group) => (
             <div key={group.type} className="map-unavailable-group">
               <h3>

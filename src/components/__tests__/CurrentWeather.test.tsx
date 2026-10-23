@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactElement } from 'react';
 import CurrentWeather from '../CurrentWeather';
@@ -109,8 +109,24 @@ describe('CurrentWeather', () => {
     expect(screen.getByText('Light Rain')).toBeInTheDocument();
   });
 
-  it.todo(
-    'shows an error state instead of fake placeholder weather when the request fails (FINDINGS Medium, CurrentWeather.tsx:56-75)',
-  );
+  it('shows an error state instead of fake placeholder weather when the request fails', async () => {
+    weatherMock.mockRejectedValue(new Error('backend down'));
+    const { container } = renderWithClient(<CurrentWeather />);
+    expect(
+      await screen.findByText('Weather unavailable right now', {}, { timeout: 6000 }),
+    ).toBeInTheDocument();
+    expect(container.querySelector('.temp-value')).toBeNull();
+    expect(screen.queryByText('Partly Cloudy')).toBeNull();
+  });
+
+  it('omits the forecast instead of showing placeholder periods when it is unavailable', async () => {
+    forecastMock.mockRejectedValue(new Error('backend down'));
+    renderWithClient(<CurrentWeather />);
+    // The component retries twice before giving up
+    await waitFor(() => expect(forecastMock).toHaveBeenCalledTimes(3), { timeout: 6000 });
+    fireEvent.click(await screen.findByText('Light Rain'));
+    expect(screen.queryByText('Next 3 Days')).toBeNull();
+    expect(screen.queryByText('Tonight')).toBeNull();
+  });
   it.todo('the expandable card is keyboard operable (FINDINGS H15 / a11y)');
 });
