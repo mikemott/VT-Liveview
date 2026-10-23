@@ -69,8 +69,18 @@ function getSeverityIcon(severity: string): React.ReactNode {
 // Component
 // =============================================================================
 
-function WeatherMap() {
+interface WeatherMapProps {
+  /** Called when the map can't be created (e.g. WebGL context failure). */
+  onMapUnavailable?: (reason: string) => void;
+}
+
+function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
   const mapContainer = useRef<HTMLDivElement>(null);
+  // Ref so the init effect doesn't re-run when the callback identity changes
+  const onMapUnavailableRef = useRef(onMapUnavailable);
+  useEffect(() => {
+    onMapUnavailableRef.current = onMapUnavailable;
+  }, [onMapUnavailable]);
   const map = useRef<MapLibreMap | null>(null);
   const globalPopupRef = useRef<maplibregl.Popup | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -479,19 +489,29 @@ function WeatherMap() {
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
 
-    // Create map with Protomaps style
-    map.current = new maplibregl.Map({
-      container: mapContainer.current,
-      style: getMapStyle(isDark),
-      center: [VERMONT_CENTER.lng, VERMONT_CENTER.lat],
-      zoom: VERMONT_CENTER.zoom,
-      minZoom: 5.5, // Allow zooming out to see regional weather patterns
-      maxZoom: 18, // Allow detailed street-level zoom
-      maxBounds: [
-        [-77.5, 40.5], // Southwest corner - extends into NY for weather context
-        [-68.5, 47.5], // Northeast corner - includes northern Maine/Quebec border
-      ],
-    });
+    // Create map with Protomaps style. The constructor throws when a WebGL
+    // context can't be created (the up-front check in App can pass while the
+    // real context still fails, e.g. blocklisted drivers).
+    try {
+      map.current = new maplibregl.Map({
+        container: mapContainer.current,
+        style: getMapStyle(isDark),
+        center: [VERMONT_CENTER.lng, VERMONT_CENTER.lat],
+        zoom: VERMONT_CENTER.zoom,
+        minZoom: 5.5, // Allow zooming out to see regional weather patterns
+        maxZoom: 18, // Allow detailed street-level zoom
+        maxBounds: [
+          [-77.5, 40.5], // Southwest corner - extends into NY for weather context
+          [-68.5, 47.5], // Northeast corner - includes northern Maine/Quebec border
+        ],
+      });
+    } catch (error) {
+      map.current = null;
+      onMapUnavailableRef.current?.(
+        error instanceof Error ? error.message : 'The map could not be created',
+      );
+      return;
+    }
 
     map.current.addControl(new maplibregl.NavigationControl(), 'bottom-right');
     map.current.addControl(new maplibregl.FullscreenControl(), 'bottom-right');

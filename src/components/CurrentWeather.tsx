@@ -32,11 +32,7 @@ export default function CurrentWeather({
   // Default to collapsed for better map visibility
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const {
-    data,
-    isLoading,
-    error: _error,
-  } = useQuery<CurrentWeatherData | null>({
+  const { data, isLoading } = useQuery<CurrentWeatherData | null>({
     queryKey: ['currentWeather', lat, lon],
     queryFn: () => fetchCurrentWeather(lat, lon),
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -66,60 +62,19 @@ export default function CurrentWeather({
     );
   }
 
-  // Use dummy data if there's an error or no data
-  const weatherData = data || {
-    temperature: 32,
-    temperatureUnit: 'F',
-    description: 'Partly Cloudy',
-    windSpeed: 8,
-    windDirection: 'NW',
-    humidity: 65,
-    location: 'Montpelier, VT',
-  };
+  // Never present made-up readings as live conditions: if the request failed
+  // or returned nothing, say so.
+  if (!data) {
+    return (
+      <div className={`current-weather error ${isDark ? 'dark' : ''}`} role="status">
+        Weather unavailable right now
+      </div>
+    );
+  }
+  const weatherData = data;
 
-  // Filter to 3-day forecast (6 periods = 3 days of day/night) or use dummy data
-  const forecast3Day = forecastData?.slice(0, 6) || [];
-  const forecast =
-    forecast3Day.length > 0
-      ? forecast3Day
-      : [
-          {
-            name: 'Tonight',
-            temperature: 28,
-            shortForecast: 'Mostly Clear',
-            icon: 'https://api.weather.gov/icons/land/night/few?size=medium',
-          },
-          {
-            name: 'Wednesday',
-            temperature: 38,
-            shortForecast: 'Sunny',
-            icon: 'https://api.weather.gov/icons/land/day/skc?size=medium',
-          },
-          {
-            name: 'Wednesday Night',
-            temperature: 25,
-            shortForecast: 'Clear',
-            icon: 'https://api.weather.gov/icons/land/night/skc?size=medium',
-          },
-          {
-            name: 'Thursday',
-            temperature: 41,
-            shortForecast: 'Partly Cloudy',
-            icon: 'https://api.weather.gov/icons/land/day/sct?size=medium',
-          },
-          {
-            name: 'Thursday Night',
-            temperature: 30,
-            shortForecast: 'Cloudy',
-            icon: 'https://api.weather.gov/icons/land/night/ovc?size=medium',
-          },
-          {
-            name: 'Friday',
-            temperature: 36,
-            shortForecast: 'Chance Snow',
-            icon: 'https://api.weather.gov/icons/land/day/snow?size=medium',
-          },
-        ];
+  // 3-day forecast = 6 periods (day/night). Omitted entirely if unavailable.
+  const forecast = forecastData?.slice(0, 6) ?? [];
 
   // Mobile collapsed: ultra-minimal view (just temp + icon)
   const showMinimalView = isMobile && !isExpanded;
