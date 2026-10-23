@@ -2,17 +2,52 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VT LiveView — Live Vermont Roads, Weather &amp; Alerts</title>
+    <meta
+      name="description"
+      content="Free live map of Vermont: weather radar, NWS alerts, 511 road closures and accidents, traffic, river levels, ski conditions, camping, beaches and more."
+    />
+    <link rel="canonical" href="https://vtliveview.com/" />
+
+    <!-- Icons & app -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#f8faf0" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1c2024" media="(prefers-color-scheme: dark)" />
+
+    <!-- Open Graph / social previews -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="VT LiveView" />
+    <meta property="og:title" content="VT LiveView — Live Vermont Roads, Weather & Alerts" />
+    <meta
+      property="og:description"
+      content="Live map of Vermont road closures, accidents, weather radar and NWS alerts, plus ski, camping and outdoor info."
+    />
+    <meta property="og:url" content="https://vtliveview.com/" />
+    <meta property="og:image" content="https://vtliveview.com/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="VT LiveView logo: live Vermont roads, weather and alerts"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap"
       rel="stylesheet"
     />
-    <title>VT LiveView - Vermont Weather Map</title>
   </head>
   <body>
+    <noscript>
+      VT LiveView is an interactive map and needs JavaScript. Please enable JavaScript to see live
+      Vermont roads, weather and alerts.
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
