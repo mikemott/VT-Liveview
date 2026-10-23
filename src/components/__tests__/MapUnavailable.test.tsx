@@ -2,15 +2,15 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import MapUnavailable from '../MapUnavailable';
 import { fetchMergedAlerts, type MergedAlertData } from '../../services/graphqlClient';
-import { fetchAllIncidents, type TravelIncident } from '../../services/travelApi';
+import { fetchAllIncidentsWithStatus, type TravelIncident } from '../../services/travelApi';
 import { createQueryWrapper } from '../../test/helpers/queryWrapper';
 
 vi.mock('../CurrentWeather', () => ({ default: () => <div>current weather</div> }));
 vi.mock('../../services/graphqlClient', () => ({ fetchMergedAlerts: vi.fn() }));
-vi.mock('../../services/travelApi', () => ({ fetchAllIncidents: vi.fn() }));
+vi.mock('../../services/travelApi', () => ({ fetchAllIncidentsWithStatus: vi.fn() }));
 
 const alertsMock = vi.mocked(fetchMergedAlerts);
-const incidentsMock = vi.mocked(fetchAllIncidents);
+const incidentsMock = vi.mocked(fetchAllIncidentsWithStatus);
 
 const ALERT = {
   id: 'a1',
@@ -33,7 +33,7 @@ describe('MapUnavailable', () => {
 
   it('explains the problem and lists alerts and incidents', async () => {
     alertsMock.mockResolvedValue([ALERT]);
-    incidentsMock.mockResolvedValue([CLOSURE]);
+    incidentsMock.mockResolvedValue({ incidents: [CLOSURE], unavailableSources: [] });
     const { wrapper } = createQueryWrapper();
 
     render(<MapUnavailable reason="WebGL is not available" />, { wrapper });
@@ -49,7 +49,7 @@ describe('MapUnavailable', () => {
 
   it('shows empty states when nothing is active', async () => {
     alertsMock.mockResolvedValue([]);
-    incidentsMock.mockResolvedValue([]);
+    incidentsMock.mockResolvedValue({ incidents: [], unavailableSources: [] });
     const { wrapper } = createQueryWrapper();
 
     render(<MapUnavailable />, { wrapper });
@@ -69,5 +69,19 @@ describe('MapUnavailable', () => {
     expect(
       await screen.findByText("Couldn't load travel incidents right now."),
     ).toBeInTheDocument();
+  });
+
+  it('flags sources that failed instead of claiming no incidents', async () => {
+    alertsMock.mockResolvedValue([]);
+    incidentsMock.mockResolvedValue({ incidents: [], unavailableSources: ['VT 511 incidents'] });
+    const { wrapper } = createQueryWrapper();
+
+    render(<MapUnavailable />, { wrapper });
+
+    expect(
+      await screen.findByText('VT 511 incidents unavailable right now. Showing what loaded.'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('No incidents in the data that loaded.')).toBeInTheDocument();
+    expect(screen.queryByText('No travel incidents reported.')).toBeNull();
   });
 });

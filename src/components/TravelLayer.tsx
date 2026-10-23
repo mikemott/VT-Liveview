@@ -16,7 +16,7 @@ import {
   Tent,
 } from 'lucide-react';
 import maplibregl from 'maplibre-gl';
-import { fetchAllIncidents, type TravelIncident } from '../services/travelApi';
+import { fetchAllIncidentsWithStatus, type TravelIncident } from '../services/travelApi';
 import { getIncidentColor, shouldShowIncident } from '../utils/incidentColors';
 import { createMarkerElement } from '../utils/incidentIcons';
 import { INTERVALS } from '../utils/constants';
@@ -149,6 +149,8 @@ function TravelLayer({
   });
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Sources that failed on the last refresh while others loaded
+  const [unavailableSources, setUnavailableSources] = useState<string[]>([]);
   const markersRef = useRef<MarkerEntry[]>([]);
 
   // Fetch incidents function (accessible to retry button)
@@ -158,8 +160,9 @@ function TravelLayer({
     setLoading(true);
     try {
       setError(null); // Clear previous errors
-      const data = await fetchAllIncidents();
+      const { incidents: data, unavailableSources: failed } = await fetchAllIncidentsWithStatus();
       setIncidents(data);
+      setUnavailableSources(failed);
       setLastUpdated(new Date());
     } catch (error) {
       if (import.meta.env.DEV) {
@@ -780,11 +783,27 @@ function TravelLayer({
                 </div>
               )}
 
-              {/* Incidents list */}
-              {!loading && totalCount === 0 && (
+              {/* Partial outage: some sources loaded, others didn't */}
+              {!error && !loading && unavailableSources.length > 0 && (
+                <div className="incidents-partial" role="status">
+                  ⚠️ {unavailableSources.join(' and ')} unavailable right now. Showing what loaded.
+                </div>
+              )}
+
+              {/* Incidents list. Never claim "no incidents" when a fetch failed. */}
+              {!error && !loading && totalCount === 0 && (
                 <div className="no-incidents">
-                  <span className="success-icon">✓</span>
-                  <p>No travel incidents reported</p>
+                  {incidents.length > 0 ? (
+                    // Loaded, but hidden by the type filters or zoom level
+                    <p>No incidents match the current filters or zoom level</p>
+                  ) : unavailableSources.length === 0 ? (
+                    <>
+                      <span className="success-icon">✓</span>
+                      <p>No travel incidents reported</p>
+                    </>
+                  ) : (
+                    <p>No incidents in the data that loaded</p>
+                  )}
                 </div>
               )}
 

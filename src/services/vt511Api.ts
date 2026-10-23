@@ -296,72 +296,70 @@ function isNotNull<T>(value: T | null): value is T {
 }
 
 /**
- * Fetch incident data from VT 511 (via backend proxy)
+ * Fetch and parse one VT 511 XML feed from the backend proxy.
+ * Throws on HTTP or network errors so callers can tell an outage apart from
+ * a quiet day with no incidents.
  */
-export async function fetchVT511Incidents(): Promise<VT511ParsedIncident[]> {
+async function fetchVT511Feed<T>(
+  path: string,
+  label: string,
+  selector: string,
+  parse: (el: Element) => T | null,
+): Promise<T[]> {
+  let response: Response;
   try {
-    const url = `${BACKEND_URL}/api/vt511/incidents`;
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      // VT 511 data unavailable - silently return empty array
-      return [];
-    }
-
-    const xmlText = await response.text();
-    const xmlDoc = parseXML(xmlText);
-
-    const incidents = xmlDoc.querySelectorAll('incident');
-    return Array.from(incidents).map(parseIncident).filter(isNotNull);
+    response = await fetch(`${BACKEND_URL}${path}`);
   } catch (error) {
     if (import.meta.env.DEV) {
-      console.error('Error fetching VT 511 incidents:', error);
+      console.error(`Error fetching ${label}:`, error);
     }
-    return [];
+    throw new Error(`${label} unavailable (network error)`);
   }
+  if (!response.ok) {
+    throw new Error(`${label} unavailable (HTTP ${response.status})`);
+  }
+  const xmlDoc = parseXML(await response.text());
+  // A 200 with a broken or non-XML body must not read as an empty feed
+  if (xmlDoc.getElementsByTagName('parsererror').length > 0 || !xmlDoc.documentElement) {
+    throw new Error(`${label} unavailable (malformed response)`);
+  }
+  return Array.from(xmlDoc.querySelectorAll(selector)).map(parse).filter(isNotNull);
 }
 
 /**
- * Fetch lane closure (construction) data from VT 511 (via backend proxy)
+ * Fetch incident data from VT 511 (via backend proxy). Rejects if unavailable.
  */
-export async function fetchVT511LaneClosures(): Promise<VT511ParsedIncident[]> {
-  try {
-    const url = `${BACKEND_URL}/api/vt511/closures`;
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      // VT 511 data unavailable - silently return empty array
-      return [];
-    }
-
-    const xmlText = await response.text();
-    const xmlDoc = parseXML(xmlText);
-
-    const closures = xmlDoc.querySelectorAll('laneClosure');
-    return Array.from(closures).map(parseLaneClosure).filter(isNotNull);
-  } catch (error) {
-    if (import.meta.env.DEV) {
-      console.error('Error fetching VT 511 lane closures:', error);
-    }
-    return [];
-  }
+export function fetchVT511Incidents(): Promise<VT511ParsedIncident[]> {
+  return fetchVT511Feed('/api/vt511/incidents', 'VT 511 incidents', 'incident', parseIncident);
 }
 
 /**
- * Fetch all VT 511 data (incidents + lane closures)
+ * Fetch lane closure (construction) data from VT 511 (via backend proxy).
+ * Rejects if unavailable.
+ */
+export function fetchVT511LaneClosures(): Promise<VT511ParsedIncident[]> {
+  return fetchVT511Feed(
+    '/api/vt511/closures',
+    'VT 511 lane closures',
+    'laneClosure',
+    parseLaneClosure,
+  );
+}
+
+/**
+ * Fetch all VT 511 data (incidents + lane closures). Returns whatever loaded;
+ * rejects only when both feeds fail.
  */
 export async function fetchAllVT511Data(): Promise<VT511ParsedIncident[]> {
-  try {
-    const [incidents, closures] = await Promise.all([
-      fetchVT511Incidents(),
-      fetchVT511LaneClosures(),
-    ]);
-
-    return [...incidents, ...closures];
-  } catch (error) {
-    if (import.meta.env.DEV) {
-      console.error('Error fetching VT 511 data:', error);
-    }
-    throw error;
+  const [incidents, closures] = await Promise.allSettled([
+    fetchVT511Incidents(),
+    fetchVT511LaneClosures(),
+  ]);
+  if (incidents.status === 'rejected' && closures.status === 'rejected') {
+    throw incidents.reason;
   }
+  return [
+    ...(incidents.status === 'fulfilled' ? incidents.value : []),
+    ...(closures.status === 'fulfilled' ? closures.value : []),
+  ];
 }

@@ -7,7 +7,7 @@ import { server } from '@/test/msw';
 import usgsRaw from '@/__fixtures__/usgs/iv-vt-gage-height.json?raw';
 import incidentsXml from '@/__fixtures__/vt511/incidents.xml?raw';
 import closuresXml from '@/__fixtures__/vt511/closures.xml?raw';
-import { fetchFloodGauges, fetchAllIncidents } from '../travelApi';
+import { fetchFloodGauges, fetchAllIncidents, fetchAllIncidentsWithStatus } from '../travelApi';
 
 const USGS_URL = 'https://waterservices.usgs.gov/nwis/iv/';
 const INCIDENTS_URL = 'http://localhost:4000/api/vt511/incidents';
@@ -110,5 +110,38 @@ describe('fetchAllIncidents', () => {
     );
     const all = await fetchAllIncidents();
     expect(all.map((i) => i.id)).toEqual(['usgs-04286000']);
+  });
+});
+
+describe('fetchAllIncidentsWithStatus', () => {
+  it('reports no unavailable sources when everything loads', async () => {
+    server.use(
+      http.get(INCIDENTS_URL, () => xml(incidentsXml)),
+      http.get(CLOSURES_URL, () => xml(closuresXml)),
+      http.get(USGS_URL, () => HttpResponse.json(usgsFixture)),
+    );
+    const { incidents, unavailableSources } = await fetchAllIncidentsWithStatus();
+    expect(incidents).toHaveLength(7);
+    expect(unavailableSources).toEqual([]);
+  });
+
+  it('names the sources that failed while returning the rest', async () => {
+    server.use(
+      http.get(INCIDENTS_URL, () => new HttpResponse(null, { status: 502 })),
+      http.get(CLOSURES_URL, () => xml(closuresXml)),
+      http.get(USGS_URL, () => new HttpResponse(null, { status: 500 })),
+    );
+    const { incidents, unavailableSources } = await fetchAllIncidentsWithStatus();
+    expect(incidents.map((i) => i.id)).toEqual(['vt511-closure-2001', 'vt511-closure-2002']);
+    expect(unavailableSources).toEqual(['VT 511 incidents', 'USGS river gauges']);
+  });
+
+  it('rejects when every source fails', async () => {
+    server.use(
+      http.get(INCIDENTS_URL, () => HttpResponse.error()),
+      http.get(CLOSURES_URL, () => HttpResponse.error()),
+      http.get(USGS_URL, () => new HttpResponse(null, { status: 500 })),
+    );
+    await expect(fetchAllIncidentsWithStatus()).rejects.toThrow('VT 511 incidents unavailable');
   });
 });
