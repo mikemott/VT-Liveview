@@ -80,7 +80,7 @@
   align-items: center;
   gap: var(--space-2, 6px);
   margin: 0 0 var(--space-3, 8px) 0;
-  font-size: var(--font-size-xs, 9px);
+  font-size: var(--font-size-xs, 11px);
   font-weight: var(--font-weight-semibold, 600);
   color: var(--color-text-tertiary, #4b5563);
   text-transform: uppercase;
@@ -159,7 +159,7 @@
 
 /* Badges */
 .badge {
-  font-size: 8px;
+  font-size: 10px;
   padding: 2px 6px;
   border-radius: var(--radius-full, 9999px);
   font-weight: var(--font-weight-bold, 700);
@@ -250,7 +250,7 @@
 }
 
 .planet-mag {
-  font-size: var(--font-size-xs, 9px);
+  font-size: var(--font-size-xs, 11px);
   color: #8b5cf6;
   font-weight: var(--font-weight-medium, 500);
 }
