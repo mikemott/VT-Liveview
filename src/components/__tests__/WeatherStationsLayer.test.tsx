@@ -35,6 +35,9 @@ describe('WeatherStationsLayer', () => {
   let fake: FakeMap;
 
   beforeEach(() => {
+    // Fixture readings are from 12:00Z; keep them fresh (30 min old)
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-10-16T12:30:00Z'));
     fake = new FakeMap();
     useStations([
       makeStation(),
@@ -43,6 +46,7 @@ describe('WeatherStationsLayer', () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     resetMaplibreMock();
     delete window.__xss;
   });
@@ -141,6 +145,33 @@ describe('WeatherStationsLayer', () => {
     expect(onStationClick).toHaveBeenCalledTimes(2);
     air!.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', bubbles: true }));
     expect(onStationClick).toHaveBeenCalledTimes(2);
+  });
+
+  // VTL-50: old readings must not look like current conditions
+  it('greys out stale readings and says how old they are', async () => {
+    vi.setSystemTime(new Date('2026-10-16T16:20:00Z')); // fixture is ~4 hours old
+    render(<WeatherStationsLayer map={fake.asMap()} visible globalPopupRef={popupRef()} />);
+    await waitFor(() => expect(liveMarkers()).toHaveLength(2));
+    const air = liveMarkers()[0]!.getElement();
+    expect(air.classList.contains('stale')).toBe(true);
+    expect(air.getAttribute('aria-label')).toBe(
+      '45°, Barre-Montpelier Airport, reading from 4 hr ago',
+    );
+
+    air.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    const html = openPopups()[0]?.html ?? '';
+    expect(html).toContain('station-popup-asof stale');
+    expect(html).toContain('Old reading: 4 hr ago');
+  });
+
+  it('shows the reading time in the popup for fresh readings', async () => {
+    render(<WeatherStationsLayer map={fake.asMap()} visible globalPopupRef={popupRef()} />);
+    await waitFor(() => expect(liveMarkers()).toHaveLength(2));
+    const air = liveMarkers()[0]!.getElement();
+    expect(air.classList.contains('stale')).toBe(false);
+    air.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    const html = openPopups()[0]?.html ?? '';
+    expect(html).toMatch(/class="station-popup-asof">as of /);
   });
 
   it('shows 0°F and 0% as values, not N/A', async () => {

@@ -621,3 +621,15 @@
   color: var(--color-vermont-green-light);
   flex-shrink: 0;
 }
+
+/* Old station reading (VTL-50) */
+.station-stale-warning {
+  margin: var(--space-3) 0 var(--space-5);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-warning-subtle);
+  border: 1px solid var(--color-warning);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.4;
+}

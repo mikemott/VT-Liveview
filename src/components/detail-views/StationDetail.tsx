@@ -4,6 +4,7 @@
 
 import { MapPin, Thermometer, Wind, Droplets, Gauge } from 'lucide-react';
 import type { ObservationStation } from '../../types';
+import { getObservationAge } from '../../utils/observationAge';
 import './DetailViews.css';
 
 interface StationDetailProps {
@@ -13,6 +14,7 @@ interface StationDetailProps {
 
 export default function StationDetail({ station, isDark }: StationDetailProps) {
   const { name, location, elevation, weather } = station;
+  const age = getObservationAge(weather.timestamp);
 
   const formatTimestamp = (isoString: string): string => {
     const date = new Date(isoString);
@@ -34,6 +36,12 @@ export default function StationDetail({ station, isDark }: StationDetailProps) {
     <div className={`detail-view station-detail ${isDark ? 'dark' : ''}`}>
       {/* Station name */}
       <div className="station-name">{name}</div>
+
+      {age.isStale && (
+        <div className="station-stale-warning" role="note">
+          This reading is from {age.ago} ({age.asOf}) and may not reflect current conditions.
+        </div>
+      )}
 
       {/* Location info */}
       <div className="station-location">

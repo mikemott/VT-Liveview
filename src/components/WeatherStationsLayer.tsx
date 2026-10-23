@@ -4,6 +4,7 @@ import { graphqlClient } from '../services/graphqlClient';
 import { gql } from 'graphql-request';
 import { INTERVALS } from '../utils/constants';
 import { escapeHTML } from '../utils/sanitize';
+import { getObservationAge } from '../utils/observationAge';
 import type { MapLibreMap, Marker, ObservationStation } from '../types';
 import './WeatherStationsLayer.css';
 
@@ -96,6 +97,14 @@ function createWeatherStationMarker(station: ObservationStation): HTMLDivElement
         text: '#ffffff',
       };
 
+  // Grey out readings that are too old to describe current conditions (VTL-50).
+  // #6b7280 keeps white 10-11px text at >= 4.5:1 contrast.
+  const age = getObservationAge(station.weather?.timestamp);
+  if (age.isStale) {
+    stationColors.bg = '#6b7280';
+    stationColors.shadow = 'rgba(0, 0, 0, 0.25)';
+  }
+
   // Larger size for water temp sensors
   const size = isWaterTemp ? 42 : 34;
 
@@ -120,7 +129,9 @@ function createWeatherStationMarker(station: ObservationStation): HTMLDivElement
     transform-origin: center center;
     will-change: transform;
     gap: 1px;
+    opacity: ${age.isStale ? 0.85 : 1};
   `;
+  if (age.isStale) el.classList.add('stale');
 
   // Validate temperature before rendering
   const temp = station.weather?.temperature;
@@ -171,7 +182,8 @@ function createWeatherStationMarker(station: ObservationStation): HTMLDivElement
   // stop. Lead the name with the visible reading so speech/voice control matches what
   // is shown, and make Enter/Space activate it like a click (FINDINGS H15).
   const reading = isWaterTemp ? `${tempDisplay} water temperature` : tempDisplay;
-  el.setAttribute('aria-label', `${reading}, ${station.name}`);
+  const staleNote = age.isStale && age.ago ? `, reading from ${age.ago}` : '';
+  el.setAttribute('aria-label', `${reading}, ${station.name}${staleNote}`);
   el.tabIndex = 0;
   el.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -298,6 +310,14 @@ function WeatherStationsLayer({
       const wind = w?.windSpeed ? escapeHTML(w.windSpeed) : 'N/A';
       const humidity = isNum(w?.humidity) ? `${Math.round(w.humidity)}%` : 'N/A';
       const pressure = isNum(w?.pressure) ? `${(w.pressure / 100).toFixed(2)} mb` : 'N/A';
+      const age = getObservationAge(w?.timestamp);
+      const asOfLine = age.asOf
+        ? `<div class="station-popup-asof${age.isStale ? ' stale' : ''}">${
+            age.isStale
+              ? `⚠️ Old reading: ${escapeHTML(age.ago ?? '')} (${escapeHTML(age.asOf)})`
+              : escapeHTML(age.asOf)
+          }</div>`
+        : '';
 
       // Create popup
       const popup = new maplibregl.Popup({
@@ -375,6 +395,7 @@ function WeatherStationsLayer({
               <div style="font-size: var(--font-size-lg, 13px); color: ${stationColors.text}; font-weight: 600;">${pressure}</div>
             </div>
           </div>
+          ${asOfLine}
           ${
             station.elevation
               ? `
