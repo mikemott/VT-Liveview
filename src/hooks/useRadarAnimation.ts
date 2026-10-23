@@ -7,6 +7,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { RADAR_CONFIG, INTERVALS } from '@/utils/constants';
 import type { MapLibreMap } from '@/types';
+import { useVisibleInterval } from './useVisibleInterval';
+import { usePageVisible } from './usePageVisible';
 
 // =============================================================================
 // Types
@@ -267,20 +269,20 @@ export function useRadarAnimation(
 
     void fetchFrames(abortController.signal);
 
-    // Refresh frames every 5 minutes
-    const refreshInterval = setInterval(() => {
-      void fetchFrames(); // Don't abort interval refreshes
-    }, INTERVALS.RADAR_REFRESH);
-
     return () => {
       abortController.abort(); // Cancel in-flight request on unmount
-      clearInterval(refreshInterval);
     };
   }, [fetchFrames]);
 
+  // Refresh frames every 5 minutes while the page is visible
+  useVisibleInterval(() => void fetchFrames(), INTERVALS.RADAR_REFRESH);
+
+  // Don't animate in a background tab: every frame is a state update + tile swap
+  const pageVisible = usePageVisible();
+
   // Animation loop
   useEffect(() => {
-    if (!isPlaying || frames.length === 0) {
+    if (!isPlaying || frames.length === 0 || !pageVisible) {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
@@ -298,7 +300,7 @@ export function useRadarAnimation(
         intervalRef.current = null;
       }
     };
-  }, [isPlaying, frames.length, frameDelay]);
+  }, [isPlaying, frames.length, frameDelay, pageVisible]);
 
   // Note: Tile updates are now handled by RadarOverlay component
   // to avoid duplicate setTiles() calls and flickering

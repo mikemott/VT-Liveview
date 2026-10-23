@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef, memo } from 'react';
+import { useState, useEffect, useRef, memo, useCallback } from 'react';
 import maplibregl from 'maplibre-gl';
 import { graphqlClient } from '../services/graphqlClient';
 import { gql } from 'graphql-request';
 import { INTERVALS } from '../utils/constants';
+import { useVisibleInterval } from '../hooks/useVisibleInterval';
 import { escapeHTML } from '../utils/sanitize';
 import { getObservationAge } from '../utils/observationAge';
 import type { MapLibreMap, Marker, ObservationStation } from '../types';
@@ -209,30 +210,26 @@ function WeatherStationsLayer({
   const [_loading, setLoading] = useState(false);
   const markersRef = useRef<MarkerEntry[]>([]);
 
-  // Fetch stations on mount and every 15 minutes
-  useEffect(() => {
+  const fetchStations = useCallback(async (): Promise<void> => {
     if (!map) return;
-
-    const fetchStations = async (): Promise<void> => {
-      if (!map) return;
-
-      setLoading(true);
-      try {
-        const data = await graphqlClient.request<StationsResponse>(STATIONS_QUERY);
-        setStations(data.observationStations);
-      } catch (error) {
-        if (import.meta.env.DEV) {
-          console.error('Error fetching weather stations:', error);
-        }
-      } finally {
-        setLoading(false);
+    setLoading(true);
+    try {
+      const data = await graphqlClient.request<StationsResponse>(STATIONS_QUERY);
+      setStations(data.observationStations);
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.error('Error fetching weather stations:', error);
       }
-    };
-
-    void fetchStations();
-    const interval = setInterval(() => void fetchStations(), INTERVALS.STATIONS_REFRESH);
-    return () => clearInterval(interval);
+    } finally {
+      setLoading(false);
+    }
   }, [map]);
+
+  // Fetch stations on mount, then every 15 minutes while the page is visible
+  useEffect(() => {
+    void fetchStations();
+  }, [fetchStations]);
+  useVisibleInterval(() => void fetchStations(), map ? INTERVALS.STATIONS_REFRESH : null);
 
   // Add markers to map when stations change
   useEffect(() => {

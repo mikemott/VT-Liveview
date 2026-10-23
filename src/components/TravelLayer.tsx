@@ -20,6 +20,7 @@ import { fetchAllIncidentsWithStatus, type TravelIncident } from '../services/tr
 import { getIncidentColor, shouldShowIncident } from '../utils/incidentColors';
 import { createMarkerElement } from '../utils/incidentIcons';
 import { INTERVALS } from '../utils/constants';
+import { useVisibleInterval } from '../hooks/useVisibleInterval';
 import { escapeHTML } from '../utils/sanitize';
 import { cleanupMarkers, type MarkerEntry } from '../utils/markerCleanup';
 import type { MapLibreMap, IncidentType } from '../types';
@@ -174,14 +175,12 @@ function TravelLayer({
     }
   }, [map]);
 
-  // Fetch incidents on mount and every 2 minutes
+  // Fetch incidents on mount, then every 2 minutes while the page is visible
   useEffect(() => {
     if (!map) return;
-
     void fetchIncidentsData();
-    const interval = setInterval(() => void fetchIncidentsData(), INTERVALS.INCIDENTS_REFRESH);
-    return () => clearInterval(interval);
   }, [map, fetchIncidentsData]);
+  useVisibleInterval(() => void fetchIncidentsData(), map ? INTERVALS.INCIDENTS_REFRESH : null);
 
   // Toggle filter for incident type
   const toggleFilter = (type: IncidentType): void => {
