@@ -19,6 +19,7 @@ import type { MapLibreMap, DetailPanelContent, AlertFeature, ObservationStation 
 import { VERMONT, INTERVALS } from './utils/constants';
 import { useIsMobile } from './hooks/useIsMobile';
 import { useSeasonalLayers } from './hooks/useSeasonalLayers';
+import { useVisibleInterval } from './hooks/useVisibleInterval';
 import { SEASONAL_LAYERS } from './config/seasonalLayers';
 import { Menu, X, AlertTriangle, AlertCircle, Info } from 'lucide-react';
 import { fetchMergedAlerts, type MergedAlertData } from './services/graphqlClient';
@@ -681,12 +682,14 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
       }
     };
 
-    // Check immediately and then every minute
+    // Check immediately; the visible-only interval below handles the rest
     checkTheme();
-    const interval = setInterval(checkTheme, INTERVALS.THEME_CHECK);
-
-    return () => clearInterval(interval);
   }, [isDark, manualThemeOverride]);
+  useVisibleInterval(() => {
+    if (manualThemeOverride) return;
+    const shouldBeDark = isDarkMode();
+    if (shouldBeDark !== isDark) setIsDark(shouldBeDark);
+  }, INTERVALS.THEME_CHECK);
 
   // Update map style when theme changes (debounced to prevent race conditions)
   useEffect(() => {
