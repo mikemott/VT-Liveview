@@ -1,0 +1,10 @@
+/*
+ * Applied only while Playwright takes visual snapshots (stylePath in
+ * visual.spec.ts). The map canvas fills the viewport and WebKit's software
+ * WebGL keeps repainting it, so consecutive screenshots never matched (VTL-60).
+ * Hiding it (not masking: a mask would cover the panel on top of it) keeps the
+ * snapshots about the UI chrome they are meant to cover.
+ */
+.maplibregl-canvas {
+  visibility: hidden !important;
+}

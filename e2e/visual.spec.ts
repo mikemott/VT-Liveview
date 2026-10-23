@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import { expect, openApp, test } from './fixtures';
 
 /**
@@ -8,7 +9,15 @@ import { expect, openApp, test } from './fixtures';
  * The clock is pinned (e2e/fixtures.ts), so time-derived text is stable.
  * The basemap is blank (empty mocked vector tiles), so these capture the UI
  * chrome (panel, weather widget, controls) rather than map rendering.
+ *
+ * The map canvas is hidden during snapshots (e2e/screenshot.css): WebKit's
+ * software WebGL keeps repainting it, so consecutive screenshots differed in
+ * ~70% of pixels (the canvas area) and baselines could not be generated (VTL-60).
  */
+const SNAPSHOT_OPTIONS = {
+  stylePath: fileURLToPath(new URL('./screenshot.css', import.meta.url)),
+};
+
 test.describe('visual', () => {
   test.beforeEach(async ({ page }) => {
     await openApp(page);
@@ -19,13 +28,13 @@ test.describe('visual', () => {
 
   test('light', async ({ page, isMobile }) => {
     if (isMobile) await page.getByRole('button', { name: 'Open menu' }).click();
-    await expect(page).toHaveScreenshot('app-light.png');
+    await expect(page).toHaveScreenshot('app-light.png', SNAPSHOT_OPTIONS);
   });
 
   test('dark', async ({ page, isMobile }) => {
     await page.getByRole('button', { name: 'Switch to dark mode' }).click();
     await expect(page.locator('.weather-map-container')).toHaveClass(/\bdark\b/);
     if (isMobile) await page.getByRole('button', { name: 'Open menu' }).click();
-    await expect(page).toHaveScreenshot('app-dark.png');
+    await expect(page).toHaveScreenshot('app-dark.png', SNAPSHOT_OPTIONS);
   });
 });
