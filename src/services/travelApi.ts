@@ -5,7 +5,7 @@
  * - USGS Water Services (flood gauges)
  */
 
-import { fetchAllVT511Data, type VT511ParsedIncident } from './vt511Api';
+import { fetchVT511Incidents, fetchVT511LaneClosures, type VT511ParsedIncident } from './vt511Api';
 
 // =============================================================================
 // Types
@@ -224,24 +224,51 @@ export async function fetchFloodGauges(): Promise<FloodIncident[]> {
 // Aggregated Data
 // =============================================================================
 
-/**
- * Fetch all travel incidents from all sources
- */
-export async function fetchAllIncidents(): Promise<TravelIncident[]> {
-  // allSettled: an outage in one source must not hide the other's incidents.
-  const [vt511Result, floodResult] = await Promise.allSettled([
-    fetchAllVT511Data(),
-    fetchFloodGauges(),
-  ]);
+/** Incidents plus the names of any sources that failed to load. */
+export interface IncidentFetchResult {
+  incidents: TravelIncident[];
+  /** Human-readable names of sources that failed, e.g. "VT 511 incidents". */
+  unavailableSources: string[];
+}
 
-  if (vt511Result.status === 'rejected' && floodResult.status === 'rejected') {
+const INCIDENT_SOURCES: { label: string; fetch: () => Promise<TravelIncident[]> }[] = [
+  { label: 'VT 511 incidents', fetch: fetchVT511Incidents },
+  { label: 'VT 511 lane closures', fetch: fetchVT511LaneClosures },
+  { label: 'USGS river gauges', fetch: fetchFloodGauges },
+];
+
+/**
+ * Fetch travel incidents from every source and report which ones failed.
+ * An outage in one source must not hide the others' incidents, but it also
+ * must not look like "no incidents". Rejects only when every source fails.
+ */
+export async function fetchAllIncidentsWithStatus(): Promise<IncidentFetchResult> {
+  const results = await Promise.allSettled(INCIDENT_SOURCES.map((source) => source.fetch()));
+
+  const incidents: TravelIncident[] = [];
+  const unavailableSources: string[] = [];
+  results.forEach((result, i) => {
+    if (result.status === 'fulfilled') incidents.push(...result.value);
+    else unavailableSources.push(INCIDENT_SOURCES[i]?.label ?? 'Unknown source');
+  });
+
+  if (unavailableSources.length === INCIDENT_SOURCES.length) {
+    const firstFailure = results.find((r) => r.status === 'rejected');
     if (import.meta.env.DEV) {
-      console.error('Error fetching incidents:', vt511Result.reason, floodResult.reason);
+      console.error('Error fetching incidents: all sources failed', results);
     }
-    throw vt511Result.reason;
+    throw firstFailure?.status === 'rejected' && firstFailure.reason instanceof Error
+      ? firstFailure.reason
+      : new Error('Travel incident data is unavailable');
   }
 
-  const vt511Data = vt511Result.status === 'fulfilled' ? vt511Result.value : [];
-  const floods = floodResult.status === 'fulfilled' ? floodResult.value : [];
-  return [...vt511Data, ...floods];
+  return { incidents, unavailableSources };
+}
+
+/**
+ * Fetch all travel incidents from all sources. Rejects only when every
+ * source fails; see fetchAllIncidentsWithStatus for partial-outage details.
+ */
+export async function fetchAllIncidents(): Promise<TravelIncident[]> {
+  return (await fetchAllIncidentsWithStatus()).incidents;
 }

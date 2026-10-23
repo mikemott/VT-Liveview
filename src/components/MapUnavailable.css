@@ -143,3 +143,8 @@
 .map-unavailable-alert.severity-severe > svg {
   color: var(--color-error);
 }
+
+.map-unavailable-partial {
+  margin-bottom: 8px !important;
+  color: var(--color-warning);
+}

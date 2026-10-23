@@ -878,6 +878,17 @@
   text-align: center;
 }
 
+.incidents-partial {
+  margin-bottom: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-warning-subtle);
+  border: 1px solid var(--color-warning);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-text-secondary);
+}
+
 .retry-button {
   background: var(--color-error);
   color: var(--color-text-inverse);

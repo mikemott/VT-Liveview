@@ -134,15 +134,16 @@ describe('fetchVT511Incidents', () => {
     expect(incident?.geometry).toBeNull();
   });
 
-  it('returns [] on a non-OK response', async () => {
+  // An outage must not look like a quiet day with no incidents (VTL-57)
+  it('rejects on a non-OK response', async () => {
     server.use(http.get(INCIDENTS_URL, () => new HttpResponse('bad gateway', { status: 502 })));
-    await expect(fetchVT511Incidents()).resolves.toEqual([]);
+    await expect(fetchVT511Incidents()).rejects.toThrow('VT 511 incidents unavailable (HTTP 502)');
   });
 
-  it('returns [] on a network error', async () => {
+  it('rejects on a network error', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     server.use(http.get(INCIDENTS_URL, () => HttpResponse.error()));
-    await expect(fetchVT511Incidents()).resolves.toEqual([]);
+    await expect(fetchVT511Incidents()).rejects.toThrow('VT 511 incidents unavailable');
   });
 
   it('returns [] for an empty feed', async () => {
@@ -189,15 +190,17 @@ describe('fetchVT511LaneClosures', () => {
     expect(closure?.title).toBe('Construction');
   });
 
-  it('returns [] on a non-OK response', async () => {
+  it('rejects on a non-OK response', async () => {
     server.use(http.get(CLOSURES_URL, () => new HttpResponse(null, { status: 500 })));
-    await expect(fetchVT511LaneClosures()).resolves.toEqual([]);
+    await expect(fetchVT511LaneClosures()).rejects.toThrow(
+      'VT 511 lane closures unavailable (HTTP 500)',
+    );
   });
 
-  it('returns [] on a network error', async () => {
+  it('rejects on a network error', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     server.use(http.get(CLOSURES_URL, () => HttpResponse.error()));
-    await expect(fetchVT511LaneClosures()).resolves.toEqual([]);
+    await expect(fetchVT511LaneClosures()).rejects.toThrow('VT 511 lane closures unavailable');
   });
 });
 
@@ -220,5 +223,13 @@ describe('fetchAllVT511Data', () => {
     );
     const all = await fetchAllVT511Data();
     expect(all.map((i) => i.id)).toEqual(['vt511-closure-2001', 'vt511-closure-2002']);
+  });
+
+  it('rejects when both feeds are down', async () => {
+    server.use(
+      http.get(INCIDENTS_URL, () => new HttpResponse(null, { status: 503 })),
+      http.get(CLOSURES_URL, () => new HttpResponse(null, { status: 503 })),
+    );
+    await expect(fetchAllVT511Data()).rejects.toThrow('VT 511 incidents unavailable');
   });
 });

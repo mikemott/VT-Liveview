@@ -1,6 +1,5 @@
 /**
- * fetchAllIncidents when every source fails. fetchAllVT511Data swallows HTTP
- * errors itself, so it is mocked here to force a rejection.
+ * fetchAllIncidents when every source fails (VT 511 feeds mocked to reject).
  */
 import { describe, it, expect, vi } from 'vitest';
 import { http, HttpResponse } from 'msw';
@@ -8,7 +7,8 @@ import { server } from '@/test/msw';
 import { fetchAllIncidents } from '../travelApi';
 
 vi.mock('../vt511Api', () => ({
-  fetchAllVT511Data: vi.fn(() => Promise.reject(new Error('VT 511 down'))),
+  fetchVT511Incidents: vi.fn(() => Promise.reject(new Error('VT 511 down'))),
+  fetchVT511LaneClosures: vi.fn(() => Promise.reject(new Error('VT 511 closures down'))),
 }));
 
 describe('fetchAllIncidents – total outage', () => {

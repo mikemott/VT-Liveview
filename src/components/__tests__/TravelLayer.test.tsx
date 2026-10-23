@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ComponentProps } from 'react';
 import TravelLayer from '../TravelLayer';
-import { fetchAllIncidents } from '../../services/travelApi';
+import { fetchAllIncidents, fetchAllIncidentsWithStatus } from '../../services/travelApi';
 import { FakeMap, liveMarkers, openPopups, resetMaplibreMock } from '../../test/maplibreMock';
 import { makeVT511Incident } from '../../__fixtures__/components/data';
 import {
@@ -13,13 +13,19 @@ import {
 import { INTERVALS } from '../../utils/constants';
 
 vi.mock('maplibre-gl', async () => (await import('../../test/maplibreMock')).maplibreModule);
-vi.mock('../../services/travelApi', () => ({ fetchAllIncidents: vi.fn() }));
+vi.mock('../../services/travelApi', () => ({
+  fetchAllIncidents: vi.fn(),
+  fetchAllIncidentsWithStatus: vi.fn(),
+}));
 // The stargazing panel is covered by its own test; keep it out of this one.
 vi.mock('../StargazingLayer', () => ({
   default: () => <div data-testid="stargazing-panel" />,
 }));
 
+// Most tests drive fetchMock (incident list); statusMock wraps it and reports
+// every source as available unless a test overrides it.
 const fetchMock = vi.mocked(fetchAllIncidents);
+const statusMock = vi.mocked(fetchAllIncidentsWithStatus);
 
 type Props = ComponentProps<typeof TravelLayer>;
 
@@ -40,6 +46,10 @@ describe('TravelLayer', () => {
   let props: Props;
 
   beforeEach(() => {
+    statusMock.mockImplementation(async () => ({
+      incidents: await fetchMock(),
+      unavailableSources: [],
+    }));
     fake = new FakeMap({ zoom: 10 });
     fetchMock.mockResolvedValue([
       makeVT511Incident(),
@@ -143,6 +153,26 @@ describe('TravelLayer', () => {
     fetchMock.mockResolvedValue([]);
     render(<TravelLayer {...props} />);
     expect(await screen.findByText('No travel incidents reported')).toBeInTheDocument();
+  });
+
+  // VTL-57: an outage must never read as "no incidents"
+  it('does not show the empty state alongside an error', async () => {
+    fetchMock.mockRejectedValue(new Error('VT 511 unavailable'));
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    render(<TravelLayer {...props} />);
+    expect(await screen.findByRole('alert')).toHaveTextContent('Failed to load incidents');
+    expect(screen.queryByText('No travel incidents reported')).toBeNull();
+    spy.mockRestore();
+  });
+
+  it('flags a partial outage and avoids claiming the roads are clear', async () => {
+    statusMock.mockResolvedValue({ incidents: [], unavailableSources: ['VT 511 incidents'] });
+    render(<TravelLayer {...props} />);
+    expect(
+      await screen.findByText(/VT 511 incidents unavailable right now\. Showing what loaded\./),
+    ).toBeInTheDocument();
+    expect(screen.getByText('No incidents in the data that loaded')).toBeInTheDocument();
+    expect(screen.queryByText('No travel incidents reported')).toBeNull();
   });
 
   it('shows the error state and retries', async () => {

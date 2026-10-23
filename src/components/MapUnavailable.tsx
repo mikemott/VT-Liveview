@@ -2,7 +2,11 @@ import { useQuery } from '@tanstack/react-query';
 import { AlertTriangle, MonitorX, RefreshCw } from 'lucide-react';
 import CurrentWeather from './CurrentWeather';
 import { fetchMergedAlerts, type MergedAlertData } from '../services/graphqlClient';
-import { fetchAllIncidents, type TravelIncident } from '../services/travelApi';
+import {
+  fetchAllIncidentsWithStatus,
+  type IncidentFetchResult,
+  type TravelIncident,
+} from '../services/travelApi';
 import { isDarkMode } from '../utils/mapStyles';
 import { INTERVALS } from '../utils/constants';
 import './MapUnavailable.css';
@@ -41,14 +45,16 @@ export default function MapUnavailable({ reason }: MapUnavailableProps) {
     refetchInterval: INTERVALS.INCIDENTS_REFRESH,
   });
 
-  const incidentsQuery = useQuery<TravelIncident[]>({
+  const incidentsQuery = useQuery<IncidentFetchResult>({
     queryKey: ['fallback', 'incidents'],
-    queryFn: fetchAllIncidents,
+    queryFn: fetchAllIncidentsWithStatus,
     refetchInterval: INTERVALS.INCIDENTS_REFRESH,
   });
 
   const alertCount = alertsQuery.data?.length ?? 0;
-  const incidentCount = incidentsQuery.data?.length ?? 0;
+  const incidents = incidentsQuery.data?.incidents ?? [];
+  const unavailableSources = incidentsQuery.data?.unavailableSources ?? [];
+  const incidentCount = incidents.length;
   const alertsStatus = alertsQuery.isLoading
     ? 'Loading alerts…'
     : alertsQuery.isError
@@ -61,12 +67,14 @@ export default function MapUnavailable({ reason }: MapUnavailableProps) {
     : incidentsQuery.isError
       ? "Couldn't load travel incidents right now."
       : incidentCount === 0
-        ? 'No travel incidents reported.'
+        ? unavailableSources.length > 0
+          ? 'No incidents in the data that loaded.'
+          : 'No travel incidents reported.'
         : `${incidentCount} travel incident${incidentCount === 1 ? '' : 's'}.`;
 
   const incidentsByType = INCIDENT_ORDER.map((type) => ({
     type,
-    items: (incidentsQuery.data ?? []).filter((i) => i.type === type),
+    items: incidents.filter((i) => i.type === type),
   })).filter((group) => group.items.length > 0);
 
   return (
@@ -143,6 +151,11 @@ export default function MapUnavailable({ reason }: MapUnavailableProps) {
           >
             {incidentsStatus}
           </p>
+          {unavailableSources.length > 0 && (
+            <p className="map-unavailable-partial">
+              {unavailableSources.join(' and ')} unavailable right now. Showing what loaded.
+            </p>
+          )}
           {incidentsByType.map((group) => (
             <div key={group.type} className="map-unavailable-group">
               <h3>
