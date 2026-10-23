@@ -76,20 +76,38 @@ function createPopupHTML(resort: SkiResort): string {
 
   // Sanitize all dynamic content to prevent XSS
   const safeName = escapeHTML(resort.name);
+
+  // The scraper defaults lift/trail totals to 1 when a resort isn't reporting
+  // (e.g. off-season), so "0/1" means "no data", not "1 lift, closed".
+  const reported = (open: number, total: number) => open > 0 || total > 1;
+  const inches = (v: number | null) => (v !== null ? `${escapeHTML(String(v))}"` : null);
+  const stats = [
+    resort.snowfall24hr !== null ? `<div>❄️ Fresh: ${inches(resort.snowfall24hr)}</div>` : '',
+    reported(resort.trailsOpen, resort.trailsTotal)
+      ? `<div>🎿 Trails: ${escapeHTML(String(resort.trailsOpen))}/${escapeHTML(String(resort.trailsTotal))}</div>`
+      : '',
+    reported(resort.liftsOpen, resort.liftsTotal)
+      ? `<div>🚡 Lifts: ${escapeHTML(String(resort.liftsOpen))}/${escapeHTML(String(resort.liftsTotal))}</div>`
+      : '',
+    resort.tempCurrent !== null
+      ? `<div>🌡️ Temp: ${escapeHTML(String(resort.tempCurrent))}°F</div>`
+      : '',
+    resort.baseDepth !== null ? `<div>📊 Base: ${inches(resort.baseDepth)}</div>` : '',
+    resort.snowfallCumulative !== null
+      ? `<div>📈 Season: ${inches(resort.snowfallCumulative)}</div>`
+      : '',
+  ].filter(Boolean);
   const safeLogoUrl = escapeHTML(resort.logoUrl);
 
   return `
     <div class="ski-popup-content">
       ${resort.logoUrl ? `<img src="${safeLogoUrl}" alt="${safeName}" class="resort-logo" />` : ''}
       <h3>${safeName}</h3>
-      <div class="stats-grid">
-        <div>❄️ Fresh: ${resort.snowfall24hr !== null ? `${escapeHTML(String(resort.snowfall24hr))}"` : 'N/A'}</div>
-        <div>🎿 Trails: ${escapeHTML(String(resort.trailsOpen))}/${escapeHTML(String(resort.trailsTotal))}</div>
-        <div>🚡 Lifts: ${escapeHTML(String(resort.liftsOpen))}/${escapeHTML(String(resort.liftsTotal))}</div>
-        <div>🌡️ Temp: ${resort.tempCurrent !== null ? `${escapeHTML(String(resort.tempCurrent))}°F` : 'N/A'}</div>
-        <div>📊 Base: ${resort.baseDepth !== null ? `${escapeHTML(String(resort.baseDepth))}"` : 'N/A'}</div>
-        <div>📈 Total: ${resort.snowfallCumulative !== null ? `${escapeHTML(String(resort.snowfallCumulative))}"` : 'N/A'}</div>
-      </div>
+      ${
+        stats.length > 0
+          ? `<div class="stats-grid">${stats.join('')}</div>`
+          : `<div class="ski-no-report">Not reporting conditions yet. Check the resort's website for opening dates.</div>`
+      }
       <div class="last-updated">Updated: ${formatTime(resort.lastUpdated)}</div>
     </div>
   `;

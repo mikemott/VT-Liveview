@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, memo } from 'react';
 import maplibregl from 'maplibre-gl';
 import { fetchBeaches } from '../services/beachApi';
 import type { Beach } from '../services/beachApi';
-import { BEACH_COLORS } from '../utils/beachColors';
+import { getBeachDisplay, parseBeachTestDate } from '../utils/beachStatus';
 import { escapeHTML } from '../utils/sanitize';
 import type { MapLibreMap, Marker } from '../types';
 import './BeachLayer.css';
@@ -33,7 +33,7 @@ function createBeachMarker(beach: Beach): HTMLDivElement {
   const el = document.createElement('div');
   el.className = 'beach-marker';
 
-  const color = BEACH_COLORS[beach.color] || BEACH_COLORS.yellow;
+  const { color } = getBeachDisplay(beach);
 
   el.style.cssText = `
     width: 32px;
@@ -82,35 +82,22 @@ function createPopupHTML(beach: Beach): string {
   const safeTown = escapeHTML(beach.town);
   const safeAdvisory = beach.advisory ? escapeHTML(beach.advisory) : null;
 
-  // Status badge
-  const statusEmoji =
-    beach.status === 'open'
-      ? '✅'
-      : beach.status === 'alert'
-        ? '⚠️'
-        : beach.status === 'closed'
-          ? '🚫'
-          : '❓';
-  const statusLabel =
-    beach.status === 'open'
-      ? 'Open'
-      : beach.status === 'alert'
-        ? 'Alert'
-        : beach.status === 'closed'
-          ? 'Closed'
-          : 'Unknown';
+  // Status badge: accounts for unmonitored beaches and stale off-season results
+  const display = getBeachDisplay(beach);
+  const tested = parseBeachTestDate(beach.lastTested);
 
   return `
     <div class="beach-popup-content">
       <h3>${safeName}</h3>
       <div class="beach-location">${safeTown}</div>
 
-      <div class="beach-status ${escapeHTML(beach.status)}">
-        ${statusEmoji} ${statusLabel}
+      <div class="beach-status ${escapeHTML(display.state)}">
+        ${display.emoji} ${escapeHTML(display.label)}
       </div>
+      ${display.detail ? `<div class="beach-status-detail">${escapeHTML(display.detail)}</div>` : ''}
 
       ${
-        beach.waterQualityGrade
+        beach.waterQualityGrade && display.state !== 'stale'
           ? `
         <div class="water-quality-section">
           <div class="quality-grade grade-${escapeHTML(beach.waterQualityGrade.toLowerCase())}">${escapeHTML(beach.waterQualityGrade)}</div>
@@ -125,11 +112,11 @@ function createPopupHTML(beach: Beach): string {
               : ''
           }
           ${
-            beach.lastTested
+            tested
               ? `
             <div class="detail-row">
               <span>Tested:</span>
-              <span>${formatDate(beach.lastTested)}</span>
+              <span>${escapeHTML(formatDate(tested.toISOString()))}</span>
             </div>
           `
               : ''
