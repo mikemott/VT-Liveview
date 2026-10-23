@@ -43,9 +43,18 @@ export function parseBeachTestDate(value: string | null): Date | null {
   );
   if (match) {
     const [, mm, dd, yyyy, hh, min, ampm] = match;
-    let hours = hh ? Number(hh) % 12 : 0;
-    if (ampm?.toUpperCase() === 'PM') hours += 12;
-    return new Date(Number(yyyy), Number(mm) - 1, Number(dd), hours, min ? Number(min) : 0);
+    const month = Number(mm);
+    const day = Number(dd);
+    const year = Number(yyyy);
+    const hour12 = hh ? Number(hh) : 12;
+    const minute = min ? Number(min) : 0;
+    // Reject out-of-range parts: Date would silently roll "13/21" into next year
+    if (month < 1 || month > 12 || hour12 < 1 || hour12 > 12 || minute > 59) return null;
+    const hours = (hour12 % 12) + (ampm?.toUpperCase() === 'PM' ? 12 : 0);
+    const date = new Date(year, month - 1, day, hours, minute);
+    // Catches day overflow such as 02/30 or 09/31
+    if (date.getMonth() !== month - 1 || date.getDate() !== day) return null;
+    return date;
   }
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? null : parsed;

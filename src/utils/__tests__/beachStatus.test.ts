@@ -13,6 +13,19 @@ describe('parseBeachTestDate', () => {
     expect(parseBeachTestDate('09/21/2026 12:30 AM')).toEqual(new Date(2026, 8, 21, 0, 30));
   });
 
+  it('rejects out-of-range dates instead of letting Date roll them over', () => {
+    expect(parseBeachTestDate('13/21/2026 11:45 AM')).toBeNull();
+    expect(parseBeachTestDate('09/31/2026 11:45 AM')).toBeNull();
+    expect(parseBeachTestDate('02/30/2026')).toBeNull();
+    expect(parseBeachTestDate('09/21/2026 13:45 PM')).toBeNull();
+    expect(parseBeachTestDate('09/21/2026 11:75 AM')).toBeNull();
+    expect(parseBeachTestDate('00/10/2026')).toBeNull();
+  });
+
+  it('accepts a date without a time as midnight', () => {
+    expect(parseBeachTestDate('09/21/2026')).toEqual(new Date(2026, 8, 21, 0, 0));
+  });
+
   it('parses ISO strings and rejects junk', () => {
     expect(parseBeachTestDate('2026-07-01T12:00:00Z')?.toISOString()).toBe(
       '2026-07-01T12:00:00.000Z',
