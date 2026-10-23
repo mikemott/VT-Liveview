@@ -1,0 +1,145 @@
+.map-unavailable {
+  min-height: 100vh;
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-family);
+  overflow-y: auto;
+}
+
+.map-unavailable-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--color-bg-overlay-heavy);
+}
+
+.map-unavailable-logo {
+  height: 40px;
+  width: auto;
+}
+
+.map-unavailable-main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.map-unavailable h1 {
+  font-size: 18px;
+  margin: 0 0 6px;
+}
+
+.map-unavailable h2 {
+  font-size: 16px;
+  margin: 0 0 10px;
+}
+
+.map-unavailable h3 {
+  font-size: 14px;
+  margin: 12px 0 6px;
+  color: var(--color-text-secondary);
+}
+
+.map-unavailable p {
+  margin: 0;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.map-unavailable-notice {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  background: var(--color-warning-subtle);
+  border: 1px solid var(--color-warning);
+}
+
+.map-unavailable-notice > svg {
+  flex-shrink: 0;
+  color: var(--color-warning);
+}
+
+.map-unavailable-reason {
+  margin-top: 8px !important;
+  font-family: monospace;
+  font-size: 12px !important;
+  color: var(--color-text-muted);
+}
+
+.map-unavailable-retry {
+  margin-top: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-accent-primary);
+  color: var(--color-text-inverse);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.map-unavailable-retry:hover {
+  background: var(--color-accent-hover);
+}
+
+.map-unavailable-muted {
+  color: var(--color-text-muted);
+}
+
+/* CurrentWeather is normally absolutely positioned over the map. */
+.map-unavailable-weather .current-weather {
+  position: relative;
+  inset: auto;
+  z-index: auto;
+  transform: none;
+  max-width: none;
+  max-height: none;
+  width: 100%;
+}
+
+.map-unavailable-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.map-unavailable-list li {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-bg-overlay-heavy);
+}
+
+.map-unavailable-list li > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 14px;
+  min-width: 0;
+}
+
+.map-unavailable-list li span {
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.map-unavailable-alert > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--color-warning);
+}
+
+.map-unavailable-alert.severity-extreme > svg,
+.map-unavailable-alert.severity-severe > svg {
+  color: var(--color-error);
+}

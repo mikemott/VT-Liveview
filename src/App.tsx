@@ -1,6 +1,9 @@
+import { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import WeatherMap from './WeatherMap';
 import ErrorBoundary from './components/ErrorBoundary';
+import MapUnavailable from './components/MapUnavailable';
+import { isWebGLSupported } from './utils/webgl';
 import { getEnv } from './types';
 import './App.css';
 
@@ -21,11 +24,20 @@ const queryClient = new QueryClient({
 });
 
 function App(): React.ReactNode {
+  // null = map can render; string = why it can't (no WebGL, or map construction failed)
+  const [mapUnavailableReason, setMapUnavailableReason] = useState<string | null>(() =>
+    isWebGLSupported() ? null : 'WebGL is not available in this browser',
+  );
+
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <div className="App">
-          <WeatherMap />
+          {mapUnavailableReason ? (
+            <MapUnavailable reason={mapUnavailableReason} />
+          ) : (
+            <WeatherMap onMapUnavailable={setMapUnavailableReason} />
+          )}
         </div>
       </QueryClientProvider>
     </ErrorBoundary>
