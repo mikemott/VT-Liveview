@@ -5,6 +5,7 @@ import { fetchBeaches } from '../../services/beachApi';
 import type { Beach } from '../../services/beachApi';
 import { FakeMap, liveMarkers, openPopups, resetMaplibreMock } from '../../test/maplibreMock';
 import { makeBeach } from '../../__fixtures__/components/data';
+import { BEACH_COLORS } from '../../utils/beachColors';
 import {
   XSS_PAYLOAD,
   expectNoInjectedMarkup,
@@ -24,6 +25,9 @@ describe('BeachLayer', () => {
   let fake: FakeMap;
 
   beforeEach(() => {
+    // Fixture results are from July 1; keep them "fresh" for these tests
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-07-02T12:00:00Z'));
     fake = new FakeMap();
     fetchMock.mockResolvedValue([
       makeBeach(),
@@ -40,6 +44,7 @@ describe('BeachLayer', () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     resetMaplibreMock();
     vi.clearAllMocks();
     delete window.__xss;
@@ -97,6 +102,39 @@ describe('BeachLayer', () => {
     expect(el.querySelector('.water-quality-section')).toBeNull();
     expect(el.querySelector('.beach-advisory')?.textContent).toBe('Cyanobacteria bloom');
     expect(el.querySelector('.beach-amenities')).toBeNull();
+  });
+
+  it('labels unmonitored beaches and stale off-season results instead of showing them as current', async () => {
+    vi.setSystemTime(new Date('2026-10-23T12:00:00Z'));
+    fetchMock.mockResolvedValue([
+      makeBeach({ lastTested: '09/21/2026 11:45 AM' }),
+      makeBeach({
+        id: 'beach3',
+        name: 'Lake Elmore',
+        status: 'unknown',
+        color: 'yellow',
+        lastTested: null,
+        waterQualityGrade: null,
+        eColiLevel: null,
+      }),
+    ]);
+    render(<BeachLayer map={fake.asMap()} visible />);
+    await waitFor(() => expect(liveMarkers()).toHaveLength(2));
+
+    // Neither marker uses the yellow "advisory" color
+    for (const marker of liveMarkers()) {
+      expect(marker.getElement().style.background).toBe(BEACH_COLORS.gray);
+    }
+
+    click(liveMarkers()[0]!.getElement());
+    let el = openPopups()[0]!.getElement();
+    expect(el.querySelector('.beach-status')?.textContent).toContain('Season over');
+    expect(el.querySelector('.beach-status-detail')?.textContent).toBe('Last tested Sep 21 (Open)');
+    expect(el.querySelector('.quality-grade')).toBeNull();
+
+    click(liveMarkers()[1]!.getElement());
+    el = openPopups()[0]!.getElement();
+    expect(el.querySelector('.beach-status')?.textContent).toContain('Not monitored');
   });
 
   it('renders no markers when the fetch fails', async () => {

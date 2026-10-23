@@ -78,7 +78,7 @@ describe('SkiLayer', () => {
     expect(openPopups()[0]?.html).toContain('Jay Peak');
   });
 
-  it('renders conditions, and N/A for missing values', async () => {
+  it('renders reported conditions and omits missing values', async () => {
     fetchMock.mockResolvedValue([
       makeSkiResort({ snowfall24hr: null, tempCurrent: null, baseDepth: 0 }),
     ]);
@@ -86,10 +86,37 @@ describe('SkiLayer', () => {
     await waitFor(() => expect(liveMarkers()).toHaveLength(1));
     click(liveMarkers()[0]!.getElement());
     const text = openPopups()[0]?.getElement().textContent ?? '';
-    expect(text).toContain('Fresh: N/A');
-    expect(text).toContain('Temp: N/A');
+    expect(text).not.toContain('Fresh');
+    expect(text).not.toContain('Temp');
     expect(text).toContain('Base: 0"');
     expect(text).toContain('Trails: 80/116');
+    expect(text).toContain('Lifts: 8/12');
+  });
+
+  // Off-season the scraper reports 0/1 lifts and trails and no snow data (VTL-49)
+  it('says the resort is not reporting instead of showing placeholder 0/1 counts', async () => {
+    fetchMock.mockResolvedValue([
+      makeSkiResort({
+        snowfall24hr: null,
+        snowfallCumulative: null,
+        liftsOpen: 0,
+        liftsTotal: 1,
+        trailsOpen: 0,
+        trailsTotal: 1,
+        tempCurrent: null,
+        baseDepth: null,
+        status: 'closed',
+      }),
+    ]);
+    render(<SkiLayer map={fake.asMap()} visible />);
+    await waitFor(() => expect(liveMarkers()).toHaveLength(1));
+    click(liveMarkers()[0]!.getElement());
+    const el = openPopups()[0]!.getElement();
+    expect(el.querySelector('.stats-grid')).toBeNull();
+    expect(el.querySelector('.ski-no-report')?.textContent).toContain(
+      'Not reporting conditions yet',
+    );
+    expect(el.textContent).not.toContain('0/1');
   });
 
   it('survives a fetch failure without markers', async () => {
