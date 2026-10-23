@@ -319,6 +319,10 @@ async function fetchVT511Feed<T>(
     throw new Error(`${label} unavailable (HTTP ${response.status})`);
   }
   const xmlDoc = parseXML(await response.text());
+  // A 200 with a broken or non-XML body must not read as an empty feed
+  if (xmlDoc.getElementsByTagName('parsererror').length > 0 || !xmlDoc.documentElement) {
+    throw new Error(`${label} unavailable (malformed response)`);
+  }
   return Array.from(xmlDoc.querySelectorAll(selector)).map(parse).filter(isNotNull);
 }
 

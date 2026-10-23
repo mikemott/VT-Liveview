@@ -151,7 +151,8 @@ export default function MapUnavailable({ reason }: MapUnavailableProps) {
           >
             {incidentsStatus}
           </p>
-          {unavailableSources.length > 0 && (
+          {/* On a failed refetch TanStack keeps the old data; don't show its stale partial note */}
+          {!incidentsQuery.isError && unavailableSources.length > 0 && (
             <p className="map-unavailable-partial">
               {unavailableSources.join(' and ')} unavailable right now. Showing what loaded.
             </p>

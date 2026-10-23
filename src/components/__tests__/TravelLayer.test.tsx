@@ -165,6 +165,16 @@ describe('TravelLayer', () => {
     spy.mockRestore();
   });
 
+  it('does not claim "no incidents" when loaded incidents are only hidden by filters', async () => {
+    // Default filters show accidents only; this feed has only construction
+    fetchMock.mockResolvedValue([makeVT511Incident({ type: 'CONSTRUCTION', title: 'Paving' })]);
+    render(<TravelLayer {...props} />);
+    expect(
+      await screen.findByText('No incidents match the current filters or zoom level'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('No travel incidents reported')).toBeNull();
+  });
+
   it('flags a partial outage and avoids claiming the roads are clear', async () => {
     statusMock.mockResolvedValue({ incidents: [], unavailableSources: ['VT 511 incidents'] });
     render(<TravelLayer {...props} />);

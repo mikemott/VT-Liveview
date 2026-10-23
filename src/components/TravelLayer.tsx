@@ -793,7 +793,10 @@ function TravelLayer({
               {/* Incidents list. Never claim "no incidents" when a fetch failed. */}
               {!error && !loading && totalCount === 0 && (
                 <div className="no-incidents">
-                  {unavailableSources.length === 0 ? (
+                  {incidents.length > 0 ? (
+                    // Loaded, but hidden by the type filters or zoom level
+                    <p>No incidents match the current filters or zoom level</p>
+                  ) : unavailableSources.length === 0 ? (
                     <>
                       <span className="success-icon">✓</span>
                       <p>No travel incidents reported</p>

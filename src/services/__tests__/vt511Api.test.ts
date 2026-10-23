@@ -146,6 +146,13 @@ describe('fetchVT511Incidents', () => {
     await expect(fetchVT511Incidents()).rejects.toThrow('VT 511 incidents unavailable');
   });
 
+  it('rejects a malformed (non-XML) 200 response instead of reporting no incidents', async () => {
+    server.use(http.get(INCIDENTS_URL, () => xml('<html><body>Gateway error')));
+    await expect(fetchVT511Incidents()).rejects.toThrow(
+      'VT 511 incidents unavailable (malformed response)',
+    );
+  });
+
   it('returns [] for an empty feed', async () => {
     server.use(http.get(INCIDENTS_URL, () => xml('<incidents/>')));
     await expect(fetchVT511Incidents()).resolves.toEqual([]);
