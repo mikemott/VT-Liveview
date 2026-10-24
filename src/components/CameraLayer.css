@@ -19,7 +19,11 @@
 .camera-marker:focus-visible {
   transform: scale(1.12);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
-  outline: none;
+}
+
+.camera-marker:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 2px;
 }
 
 .camera-marker.offline {

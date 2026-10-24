@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { MapPin, RefreshCw, VideoOff } from 'lucide-react';
 import { fetchCameraImage, type CameraImage, type TrafficCamera } from '../../services/cameraApi';
-import { usePageVisible } from '../../hooks/usePageVisible';
+import { useVisibleInterval } from '../../hooks/useVisibleInterval';
 import { getObservationAge } from '../../utils/observationAge';
 import './DetailViews.css';
 
@@ -25,14 +25,9 @@ type ImageState =
 export default function CameraDetail({ camera, isDark }: CameraDetailProps) {
   const [state, setState] = useState<ImageState>({ status: 'loading' });
   const [tick, setTick] = useState(0);
-  const pageVisible = usePageVisible();
 
-  // Reload periodically while open and visible
-  useEffect(() => {
-    if (!pageVisible) return;
-    const timer = setInterval(() => setTick((t) => t + 1), REFRESH_MS);
-    return () => clearInterval(timer);
-  }, [pageVisible]);
+  // Reload every minute while the page is visible; catches up on return
+  useVisibleInterval(() => setTick((t) => t + 1), REFRESH_MS);
 
   // The object URL currently shown; revoked when replaced or on unmount
   const shownUrl = useRef<string | null>(null);

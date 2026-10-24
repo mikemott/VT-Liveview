@@ -682,6 +682,10 @@
   font-weight: 600;
 }
 
+.dark .camera-caption.stale {
+  color: #fcd34d;
+}
+
 .camera-refresh-note {
   display: inline-flex;
   align-items: center;

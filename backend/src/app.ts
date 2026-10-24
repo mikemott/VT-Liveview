@@ -280,7 +280,8 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
       const list = await cameras.getCameras();
       reply.header('Cache-Control', 'public, max-age=300');
       return { cameras: list };
-    } catch {
+    } catch (error) {
+      fastify.log.warn({ err: error }, 'Traffic camera list fetch failed');
       reply.code(502);
       return { error: 'Traffic camera list is unavailable' };
     }
@@ -295,12 +296,14 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
           reply.code(404).send({ error: 'No current image for this camera' });
           return;
         }
-        reply
-          .type('image/jpeg')
-          .header('Cache-Control', 'public, max-age=60')
-          .header('Last-Modified', new Date(snapshot.takenAt ?? Date.now()).toUTCString())
-          .send(snapshot.jpeg);
-      } catch {
+        reply.type('image/jpeg').header('Cache-Control', 'public, max-age=60');
+        // Unknown capture time: send no Last-Modified rather than pretend it's new
+        if (snapshot.takenAt) {
+          reply.header('Last-Modified', new Date(snapshot.takenAt).toUTCString());
+        }
+        reply.send(snapshot.jpeg);
+      } catch (error) {
+        fastify.log.warn({ err: error }, 'Traffic camera snapshot fetch failed');
         reply.code(502).send({ error: 'Traffic camera images are unavailable' });
       }
     },

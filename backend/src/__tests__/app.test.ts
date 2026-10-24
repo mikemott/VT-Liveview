@@ -438,6 +438,23 @@ describe('traffic cameras (VTL-56)', () => {
     expect(res.rawPayload.subarray(0, 2)).toEqual(Buffer.from([0xff, 0xd8]));
   });
 
+  it('omits Last-Modified when the capture time is unknown', async () => {
+    server.use(
+      http.get(VT511, () =>
+        HttpResponse.text(
+          snapshotXml.replace(/<timestamp>[^<]*<\/timestamp>/g, '<timestamp></timestamp>'),
+        ),
+      ),
+    );
+    const app = await loadApp();
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/cameras/${encodeURIComponent('I-89 SB BERLIN')}/snapshot.jpg`,
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['last-modified']).toBeUndefined();
+  });
+
   it('returns 404 for a camera without a current image', async () => {
     useC2C();
     const app = await loadApp();

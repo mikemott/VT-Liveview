@@ -88,13 +88,15 @@ describe('createTrafficCameraService', () => {
     expect(snapshotCalls).toBe(1); // cached
   });
 
-  it('serves the last good snapshot when a refresh fails', async () => {
+  it('serves the last good snapshot when a refresh fails, then backs off', async () => {
     vi.useFakeTimers({ toFake: ['Date'] });
     let fail = false;
+    let calls = 0;
     server.use(
-      http.get(C2C, () =>
-        fail ? new HttpResponse(null, { status: 503 }) : HttpResponse.text(snapshotXml),
-      ),
+      http.get(C2C, () => {
+        calls++;
+        return fail ? new HttpResponse(null, { status: 503 }) : HttpResponse.text(snapshotXml);
+      }),
     );
     const service = createTrafficCameraService('test-agent');
     expect(await service.getSnapshot('I-89 SB BERLIN')).not.toBeNull();
@@ -102,6 +104,17 @@ describe('createTrafficCameraService', () => {
     fail = true;
     vi.setSystemTime(Date.now() + 5 * 60 * 1000); // past the 2-minute TTL
     expect(await service.getSnapshot('I-89 SB BERLIN')).not.toBeNull();
+    expect(calls).toBe(2);
+
+    // Within the 30 s back-off: stale value, no new upstream attempt
+    vi.setSystemTime(Date.now() + 10_000);
+    expect(await service.getSnapshot('I-89 SB BERLIN')).not.toBeNull();
+    expect(calls).toBe(2);
+
+    // After it: retried
+    vi.setSystemTime(Date.now() + 30_000);
+    expect(await service.getSnapshot('I-89 SB BERLIN')).not.toBeNull();
+    expect(calls).toBe(3);
   });
 
   it('rejects when the first fetch fails', async () => {

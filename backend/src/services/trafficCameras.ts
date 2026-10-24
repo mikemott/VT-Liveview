@@ -14,6 +14,8 @@ const C2C_BASE = 'https://nec-por.ne-compass.com/NEC.XmlDataPortal/api/c2c';
 const LIST_TTL_MS = 10 * 60 * 1000;
 const SNAPSHOT_TTL_MS = 2 * 60 * 1000;
 const FETCH_TIMEOUT_MS = 45_000;
+/** After a failed refresh, serve the stale value this long before retrying. */
+const RETRY_AFTER_ERROR_MS = 30_000;
 
 export interface TrafficCamera {
   id: string;
@@ -180,8 +182,15 @@ function cachedLoader<T>(ttlMs: number, load: () => Promise<T>) {
       try {
         return await inFlight;
       } catch (error) {
-        // Serve the last good value rather than failing outright
-        if (cached) return cached.value;
+        // Serve the last good value rather than failing outright, and back off
+        // so every request doesn't wait on another slow upstream attempt
+        if (cached) {
+          cached = {
+            value: cached.value,
+            fetchedAt: Date.now() - ttlMs + RETRY_AFTER_ERROR_MS,
+          };
+          return cached.value;
+        }
         throw error;
       }
     },
