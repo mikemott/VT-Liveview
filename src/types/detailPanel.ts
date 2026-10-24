@@ -6,6 +6,8 @@
 import type { Incident } from './incidents';
 import type { ObservationStation } from './weather';
 import type { TrafficCamera } from '../services/cameraApi';
+import type { SeasonalRoad } from '../data/seasonalRoads';
+import type { RoadStatus } from '../utils/seasonalRoads';
 
 // Alert feature type (from WeatherMap.tsx)
 export interface AlertProperties {
@@ -48,5 +50,6 @@ export type DetailPanelContent =
   | { type: 'incident'; data: Incident }
   | { type: 'station'; data: ObservationStation }
   | { type: 'camera'; data: TrafficCamera }
+  | { type: 'seasonalRoad'; data: SeasonalRoad; status: RoadStatus }
   | { type: 'location'; coordinates: { lat: number; lng: number } }
   | null;

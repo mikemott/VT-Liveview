@@ -168,6 +168,17 @@
   color: #cbd5e1;
 }
 
+/* Seasonal closures - Deep red (VTL-55) */
+.filter-chip.active[data-chip-type='seasonal'] {
+  background: rgba(185, 28, 28, 0.12);
+  border-color: rgba(185, 28, 28, 0.4);
+  color: #7f1d1d;
+}
+
+.dark .filter-chip.active[data-chip-type='seasonal'] {
+  color: #fca5a5;
+}
+
 /* Accident - Terracotta Red */
 .filter-chip.active[data-chip-type='accident'] {
   background: rgba(204, 102, 82, 0.2);

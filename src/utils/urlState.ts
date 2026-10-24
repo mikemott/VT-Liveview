@@ -5,7 +5,8 @@
  *
  * - map:    zoom/lat/lng
  * - layers: the map layers that are on (anything not listed is off)
- * - sel:    what the detail panel shows: station:<id>, alert:<id> or pt:<lat>,<lng>
+ * - sel:    what the detail panel shows: station:<id>, camera:<id>, alert:<id>,
+ *           road:<id> (seasonal road) or pt:<lat>,<lng>
  *
  * The hash (not the query string) keeps it client-only: no server round trip,
  * nothing extra in Cloudflare's cache key.
@@ -21,6 +22,7 @@ export const LAYER_KEYS = {
   beaches: 'beachSites',
   stargazing: 'stargazing',
   cameras: 'trafficCameras',
+  seasonal: 'seasonalRoads',
 } as const;
 
 export type LayerKey = keyof typeof LAYER_KEYS;
@@ -36,6 +38,7 @@ export type Selection =
   | { type: 'station'; id: string }
   | { type: 'camera'; id: string }
   | { type: 'alert'; id: string }
+  | { type: 'road'; id: string }
   | { type: 'location'; lat: number; lng: number };
 
 export interface UrlState {
@@ -95,7 +98,7 @@ export function parseUrlState(hash: string): UrlState {
     const colon = sel.indexOf(':');
     const kind = sel.slice(0, colon);
     const value = sel.slice(colon + 1);
-    if ((kind === 'station' || kind === 'alert') && SAFE_ID.test(value)) {
+    if ((kind === 'station' || kind === 'alert' || kind === 'road') && SAFE_ID.test(value)) {
       state.selection = { type: kind, id: value };
     } else if (kind === 'camera' && SAFE_CAMERA_ID.test(value)) {
       state.selection = { type: 'camera', id: value };

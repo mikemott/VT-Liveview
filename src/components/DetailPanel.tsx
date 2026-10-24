@@ -11,6 +11,7 @@ import IncidentDetail from './detail-views/IncidentDetail';
 import StationDetail from './detail-views/StationDetail';
 import LocationDetail from './detail-views/LocationDetail';
 import CameraDetail from './detail-views/CameraDetail';
+import SeasonalRoadDetail from './detail-views/SeasonalRoadDetail';
 import './DetailPanel.css';
 
 interface DetailPanelProps {
@@ -63,6 +64,8 @@ export default function DetailPanel({ content, onClose, onShare, isDark }: Detai
         return 'Weather Station';
       case 'camera':
         return 'Traffic Camera';
+      case 'seasonalRoad':
+        return 'Seasonal Road';
       case 'location':
         return 'Location Details';
       default:
@@ -83,6 +86,8 @@ export default function DetailPanel({ content, onClose, onShare, isDark }: Detai
       case 'camera':
         // key: a different camera remounts with fresh image state
         return <CameraDetail key={content.data.id} camera={content.data} isDark={isDark} />;
+      case 'seasonalRoad':
+        return <SeasonalRoadDetail road={content.data} status={content.status} isDark={isDark} />;
       case 'location':
         return <LocationDetail coordinates={content.coordinates} isDark={isDark} />;
       default:

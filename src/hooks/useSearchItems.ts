@@ -9,6 +9,8 @@ import { fetchAllIncidents } from '../services/travelApi';
 import type { SearchItem } from '../utils/search';
 import type { ObservationStation } from '../types';
 import type { TrafficCamera } from '../services/cameraApi';
+import { SEASONAL_ROADS } from '../data/seasonalRoads';
+import { roadBounds, roadCenter } from '../utils/seasonalRoads';
 
 /** Towns never change at runtime; build once. */
 const TOWN_ITEMS: SearchItem[] = VT_TOWNS.map(([name, county, lat, lng, w, s, e, n]) => ({
@@ -23,6 +25,20 @@ const TOWN_ITEMS: SearchItem[] = VT_TOWNS.map(([name, county, lat, lng, w, s, e,
 
 const isNum = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n);
 
+// Seasonal notch/gap/toll roads (VTL-55): static, like towns
+const ROAD_ITEMS: SearchItem[] = SEASONAL_ROADS.map((road) => {
+  const [lng, lat] = roadCenter(road);
+  return {
+    id: `road:${road.id}`,
+    kind: 'road',
+    name: road.name,
+    detail: road.between,
+    keywords: 'seasonal winter closure closed road notch gap',
+    lat,
+    lng,
+    bounds: roadBounds(road),
+  };
+});
 /**
  * Everything the search box can find. Towns are always available; the rest
  * are fetched only once `enabled` (first focus of the search box), and a
@@ -114,6 +130,7 @@ export function useSearchItems(
         lng: c.lng,
       });
     }
+    out.push(...ROAD_ITEMS);
     for (const inc of incidents.data ?? []) {
       const { lat, lng } = inc.location;
       if (!isNum(lat) || !isNum(lng) || (lat === 0 && lng === 0)) continue;
