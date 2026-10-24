@@ -101,11 +101,8 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
   const [loading, setLoading] = useState(true);
   // Map view, layers and selection from a shared link (read once, VTL-52)
   const [initialUrlState] = useState<UrlState>(() => parseUrlState(window.location.hash));
-  // Ref: the map is created once from this; later URL changes go through hashchange
-  const initialViewRef = useRef<{ lat: number; lng: number; zoom: number }>(
-    initialUrlState.view ?? VERMONT_CENTER,
-  );
-  const initialView = initialViewRef.current;
+  // Stable (from state): the map is created from this; later URL changes go through hashchange
+  const initialView = initialUrlState.view ?? VERMONT_CENTER;
   // A selection from the link waits here until its data has loaded
   const pendingSelection = useRef<Selection | undefined>(initialUrlState.selection);
   const [currentZoom, setCurrentZoom] = useState(initialView.zoom);
@@ -499,12 +496,12 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
       const mergedAlerts = await fetchMergedAlerts('VT');
       // The map layer follows visibleAlerts (see the sync effect below)
       setAlerts(mergedAlerts.map(mergedAlertToFeature));
+      // Only after success: a failed fetch must not discard a pending shared alert
+      setAlertsLoaded(true);
     } catch (error) {
       if (import.meta.env.DEV) {
         console.error('Error fetching merged alerts:', error);
       }
-    } finally {
-      setAlertsLoaded(true);
     }
   }, [mergedAlertToFeature]);
 
@@ -545,8 +542,8 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
       map.current = new maplibregl.Map({
         container: mapContainer.current,
         style: getMapStyle(isDark),
-        center: [initialViewRef.current.lng, initialViewRef.current.lat],
-        zoom: initialViewRef.current.zoom,
+        center: [initialView.lng, initialView.lat],
+        zoom: initialView.zoom,
         minZoom: 5.5, // Allow zooming out to see regional weather patterns
         maxZoom: 18, // Allow detailed street-level zoom
         maxBounds: [
@@ -721,7 +718,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         map.current = null;
       }
     };
-  }, [fetchAlertsFromBackend, isDark]);
+  }, [fetchAlertsFromBackend, isDark, initialView]);
 
   // Check theme based on daylight hours and update automatically (only if user hasn't manually overridden)
   useEffect(() => {

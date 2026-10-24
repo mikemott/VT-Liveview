@@ -24,6 +24,8 @@ describe('parseUrlState', () => {
   it('treats an empty layers list as "all off" and ignores unknown keys', () => {
     expect(parseUrlState('#layers=').layers?.size).toBe(0);
     expect([...(parseUrlState('#layers=bogus,beaches').layers ?? [])]).toEqual(['beachSites']);
+    // Inherited object keys are not layer keys
+    expect([...(parseUrlState('#layers=constructor,toString,__proto__').layers ?? [])]).toEqual([]);
   });
 
   it('leaves layers undefined when not specified', () => {

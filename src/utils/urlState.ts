@@ -80,8 +80,9 @@ export function parseUrlState(hash: string): UrlState {
     state.layers = new Set(
       layers
         .split(',')
-        .map((key) => LAYER_KEYS[key as LayerKey])
-        .filter((id): id is LayerId => Boolean(id)),
+        // Own keys only: 'constructor' or 'toString' must not resolve via the prototype
+        .filter((key): key is LayerKey => Object.prototype.hasOwnProperty.call(LAYER_KEYS, key))
+        .map((key) => LAYER_KEYS[key]),
     );
   }
 
