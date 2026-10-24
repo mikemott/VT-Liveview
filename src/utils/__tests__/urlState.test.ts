@@ -21,6 +21,21 @@ describe('parseUrlState', () => {
     });
   });
 
+  it('round-trips the seasonal roads layer and a road selection', () => {
+    const hash = buildUrlHash({
+      view: { zoom: 11, lat: 44.56, lng: -72.79 },
+      layers: new Set(['seasonalRoads']),
+      selection: { type: 'road', id: 'smugglers-notch' },
+    });
+    expect(hash).toBe('#map=11/44.56/-72.79&layers=seasonal&sel=road:smugglers-notch');
+    expect(parseUrlState(hash)).toEqual({
+      view: { zoom: 11, lat: 44.56, lng: -72.79 },
+      layers: new Set(['seasonalRoads']),
+      selection: { type: 'road', id: 'smugglers-notch' },
+    });
+    expect(parseUrlState('#sel=road:<x>').selection).toBeUndefined();
+  });
+
   it('round-trips camera layers and camera selections with spaces and &', () => {
     const hash = buildUrlHash({
       view: { zoom: 12, lat: 44.21, lng: -72.58 },

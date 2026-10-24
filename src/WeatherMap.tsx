@@ -8,6 +8,15 @@ import SkiLayer from './components/SkiLayer';
 import TrafficFlowLayer from './components/TrafficFlowLayer';
 import CameraLayer from './components/CameraLayer';
 import type { TrafficCamera } from './services/cameraApi';
+import SeasonalRoadsLayer from './components/SeasonalRoadsLayer';
+import { SEASONAL_ROADS, type SeasonalRoad } from './data/seasonalRoads';
+import {
+  closurePoints,
+  getSeasonalStatuses,
+  type ClosurePoint,
+  type RoadStatus,
+} from './utils/seasonalRoads';
+import type { TravelIncident } from './services/travelApi';
 import CreemeeLayer from './components/CreemeeLayer';
 import CampingLayer from './components/CampingLayer';
 import CampingAreasLayer from './components/CampingAreasLayer';
@@ -156,6 +165,8 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
       campingSites: false, // Off by default - user can enable manually
       beachSites: false, // Off by default - user can enable manually
       trafficCameras: false, // Off by default (VTL-56)
+      // On while any notch/gap road is closed or about to close (VTL-55)
+      seasonalRoads: [...getSeasonalStatuses([]).values()].some((s) => s.status !== 'open'),
     };
     const fromUrl = initialUrlState.layers;
     if (!fromUrl) return defaults;
@@ -607,6 +618,9 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
           if (alertsRef.current.length > 0 && addAlertsToMapRef.current) {
             addAlertsToMapRef.current(alertsRef.current);
           }
+
+          // Same as a theme swap: layers keyed on mapStyleVersion re-add themselves
+          setMapStyleVersion((v) => v + 1);
         });
       }
     });
@@ -859,6 +873,8 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         return { type: 'station', id: detailPanelContent.data.id };
       case 'camera':
         return { type: 'camera', id: detailPanelContent.data.id };
+      case 'seasonalRoad':
+        return { type: 'road', id: detailPanelContent.data.id };
       case 'alert':
         return detailPanelContent.data.properties.id
           ? { type: 'alert', id: detailPanelContent.data.properties.id }
@@ -880,6 +896,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         'campingSites',
         'beachSites',
         'trafficCameras',
+        'seasonalRoads',
       ] as const
     )
       .filter((id) => isLayerVisible(id))
@@ -910,6 +927,33 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
     return () => clearTimeout(timer);
   }, [mapLoaded, currentZoom, mapCenter, activeLayers, currentSelection]);
 
+  // Seasonal road closures (VTL-55): 511 full closures override the calendar
+  const [closures, setClosures] = useState<ClosurePoint[]>([]);
+  const closuresRef = useRef(closures);
+  useEffect(() => {
+    closuresRef.current = closures;
+  }, [closures]);
+  const handleIncidentsLoaded = useCallback((incidents: TravelIncident[]): void => {
+    const next = closurePoints(incidents);
+    // Same closures: keep the array so the road layer doesn't redraw
+    setClosures((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
+  }, []);
+  const handleSeasonalRoadClick = useCallback((road: SeasonalRoad, status: RoadStatus): void => {
+    setDetailPanelContent({ type: 'seasonalRoad', data: road, status });
+  }, []);
+  // An open road panel follows 511 closure changes
+  const panelContent = useMemo((): DetailPanelContent => {
+    if (detailPanelContent?.type !== 'seasonalRoad') return detailPanelContent;
+    const status = getSeasonalStatuses(closures).get(detailPanelContent.data.id);
+    return status ? { ...detailPanelContent, status } : detailPanelContent;
+  }, [detailPanelContent, closures]);
+  /** Open a road's panel with its current status (search, shared links). */
+  const openSeasonalRoad = useCallback((id: string): void => {
+    const road = SEASONAL_ROADS.find((r) => r.id === id);
+    const status = road && getSeasonalStatuses(closuresRef.current).get(road.id);
+    if (road && status) setDetailPanelContent({ type: 'seasonalRoad', data: road, status });
+  }, []);
+
   // Restore a point or alert selection from the link once the map / alerts are ready
   useEffect(() => {
     const pending = pendingSelection.current;
@@ -920,13 +964,16 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         type: 'location',
         coordinates: { lat: pending.lat, lng: pending.lng },
       });
+    } else if (pending.type === 'road') {
+      pendingSelection.current = undefined;
+      openSeasonalRoad(pending.id);
     } else if (pending.type === 'alert' && alertsLoaded) {
       pendingSelection.current = undefined;
       const alert = alerts.find((a) => a.properties.id === pending.id);
       // An expired alert is simply not opened
       if (alert) handleAlertClick(alert);
     }
-  }, [mapLoaded, alertsLoaded, alerts, handleAlertClick]);
+  }, [mapLoaded, alertsLoaded, alerts, handleAlertClick, openSeasonalRoad]);
 
   // Restore a station selection once stations have loaded
   // Latest stations, for search (VTL-53)
@@ -975,11 +1022,13 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         setShowTrafficFlow(layers.has('trafficFlow'));
         setShowStargazing(layers.has('stargazing'));
       }
-      if (next.selection) pendingSelection.current = next.selection;
+      // Roads are static data, so open now; others wait for their data
+      if (next.selection?.type === 'road') openSeasonalRoad(next.selection.id);
+      else if (next.selection) pendingSelection.current = next.selection;
     };
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
-  }, []);
+  }, [openSeasonalRoad]);
 
   // ===========================================================================
   // Search (VTL-53)
@@ -1017,6 +1066,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         campground: 'campingSites',
         station: 'weatherStations',
         camera: 'trafficCameras',
+        road: 'seasonalRoads',
       };
       const layer = layerFor[item.kind];
       if (layer) setLayerVisibility((prev) => ({ ...prev, [layer]: true }));
@@ -1028,9 +1078,10 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         const camera = cameras.find((c) => `camera:${c.id}` === item.id);
         if (camera) setDetailPanelContent({ type: 'camera', data: camera });
       }
+      if (item.kind === 'road') openSeasonalRoad(item.id.slice('road:'.length));
       if (isMobile) setControlsPanelOpen(false);
     },
-    [isMobile, stations, cameras],
+    [isMobile, stations, cameras, openSeasonalRoad],
   );
 
   const handleShare = useCallback(async (): Promise<void> => {
@@ -1149,6 +1200,9 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
               onToggleWeatherStations={toggleWeatherStations}
               showCameras={isLayerVisible('trafficCameras')}
               onToggleCameras={() => toggleLayer('trafficCameras')}
+              showSeasonalRoads={isLayerVisible('seasonalRoads')}
+              onToggleSeasonalRoads={() => toggleLayer('seasonalRoads')}
+              onIncidentsLoaded={handleIncidentsLoaded}
               showSkiResorts={isLayerVisible('skiResorts')}
               onToggleSkiResorts={toggleSkiResorts}
               showCreemeeStands={isLayerVisible('creemeeStands')}
@@ -1227,6 +1281,18 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
             />
           )}
 
+          {/* Seasonal notch/gap/toll road closures (VTL-55) */}
+          {mapLoaded && (
+            <SeasonalRoadsLayer
+              map={map.current}
+              visible={isLayerVisible('seasonalRoads')}
+              isDark={isDark}
+              mapStyleVersion={mapStyleVersion}
+              closures={closures}
+              onRoadClick={handleSeasonalRoadClick}
+            />
+          )}
+
           {/* Traffic Flow Layer */}
           {mapLoaded && (
             <TrafficFlowLayer map={map.current} visible={showTrafficFlow} isDark={isDark} />
@@ -1287,7 +1353,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
 
       {/* Detail Panel */}
       <DetailPanel
-        content={detailPanelContent}
+        content={panelContent}
         onClose={closeDetailPanel}
         onShare={() => void handleShare()}
         isDark={isDark}

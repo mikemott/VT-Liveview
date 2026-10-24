@@ -10,6 +10,7 @@ import {
   Thermometer,
   TriangleAlert,
   Video,
+  Snowflake,
 } from 'lucide-react';
 import { searchPlaces, type SearchItem, type SearchKind } from '../utils/search';
 import './SearchBox.css';
@@ -22,6 +23,7 @@ const KIND_ICON: Record<SearchKind, typeof MapPin> = {
   campground: Tent,
   station: Thermometer,
   camera: Video,
+  road: Snowflake,
   incident: TriangleAlert,
 };
 
@@ -33,6 +35,7 @@ const KIND_LABEL: Record<SearchKind, string> = {
   campground: 'Campground',
   station: 'Weather station',
   camera: 'Traffic camera',
+  road: 'Seasonal road',
   incident: 'Travel incident',
 };
 

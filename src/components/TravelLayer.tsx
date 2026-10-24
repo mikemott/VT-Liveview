@@ -15,6 +15,7 @@ import {
   Car,
   ZoomIn,
   Tent,
+  Snowflake,
 } from 'lucide-react';
 import maplibregl from 'maplibre-gl';
 import { fetchAllIncidentsWithStatus, type TravelIncident } from '../services/travelApi';
@@ -51,6 +52,11 @@ interface TravelLayerProps {
   /** Traffic cameras chip (VTL-56); omitted props hide the chip. */
   showCameras?: boolean;
   onToggleCameras?: () => void;
+  /** Seasonal road closures chip (VTL-55); omitted props hide the chip. */
+  showSeasonalRoads?: boolean;
+  onToggleSeasonalRoads?: () => void;
+  /** Called with every successful incident refresh (seasonal-road override). */
+  onIncidentsLoaded?: (incidents: TravelIncident[]) => void;
   showSkiResorts: boolean;
   onToggleSkiResorts: () => void;
   showCreemeeStands: boolean;
@@ -122,6 +128,9 @@ function TravelLayer({
   onToggleWeatherStations,
   showCameras = false,
   onToggleCameras,
+  showSeasonalRoads = false,
+  onToggleSeasonalRoads,
+  onIncidentsLoaded,
   showSkiResorts,
   onToggleSkiResorts,
   showCreemeeStands,
@@ -159,6 +168,10 @@ function TravelLayer({
   // Sources that failed on the last refresh while others loaded
   const [unavailableSources, setUnavailableSources] = useState<string[]>([]);
   const markersRef = useRef<MarkerEntry[]>([]);
+  const onIncidentsLoadedRef = useRef(onIncidentsLoaded);
+  useEffect(() => {
+    onIncidentsLoadedRef.current = onIncidentsLoaded;
+  }, [onIncidentsLoaded]);
 
   // Fetch incidents function (accessible to retry button)
   const fetchIncidentsData = useCallback(async (): Promise<void> => {
@@ -169,6 +182,7 @@ function TravelLayer({
       setError(null); // Clear previous errors
       const { incidents: data, unavailableSources: failed } = await fetchAllIncidentsWithStatus();
       setIncidents(data);
+      onIncidentsLoadedRef.current?.(data);
       setUnavailableSources(failed);
       setLastUpdated(new Date());
     } catch (error) {
@@ -649,6 +663,22 @@ function TravelLayer({
                     <Video size={14} strokeWidth={2.5} />
                   </span>
                   Cameras
+                </button>
+              )}
+
+              {/* Seasonal road closures chip (VTL-55) */}
+              {onToggleSeasonalRoads && (
+                <button
+                  className={`filter-chip ${showSeasonalRoads ? 'active' : ''}`}
+                  onClick={onToggleSeasonalRoads}
+                  aria-pressed={showSeasonalRoads}
+                  data-chip-type="seasonal"
+                  title="Notch, gap and toll roads that close for winter"
+                >
+                  <span className="chip-icon">
+                    <Snowflake size={14} strokeWidth={2.5} />
+                  </span>
+                  Seasonal closures
                 </button>
               )}
 
