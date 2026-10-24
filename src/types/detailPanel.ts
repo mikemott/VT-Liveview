@@ -6,6 +6,7 @@
 import type { Incident } from './incidents';
 import type { ObservationStation } from './weather';
 import type { TrafficCamera } from '../services/cameraApi';
+import type { RoadWeatherStation } from '../services/roadWeatherApi';
 import type { SeasonalRoad } from '../data/seasonalRoads';
 import type { RoadStatus } from '../utils/seasonalRoads';
 
@@ -50,6 +51,7 @@ export type DetailPanelContent =
   | { type: 'incident'; data: Incident }
   | { type: 'station'; data: ObservationStation }
   | { type: 'camera'; data: TrafficCamera }
+  | { type: 'roadWeather'; data: RoadWeatherStation }
   | { type: 'seasonalRoad'; data: SeasonalRoad; status: RoadStatus }
   | { type: 'location'; coordinates: { lat: number; lng: number } }
   | null;

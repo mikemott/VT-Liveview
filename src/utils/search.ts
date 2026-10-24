@@ -4,7 +4,16 @@
  */
 
 export type SearchKind =
-  'town' | 'ski' | 'beach' | 'creemee' | 'campground' | 'station' | 'camera' | 'road' | 'incident';
+  | 'town'
+  | 'ski'
+  | 'beach'
+  | 'creemee'
+  | 'campground'
+  | 'station'
+  | 'camera'
+  | 'roadWeather'
+  | 'road'
+  | 'incident';
 
 export interface SearchItem {
   id: string;
@@ -40,11 +49,12 @@ const KIND_ORDER: Record<SearchKind, number> = {
   ski: 1,
   station: 2,
   camera: 3,
-  road: 4,
-  campground: 5,
-  beach: 6,
-  creemee: 7,
-  incident: 8,
+  roadWeather: 4,
+  road: 5,
+  campground: 6,
+  beach: 7,
+  creemee: 8,
+  incident: 9,
 };
 
 function scoreText(text: string, query: string, tokens: string[]): number {

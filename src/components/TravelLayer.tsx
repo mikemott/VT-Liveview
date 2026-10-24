@@ -16,6 +16,7 @@ import {
   ZoomIn,
   Tent,
   Snowflake,
+  ThermometerSnowflake,
 } from 'lucide-react';
 import maplibregl from 'maplibre-gl';
 import { fetchAllIncidentsWithStatus, type TravelIncident } from '../services/travelApi';
@@ -55,6 +56,9 @@ interface TravelLayerProps {
   /** Seasonal road closures chip (VTL-55); omitted props hide the chip. */
   showSeasonalRoads?: boolean;
   onToggleSeasonalRoads?: () => void;
+  /** Road weather stations chip (VTL-61); omitted props hide the chip. */
+  showRoadWeather?: boolean;
+  onToggleRoadWeather?: () => void;
   /** Called with every successful incident refresh (seasonal-road override). */
   onIncidentsLoaded?: (incidents: TravelIncident[]) => void;
   showSkiResorts: boolean;
@@ -130,6 +134,8 @@ function TravelLayer({
   onToggleCameras,
   showSeasonalRoads = false,
   onToggleSeasonalRoads,
+  showRoadWeather = false,
+  onToggleRoadWeather,
   onIncidentsLoaded,
   showSkiResorts,
   onToggleSkiResorts,
@@ -663,6 +669,22 @@ function TravelLayer({
                     <Video size={14} strokeWidth={2.5} />
                   </span>
                   Cameras
+                </button>
+              )}
+
+              {/* Road weather stations chip (VTL-61) */}
+              {onToggleRoadWeather && (
+                <button
+                  className={`filter-chip ${showRoadWeather ? 'active' : ''}`}
+                  onClick={onToggleRoadWeather}
+                  aria-pressed={showRoadWeather}
+                  data-chip-type="roadwx"
+                  title="Pavement temperature and surface from VTrans road weather stations"
+                >
+                  <span className="chip-icon">
+                    <ThermometerSnowflake size={14} strokeWidth={2.5} />
+                  </span>
+                  Road temps
                 </button>
               )}
 

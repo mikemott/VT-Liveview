@@ -474,3 +474,24 @@ describe('traffic cameras (VTL-56)', () => {
     ).toBe(502);
   });
 });
+
+describe('road weather (VTL-61)', () => {
+  const essXml = loadText('c2c/essData.xml');
+
+  it('lists online stations with a short cache', async () => {
+    server.use(http.get(VT511, () => HttpResponse.text(essXml)));
+    const app = await loadApp();
+    const res = await app.inject({ method: 'GET', url: '/api/road-weather' });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['cache-control']).toBe('public, max-age=120');
+    const body = res.json<{ stations: { name: string; pavementTempC: number | null }[] }>();
+    expect(body.stations).toHaveLength(4);
+    expect(body.stations[0]).toMatchObject({ name: 'I-89 BERLIN', pavementTempC: 16.8 });
+  });
+
+  it('returns 502 when the portal is down', async () => {
+    server.use(http.get(VT511, () => new HttpResponse(null, { status: 503 })));
+    const app = await loadApp();
+    expect((await app.inject({ method: 'GET', url: '/api/road-weather' })).statusCode).toBe(502);
+  });
+});

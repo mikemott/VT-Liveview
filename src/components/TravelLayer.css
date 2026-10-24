@@ -168,6 +168,17 @@
   color: #cbd5e1;
 }
 
+/* Road temps - Ice blue (VTL-61) */
+.filter-chip.active[data-chip-type='roadwx'] {
+  background: rgba(29, 78, 216, 0.12);
+  border-color: rgba(29, 78, 216, 0.4);
+  color: #1e3a8a;
+}
+
+.dark .filter-chip.active[data-chip-type='roadwx'] {
+  color: #93c5fd;
+}
+
 /* Seasonal closures - Deep red (VTL-55) */
 .filter-chip.active[data-chip-type='seasonal'] {
   background: rgba(185, 28, 28, 0.12);

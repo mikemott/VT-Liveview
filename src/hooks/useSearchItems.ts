@@ -9,6 +9,7 @@ import { fetchAllIncidents } from '../services/travelApi';
 import type { SearchItem } from '../utils/search';
 import type { ObservationStation } from '../types';
 import type { TrafficCamera } from '../services/cameraApi';
+import type { RoadWeatherStation } from '../services/roadWeatherApi';
 import { SEASONAL_ROADS } from '../data/seasonalRoads';
 import { roadBounds, roadCenter } from '../utils/seasonalRoads';
 
@@ -48,6 +49,7 @@ export function useSearchItems(
   enabled: boolean,
   stations: readonly ObservationStation[],
   cameras: readonly TrafficCamera[] = [],
+  roadWeather: readonly RoadWeatherStation[] = [],
 ): { items: SearchItem[]; loading: boolean } {
   const opts = { enabled, staleTime: 10 * 60 * 1000, retry: 1 } as const;
   const [ski, beaches, creemee, recreation, incidents] = useQueries({
@@ -130,6 +132,18 @@ export function useSearchItems(
         lng: c.lng,
       });
     }
+    for (const r of roadWeather) {
+      const detail = r.location ?? r.roadway;
+      out.push({
+        id: `roadwx:${r.id}`,
+        kind: 'roadWeather',
+        name: r.name,
+        ...(detail ? { detail } : {}),
+        keywords: `road weather pavement ${r.roadway ?? ''}`,
+        lat: r.lat,
+        lng: r.lng,
+      });
+    }
     out.push(...ROAD_ITEMS);
     for (const inc of incidents.data ?? []) {
       const { lat, lng } = inc.location;
@@ -144,7 +158,16 @@ export function useSearchItems(
       });
     }
     return out;
-  }, [ski.data, beaches.data, creemee.data, recreation.data, incidents.data, stations, cameras]);
+  }, [
+    ski.data,
+    beaches.data,
+    creemee.data,
+    recreation.data,
+    incidents.data,
+    stations,
+    cameras,
+    roadWeather,
+  ]);
 
   const loading =
     enabled && [ski, beaches, creemee, recreation, incidents].some((q) => q.isLoading);
