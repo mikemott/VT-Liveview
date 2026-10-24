@@ -27,6 +27,8 @@ interface WeatherStationsLayerProps {
   map: MapLibreMap | null;
   visible: boolean;
   onStationClick?: (station: ObservationStation) => void;
+  /** Called after each successful stations fetch (used to restore a shared selection). */
+  onStationsLoaded?: (stations: ObservationStation[]) => void;
   globalPopupRef: React.MutableRefObject<maplibregl.Popup | null>;
 }
 
@@ -204,11 +206,18 @@ function WeatherStationsLayer({
   map,
   visible,
   onStationClick,
+  onStationsLoaded,
   globalPopupRef,
 }: WeatherStationsLayerProps) {
   const [stations, setStations] = useState<ObservationStation[]>([]);
   const [_loading, setLoading] = useState(false);
   const markersRef = useRef<MarkerEntry[]>([]);
+
+  // Ref so a new callback identity doesn't refetch
+  const onStationsLoadedRef = useRef(onStationsLoaded);
+  useEffect(() => {
+    onStationsLoadedRef.current = onStationsLoaded;
+  }, [onStationsLoaded]);
 
   const fetchStations = useCallback(async (): Promise<void> => {
     if (!map) return;
@@ -216,6 +225,7 @@ function WeatherStationsLayer({
     try {
       const data = await graphqlClient.request<StationsResponse>(STATIONS_QUERY);
       setStations(data.observationStations);
+      onStationsLoadedRef.current?.(data.observationStations);
     } catch (error) {
       if (import.meta.env.DEV) {
         console.error('Error fetching weather stations:', error);

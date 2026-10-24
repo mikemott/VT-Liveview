@@ -105,6 +105,20 @@ describe('WeatherStationsLayer', () => {
     expect(ref.current).toBeNull();
   });
 
+  it('reports loaded stations so a shared selection can be restored (VTL-52)', async () => {
+    const onStationsLoaded = vi.fn();
+    render(
+      <WeatherStationsLayer
+        map={fake.asMap()}
+        visible
+        globalPopupRef={popupRef()}
+        onStationsLoaded={onStationsLoaded}
+      />,
+    );
+    await waitFor(() => expect(onStationsLoaded).toHaveBeenCalledTimes(1));
+    expect(onStationsLoaded.mock.calls[0]![0]).toHaveLength(2);
+  });
+
   it('calls onStationClick with the clicked station', async () => {
     const onStationClick = vi.fn();
     render(

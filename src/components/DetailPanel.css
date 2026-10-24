@@ -126,3 +126,9 @@
 .detail-panel::-webkit-scrollbar-thumb:hover {
   background: var(--color-vermont-tan);
 }
+
+/* Share sits next to the close button (VTL-52) */
+.detail-panel-share {
+  margin-left: auto;
+  margin-right: var(--space-3);
+}
