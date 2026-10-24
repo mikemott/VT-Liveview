@@ -1,5 +1,10 @@
-import { describe, expect, it, vi } from 'vitest';
-import { createGeolocateControl, createScaleControl } from '../mapControls';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import {
+  BLOCKED_LOCATION_TITLE,
+  createGeolocateControl,
+  createScaleControl,
+  explainBlockedGeolocation,
+} from '../mapControls';
 
 describe('createGeolocateControl', () => {
   it('explains a position outside the map area', () => {
@@ -26,5 +31,37 @@ describe('createGeolocateControl', () => {
 describe('createScaleControl', () => {
   it('uses imperial units', () => {
     expect(createScaleControl().options.unit).toBe('imperial');
+  });
+});
+
+describe('explainBlockedGeolocation', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  function setup(state: PermissionState): HTMLButtonElement {
+    vi.stubGlobal('navigator', {
+      permissions: {
+        query: vi.fn().mockResolvedValue({ state, addEventListener: vi.fn() }),
+      },
+    });
+    const container = document.createElement('div');
+    const button = document.createElement('button');
+    button.className = 'maplibregl-ctrl-geolocate';
+    button.title = 'Find my location';
+    container.appendChild(button);
+    explainBlockedGeolocation(container);
+    return button;
+  }
+
+  it('explains a previously blocked permission on the button', async () => {
+    const button = setup('denied');
+    await vi.waitFor(() => expect(button.title).toBe(BLOCKED_LOCATION_TITLE));
+    expect(button.getAttribute('aria-label')).toBe(BLOCKED_LOCATION_TITLE);
+  });
+
+  it('leaves the button alone when permission is not denied', async () => {
+    const button = setup('prompt');
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(button.title).toBe('Find my location');
   });
 });
