@@ -21,6 +21,17 @@ describe('parseUrlState', () => {
     });
   });
 
+  it('round-trips camera layers and camera selections with spaces and &', () => {
+    const hash = buildUrlHash({
+      view: { zoom: 12, lat: 44.21, lng: -72.58 },
+      layers: new Set(['trafficCameras'] as const),
+      selection: { type: 'camera', id: 'VT-108 A & B' },
+    });
+    expect(hash).toBe('#map=12/44.21/-72.58&layers=cameras&sel=camera:VT-108%20A%20%26%20B');
+    expect(parseUrlState(hash).selection).toEqual({ type: 'camera', id: 'VT-108 A & B' });
+    expect(parseUrlState('#sel=camera:<img>').selection).toBeUndefined();
+  });
+
   it('treats an empty layers list as "all off" and ignores unknown keys', () => {
     expect(parseUrlState('#layers=').layers?.size).toBe(0);
     expect([...(parseUrlState('#layers=bogus,beaches').layers ?? [])]).toEqual(['beachSites']);

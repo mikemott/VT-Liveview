@@ -6,6 +6,8 @@ import TravelLayer from './components/TravelLayer';
 import WeatherStationsLayer from './components/WeatherStationsLayer';
 import SkiLayer from './components/SkiLayer';
 import TrafficFlowLayer from './components/TrafficFlowLayer';
+import CameraLayer from './components/CameraLayer';
+import type { TrafficCamera } from './services/cameraApi';
 import CreemeeLayer from './components/CreemeeLayer';
 import CampingLayer from './components/CampingLayer';
 import CampingAreasLayer from './components/CampingAreasLayer';
@@ -153,6 +155,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
       creemeeStands: false, // Off by default - user can enable manually (was null for auto-show)
       campingSites: false, // Off by default - user can enable manually
       beachSites: false, // Off by default - user can enable manually
+      trafficCameras: false, // Off by default (VTL-56)
     };
     const fromUrl = initialUrlState.layers;
     if (!fromUrl) return defaults;
@@ -854,6 +857,8 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
     switch (detailPanelContent?.type) {
       case 'station':
         return { type: 'station', id: detailPanelContent.data.id };
+      case 'camera':
+        return { type: 'camera', id: detailPanelContent.data.id };
       case 'alert':
         return detailPanelContent.data.properties.id
           ? { type: 'alert', id: detailPanelContent.data.properties.id }
@@ -867,7 +872,16 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
 
   const activeLayers = useMemo((): Set<LayerId> => {
     const on = new Set<LayerId>();
-    (['weatherStations', 'skiResorts', 'creemeeStands', 'campingSites', 'beachSites'] as const)
+    (
+      [
+        'weatherStations',
+        'skiResorts',
+        'creemeeStands',
+        'campingSites',
+        'beachSites',
+        'trafficCameras',
+      ] as const
+    )
       .filter((id) => isLayerVisible(id))
       .forEach((id) => on.add(id));
     if (showTrafficFlow) on.add('trafficFlow');
@@ -926,6 +940,20 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
     if (station) setDetailPanelContent({ type: 'station', data: station });
   }, []);
 
+  // Traffic cameras (VTL-56): latest list for search, and shared-link restore
+  const [cameras, setCameras] = useState<TrafficCamera[]>([]);
+  const handleCamerasLoaded = useCallback((loaded: TrafficCamera[]): void => {
+    setCameras(loaded);
+    const pending = pendingSelection.current;
+    if (pending?.type !== 'camera') return;
+    pendingSelection.current = undefined;
+    const camera = loaded.find((c) => c.id === pending.id);
+    if (camera) setDetailPanelContent({ type: 'camera', data: camera });
+  }, []);
+  const handleCameraClick = useCallback((camera: TrafficCamera): void => {
+    setDetailPanelContent({ type: 'camera', data: camera });
+  }, []);
+
   // Opening something else (or closing the panel) drops an unresolved selection
   const closeDetailPanel = useCallback((): void => {
     pendingSelection.current = undefined;
@@ -958,7 +986,11 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
   // ===========================================================================
 
   const [searchActive, setSearchActive] = useState(false);
-  const { items: searchItems, loading: searchLoading } = useSearchItems(searchActive, stations);
+  const { items: searchItems, loading: searchLoading } = useSearchItems(
+    searchActive,
+    stations,
+    cameras,
+  );
 
   const handleSearchSelect = useCallback(
     (item: SearchItem): void => {
@@ -984,6 +1016,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         creemee: 'creemeeStands',
         campground: 'campingSites',
         station: 'weatherStations',
+        camera: 'trafficCameras',
       };
       const layer = layerFor[item.kind];
       if (layer) setLayerVisibility((prev) => ({ ...prev, [layer]: true }));
@@ -991,9 +1024,13 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         const station = stations.find((s) => `station:${s.id}` === item.id);
         if (station) setDetailPanelContent({ type: 'station', data: station });
       }
+      if (item.kind === 'camera') {
+        const camera = cameras.find((c) => `camera:${c.id}` === item.id);
+        if (camera) setDetailPanelContent({ type: 'camera', data: camera });
+      }
       if (isMobile) setControlsPanelOpen(false);
     },
-    [isMobile, stations],
+    [isMobile, stations, cameras],
   );
 
   const handleShare = useCallback(async (): Promise<void> => {
@@ -1110,6 +1147,8 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
               isDark={isDark}
               showWeatherStations={isLayerVisible('weatherStations')}
               onToggleWeatherStations={toggleWeatherStations}
+              showCameras={isLayerVisible('trafficCameras')}
+              onToggleCameras={() => toggleLayer('trafficCameras')}
               showSkiResorts={isLayerVisible('skiResorts')}
               onToggleSkiResorts={toggleSkiResorts}
               showCreemeeStands={isLayerVisible('creemeeStands')}
@@ -1176,6 +1215,16 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
           {/* Creemee Stands Layer */}
           {mapLoaded && (
             <CreemeeLayer map={map.current} visible={isLayerVisible('creemeeStands')} />
+          )}
+
+          {/* Traffic Cameras Layer (VTL-56) */}
+          {mapLoaded && (
+            <CameraLayer
+              map={map.current}
+              visible={isLayerVisible('trafficCameras')}
+              onCameraClick={handleCameraClick}
+              onCamerasLoaded={handleCamerasLoaded}
+            />
           )}
 
           {/* Traffic Flow Layer */}
