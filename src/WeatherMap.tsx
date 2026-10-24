@@ -13,6 +13,9 @@ import BeachLayer from './components/BeachLayer';
 import CurrentWeather from './components/CurrentWeather';
 import RadarOverlay from './components/RadarOverlay';
 import ThemeToggle from './components/ThemeToggle';
+import SearchBox from './components/SearchBox';
+import { useSearchItems } from './hooks/useSearchItems';
+import type { SearchItem } from './utils/search';
 import DetailPanel from './components/DetailPanel';
 import { getMapStyle, isDarkMode } from './utils/mapStyles';
 import {
@@ -912,11 +915,14 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
   }, [mapLoaded, alertsLoaded, alerts, handleAlertClick]);
 
   // Restore a station selection once stations have loaded
-  const handleStationsLoaded = useCallback((stations: ObservationStation[]): void => {
+  // Latest stations, for search (VTL-53)
+  const [stations, setStations] = useState<ObservationStation[]>([]);
+  const handleStationsLoaded = useCallback((loaded: ObservationStation[]): void => {
+    setStations(loaded);
     const pending = pendingSelection.current;
     if (pending?.type !== 'station') return;
     pendingSelection.current = undefined;
-    const station = stations.find((s) => s.id === pending.id);
+    const station = loaded.find((s) => s.id === pending.id);
     if (station) setDetailPanelContent({ type: 'station', data: station });
   }, []);
 
@@ -946,6 +952,49 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
+
+  // ===========================================================================
+  // Search (VTL-53)
+  // ===========================================================================
+
+  const [searchActive, setSearchActive] = useState(false);
+  const { items: searchItems, loading: searchLoading } = useSearchItems(searchActive, stations);
+
+  const handleSearchSelect = useCallback(
+    (item: SearchItem): void => {
+      const m = map.current;
+      if (!m) return;
+      if (item.bounds) {
+        const [w, s, e, n] = item.bounds;
+        m.fitBounds(
+          [
+            [w, s],
+            [e, n],
+          ],
+          { padding: isMobile ? 24 : 60, maxZoom: 13, duration: 1200 },
+        );
+      } else {
+        m.flyTo({ center: [item.lng, item.lat], zoom: Math.max(m.getZoom(), 13), duration: 1200 });
+      }
+
+      // Make sure the found thing is actually visible / open
+      const layerFor: Partial<Record<SearchItem['kind'], string>> = {
+        ski: 'skiResorts',
+        beach: 'beachSites',
+        creemee: 'creemeeStands',
+        campground: 'campingSites',
+        station: 'weatherStations',
+      };
+      const layer = layerFor[item.kind];
+      if (layer) setLayerVisibility((prev) => ({ ...prev, [layer]: true }));
+      if (item.kind === 'station') {
+        const station = stations.find((s) => `station:${s.id}` === item.id);
+        if (station) setDetailPanelContent({ type: 'station', data: station });
+      }
+      if (isMobile) setControlsPanelOpen(false);
+    },
+    [isMobile, stations],
+  );
 
   const handleShare = useCallback(async (): Promise<void> => {
     const result = await shareLink(window.location.href, document.title);
@@ -1030,6 +1079,14 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
             </button>
           )}
         </div>
+
+        <SearchBox
+          items={searchItems}
+          onSelect={handleSearchSelect}
+          onActivate={() => setSearchActive(true)}
+          loadingMore={searchLoading}
+          isDark={isDark}
+        />
 
         <div className="controls-panel-scroll">
           {/* Radar Controls */}
