@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import SeasonalRoadsLayer, { SEASONAL_SOURCE_ID } from '../SeasonalRoadsLayer';
 import SeasonalRoadDetail from '../detail-views/SeasonalRoadDetail';
 import { SEASONAL_ROADS } from '../../data/seasonalRoads';
@@ -90,6 +90,21 @@ describe('SeasonalRoadsLayer', () => {
       expect.objectContaining({ id: 'hazens-notch' }),
       expect.objectContaining({ status: 'seasonal' }),
     );
+  });
+
+  it('updates statuses when the Vermont date rolls over', async () => {
+    vi.useFakeTimers();
+    try {
+      // 23:55 EST on Nov 14: Smugglers' Notch closes Nov 15
+      vi.setSystemTime(new Date('2026-11-15T04:55:00Z'));
+      const fake = new FakeMap();
+      render(<SeasonalRoadsLayer {...baseProps} map={fake.asMap()} visible />);
+      expect(statusOf(fake, 'smugglers-notch')).toBe('closingSoon');
+      await act(() => vi.advanceTimersByTimeAsync(10 * 60 * 1000));
+      expect(statusOf(fake, 'smugglers-notch')).toBe('seasonal');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('re-adds its layers after a style swap', () => {

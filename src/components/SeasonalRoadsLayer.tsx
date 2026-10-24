@@ -6,12 +6,14 @@
  * so people learn where they are before winter. A 511 closure on the road
  * overrides the calendar.
  */
-import { useEffect, useMemo, useRef, memo } from 'react';
+import { useEffect, useMemo, useRef, useState, memo } from 'react';
+import { useVisibleInterval } from '../hooks/useVisibleInterval';
 import type { ExpressionSpecification, GeoJSONSource, MapLayerMouseEvent } from 'maplibre-gl';
 import { SEASONAL_ROADS, type SeasonalRoad } from '../data/seasonalRoads';
 import {
   buildSeasonalRoadsGeoJSON,
   getSeasonalStatuses,
+  vermontDateKey,
   SEASONAL_STATUS_COLORS,
   type ClosurePoint,
   type RoadStatus,
@@ -25,6 +27,9 @@ const OPEN_ID = 'seasonal-roads-open';
 /** Wide transparent line so the thin roads are easy to tap */
 const HIT_ID = 'seasonal-roads-hit';
 const LAYER_IDS = [CASING_ID, OPEN_ID, CLOSED_ID, HIT_ID] as const;
+
+/** How often to check whether the Vermont date has changed */
+const DAY_CHECK_MS = 10 * 60 * 1000;
 
 const CLOSED_STATUSES = ['closed511', 'seasonal', 'closingSoon'];
 
@@ -61,7 +66,15 @@ function SeasonalRoadsLayer({
   onRoadClick,
   now,
 }: SeasonalRoadsLayerProps) {
-  const statuses = useMemo(() => getSeasonalStatuses(closures, now), [closures, now]);
+  // Re-evaluate when the Vermont date changes (a tab left open overnight)
+  const [dayKey, setDayKey] = useState(() => vermontDateKey(new Date()));
+  useVisibleInterval(() => setDayKey(vermontDateKey(new Date())), DAY_CHECK_MS);
+  const statuses = useMemo(
+    () => getSeasonalStatuses(closures, now ?? new Date()),
+    // dayKey: recompute at the day boundary even if closures are unchanged
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [closures, now, dayKey],
+  );
   const geojson = useMemo(() => buildSeasonalRoadsGeoJSON(SEASONAL_ROADS, statuses), [statuses]);
 
   // Latest values for the click handler without re-adding layers

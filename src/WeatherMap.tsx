@@ -618,6 +618,9 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
           if (alertsRef.current.length > 0 && addAlertsToMapRef.current) {
             addAlertsToMapRef.current(alertsRef.current);
           }
+
+          // Same as a theme swap: layers keyed on mapStyleVersion re-add themselves
+          setMapStyleVersion((v) => v + 1);
         });
       }
     });
@@ -938,6 +941,12 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
   const handleSeasonalRoadClick = useCallback((road: SeasonalRoad, status: RoadStatus): void => {
     setDetailPanelContent({ type: 'seasonalRoad', data: road, status });
   }, []);
+  // An open road panel follows 511 closure changes
+  const panelContent = useMemo((): DetailPanelContent => {
+    if (detailPanelContent?.type !== 'seasonalRoad') return detailPanelContent;
+    const status = getSeasonalStatuses(closures).get(detailPanelContent.data.id);
+    return status ? { ...detailPanelContent, status } : detailPanelContent;
+  }, [detailPanelContent, closures]);
   /** Open a road's panel with its current status (search, shared links). */
   const openSeasonalRoad = useCallback((id: string): void => {
     const road = SEASONAL_ROADS.find((r) => r.id === id);
@@ -1344,7 +1353,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
 
       {/* Detail Panel */}
       <DetailPanel
-        content={detailPanelContent}
+        content={panelContent}
         onClose={closeDetailPanel}
         onShare={() => void handleShare()}
         isDark={isDark}
