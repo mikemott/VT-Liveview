@@ -37,8 +37,7 @@ export default function SeasonalRoadDetail({ road, status, isDark }: SeasonalRoa
       <div className="detail-section">
         <div className="section-label">Typical winter closure</div>
         <div className="section-value">
-          {formatMonthDay(road.season.start)} – {formatMonthDay(road.season.end)} ({road.seasonText}
-          )
+          {`${formatMonthDay(road.season.start)} – ${formatMonthDay(road.season.end)} (${road.seasonText})`}
         </div>
         <p className="seasonal-caveat">
           Dates change every year with the weather. Check with {road.owner} or Vermont 511 before
