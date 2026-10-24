@@ -18,6 +18,9 @@ describe('parseEssTime', () => {
     expect(parseEssTime('2026-10-24T15:00:00-04:00', CAPTURED)).toBe('2026-10-24T19:00:00.000Z');
     expect(parseEssTime('2026-04-14T10:24:00-04:00', CAPTURED)).toBe('2026-04-14T14:24:00.000Z');
   });
+  it('reads a time without an offset as UTC', () => {
+    expect(parseEssTime('2026-10-24T18:00:00', CAPTURED)).toBe('2026-10-24T18:00:00.000Z');
+  });
   it('rejects junk', () => {
     expect(parseEssTime(null)).toBeNull();
     expect(parseEssTime('yesterday')).toBeNull();

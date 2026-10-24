@@ -61,9 +61,10 @@ export function parseEssTime(value: string | null, now: number = Date.now()): st
     ? /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(Z|[+-]\d{2}:\d{2})?$/.exec(value)
     : null;
   if (!m || !value) return null;
-  const [, y, mo, d, h, mi, s] = m;
+  const [, y, mo, d, h, mi, s, offset] = m;
   const digitsAsUtc = Date.UTC(+y!, +mo! - 1, +d!, +h!, +mi!, +s!);
-  const stated = Date.parse(value);
+  // No offset: UTC, not the server's local zone (which Date.parse would use)
+  const stated = offset ? Date.parse(value) : digitsAsUtc;
   if (Number.isNaN(digitsAsUtc)) return null;
   const at = !Number.isNaN(stated) && stated <= now + FUTURE_SLACK_MS ? stated : digitsAsUtc;
   return new Date(at).toISOString();
