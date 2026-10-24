@@ -20,6 +20,7 @@ export const LAYER_KEYS = {
   camping: 'campingSites',
   beaches: 'beachSites',
   stargazing: 'stargazing',
+  cameras: 'trafficCameras',
 } as const;
 
 export type LayerKey = keyof typeof LAYER_KEYS;
@@ -33,6 +34,7 @@ export interface MapView {
 
 export type Selection =
   | { type: 'station'; id: string }
+  | { type: 'camera'; id: string }
   | { type: 'alert'; id: string }
   | { type: 'location'; lat: number; lng: number };
 
@@ -53,6 +55,8 @@ const inRange = (n: number, [min, max]: [number, number]): boolean =>
 
 /** Ids from upstream feeds; keep them to a safe, URL-friendly character set. */
 const SAFE_ID = /^[A-Za-z0-9._:-]{1,200}$/;
+/** Camera ids are human names ("I-89 SB BERLIN", "A & B"): also allow spaces, & ' ( ) /. */
+const SAFE_CAMERA_ID = /^[A-Za-z0-9._:\-&'()/ ]{1,200}$/;
 
 function parseLatLng(text: string, separator: string): { lat: number; lng: number } | null {
   const parts = text.split(separator);
@@ -93,6 +97,8 @@ export function parseUrlState(hash: string): UrlState {
     const value = sel.slice(colon + 1);
     if ((kind === 'station' || kind === 'alert') && SAFE_ID.test(value)) {
       state.selection = { type: kind, id: value };
+    } else if (kind === 'camera' && SAFE_CAMERA_ID.test(value)) {
+      state.selection = { type: 'camera', id: value };
     } else if (kind === 'pt') {
       const point = parseLatLng(value, ',');
       if (point) state.selection = { type: 'location', ...point };
@@ -118,7 +124,7 @@ export function buildUrlHash(state: {
   if (selection) {
     if (selection.type === 'location') {
       parts.push(`sel=pt:${round(selection.lat, 5)},${round(selection.lng, 5)}`);
-    } else if (SAFE_ID.test(selection.id)) {
+    } else if ((selection.type === 'camera' ? SAFE_CAMERA_ID : SAFE_ID).test(selection.id)) {
       parts.push(`sel=${selection.type}:${encodeURIComponent(selection.id)}`);
     }
   }

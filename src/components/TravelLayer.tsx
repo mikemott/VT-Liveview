@@ -8,6 +8,7 @@ import {
   ChevronDown,
   ChevronRight,
   Thermometer,
+  Video,
   Mountain,
   IceCream,
   Star,
@@ -47,6 +48,9 @@ interface TravelLayerProps {
   isDark: boolean;
   showWeatherStations: boolean;
   onToggleWeatherStations: () => void;
+  /** Traffic cameras chip (VTL-56); omitted props hide the chip. */
+  showCameras?: boolean;
+  onToggleCameras?: () => void;
   showSkiResorts: boolean;
   onToggleSkiResorts: () => void;
   showCreemeeStands: boolean;
@@ -116,6 +120,8 @@ function TravelLayer({
   isDark,
   showWeatherStations,
   onToggleWeatherStations,
+  showCameras = false,
+  onToggleCameras,
   showSkiResorts,
   onToggleSkiResorts,
   showCreemeeStands,
@@ -630,6 +636,21 @@ function TravelLayer({
                 </span>
                 Traffic
               </button>
+
+              {/* Traffic cameras chip (VTL-56) */}
+              {onToggleCameras && (
+                <button
+                  className={`filter-chip ${showCameras ? 'active' : ''}`}
+                  onClick={onToggleCameras}
+                  aria-pressed={showCameras}
+                  data-chip-type="cameras"
+                >
+                  <span className="chip-icon">
+                    <Video size={14} strokeWidth={2.5} />
+                  </span>
+                  Cameras
+                </button>
+              )}
 
               {/* Incident type chips */}
               {(Object.keys(activeFilters) as IncidentType[]).map((type) => {

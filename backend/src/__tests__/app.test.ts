@@ -6,6 +6,7 @@ import type { FastifyInstance } from 'fastify';
 import { http, HttpResponse } from 'msw';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { server } from '../test/msw.js';
+import { loadText } from '../__fixtures__/load.js';
 
 const mocks = vi.hoisted(() => ({
   getDb: vi.fn(),
@@ -399,5 +400,77 @@ describe('startup', () => {
     vi.resetModules();
     const { buildServer } = await import('../app.js');
     await expect(buildServer({ logger: false })).rejects.toThrow('Environment validation failed');
+  });
+});
+
+describe('traffic cameras (VTL-56)', () => {
+  const statusXml = loadText('c2c/cctvStatus.xml');
+  const snapshotXml = loadText('c2c/cctvSnapshot.xml');
+  const useC2C = (fail = false) =>
+    server.use(
+      http.get(VT511, ({ request }) => {
+        if (fail) return new HttpResponse(null, { status: 503 });
+        const type = new URL(request.url).searchParams.get('dataTypes');
+        return HttpResponse.text(type === 'cctvStatusData' ? statusXml : snapshotXml);
+      }),
+    );
+
+  it('lists cameras', async () => {
+    useC2C();
+    const app = await loadApp();
+    const res = await app.inject({ method: 'GET', url: '/api/cameras' });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['cache-control']).toBe('public, max-age=300');
+    const body = res.json<{ cameras: { id: string }[] }>();
+    expect(body.cameras.map((c) => c.id)).toEqual(['I-89 SB BERLIN', 'VT-108 SMUGGLERS & NOTCH']);
+  });
+
+  it('serves a snapshot as image/jpeg, with ids that need URL encoding', async () => {
+    useC2C();
+    const app = await loadApp();
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/cameras/${encodeURIComponent('I-89 SB BERLIN')}/snapshot.jpg`,
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['content-type']).toBe('image/jpeg');
+    expect(res.headers['last-modified']).toBe('Sat, 24 Oct 2026 18:19:36 GMT');
+    expect(res.rawPayload.subarray(0, 2)).toEqual(Buffer.from([0xff, 0xd8]));
+  });
+
+  it('omits Last-Modified when the capture time is unknown', async () => {
+    server.use(
+      http.get(VT511, () =>
+        HttpResponse.text(
+          snapshotXml.replace(/<timestamp>[^<]*<\/timestamp>/g, '<timestamp></timestamp>'),
+        ),
+      ),
+    );
+    const app = await loadApp();
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/cameras/${encodeURIComponent('I-89 SB BERLIN')}/snapshot.jpg`,
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['last-modified']).toBeUndefined();
+  });
+
+  it('returns 404 for a camera without a current image', async () => {
+    useC2C();
+    const app = await loadApp();
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/cameras/${encodeURIComponent('VT-108 SMUGGLERS & NOTCH')}/snapshot.jpg`,
+    });
+    expect(res.statusCode).toBe(404);
+  });
+
+  it('returns 502 when the upstream portal is down', async () => {
+    useC2C(true);
+    const app = await loadApp();
+    expect((await app.inject({ method: 'GET', url: '/api/cameras' })).statusCode).toBe(502);
+    expect(
+      (await app.inject({ method: 'GET', url: '/api/cameras/x/snapshot.jpg' })).statusCode,
+    ).toBe(502);
   });
 });

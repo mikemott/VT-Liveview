@@ -1,0 +1,31 @@
+/* Traffic camera markers (VTL-56). #475569 keeps the white icon >= 4.5:1. */
+.camera-marker {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #475569;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.camera-marker:hover,
+.camera-marker:focus-visible {
+  transform: scale(1.12);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+.camera-marker:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 2px;
+}
+
+.camera-marker.offline {
+  opacity: 0.55;
+}
