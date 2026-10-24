@@ -31,7 +31,9 @@ const CAMERA_ICON = `
 function createCameraMarker(camera: TrafficCamera): HTMLDivElement {
   const el = document.createElement('div');
   el.className = `camera-marker${camera.online ? '' : ' offline'}`;
-  el.innerHTML = CAMERA_ICON;
+  // MapLibre positions `el` with a transform; visuals and hover zoom live on
+  // the inner body so they never fight that transform (VTL-63)
+  el.innerHTML = `<span class="camera-marker-body">${CAMERA_ICON}</span>`;
   // Keyboard and screen-reader access, like the station markers
   el.setAttribute('role', 'button');
   el.tabIndex = 0;

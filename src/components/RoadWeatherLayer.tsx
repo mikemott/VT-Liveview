@@ -38,8 +38,13 @@ function createRoadWeatherMarker(station: RoadWeatherStation): HTMLDivElement {
   ]
     .filter(Boolean)
     .join(' ');
+  // MapLibre positions `el` with a transform; visuals and hover zoom live on
+  // the inner body so they never fight that transform (VTL-63).
   // textContent: no markup from the feed reaches innerHTML
-  el.textContent = temp ? `${temp.value}°` : '–';
+  const body = document.createElement('span');
+  body.className = 'road-weather-marker-body';
+  body.textContent = temp ? `${temp.value}°` : '–';
+  el.appendChild(body);
   el.setAttribute('role', 'button');
   el.tabIndex = 0;
   const reading = temp
