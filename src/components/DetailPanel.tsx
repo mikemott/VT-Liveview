@@ -4,7 +4,7 @@
  */
 
 import { useEffect } from 'react';
-import { X } from 'lucide-react';
+import { Share2, X } from 'lucide-react';
 import type { DetailPanelContent } from '../types';
 import AlertDetail from './detail-views/AlertDetail';
 import IncidentDetail from './detail-views/IncidentDetail';
@@ -15,10 +15,12 @@ import './DetailPanel.css';
 interface DetailPanelProps {
   content: DetailPanelContent;
   onClose: () => void;
+  /** Share a link to this view (the URL already includes the selection). */
+  onShare?: () => void;
   isDark: boolean;
 }
 
-export default function DetailPanel({ content, onClose, isDark }: DetailPanelProps) {
+export default function DetailPanel({ content, onClose, onShare, isDark }: DetailPanelProps) {
   const isOpen = content !== null;
 
   // Close on Escape key
@@ -97,6 +99,18 @@ export default function DetailPanel({ content, onClose, isDark }: DetailPanelPro
       <div className={`detail-panel ${isOpen ? 'open' : ''} ${isDark ? 'dark' : ''}`}>
         <div className="detail-panel-header">
           <h2>{getTitle()}</h2>
+          {/* Incidents aren't in the shareable URL yet, so no share button for them */}
+          {onShare && content?.type !== 'incident' && (
+            <button
+              type="button"
+              className="detail-panel-close detail-panel-share"
+              onClick={onShare}
+              aria-label="Share a link to this"
+              title="Share a link to this"
+            >
+              <Share2 size={18} />
+            </button>
+          )}
           <button className="detail-panel-close" onClick={onClose} aria-label="Close detail panel">
             <X size={20} />
           </button>

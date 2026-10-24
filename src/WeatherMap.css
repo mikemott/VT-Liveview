@@ -21,6 +21,32 @@
   top: var(--space-8);
   right: var(--space-8);
   z-index: var(--z-dropdown);
+  /* Stacked: side by side it would slide under the CurrentWeather card */
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-3);
+}
+
+/* Share button: same look as the theme toggle (VTL-52) */
+.map-share-button {
+  width: var(--button-height);
+  height: var(--button-height);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-vermont-green-subtle);
+  background: var(--gradient-panel);
+  box-shadow: var(--shadow-lg);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-vermont-green);
+  transition: var(--transition-base);
+}
+
+.map-share-button:hover {
+  border-color: var(--color-vermont-green-lighter);
+  box-shadow: var(--shadow-xl);
+  transform: translateY(-1px);
 }
 
 /* CurrentWeather takes the top-right corner on mobile and would cover the toggle */

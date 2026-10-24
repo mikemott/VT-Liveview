@@ -41,6 +41,30 @@ describe('DetailPanel', () => {
     expect(container.querySelector('.detail-view')).not.toBeNull();
   });
 
+  it('offers a share button for stations but not incidents (VTL-52)', () => {
+    const onShare = vi.fn();
+    const { rerender } = render(
+      <DetailPanel
+        content={{ type: 'station', data: makeStation() }}
+        onClose={vi.fn()}
+        onShare={onShare}
+        isDark={false}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Share a link to this' }));
+    expect(onShare).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <DetailPanel
+        content={{ type: 'incident', data: makeDetailIncident() }}
+        onClose={vi.fn()}
+        onShare={onShare}
+        isDark={false}
+      />,
+    );
+    expect(screen.queryByRole('button', { name: 'Share a link to this' })).toBeNull();
+  });
+
   it('closes via the close button, the backdrop and Escape', () => {
     const onClose = vi.fn();
     const { container } = render(

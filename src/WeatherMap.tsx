@@ -20,13 +20,21 @@ import {
   createScaleControl,
   explainBlockedGeolocation,
 } from './utils/mapControls';
+import {
+  buildUrlHash,
+  parseUrlState,
+  type LayerId,
+  type Selection,
+  type UrlState,
+} from './utils/urlState';
+import { shareLink, shareResultMessage } from './utils/share';
 import type { MapLibreMap, DetailPanelContent, AlertFeature, ObservationStation } from './types';
 import { VERMONT, INTERVALS } from './utils/constants';
 import { useIsMobile } from './hooks/useIsMobile';
 import { useSeasonalLayers } from './hooks/useSeasonalLayers';
 import { useVisibleInterval } from './hooks/useVisibleInterval';
 import { SEASONAL_LAYERS } from './config/seasonalLayers';
-import { Menu, X, AlertTriangle, AlertCircle, Info } from 'lucide-react';
+import { Menu, X, AlertTriangle, AlertCircle, Info, Share2 } from 'lucide-react';
 import { fetchMergedAlerts, type MergedAlertData } from './services/graphqlClient';
 
 // =============================================================================
@@ -91,11 +99,19 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
   const globalPopupRef = useRef<maplibregl.Popup | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [currentZoom, setCurrentZoom] = useState(VERMONT_CENTER.zoom);
+  // Map view, layers and selection from a shared link (read once, VTL-52)
+  const [initialUrlState] = useState<UrlState>(() => parseUrlState(window.location.hash));
+  // Stable (from state): the map is created from this; later URL changes go through hashchange
+  const initialView = initialUrlState.view ?? VERMONT_CENTER;
+  // A selection from the link waits here until its data has loaded
+  const pendingSelection = useRef<Selection | undefined>(initialUrlState.selection);
+  const [currentZoom, setCurrentZoom] = useState(initialView.zoom);
   const [isDark, setIsDark] = useState(() => isDarkMode());
   const [manualThemeOverride, setManualThemeOverride] = useState(false);
   const [mapStyleVersion, setMapStyleVersion] = useState(0); // Track map style changes
   const [alerts, setAlerts] = useState<AlertFeature[]>([]);
+  // True after the first alerts fetch settles (a shared alert link waits for it)
+  const [alertsLoaded, setAlertsLoaded] = useState(false);
   // Alerts the user dismissed; kept across refetches so they don't reappear
   const [dismissedAlertKeys, setDismissedAlertKeys] = useState<ReadonlySet<string>>(
     () => new Set(),
@@ -122,20 +138,30 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
   }, [visibleAlerts]);
 
   const [mapCenter, setMapCenter] = useState<MapCenterState>({
-    lat: VERMONT_CENTER.lat,
-    lng: VERMONT_CENTER.lng,
+    lat: initialView.lat,
+    lng: initialView.lng,
   });
   // Unified layer visibility state
   // null = auto (follow season), true = forced on, false = forced off
-  const [layerVisibility, setLayerVisibility] = useState<Record<string, boolean | null>>({
-    weatherStations: true, // Core layer - always on by default
-    skiResorts: false, // Off by default - user can enable manually
-    creemeeStands: false, // Off by default - user can enable manually (was null for auto-show)
-    campingSites: false, // Off by default - user can enable manually
-    beachSites: false, // Off by default - user can enable manually
+  const [layerVisibility, setLayerVisibility] = useState<Record<string, boolean | null>>(() => {
+    const defaults: Record<string, boolean | null> = {
+      weatherStations: true, // Core layer - always on by default
+      skiResorts: false, // Off by default - user can enable manually
+      creemeeStands: false, // Off by default - user can enable manually (was null for auto-show)
+      campingSites: false, // Off by default - user can enable manually
+      beachSites: false, // Off by default - user can enable manually
+    };
+    const fromUrl = initialUrlState.layers;
+    if (!fromUrl) return defaults;
+    // A shared link lists exactly the layers that are on
+    return Object.fromEntries(Object.keys(defaults).map((id) => [id, fromUrl.has(id as LayerId)]));
   });
-  const [showStargazing, setShowStargazing] = useState(false);
-  const [showTrafficFlow, setShowTrafficFlow] = useState(true);
+  const [showStargazing, setShowStargazing] = useState(
+    () => initialUrlState.layers?.has('stargazing') ?? false,
+  );
+  const [showTrafficFlow, setShowTrafficFlow] = useState(
+    () => initialUrlState.layers?.has('trafficFlow') ?? true,
+  );
 
   // Camping sub-filter state
   const [showCampgrounds, setShowCampgrounds] = useState(true);
@@ -470,6 +496,8 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
       const mergedAlerts = await fetchMergedAlerts('VT');
       // The map layer follows visibleAlerts (see the sync effect below)
       setAlerts(mergedAlerts.map(mergedAlertToFeature));
+      // Only after success: a failed fetch must not discard a pending shared alert
+      setAlertsLoaded(true);
     } catch (error) {
       if (import.meta.env.DEV) {
         console.error('Error fetching merged alerts:', error);
@@ -514,8 +542,8 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
       map.current = new maplibregl.Map({
         container: mapContainer.current,
         style: getMapStyle(isDark),
-        center: [VERMONT_CENTER.lng, VERMONT_CENTER.lat],
-        zoom: VERMONT_CENTER.zoom,
+        center: [initialView.lng, initialView.lat],
+        zoom: initialView.zoom,
         minZoom: 5.5, // Allow zooming out to see regional weather patterns
         maxZoom: 18, // Allow detailed street-level zoom
         maxBounds: [
@@ -690,7 +718,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         map.current = null;
       }
     };
-  }, [fetchAlertsFromBackend, isDark]);
+  }, [fetchAlertsFromBackend, isDark, initialView]);
 
   // Check theme based on daylight hours and update automatically (only if user hasn't manually overridden)
   useEffect(() => {
@@ -814,6 +842,117 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
     setDetailPanelContent({ type: 'station', data: station });
   }, []);
 
+  // ===========================================================================
+  // Shareable URL (VTL-52)
+  // ===========================================================================
+
+  // What the detail panel shows, as a URL selection (incidents aren't shareable yet)
+  const currentSelection = useMemo((): Selection | undefined => {
+    switch (detailPanelContent?.type) {
+      case 'station':
+        return { type: 'station', id: detailPanelContent.data.id };
+      case 'alert':
+        return detailPanelContent.data.properties.id
+          ? { type: 'alert', id: detailPanelContent.data.properties.id }
+          : undefined;
+      case 'location':
+        return { type: 'location', ...detailPanelContent.coordinates };
+      default:
+        return undefined;
+    }
+  }, [detailPanelContent]);
+
+  const activeLayers = useMemo((): Set<LayerId> => {
+    const on = new Set<LayerId>();
+    (['weatherStations', 'skiResorts', 'creemeeStands', 'campingSites', 'beachSites'] as const)
+      .filter((id) => isLayerVisible(id))
+      .forEach((id) => on.add(id));
+    if (showTrafficFlow) on.add('trafficFlow');
+    if (showStargazing) on.add('stargazing');
+    return on;
+  }, [isLayerVisible, showTrafficFlow, showStargazing]);
+
+  // Keep the address bar in sync (replaceState: no history entries, no hashchange)
+  useEffect(() => {
+    if (!mapLoaded) return;
+    const timer = setTimeout(() => {
+      const hash = buildUrlHash({
+        view: { zoom: currentZoom, lat: mapCenter.lat, lng: mapCenter.lng },
+        layers: activeLayers,
+        // Keep a not-yet-resolved selection from the link in the URL
+        selection: currentSelection ?? pendingSelection.current,
+      });
+      if (hash !== window.location.hash) {
+        window.history.replaceState(
+          null,
+          '',
+          `${window.location.pathname}${window.location.search}${hash}`,
+        );
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [mapLoaded, currentZoom, mapCenter, activeLayers, currentSelection]);
+
+  // Restore a point or alert selection from the link once the map / alerts are ready
+  useEffect(() => {
+    const pending = pendingSelection.current;
+    if (!mapLoaded || !pending) return;
+    if (pending.type === 'location') {
+      pendingSelection.current = undefined;
+      setDetailPanelContent({
+        type: 'location',
+        coordinates: { lat: pending.lat, lng: pending.lng },
+      });
+    } else if (pending.type === 'alert' && alertsLoaded) {
+      pendingSelection.current = undefined;
+      const alert = alerts.find((a) => a.properties.id === pending.id);
+      // An expired alert is simply not opened
+      if (alert) handleAlertClick(alert);
+    }
+  }, [mapLoaded, alertsLoaded, alerts, handleAlertClick]);
+
+  // Restore a station selection once stations have loaded
+  const handleStationsLoaded = useCallback((stations: ObservationStation[]): void => {
+    const pending = pendingSelection.current;
+    if (pending?.type !== 'station') return;
+    pendingSelection.current = undefined;
+    const station = stations.find((s) => s.id === pending.id);
+    if (station) setDetailPanelContent({ type: 'station', data: station });
+  }, []);
+
+  // Opening something else (or closing the panel) drops an unresolved selection
+  const closeDetailPanel = useCallback((): void => {
+    pendingSelection.current = undefined;
+    setDetailPanelContent(null);
+  }, []);
+
+  // A pasted or edited link in the same tab: move the map and apply layers
+  useEffect(() => {
+    const onHashChange = (): void => {
+      const next = parseUrlState(window.location.hash);
+      if (next.view && map.current) {
+        map.current.jumpTo({ center: [next.view.lng, next.view.lat], zoom: next.view.zoom });
+      }
+      if (next.layers) {
+        const layers = next.layers;
+        setLayerVisibility((prev) =>
+          Object.fromEntries(Object.keys(prev).map((id) => [id, layers.has(id as LayerId)])),
+        );
+        setShowTrafficFlow(layers.has('trafficFlow'));
+        setShowStargazing(layers.has('stargazing'));
+      }
+      if (next.selection) pendingSelection.current = next.selection;
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
+  const handleShare = useCallback(async (): Promise<void> => {
+    const result = await shareLink(window.location.href, document.title);
+    const message = shareResultMessage(result);
+    if (message) showMapNotice(message);
+  }, [showMapNotice]);
+
   return (
     <div className={`weather-map-container ${isDark ? 'dark' : ''}`}>
       <div ref={mapContainer} className="map-container" />
@@ -858,6 +997,15 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
 
       {/* Standalone Theme Toggle */}
       <div className="standalone-theme-toggle">
+        <button
+          type="button"
+          className={`map-share-button ${isDark ? 'dark' : ''}`}
+          onClick={() => void handleShare()}
+          title="Share this view"
+          aria-label="Share this view"
+        >
+          <Share2 size={18} />
+        </button>
         <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
       </div>
 
@@ -934,6 +1082,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
               map={map.current}
               visible={isLayerVisible('weatherStations')}
               onStationClick={handleStationClick}
+              onStationsLoaded={handleStationsLoaded}
               globalPopupRef={globalPopupRef}
             />
           )}
@@ -1033,7 +1182,8 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
       {/* Detail Panel */}
       <DetailPanel
         content={detailPanelContent}
-        onClose={() => setDetailPanelContent(null)}
+        onClose={closeDetailPanel}
+        onShare={() => void handleShare()}
         isDark={isDark}
       />
     </div>
