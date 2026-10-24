@@ -1,0 +1,63 @@
+/*
+ * Road weather station markers (VTL-61): a square-cornered "road sign" pill
+ * with the pavement temperature, so they read differently from the round
+ * weather-station markers. All text colors keep >= 4.5:1 on their fills.
+ */
+.road-weather-marker {
+  min-width: 34px;
+  height: 22px;
+  padding: 0 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: 2px solid #ffffff;
+  background: #334155;
+  color: #ffffff;
+  font-family: var(--font-family, system-ui, sans-serif);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.road-weather-marker:hover,
+.road-weather-marker:focus-visible {
+  transform: scale(1.12);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+.road-weather-marker:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 2px;
+}
+
+/* Pavement 33–36 °F */
+.road-weather-marker.risk-nearFreezing {
+  background: #b45309;
+}
+
+/* Pavement at or below 32 °F */
+.road-weather-marker.risk-freezing {
+  background: #1d4ed8;
+}
+
+/* Ice / snow / frost reported on the surface */
+.road-weather-marker.risk-hazard {
+  background: #b91c1c;
+}
+
+/* Only an air temperature (no pavement sensor) */
+.road-weather-marker.air-only {
+  border-style: dashed;
+}
+
+.road-weather-marker.stale {
+  background: #64748b;
+  opacity: 0.6;
+}

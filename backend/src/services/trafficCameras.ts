@@ -10,12 +10,10 @@
  * base64 would not fit comfortably in the 256 MB Fly machine.
  */
 
-const C2C_BASE = 'https://nec-por.ne-compass.com/NEC.XmlDataPortal/api/c2c';
+import { cachedLoader, decodeXml, fetchC2C, micro, tag } from './c2c.js';
+
 const LIST_TTL_MS = 10 * 60 * 1000;
 const SNAPSHOT_TTL_MS = 2 * 60 * 1000;
-const FETCH_TIMEOUT_MS = 45_000;
-/** After a failed refresh, serve the stale value this long before retrying. */
-const RETRY_AFTER_ERROR_MS = 30_000;
 
 export interface TrafficCamera {
   id: string;
@@ -36,25 +34,6 @@ export interface CameraSnapshot {
 // ---------------------------------------------------------------------------
 // Parsing (exported for tests)
 // ---------------------------------------------------------------------------
-
-const decodeXml = (s: string): string =>
-  s
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'")
-    .replace(/&amp;/g, '&');
-
-function tag(block: string, name: string): string | null {
-  const m = new RegExp(`<${name}>([^<]*)</${name}>`).exec(block);
-  return m?.[1] !== undefined ? decodeXml(m[1].trim()) : null;
-}
-
-/** C2C coordinates are integer microdegrees, e.g. 44975151 → 44.975151 */
-function micro(value: string | null): number | null {
-  if (value === null || !/^-?\d+$/.test(value)) return null;
-  return Number(value) / 1e6;
-}
 
 export function parseCameraList(xml: string): TrafficCamera[] {
   const cameras: TrafficCamera[] = [];
@@ -142,63 +121,6 @@ export function parseSnapshots(xml: string): Map<string, CameraSnapshot> {
     out.set(decodeXml(rawId), { jpeg, takenAt: parseSnapshotTime(tag(body, 'timestamp')) });
   }
   return out;
-}
-
-// ---------------------------------------------------------------------------
-// Fetching with caches
-// ---------------------------------------------------------------------------
-
-async function fetchC2C(dataType: string, userAgent: string): Promise<string> {
-  const res = await fetch(`${C2C_BASE}?networks=Vermont&dataTypes=${dataType}`, {
-    headers: { 'User-Agent': userAgent },
-    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-  });
-  if (!res.ok) throw new Error(`C2C ${dataType} returned HTTP ${res.status}`);
-  return res.text();
-}
-
-interface Cached<T> {
-  value: T;
-  fetchedAt: number;
-}
-
-/** Single-flight + TTL cache around an async loader. */
-function cachedLoader<T>(ttlMs: number, load: () => Promise<T>) {
-  let cached: Cached<T> | null = null;
-  let inFlight: Promise<T> | null = null;
-  return {
-    async get(): Promise<T> {
-      if (cached && Date.now() - cached.fetchedAt < ttlMs) return cached.value;
-      if (!inFlight) {
-        inFlight = load()
-          .then((value) => {
-            cached = { value, fetchedAt: Date.now() };
-            return value;
-          })
-          .finally(() => {
-            inFlight = null;
-          });
-      }
-      try {
-        return await inFlight;
-      } catch (error) {
-        // Serve the last good value rather than failing outright, and back off
-        // so every request doesn't wait on another slow upstream attempt
-        if (cached) {
-          cached = {
-            value: cached.value,
-            fetchedAt: Date.now() - ttlMs + RETRY_AFTER_ERROR_MS,
-          };
-          return cached.value;
-        }
-        throw error;
-      }
-    },
-    reset(): void {
-      cached = null;
-      inFlight = null;
-    },
-  };
 }
 
 export function createTrafficCameraService(userAgent: string) {

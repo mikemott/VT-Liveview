@@ -758,3 +758,97 @@
 .dark .seasonal-sources a {
   color: var(--color-accent-primary);
 }
+
+/* Road weather station (VTL-61) */
+.road-weather-headline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+  margin: var(--space-5) 0 var(--space-7);
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-secondary);
+  background: var(--color-bg-tertiary);
+}
+
+.road-weather-pavement {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.road-weather-pavement-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.road-weather-pavement-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+  color: var(--color-text-tertiary);
+}
+
+.road-weather-risk {
+  font-size: 14px;
+  font-weight: 600;
+  text-align: right;
+  color: var(--color-text-secondary);
+}
+
+.road-weather-headline.risk-hazard {
+  background: rgba(220, 38, 38, 0.1);
+  border-color: rgba(220, 38, 38, 0.45);
+}
+.road-weather-headline.risk-hazard .road-weather-risk {
+  color: #b91c1c;
+}
+.road-weather-headline.risk-freezing {
+  background: rgba(29, 78, 216, 0.08);
+  border-color: rgba(29, 78, 216, 0.4);
+}
+.road-weather-headline.risk-freezing .road-weather-risk {
+  color: #1d4ed8;
+}
+.road-weather-headline.risk-nearFreezing {
+  background: var(--color-warning-subtle);
+  border-color: var(--color-warning);
+}
+.road-weather-headline.risk-nearFreezing .road-weather-risk {
+  color: #b45309;
+}
+.dark .road-weather-headline.risk-hazard .road-weather-risk {
+  color: #fca5a5;
+}
+.dark .road-weather-headline.risk-freezing .road-weather-risk {
+  color: #93c5fd;
+}
+.dark .road-weather-headline.risk-nearFreezing .road-weather-risk {
+  color: #fcd34d;
+}
+
+.road-weather-rows {
+  margin: 0 0 var(--space-5);
+}
+
+.road-weather-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-5);
+  padding: var(--space-2) 0;
+  font-size: 14px;
+  border-bottom: 1px solid var(--color-border-secondary);
+}
+
+.road-weather-row dt {
+  color: var(--color-text-tertiary);
+}
+
+.road-weather-row dd {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-weight: 500;
+  text-align: right;
+}

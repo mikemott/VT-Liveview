@@ -16,6 +16,7 @@ import { resolvers } from './resolvers/index.js';
 import { clearStationsCache } from './services/noaa.js';
 import { fetchSkiConditions } from './services/skiConditions.js';
 import { createTrafficCameraService } from './services/trafficCameras.js';
+import { createRoadWeatherService } from './services/roadWeather.js';
 import { validateEnv, isProd } from './types/index.js';
 import { getDb, checkDatabaseHealth, isDatabaseEnabled } from './db/index.js';
 import { getCollectorStatus } from './scheduler/index.js';
@@ -274,6 +275,23 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
   const cameras = createTrafficCameraService(
     `VT-Liveview/1.0 (${env.CONTACT_EMAIL ?? 'weather-app'})`,
   );
+
+  // Road weather stations (VTL-61): pavement temperature, surface condition
+  const roadWeather = createRoadWeatherService(
+    `VT-Liveview/1.0 (${env.CONTACT_EMAIL ?? 'weather-app'})`,
+  );
+
+  fastify.get('/api/road-weather', async (_request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const stations = await roadWeather.getStations();
+      reply.header('Cache-Control', 'public, max-age=120');
+      return { stations };
+    } catch (error) {
+      fastify.log.warn({ err: error }, 'Road weather fetch failed');
+      reply.code(502);
+      return { error: 'Road weather stations are unavailable' };
+    }
+  });
 
   fastify.get('/api/cameras', async (_request: FastifyRequest, reply: FastifyReply) => {
     try {

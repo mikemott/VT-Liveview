@@ -21,6 +21,17 @@ describe('parseUrlState', () => {
     });
   });
 
+  it('round-trips the road weather layer and a station selection', () => {
+    const hash = buildUrlHash({
+      view: { zoom: 10, lat: 44.21, lng: -72.58 },
+      layers: new Set(['roadWeather']),
+      selection: { type: 'roadwx', id: '124' },
+    });
+    expect(hash).toBe('#map=10/44.21/-72.58&layers=roadwx&sel=roadwx:124');
+    expect(parseUrlState(hash).selection).toEqual({ type: 'roadwx', id: '124' });
+    expect(parseUrlState(hash).layers).toEqual(new Set(['roadWeather']));
+  });
+
   it('round-trips the seasonal roads layer and a road selection', () => {
     const hash = buildUrlHash({
       view: { zoom: 11, lat: 44.56, lng: -72.79 },

@@ -17,6 +17,7 @@ relative to this directory.
 | Fixture | Stands in for |
 |---|---|
 | `c2c/cctvStatus.xml` | `https://nec-por.ne-compass.com/NEC.XmlDataPortal/api/c2c?networks=Vermont&dataTypes=cctvStatusData` (an online camera, an offline camera with an `&amp;` in its id, one with 0,0 coordinates) |
+| `c2c/essData.xml` | `...&dataTypes=essData` (four online road weather stations, one with an `Unknown` surface and one without pavement sensors, plus an offline station with April readings) |
 | `c2c/cctvSnapshot.xml` | `...&dataTypes=cctvSnapshotData` (a real 128×96 JPEG for the online camera, an empty snippet for the offline one) |
 | `noaa/points.json` | `https://api.weather.gov/points/44.4759,-73.2121` |
 | `noaa/stations.json` | `https://api.weather.gov/gridpoints/BTV/89,56/stations` (the `observationStations` URL from the points response) |

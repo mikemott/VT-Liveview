@@ -11,6 +11,7 @@ import {
   TriangleAlert,
   Video,
   Snowflake,
+  ThermometerSnowflake,
 } from 'lucide-react';
 import { searchPlaces, type SearchItem, type SearchKind } from '../utils/search';
 import './SearchBox.css';
@@ -24,6 +25,7 @@ const KIND_ICON: Record<SearchKind, typeof MapPin> = {
   station: Thermometer,
   camera: Video,
   road: Snowflake,
+  roadWeather: ThermometerSnowflake,
   incident: TriangleAlert,
 };
 
@@ -36,6 +38,7 @@ const KIND_LABEL: Record<SearchKind, string> = {
   station: 'Weather station',
   camera: 'Traffic camera',
   road: 'Seasonal road',
+  roadWeather: 'Road weather station',
   incident: 'Travel incident',
 };
 
