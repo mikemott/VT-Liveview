@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, memo } from 'react';
 import maplibregl from 'maplibre-gl';
 import { fetchCameras, type TrafficCamera } from '../services/cameraApi';
 import { useVisibleInterval } from '../hooks/useVisibleInterval';
+import { layerColor } from '../config/layers';
 import type { MapLibreMap, Marker } from '../types';
 import './CameraLayer.css';
 
@@ -31,6 +32,7 @@ const CAMERA_ICON = `
 function createCameraMarker(camera: TrafficCamera): HTMLDivElement {
   const el = document.createElement('div');
   el.className = `camera-marker${camera.online ? '' : ' offline'}`;
+  el.style.setProperty('--layer-color', layerColor('trafficCameras'));
   // MapLibre positions `el` with a transform; visuals and hover zoom live on
   // the inner body so they never fight that transform (VTL-63)
   el.innerHTML = `<span class="camera-marker-body">${CAMERA_ICON}</span>`;

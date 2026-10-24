@@ -1,5 +1,6 @@
 /*
- * Traffic camera markers (VTL-56). #475569 keeps the white icon >= 4.5:1.
+ * Traffic camera markers (VTL-56). Fill is the layer color from the registry
+ * (src/config/layers.ts, set as --layer-color); white icon keeps >= 4.5:1.
  *
  * MapLibre positions .camera-marker by setting its `transform`, so that element
  * must never get a transform or a transform transition of its own (they made
@@ -18,7 +19,7 @@
   justify-content: center;
   box-sizing: border-box;
   border-radius: 8px;
-  background: #475569;
+  background: var(--layer-color);
   border: 2px solid #ffffff;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   transition:

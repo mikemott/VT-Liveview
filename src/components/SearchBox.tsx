@@ -1,33 +1,26 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import {
-  Search,
-  X,
-  MapPin,
-  Mountain,
-  Waves,
-  IceCream,
-  Tent,
-  Thermometer,
-  TriangleAlert,
-  Video,
-  Snowflake,
-  ThermometerSnowflake,
-} from 'lucide-react';
+import { Search, X, MapPin, TriangleAlert, type LucideIcon } from 'lucide-react';
+import { LAYER_STYLES, layerColorVars, type LayerStyleKey } from '../config/layers';
 import { searchPlaces, type SearchItem, type SearchKind } from '../utils/search';
 import './SearchBox.css';
 
-const KIND_ICON: Record<SearchKind, typeof MapPin> = {
-  town: MapPin,
-  ski: Mountain,
-  beach: Waves,
-  creemee: IceCream,
-  campground: Tent,
-  station: Thermometer,
-  camera: Video,
-  road: Snowflake,
-  roadWeather: ThermometerSnowflake,
-  incident: TriangleAlert,
+/** Kinds that belong to a map layer take its icon and color (VTL-64). */
+const KIND_LAYER: Partial<Record<SearchKind, LayerStyleKey>> = {
+  ski: 'skiResorts',
+  beach: 'beachSites',
+  creemee: 'creemeeStands',
+  campground: 'campingSites',
+  station: 'weatherStations',
+  camera: 'trafficCameras',
+  road: 'seasonalRoads',
+  roadWeather: 'roadWeather',
 };
+
+function kindIcon(kind: SearchKind): LucideIcon {
+  const layer = KIND_LAYER[kind];
+  if (layer) return LAYER_STYLES[layer].icon;
+  return kind === 'incident' ? TriangleAlert : MapPin;
+}
 
 const KIND_LABEL: Record<SearchKind, string> = {
   town: 'Town',
@@ -175,7 +168,8 @@ export default function SearchBox({
 
       <ul id={listId} role="listbox" className="search-results" hidden={!showList}>
         {results.map((item, i) => {
-          const Icon = KIND_ICON[item.kind];
+          const Icon = kindIcon(item.kind);
+          const layer = KIND_LAYER[item.kind];
           return (
             <li
               key={item.id}
@@ -190,7 +184,12 @@ export default function SearchBox({
               }}
               onMouseEnter={() => setActive(i)}
             >
-              <Icon size={16} className={`search-kind kind-${item.kind}`} aria-hidden="true" />
+              <Icon
+                size={16}
+                className={`search-kind kind-${item.kind}`}
+                aria-hidden="true"
+                {...(layer ? { style: layerColorVars(layer) } : {})}
+              />
               <span className="search-text">
                 <span className="search-name">{item.name}</span>
                 <span className="search-detail">

@@ -7,6 +7,7 @@
  * 3. Within CLOSING_SOON_DAYS of the window starting: "closing soon"
  * 4. Otherwise "open" (still drawn faintly, so people know it's a seasonal road)
  */
+import { LAYER_STYLES } from '../config/layers';
 import { SEASONAL_ROADS, type SeasonalRoad } from '../data/seasonalRoads';
 
 export type SeasonalStatus = 'closed511' | 'seasonal' | 'closingSoon' | 'open';
@@ -35,7 +36,13 @@ const FULL_CLOSURE_TEXT =
   /\b(road|roadway|route|highway) (is )?closed\b|\ball lanes (are )?closed\b|\bclosed (in )?both directions\b/i;
 
 /** True for a 511 report that closes the road (not just a lane). */
+/** "Left lane closed", "Right lane closed", "Shoulder closed": the road stays open */
+const PARTIAL_LANES =
+  /^\s*(left|right|center|centre|middle|inside|outside|shoulder|one)\b[^,;]*\bclosed\b/i;
+
 export function isFullClosure(incident: ClosureCandidate): boolean {
+  // 511 types bridge work as CLOSURE even when only one lane is shut
+  if (incident.affectedLanes && PARTIAL_LANES.test(incident.affectedLanes)) return false;
   if (incident.type === 'CLOSURE') return true;
   const text = `${incident.title} ${incident.description} ${incident.affectedLanes ?? ''}`;
   return FULL_CLOSURE_TEXT.test(text);
@@ -156,10 +163,14 @@ export function getSeasonalStatuses(
   return new Map(SEASONAL_ROADS.map((road) => [road.id, getRoadStatus(road, now, closures)]));
 }
 
+/**
+ * Line colors (VTL-64): seasonal closures in the layer's plum (closing soon is
+ * the same plum, drawn lighter); a live 511 closure uses the Closures red.
+ */
 export const SEASONAL_STATUS_COLORS: Record<SeasonalStatus, string> = {
-  closed511: '#dc2626',
-  seasonal: '#b91c1c',
-  closingSoon: '#d97706',
+  closed511: LAYER_STYLES.CLOSURE.color,
+  seasonal: LAYER_STYLES.seasonalRoads.color,
+  closingSoon: LAYER_STYLES.seasonalRoads.color,
   open: '#64748b',
 };
 

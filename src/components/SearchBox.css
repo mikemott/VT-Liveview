@@ -160,3 +160,12 @@
   color: var(--color-text-muted);
   text-align: center;
 }
+
+/* Layer kinds take their layer color (VTL-64); lifted on dark backgrounds */
+.search-kind[style*='--layer-color'] {
+  color: var(--layer-color);
+}
+
+.dark .search-kind[style*='--layer-color'] {
+  color: var(--layer-color-dark, color-mix(in srgb, var(--layer-color) 48%, white));
+}

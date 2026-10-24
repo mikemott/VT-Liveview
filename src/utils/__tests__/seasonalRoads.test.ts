@@ -147,6 +147,19 @@ describe('isFullClosure / closurePoints', () => {
   const base = { title: '', description: '', location: { lat: 44.1, lng: -72.85 } };
   it('counts CLOSURE incidents and "road closed" wording, not lane closures', () => {
     expect(isFullClosure({ ...base, type: 'CLOSURE' })).toBe(true);
+    // 511 types one-lane bridge work as CLOSURE; the road is still open
+    expect(isFullClosure({ ...base, type: 'CLOSURE', affectedLanes: 'Left lane closed' })).toBe(
+      false,
+    );
+    // The real Oct 24 report: winter closure typed as construction, all lanes
+    expect(
+      isFullClosure({
+        ...base,
+        type: 'CONSTRUCTION',
+        title: 'Lincoln Gap Rd between Lincoln and Warren is CLOSED for the 2026 Winter Season',
+        affectedLanes: 'All lanes closed',
+      }),
+    ).toBe(true);
     expect(
       isFullClosure({ ...base, type: 'HAZARD', description: 'VT-108 road closed at the Notch' }),
     ).toBe(true);

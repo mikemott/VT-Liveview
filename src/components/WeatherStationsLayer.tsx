@@ -1,3 +1,4 @@
+import { layerColor } from '../config/layers';
 import { useState, useEffect, useRef, memo, useCallback } from 'react';
 import maplibregl from 'maplibre-gl';
 import { graphqlClient } from '../services/graphqlClient';
@@ -88,13 +89,13 @@ function createWeatherStationMarker(station: ObservationStation): HTMLDivElement
   // 10-11px text at >= 4.5:1 contrast (WCAG AA, FINDINGS H17).
   const stationColors = isWaterTemp
     ? {
-        bg: '#2563eb', // Vibrant blue for water
+        bg: layerColor('weatherStations'), // Layer color (VTL-64); larger + droplet for water
         border: '#ffffff',
         shadow: 'rgba(37, 99, 235, 0.4)',
         text: '#ffffff',
       }
     : {
-        bg: '#41749a', // Soft blue for air
+        bg: layerColor('weatherStations'), // Layer color (VTL-64)
         border: '#ffffff',
         shadow: 'rgba(0, 0, 0, 0.3)',
         text: '#ffffff',

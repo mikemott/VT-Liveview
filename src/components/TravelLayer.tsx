@@ -1,23 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo, ReactNode, memo } from 'react';
-import {
-  AlertTriangle,
-  Construction,
-  Ban,
-  Waves,
-  AlertOctagon,
-  ChevronDown,
-  ChevronRight,
-  Thermometer,
-  Video,
-  Mountain,
-  IceCream,
-  Star,
-  Car,
-  ZoomIn,
-  Tent,
-  Snowflake,
-  ThermometerSnowflake,
-} from 'lucide-react';
+import { ChevronDown, ChevronRight, ZoomIn } from 'lucide-react';
 import maplibregl from 'maplibre-gl';
 import { fetchAllIncidentsWithStatus, type TravelIncident } from '../services/travelApi';
 import { getIncidentColor, shouldShowIncident } from '../utils/incidentColors';
@@ -28,6 +10,7 @@ import { escapeHTML } from '../utils/sanitize';
 import { cleanupMarkers, type MarkerEntry } from '../utils/markerCleanup';
 import type { MapLibreMap, IncidentType } from '../types';
 import StargazingLayer from './StargazingLayer';
+import { LAYER_STYLES, layerColorVars, type LayerStyleKey } from '../config/layers';
 import CampingContent from './CampingContent';
 import './TravelLayer.css';
 
@@ -92,20 +75,8 @@ interface IncidentsByType {
 // =============================================================================
 
 function getIcon(type: IncidentType, size: number = 16): ReactNode {
-  const iconProps = { size, strokeWidth: 2.5 };
-  switch (type) {
-    case 'ACCIDENT':
-      return <AlertTriangle {...iconProps} />;
-    case 'CONSTRUCTION':
-      return <Construction {...iconProps} />;
-    case 'CLOSURE':
-      return <Ban {...iconProps} />;
-    case 'FLOODING':
-      return <Waves {...iconProps} />;
-    case 'HAZARD':
-    default:
-      return <AlertOctagon {...iconProps} />;
-  }
+  const Icon = LAYER_STYLES[type].icon;
+  return <Icon size={size} strokeWidth={2.5} aria-hidden="true" />;
 }
 
 function getTypeLabel(type: IncidentType, short: boolean = false): string {
@@ -117,6 +88,36 @@ function getTypeLabel(type: IncidentType, short: boolean = false): string {
     HAZARD: 'Hazards',
   };
   return labels[type] || 'Other';
+}
+
+interface FilterChipProps {
+  layer: LayerStyleKey;
+  /** Stable hook for tests (data-chip-type) */
+  chipType: string;
+  active: boolean;
+  onClick: () => void;
+  count?: number;
+}
+
+/** A layer toggle; label, icon and color come from the layer registry (VTL-64). */
+function FilterChip({ layer, chipType, active, onClick, count = 0 }: FilterChipProps) {
+  const { label, icon: Icon, description } = LAYER_STYLES[layer];
+  return (
+    <button
+      className={`filter-chip ${active ? 'active' : ''}`}
+      onClick={onClick}
+      aria-pressed={active}
+      data-chip-type={chipType}
+      style={layerColorVars(layer)}
+      {...(description ? { title: description } : {})}
+    >
+      <span className="chip-icon">
+        <Icon size={14} strokeWidth={2.5} aria-hidden="true" />
+      </span>
+      {label}
+      {count > 0 && <span className="chip-count">{count}</span>}
+    </button>
+  );
 }
 
 // =============================================================================
@@ -631,97 +632,52 @@ function TravelLayer({
           <div className="filter-group">
             <h4 className="filter-group-label">Weather & Travel</h4>
             <div className="filter-chips">
-              {/* Weather Stations chip */}
-              <button
-                className={`filter-chip ${showWeatherStations ? 'active' : ''}`}
+              <FilterChip
+                layer="weatherStations"
+                chipType="weather"
+                active={showWeatherStations}
                 onClick={onToggleWeatherStations}
-                aria-pressed={showWeatherStations}
-                data-chip-type="weather"
-              >
-                <span className="chip-icon">
-                  <Thermometer size={14} strokeWidth={2.5} />
-                </span>
-                Stations
-              </button>
-
-              {/* Traffic Flow chip */}
-              <button
-                className={`filter-chip ${showTrafficFlow ? 'active' : ''}`}
+              />
+              <FilterChip
+                layer="trafficFlow"
+                chipType="traffic"
+                active={showTrafficFlow}
                 onClick={onToggleTrafficFlow}
-                aria-pressed={showTrafficFlow}
-                data-chip-type="traffic"
-              >
-                <span className="chip-icon">
-                  <Car size={14} strokeWidth={2.5} />
-                </span>
-                Traffic
-              </button>
-
-              {/* Traffic cameras chip (VTL-56) */}
+              />
               {onToggleCameras && (
-                <button
-                  className={`filter-chip ${showCameras ? 'active' : ''}`}
+                <FilterChip
+                  layer="trafficCameras"
+                  chipType="cameras"
+                  active={showCameras}
                   onClick={onToggleCameras}
-                  aria-pressed={showCameras}
-                  data-chip-type="cameras"
-                >
-                  <span className="chip-icon">
-                    <Video size={14} strokeWidth={2.5} />
-                  </span>
-                  Cameras
-                </button>
+                />
               )}
-
-              {/* Road weather stations chip (VTL-61) */}
               {onToggleRoadWeather && (
-                <button
-                  className={`filter-chip ${showRoadWeather ? 'active' : ''}`}
+                <FilterChip
+                  layer="roadWeather"
+                  chipType="roadwx"
+                  active={showRoadWeather}
                   onClick={onToggleRoadWeather}
-                  aria-pressed={showRoadWeather}
-                  data-chip-type="roadwx"
-                  title="Pavement temperature and surface from VTrans road weather stations"
-                >
-                  <span className="chip-icon">
-                    <ThermometerSnowflake size={14} strokeWidth={2.5} />
-                  </span>
-                  Road temps
-                </button>
+                />
               )}
-
-              {/* Seasonal road closures chip (VTL-55) */}
               {onToggleSeasonalRoads && (
-                <button
-                  className={`filter-chip ${showSeasonalRoads ? 'active' : ''}`}
+                <FilterChip
+                  layer="seasonalRoads"
+                  chipType="seasonal"
+                  active={showSeasonalRoads}
                   onClick={onToggleSeasonalRoads}
-                  aria-pressed={showSeasonalRoads}
-                  data-chip-type="seasonal"
-                  title="Notch, gap and toll roads that close for winter"
-                >
-                  <span className="chip-icon">
-                    <Snowflake size={14} strokeWidth={2.5} />
-                  </span>
-                  Seasonal closures
-                </button>
+                />
               )}
-
-              {/* Incident type chips */}
-              {(Object.keys(activeFilters) as IncidentType[]).map((type) => {
-                const count = incidentsByType[type]?.length || 0;
-
-                return (
-                  <button
-                    key={type}
-                    className={`filter-chip ${activeFilters[type] ? 'active' : ''}`}
-                    onClick={() => toggleFilter(type)}
-                    aria-pressed={activeFilters[type]}
-                    data-chip-type={type.toLowerCase()}
-                  >
-                    <span className="chip-icon">{getIcon(type, 14)}</span>
-                    {getTypeLabel(type, true)}
-                    {count > 0 && <span className="chip-count">{count}</span>}
-                  </button>
-                );
-              })}
+              {(Object.keys(activeFilters) as IncidentType[]).map((type) => (
+                <FilterChip
+                  key={type}
+                  layer={type}
+                  chipType={type.toLowerCase()}
+                  active={activeFilters[type]}
+                  onClick={() => toggleFilter(type)}
+                  count={incidentsByType[type]?.length ?? 0}
+                />
+              ))}
             </div>
           </div>
 
@@ -729,70 +685,36 @@ function TravelLayer({
           <div className="filter-group">
             <h4 className="filter-group-label">Points of Interest</h4>
             <div className="filter-chips">
-              {/* Ski Resorts chip */}
-              <button
-                className={`filter-chip ${showSkiResorts ? 'active' : ''}`}
+              <FilterChip
+                layer="skiResorts"
+                chipType="ski"
+                active={showSkiResorts}
                 onClick={onToggleSkiResorts}
-                aria-pressed={showSkiResorts}
-                data-chip-type="ski"
-              >
-                <span className="chip-icon">
-                  <Mountain size={14} strokeWidth={2.5} />
-                </span>
-                Ski Resorts
-              </button>
-
-              {/* Stargazing chip */}
-              <button
-                className={`filter-chip ${showStargazing ? 'active' : ''}`}
+              />
+              <FilterChip
+                layer="stargazing"
+                chipType="stargazing"
+                active={showStargazing}
                 onClick={onToggleStargazing}
-                aria-pressed={showStargazing}
-                data-chip-type="stargazing"
-              >
-                <span className="chip-icon">
-                  <Star size={14} strokeWidth={2.5} />
-                </span>
-                Stargazing
-              </button>
-
-              {/* Creemee Stands chip */}
-              <button
-                className={`filter-chip ${showCreemeeStands ? 'active' : ''}`}
+              />
+              <FilterChip
+                layer="creemeeStands"
+                chipType="creemee"
+                active={showCreemeeStands}
                 onClick={onToggleCreemeeStands}
-                aria-pressed={showCreemeeStands}
-                data-chip-type="creemee"
-              >
-                <span className="chip-icon">
-                  <IceCream size={14} strokeWidth={2.5} />
-                </span>
-                Creemee Stands
-              </button>
-
-              {/* Camping Sites chip */}
-              <button
-                className={`filter-chip ${showCampingSites ? 'active' : ''}`}
+              />
+              <FilterChip
+                layer="campingSites"
+                chipType="camping"
+                active={showCampingSites}
                 onClick={onToggleCampingSites}
-                aria-pressed={showCampingSites}
-                data-chip-type="camping"
-              >
-                <span className="chip-icon">
-                  <Tent size={14} strokeWidth={2.5} />
-                </span>
-                Camping
-              </button>
-
-              {/* Beach Sites chip */}
-              <button
-                className={`filter-chip ${showBeachSites ? 'active' : ''}`}
+              />
+              <FilterChip
+                layer="beachSites"
+                chipType="beach"
+                active={showBeachSites}
                 onClick={onToggleBeachSites}
-                aria-pressed={showBeachSites}
-                data-chip-type="beach"
-              >
-                <span className="chip-icon">
-                  <Waves size={14} strokeWidth={2.5} />
-                </span>
-                Beaches
-              </button>
+              />
             </div>
           </div>
 
@@ -901,6 +823,7 @@ function TravelLayer({
                           key={incident.id}
                           className={`incident-item ${selectedIncident?.id === incident.id ? 'selected' : ''} ${incident.geometry || incident.location ? 'clickable' : ''}`}
                           data-incident-type={incident.type.toLowerCase()}
+                          style={layerColorVars(incident.type)}
                           onClick={() =>
                             (incident.geometry || incident.location) &&
                             handleIncidentClick(incident)

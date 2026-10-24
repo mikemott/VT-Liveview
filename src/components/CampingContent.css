@@ -162,23 +162,23 @@
 }
 
 .campground-icon {
-  background: rgba(16, 185, 129, 0.15);
-  color: #10b981;
+  background: color-mix(in srgb, var(--color-campground) 15%, transparent);
+  color: var(--color-campground);
 }
 
 .dark .campground-icon {
-  background: rgba(16, 185, 129, 0.2);
-  color: #6ee7b7;
+  background: color-mix(in srgb, var(--color-campground) 20%, transparent);
+  color: var(--color-campground);
 }
 
 .backcountry-icon {
-  background: rgba(146, 64, 14, 0.15);
-  color: #92400e;
+  background: color-mix(in srgb, var(--color-backcountry) 15%, transparent);
+  color: var(--color-backcountry);
 }
 
 .dark .backcountry-icon {
-  background: rgba(146, 64, 14, 0.2);
-  color: #fbbf24;
+  background: color-mix(in srgb, var(--color-backcountry) 20%, transparent);
+  color: var(--color-backcountry);
 }
 
 .hiking-icon {
@@ -264,11 +264,11 @@
 }
 
 .campground-color {
-  background: #10b981;
+  background: var(--color-campground);
 }
 
 .backcountry-color {
-  background: #92400e;
+  background: var(--color-backcountry);
 }
 
 .tips-list {

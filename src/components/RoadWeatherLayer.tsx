@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, memo } from 'react';
 import maplibregl from 'maplibre-gl';
 import { fetchRoadWeather, type RoadWeatherStation } from '../services/roadWeatherApi';
 import { useVisibleInterval } from '../hooks/useVisibleInterval';
+import { layerColor } from '../config/layers';
 import { getObservationAge } from '../utils/observationAge';
 import { getRoadRisk, headlineTempF, ROAD_RISK_LABELS } from '../utils/roadWeather';
 import type { MapLibreMap, Marker } from '../types';
@@ -45,6 +46,7 @@ function createRoadWeatherMarker(station: RoadWeatherStation): HTMLDivElement {
   body.className = 'road-weather-marker-body';
   body.textContent = temp ? `${temp.value}°` : '–';
   el.appendChild(body);
+  el.style.setProperty('--layer-color', layerColor('roadWeather'));
   el.setAttribute('role', 'button');
   el.tabIndex = 0;
   const reading = temp
