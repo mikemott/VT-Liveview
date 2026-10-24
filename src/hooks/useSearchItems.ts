@@ -8,6 +8,7 @@ import { fetchRecreationSites } from '../services/recreationApi';
 import { fetchAllIncidents } from '../services/travelApi';
 import type { SearchItem } from '../utils/search';
 import type { ObservationStation } from '../types';
+import type { TrafficCamera } from '../services/cameraApi';
 
 /** Towns never change at runtime; build once. */
 const TOWN_ITEMS: SearchItem[] = VT_TOWNS.map(([name, county, lat, lng, w, s, e, n]) => ({
@@ -30,6 +31,7 @@ const isNum = (n: unknown): n is number => typeof n === 'number' && Number.isFin
 export function useSearchItems(
   enabled: boolean,
   stations: readonly ObservationStation[],
+  cameras: readonly TrafficCamera[] = [],
 ): { items: SearchItem[]; loading: boolean } {
   const opts = { enabled, staleTime: 10 * 60 * 1000, retry: 1 } as const;
   const [ski, beaches, creemee, recreation, incidents] = useQueries({
@@ -102,6 +104,16 @@ export function useSearchItems(
         lng: s.location.lng,
       });
     }
+    for (const c of cameras) {
+      out.push({
+        id: `camera:${c.id}`,
+        kind: 'camera',
+        name: c.name,
+        ...(c.roadway ? { detail: c.roadway, keywords: c.roadway } : {}),
+        lat: c.lat,
+        lng: c.lng,
+      });
+    }
     for (const inc of incidents.data ?? []) {
       const { lat, lng } = inc.location;
       if (!isNum(lat) || !isNum(lng) || (lat === 0 && lng === 0)) continue;
@@ -115,7 +127,7 @@ export function useSearchItems(
       });
     }
     return out;
-  }, [ski.data, beaches.data, creemee.data, recreation.data, incidents.data, stations]);
+  }, [ski.data, beaches.data, creemee.data, recreation.data, incidents.data, stations, cameras]);
 
   const loading =
     enabled && [ski, beaches, creemee, recreation, incidents].some((q) => q.isLoading);

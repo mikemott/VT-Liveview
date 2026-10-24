@@ -157,6 +157,17 @@
     0 2px 4px rgba(88, 139, 174, 0.18);
 }
 
+/* Cameras - Slate (VTL-56) */
+.filter-chip.active[data-chip-type='cameras'] {
+  background: rgba(71, 85, 105, 0.16);
+  border-color: rgba(71, 85, 105, 0.4);
+  color: #334155;
+}
+
+.dark .filter-chip.active[data-chip-type='cameras'] {
+  color: #cbd5e1;
+}
+
 /* Accident - Terracotta Red */
 .filter-chip.active[data-chip-type='accident'] {
   background: rgba(204, 102, 82, 0.2);

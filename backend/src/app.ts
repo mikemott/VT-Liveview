@@ -15,6 +15,7 @@ import { dirname, join } from 'path';
 import { resolvers } from './resolvers/index.js';
 import { clearStationsCache } from './services/noaa.js';
 import { fetchSkiConditions } from './services/skiConditions.js';
+import { createTrafficCameraService } from './services/trafficCameras.js';
 import { validateEnv, isProd } from './types/index.js';
 import { getDb, checkDatabaseHealth, isDatabaseEnabled } from './db/index.js';
 import { getCollectorStatus } from './scheduler/index.js';
@@ -267,6 +268,43 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
   // Traffic flow data endpoints
   proxyVt511('/api/vt511/traffic-conditions', 'trafficCondData', 'traffic condition');
   proxyVt511('/api/vt511/network', 'networkData', 'network');
+
+  // Traffic cameras (VTL-56). One service per server instance: its caches are
+  // per-process, and tests get a fresh one with each buildServer().
+  const cameras = createTrafficCameraService(
+    `VT-Liveview/1.0 (${env.CONTACT_EMAIL ?? 'weather-app'})`,
+  );
+
+  fastify.get('/api/cameras', async (_request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const list = await cameras.getCameras();
+      reply.header('Cache-Control', 'public, max-age=300');
+      return { cameras: list };
+    } catch {
+      reply.code(502);
+      return { error: 'Traffic camera list is unavailable' };
+    }
+  });
+
+  fastify.get<{ Params: { id: string } }>(
+    '/api/cameras/:id/snapshot.jpg',
+    async (request, reply): Promise<void> => {
+      try {
+        const snapshot = await cameras.getSnapshot(request.params.id);
+        if (!snapshot) {
+          reply.code(404).send({ error: 'No current image for this camera' });
+          return;
+        }
+        reply
+          .type('image/jpeg')
+          .header('Cache-Control', 'public, max-age=60')
+          .header('Last-Modified', new Date(snapshot.takenAt ?? Date.now()).toUTCString())
+          .send(snapshot.jpeg);
+      } catch {
+        reply.code(502).send({ error: 'Traffic camera images are unavailable' });
+      }
+    },
+  );
 
   // Ski conditions cache refresh endpoint
   fastify.post(
