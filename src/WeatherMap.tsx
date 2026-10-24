@@ -15,6 +15,7 @@ import RadarOverlay from './components/RadarOverlay';
 import ThemeToggle from './components/ThemeToggle';
 import DetailPanel from './components/DetailPanel';
 import { getMapStyle, isDarkMode } from './utils/mapStyles';
+import { createGeolocateControl, createScaleControl } from './utils/mapControls';
 import type { MapLibreMap, DetailPanelContent, AlertFeature, ObservationStation } from './types';
 import { VERMONT, INTERVALS } from './utils/constants';
 import { useIsMobile } from './hooks/useIsMobile';
@@ -169,6 +170,13 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
 
   // DetailPanel state
   const [detailPanelContent, setDetailPanelContent] = useState<DetailPanelContent>(null);
+  // Short-lived message over the map (e.g. why "Locate me" didn't work)
+  const [mapNotice, setMapNotice] = useState<string | null>(null);
+  useEffect(() => {
+    if (!mapNotice) return;
+    const timer = setTimeout(() => setMapNotice(null), 6000);
+    return () => clearTimeout(timer);
+  }, [mapNotice]);
 
   // Alert layer event handlers. These must keep a stable identity so map.off() can
   // remove them: off(type, layerId) without the listener is a no-op in maplibre, and
@@ -516,6 +524,11 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
 
     map.current.addControl(new maplibregl.NavigationControl(), 'bottom-right');
     map.current.addControl(new maplibregl.FullscreenControl(), 'bottom-right');
+    map.current.addControl(
+      createGeolocateControl((message) => setMapNotice(message)),
+      'bottom-right',
+    );
+    map.current.addControl(createScaleControl(), 'bottom-left');
 
     // Expose map for debugging
     (window as { map?: MapLibreMap }).map = map.current;
@@ -997,6 +1010,15 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
           )}
         </div>
       </div>
+
+      {mapNotice && (
+        <div className={`map-notice ${isDark ? 'dark' : ''}`} role="status">
+          <span>{mapNotice}</span>
+          <button type="button" onClick={() => setMapNotice(null)} aria-label="Dismiss message">
+            <X size={14} />
+          </button>
+        </div>
+      )}
 
       {/* Detail Panel */}
       <DetailPanel
