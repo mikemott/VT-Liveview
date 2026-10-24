@@ -899,3 +899,71 @@
   margin-right: 0;
   margin-bottom: 0;
 }
+
+/* =============================================================================
+   Scale bar and map notices (VTL-54)
+   ============================================================================= */
+
+.maplibregl-ctrl-scale {
+  background: var(--color-bg-glass) !important;
+  border-color: var(--color-vermont-green) !important;
+  color: var(--color-text-secondary) !important;
+  font-family: var(--font-family);
+  font-size: 11px !important;
+}
+
+.maplibregl-ctrl-bottom-left {
+  bottom: var(--space-9);
+  left: var(--space-5);
+}
+
+/* Mobile: sit above the round menu button in the bottom-left corner */
+@media (max-width: 768px) {
+  .maplibregl-ctrl-bottom-left {
+    bottom: calc(var(--space-9) + 52px + var(--space-4));
+    left: var(--space-7);
+  }
+}
+
+/* Desktop: the controls panel occupies the left edge; keep the scale clear of it */
+@media (min-width: 769px) {
+  .maplibregl-ctrl-bottom-left {
+    left: calc(360px + 2 * var(--space-8));
+  }
+}
+
+.map-notice {
+  position: absolute;
+  bottom: 96px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-fixed);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: min(420px, calc(100vw - 32px));
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-glass);
+  border: 1px solid var(--color-vermont-green-subtle);
+  box-shadow: var(--shadow-lg);
+  color: var(--color-text-primary);
+  font-family: var(--font-family);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.map-notice button {
+  flex-shrink: 0;
+  display: flex;
+  padding: 4px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.map-notice button:hover {
+  background: var(--color-vermont-green-faint);
+}
