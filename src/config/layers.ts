@@ -53,6 +53,12 @@ export interface LayerStyle {
    * automatically (they would wash out to the same grey). Markers keep `color`.
    */
   colorDark?: string;
+  /**
+   * Text/icon color on the pale tint (selected chip, marker), for colors too
+   * light to darken automatically (bright yellow turns olive and too faint).
+   * Must keep >= 4.5:1 on the tint; layerPalette.test.ts checks.
+   */
+  ink?: string;
   /** Chip tooltip */
   description?: string;
 }
@@ -61,7 +67,7 @@ export const LAYER_STYLES: Record<LayerStyleKey, LayerStyle> = {
   // Weather & travel
   weatherStations: { label: 'Stations', icon: Thermometer, color: '#2563eb' },
   trafficFlow: { label: 'Traffic', icon: Car, color: '#65a30d' },
-  trafficCameras: { label: 'Cameras', icon: Video, color: '#ec4899' },
+  trafficCameras: { label: 'Cameras', icon: Video, color: '#ffd000', ink: '#806800' },
   roadWeather: {
     label: 'Road temps',
     icon: ThermometerSnowflake,
@@ -72,7 +78,8 @@ export const LAYER_STYLES: Record<LayerStyleKey, LayerStyle> = {
   seasonalRoads: {
     label: 'Seasonal closures',
     icon: Snowflake,
-    color: '#78716c',
+    // Same red as Closures on purpose: both mean "road closed" (VTL-73)
+    color: '#b91c1c',
     description: 'Notch, gap and toll roads that close for winter',
   },
   ACCIDENT: { label: 'Accidents', icon: AlertTriangle, color: '#5b21b6' },
@@ -110,9 +117,10 @@ export function textOn(hex: string): '#ffffff' | '#000000' {
 
 /** `style` for an element whose CSS uses var(--layer-color). */
 export function layerColorVars(key: LayerStyleKey): CSSProperties {
-  const { color, colorDark } = LAYER_STYLES[key];
+  const { color, colorDark, ink } = LAYER_STYLES[key];
   return {
     '--layer-color': color,
     ...(colorDark ? { '--layer-color-dark': colorDark } : {}),
+    ...(ink ? { '--layer-ink': ink } : {}),
   } as CSSProperties;
 }

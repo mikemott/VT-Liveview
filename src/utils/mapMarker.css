@@ -33,6 +33,12 @@
   --marker-ring: var(--layer-color);
 }
 
+/* A layer's own readable shade (camera yellow) wins; status colors don't have
+   one. Same specificity as `.dark .map-marker` below, which comes later and wins */
+.map-marker:not(.map-marker--status) {
+  --marker-ink: var(--layer-ink, color-mix(in srgb, var(--marker-base) 64%, black));
+}
+
 .dark .map-marker {
   /* Deep colors are lifted to read on the dark map, as chips do */
   --marker-base: var(

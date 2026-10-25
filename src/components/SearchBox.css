@@ -163,7 +163,8 @@
 
 /* Layer kinds take their layer color (VTL-64); lifted on dark backgrounds */
 .search-kind[style*='--layer-color'] {
-  color: var(--layer-color);
+  /* --layer-ink: a readable shade for light colors (camera yellow) */
+  color: var(--layer-ink, var(--layer-color));
 }
 
 .dark .search-kind[style*='--layer-color'] {
