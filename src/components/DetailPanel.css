@@ -27,8 +27,9 @@
   top: 0;
   height: 100vh;
   width: 400px;
-  background: var(--color-bg-glass);
-  backdrop-filter: blur(12px);
+  /* Same solid panel background as the controls panel and weather card: the
+     old 88% glass let the map tint it cooler and greyer (VTL-71) */
+  background: var(--gradient-panel);
   border-left: 1.5px solid var(--color-border-primary);
   box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
   transform: translateX(100%);
