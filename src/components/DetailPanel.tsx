@@ -4,7 +4,7 @@
  */
 
 import { useEffect } from 'react';
-import { Share2, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import type { DetailPanelContent } from '../types';
 import AlertDetail from './detail-views/AlertDetail';
 import IncidentDetail from './detail-views/IncidentDetail';
@@ -19,13 +19,14 @@ import CreemeeDetail from './detail-views/CreemeeDetail';
 import CampgroundDetail from './detail-views/CampgroundDetail';
 import CampingAreaDetail from './detail-views/CampingAreaDetail';
 import DarkSkyDetail from './detail-views/DarkSkyDetail';
+import ShareMenu from './ShareMenu';
 import './DetailPanel.css';
 
 interface DetailPanelProps {
   content: DetailPanelContent;
   onClose: () => void;
-  /** Share a link to this view (the URL already includes the selection). */
-  onShare?: () => void;
+  /** The link and share text for what the panel shows (VTL-70); no share button without it */
+  getShare?: () => { url: string; text: string };
   /** Open another item in the panel (from "What's here?" alerts and nearby) */
   onNavigate?: (content: DetailPanelContent) => void;
   isDark: boolean;
@@ -34,7 +35,7 @@ interface DetailPanelProps {
 export default function DetailPanel({
   content,
   onClose,
-  onShare,
+  getShare,
   onNavigate,
   isDark,
 }: DetailPanelProps) {
@@ -161,16 +162,13 @@ export default function DetailPanel({
         <div className="detail-panel-header">
           <h2>{getTitle()}</h2>
           {/* Incidents aren't in the shareable URL yet, so no share button for them */}
-          {onShare && content?.type !== 'incident' && (
-            <button
-              type="button"
-              className="detail-panel-close detail-panel-share"
-              onClick={onShare}
-              aria-label="Share a link to this"
-              title="Share a link to this"
-            >
-              <Share2 size={18} />
-            </button>
+          {getShare && content?.type !== 'incident' && (
+            <ShareMenu
+              getShare={getShare}
+              isDark={isDark}
+              variant="panel"
+              label="Share a link to this"
+            />
           )}
           <button className="detail-panel-close" onClick={onClose} aria-label="Close detail panel">
             <X size={20} />

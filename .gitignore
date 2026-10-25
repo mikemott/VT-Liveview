@@ -40,3 +40,6 @@ fixtures-recorded
 playwright-report
 test-results
 blob-report
+
+# Cloudflare wrangler local state (pages dev)
+.wrangler/

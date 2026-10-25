@@ -1,0 +1,118 @@
+/* Share menu (VTL-70). `.dark` on the menu swaps in the dark design tokens. */
+
+.share-menu-wrap {
+  position: relative;
+}
+
+/* Portaled to <body>; ShareMenu sets top/left/right from the button */
+.share-menu {
+  position: fixed;
+  z-index: var(--z-tooltip); /* above the side panel (1000) and the weather card */
+  width: min(232px, calc(100vw - 80px));
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-primary);
+  /* Opaque: it opens over the camera image and panel text */
+  background: var(--gradient-panel);
+  box-shadow: var(--shadow-xl);
+  color: var(--color-text-primary);
+}
+
+.share-menu-text {
+  margin: 0 0 var(--space-2);
+  padding: 0 var(--space-1);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.35;
+}
+
+.share-menu-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.share-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 36px;
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.share-menu-item:hover,
+.share-menu-item:focus-visible {
+  background: var(--color-bg-surface-hover, rgba(0, 0, 0, 0.05));
+}
+
+.share-menu-item:focus-visible {
+  outline: 2px solid var(--color-vermont-green);
+  outline-offset: 1px;
+}
+
+.share-menu-icon {
+  flex-shrink: 0;
+  width: 22px;
+  color: var(--color-text-secondary);
+}
+
+/* Network marks: a letter in the network's color */
+.share-badge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.share-badge--facebook {
+  background: #1877f2;
+}
+
+.share-badge--x {
+  background: #000000;
+}
+
+.dark .share-badge--x {
+  /* Black on the dark panel would disappear */
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+
+.share-badge--bluesky {
+  background: #1185fe;
+}
+
+.share-badge--reddit {
+  background: #ff4500;
+}
+
+.share-menu-status {
+  margin: var(--space-2) 0 0;
+  padding: 0 var(--space-1);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.share-menu-status:empty {
+  display: none;
+}

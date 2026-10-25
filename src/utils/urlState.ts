@@ -10,7 +10,9 @@
  *           or pt:<lat>,<lng>
  *
  * The hash (not the query string) keeps it client-only: no server round trip,
- * nothing extra in Cloudflare's cache key.
+ * nothing extra in Cloudflare's cache key. Shared links are the exception:
+ * they carry the same params in the query so link previews can describe the
+ * view (VTL-70, src/utils/sharePreview.ts); main.tsx moves them back here.
  */
 
 /** URL key → app layer id. Short keys keep shared links readable. */
