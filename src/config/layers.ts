@@ -4,10 +4,11 @@
  * Filter chips, map markers, line layers and search results all take their
  * color from here, so a chip always matches what it shows on the map.
  *
- * The palette was picked for distinctness: every pair is >= ~10 CIEDE2000
- * apart, both as the full color (markers) and as the pale chip tint. Colors
- * carrying a white icon keep >= 3:1 contrast with it. Change a color only
- * after re-checking those (see VTL-64 for the method).
+ * The palette was picked for distinctness (VTL-66): every pair is >= 17
+ * CIEDE2000 apart as the full color, which is what both markers and selected
+ * chips (filled, white text) show. Colors carrying a white icon keep ~3:1
+ * contrast or better with it. Change a color only after re-checking every
+ * pair; layerPalette.test.ts enforces both.
  */
 import type { CSSProperties } from 'react';
 import type { LucideIcon } from 'lucide-react';
@@ -61,7 +62,7 @@ export const LAYER_STYLES: Record<LayerStyleKey, LayerStyle> = {
   // Weather & travel
   weatherStations: { label: 'Stations', icon: Thermometer, color: '#2563eb' },
   trafficFlow: { label: 'Traffic', icon: Car, color: '#65a30d' },
-  trafficCameras: { label: 'Cameras', icon: Video, color: '#db2777' },
+  trafficCameras: { label: 'Cameras', icon: Video, color: '#ec4899' },
   roadWeather: {
     label: 'Road temps',
     icon: ThermometerSnowflake,
@@ -72,20 +73,20 @@ export const LAYER_STYLES: Record<LayerStyleKey, LayerStyle> = {
   seasonalRoads: {
     label: 'Seasonal closures',
     icon: Snowflake,
-    color: '#86198f',
+    color: '#78716c',
     description: 'Notch, gap and toll roads that close for winter',
   },
-  ACCIDENT: { label: 'Accidents', icon: AlertTriangle, color: '#7c3aed' },
+  ACCIDENT: { label: 'Accidents', icon: AlertTriangle, color: '#5b21b6' },
   CONSTRUCTION: { label: 'Construction', icon: Construction, color: '#ea580c' },
-  CLOSURE: { label: 'Closures', icon: Ban, color: '#dc2626' },
+  CLOSURE: { label: 'Closures', icon: Ban, color: '#b91c1c' },
   FLOODING: { label: 'Floods', icon: Waves, color: '#0d9488' },
-  HAZARD: { label: 'Hazards', icon: AlertOctagon, color: '#d97706' },
+  HAZARD: { label: 'Hazards', icon: AlertOctagon, color: '#ca8a04' },
   // Points of interest
-  skiResorts: { label: 'Ski Resorts', icon: Mountain, color: '#0284c7' },
-  stargazing: { label: 'Stargazing', icon: Star, color: '#312e81', colorDark: '#a5b4fc' },
-  creemeeStands: { label: 'Creemee Stands', icon: IceCream, color: '#78350f' },
+  skiResorts: { label: 'Ski Resorts', icon: Mountain, color: '#0891b2' },
+  stargazing: { label: 'Stargazing', icon: Star, color: '#a855f7' },
+  creemeeStands: { label: 'Creemee Stands', icon: IceCream, color: '#9d174d' },
   campingSites: { label: 'Camping', icon: Tent, color: '#15803d' },
-  beachSites: { label: 'Beaches', icon: Waves, color: '#ca8a04' },
+  beachSites: { label: 'Beaches', icon: Waves, color: '#115e59' },
 };
 
 export const layerColor = (key: LayerStyleKey): string => LAYER_STYLES[key].color;

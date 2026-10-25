@@ -92,7 +92,7 @@ describe('StargazingLayer', () => {
     rerender(<StargazingLayer map={fake.asMap()} isDark />);
     expect(liveMarkers()).toHaveLength(2);
     const el = liveMarkers()[1]!.getElement();
-    expect(el.style.getPropertyValue('--layer-color')).toBe('#312e81');
+    expect(el.style.getPropertyValue('--layer-color')).toBe('#a855f7');
     expect(el.getAttribute('role')).toBe('button');
     expect(el.tabIndex).toBe(0);
     expect(el.getAttribute('aria-label')).toBe('Dark sky site: Lake Willoughby, Bortle 3');

@@ -45,7 +45,7 @@ describe('SkiDetail', () => {
       />,
     );
     expect(badge(container)).toHaveTextContent('Ski area');
-    expect(badge(container).style.getPropertyValue('--layer-color')).toBe('#0284c7');
+    expect(badge(container).style.getPropertyValue('--layer-color')).toBe('#0891b2');
     expect(screen.getByText('Stowe')).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('Good conditions');
     expect(screen.getByText('4"')).toBeInTheDocument();
@@ -110,7 +110,7 @@ describe('BeachDetail', () => {
   it('shows water quality, amenities and the Beaches badge', () => {
     const { container } = render(<BeachDetail beach={makeBeach()} isDark={false} />);
     expect(badge(container)).toHaveTextContent('Beach');
-    expect(badge(container).style.getPropertyValue('--layer-color')).toBe('#ca8a04');
+    expect(badge(container).style.getPropertyValue('--layer-color')).toBe('#115e59');
     expect(screen.getByText('Burlington')).toBeInTheDocument();
     expect(screen.getByText('A')).toBeInTheDocument();
     expect(screen.getByText('12 per 100 mL')).toBeInTheDocument();
@@ -172,7 +172,7 @@ describe('CreemeeDetail', () => {
   it('shows featured stands, description and specialties', () => {
     const { container } = render(<CreemeeDetail stand={makeCreemeeStand()} isDark={false} />);
     expect(badge(container)).toHaveTextContent('Creemee stand · Featured');
-    expect(badge(container).style.getPropertyValue('--layer-color')).toBe('#78350f');
+    expect(badge(container).style.getPropertyValue('--layer-color')).toBe('#9d174d');
     expect(screen.getByText('Waitsfield, VT')).toBeInTheDocument();
     expect(screen.getByText('Maple creemees')).toBeInTheDocument();
     expect(container.querySelector('.detail-tags')).toHaveTextContent('Maple');
@@ -328,7 +328,7 @@ describe('DarkSkyDetail', () => {
       <DarkSkyDetail site={makeDarkSkySite({ sqmReading: 21.6, elevation: 500 })} isDark={false} />,
     );
     expect(badge(container)).toHaveTextContent('Dark sky site');
-    expect(badge(container).style.getPropertyValue('--layer-color')).toBe('#312e81');
+    expect(badge(container).style.getPropertyValue('--layer-color')).toBe('#a855f7');
     expect(screen.getByText('State forest')).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent(/^Bortle 2:/);
     expect(screen.getByText('Remote bog with open horizons')).toBeInTheDocument();

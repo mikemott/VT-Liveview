@@ -70,7 +70,7 @@ describe('BeachLayer', () => {
       render(<BeachLayer map={fake.asMap()} visible onSelect={vi.fn()} />);
       await waitFor(() => expect(liveMarkers()).toHaveLength(1));
       const el = liveMarkers()[0]!.getElement();
-      expect(el.style.getPropertyValue('--layer-color')).toBe('#ca8a04');
+      expect(el.style.getPropertyValue('--layer-color')).toBe('#115e59');
       expect(el.style.getPropertyValue('--marker-fill')).toBe(fill);
       expect(el.classList.contains('map-marker--status')).toBe(true);
       expect(el.getAttribute('aria-label')).toBe(label);

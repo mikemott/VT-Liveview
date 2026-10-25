@@ -269,7 +269,7 @@ describe('TravelLayer', () => {
     expect(el.getAttribute('role')).toBe('button');
     expect(el.tabIndex).toBe(0);
     expect(el.getAttribute('aria-label')).toMatch(/^Accident: Crash on/);
-    expect(el.style.getPropertyValue('--layer-color')).toBe('#7c3aed');
+    expect(el.style.getPropertyValue('--layer-color')).toBe('#5b21b6');
   });
 
   it('collapses the panel and forwards the layer chip toggles', async () => {

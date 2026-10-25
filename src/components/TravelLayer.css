@@ -146,40 +146,37 @@
 }
 
 /*
- * Active chip colors come from the layer registry (src/config/layers.ts) via
- * --layer-color, so each chip matches its markers on the map (VTL-64).
- * color-mix keeps one rule for every layer: a pale tint, a mid border, and
- * text/icon darkened (light) or lightened (dark) enough to stay readable.
+ * A selected chip is filled with its layer color (src/config/layers.ts, via
+ * --layer-color), exactly like that layer's markers on the map (VTL-66).
+ * Every layer color keeps ~3:1 or better with white text.
  */
 .filter-chip.active {
   --chip-accent: var(--layer-color, var(--color-vermont-green));
-  background: color-mix(in srgb, var(--chip-accent) 16%, transparent);
-  border-color: color-mix(in srgb, var(--chip-accent) 55%, transparent);
-  color: color-mix(in srgb, var(--chip-accent) 64%, black);
+  background: var(--chip-accent);
+  border-color: var(--chip-accent);
+  color: #ffffff;
   box-shadow:
-    inset 0 1px 2px rgba(0, 0, 0, 0.08),
-    0 2px 4px color-mix(in srgb, var(--chip-accent) 18%, transparent);
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 2px 6px color-mix(in srgb, var(--chip-accent) 35%, transparent);
+}
+
+.filter-chip.active:hover {
+  background: color-mix(in srgb, var(--chip-accent) 88%, black);
+  border-color: color-mix(in srgb, var(--chip-accent) 88%, black);
 }
 
 .filter-chip.active .chip-icon {
-  /* Same color as the label: the raw layer color can be < 3:1 on the tint */
   color: inherit;
 }
 
 .filter-chip.active .chip-count {
-  background: color-mix(in srgb, var(--chip-accent) 22%, transparent);
+  background: rgba(255, 255, 255, 0.22);
   color: inherit;
 }
 
+/* Deep colors (slate, dark teal) need an edge to stand off the dark panel */
 .dark .filter-chip.active {
-  /* Deep colors (night indigo, slate) need lifting to show on the dark panel */
-  --chip-accent: var(
-    --layer-color-dark,
-    color-mix(in srgb, var(--layer-color, #6ee7b7) 48%, white)
-  );
-  background: color-mix(in srgb, var(--chip-accent) 16%, transparent);
-  border-color: color-mix(in srgb, var(--chip-accent) 50%, transparent);
-  color: var(--chip-accent);
+  border-color: rgba(255, 255, 255, 0.35);
 }
 
 /* Camping sub-filters */
