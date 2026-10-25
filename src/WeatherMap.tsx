@@ -113,7 +113,6 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
     onMapUnavailableRef.current = onMapUnavailable;
   }, [onMapUnavailable]);
   const map = useRef<MapLibreMap | null>(null);
-  const globalPopupRef = useRef<maplibregl.Popup | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
   // Map view, layers and selection from a shared link (read once, VTL-52)
@@ -1004,6 +1003,10 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
     const camera = loaded.find((c) => c.id === pending.id);
     if (camera) setDetailPanelContent({ type: 'camera', data: camera });
   }, []);
+  // Travel incidents open in the side panel (VTL-64)
+  const handleIncidentClick = useCallback((incident: TravelIncident): void => {
+    setDetailPanelContent({ type: 'incident', data: incident });
+  }, []);
   const handleCameraClick = useCallback((camera: TrafficCamera): void => {
     setDetailPanelContent({ type: 'camera', data: camera });
   }, []);
@@ -1248,7 +1251,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
               onToggleStargazing={toggleStargazing}
               showTrafficFlow={showTrafficFlow}
               onToggleTrafficFlow={toggleTrafficFlow}
-              globalPopupRef={globalPopupRef}
+              onIncidentClick={handleIncidentClick}
               mapStyleVersion={mapStyleVersion}
               campgroundCount={campgroundCount}
               backcountryCount={backcountryCount}
@@ -1262,7 +1265,6 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
               visible={isLayerVisible('weatherStations')}
               onStationClick={handleStationClick}
               onStationsLoaded={handleStationsLoaded}
-              globalPopupRef={globalPopupRef}
             />
           )}
 

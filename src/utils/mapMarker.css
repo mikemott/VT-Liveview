@@ -58,6 +58,25 @@
   flex-shrink: 0;
 }
 
+/* Text reading inside a circle (weather stations) */
+.map-marker--circle .map-marker-body {
+  font-family: var(--font-family, system-ui, sans-serif);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Icon above a short reading */
+.map-marker--stacked .map-marker-body {
+  flex-direction: column;
+  gap: 1px;
+}
+
+.map-marker--stacked .map-marker-body svg {
+  width: 13px;
+  height: 13px;
+}
+
 /* Status fill: the layer color moves to an outer ring */
 .map-marker--status .map-marker-body {
   box-shadow:

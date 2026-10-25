@@ -1,16 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, waitFor } from '@testing-library/react';
 import { graphql, HttpResponse } from 'msw';
-import type maplibregl from 'maplibre-gl';
 import WeatherStationsLayer from '../WeatherStationsLayer';
 import { server } from '../../test/msw';
 import { FakeMap, liveMarkers, openPopups, resetMaplibreMock } from '../../test/maplibreMock';
 import { makeStation } from '../../__fixtures__/components/data';
-import {
-  XSS_PAYLOAD,
-  expectNoInjectedMarkup,
-  expectPayloadAsText,
-} from '../../__fixtures__/components/xss';
+import { XSS_PAYLOAD, expectNoInjectedMarkup } from '../../__fixtures__/components/xss';
 import type { ObservationStation } from '../../types';
 
 vi.mock('maplibre-gl', async () => (await import('../../test/maplibreMock')).maplibreModule);
@@ -25,10 +20,6 @@ function useStations(stations: ObservationStation[]): void {
 
 function click(el: HTMLElement): void {
   el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-}
-
-function popupRef(): React.MutableRefObject<maplibregl.Popup | null> {
-  return { current: null };
 }
 
 describe('WeatherStationsLayer', () => {
@@ -51,58 +42,30 @@ describe('WeatherStationsLayer', () => {
     delete window.__xss;
   });
 
-  it('adds markers and a map click listener, and removes everything on unmount', async () => {
-    const ref = popupRef();
+  it('adds markers in the Stations color, and removes them on unmount', async () => {
     const { unmount } = render(
-      <WeatherStationsLayer map={fake.asMap()} visible globalPopupRef={ref} />,
+      <WeatherStationsLayer map={fake.asMap()} visible onStationClick={vi.fn()} />,
     );
     await waitFor(() => expect(liveMarkers()).toHaveLength(2));
-    expect(fake.listenerCount('click')).toBe(1);
-
-    click(liveMarkers()[0]!.getElement());
-    expect(openPopups()).toHaveLength(1);
-    expect(ref.current).not.toBeNull();
+    const el = liveMarkers()[0]!.getElement();
+    expect(el.style.getPropertyValue('--layer-color')).toBe('#2563eb');
+    // Side panel only: no popups, no map-level click listener (VTL-64)
+    click(el);
+    expect(openPopups()).toHaveLength(0);
+    expect(fake.listenerCount('click')).toBe(0);
 
     unmount();
     expect(liveMarkers()).toHaveLength(0);
-    expect(openPopups()).toHaveLength(0);
-    expect(ref.current).toBeNull();
     expect(fake.listenerCount()).toBe(0);
   });
 
-  it('removes markers and the popup when hidden', async () => {
-    const ref = popupRef();
+  it('removes markers when hidden', async () => {
     const { rerender } = render(
-      <WeatherStationsLayer map={fake.asMap()} visible globalPopupRef={ref} />,
+      <WeatherStationsLayer map={fake.asMap()} visible onStationClick={vi.fn()} />,
     );
     await waitFor(() => expect(liveMarkers()).toHaveLength(2));
-    click(liveMarkers()[0]!.getElement());
-
-    rerender(<WeatherStationsLayer map={fake.asMap()} visible={false} globalPopupRef={ref} />);
+    rerender(<WeatherStationsLayer map={fake.asMap()} visible={false} onStationClick={vi.fn()} />);
     expect(liveMarkers()).toHaveLength(0);
-    expect(openPopups()).toHaveLength(0);
-    expect(fake.listenerCount()).toBe(0);
-  });
-
-  it('toggles the popup on repeated clicks and closes it on map click', async () => {
-    const ref = popupRef();
-    render(<WeatherStationsLayer map={fake.asMap()} visible globalPopupRef={ref} />);
-    await waitFor(() => expect(liveMarkers()).toHaveLength(2));
-    const el = liveMarkers()[0]!.getElement();
-
-    click(el);
-    expect(openPopups()).toHaveLength(1);
-    click(el);
-    expect(openPopups()).toHaveLength(0);
-
-    click(el);
-    click(liveMarkers()[1]!.getElement());
-    expect(openPopups()).toHaveLength(1);
-    expect(openPopups()[0]?.html).toContain('Water Temperature');
-
-    fake.fire('click');
-    expect(openPopups()).toHaveLength(0);
-    expect(ref.current).toBeNull();
   });
 
   it('reports loaded stations so a shared selection can be restored (VTL-52)', async () => {
@@ -111,7 +74,7 @@ describe('WeatherStationsLayer', () => {
       <WeatherStationsLayer
         map={fake.asMap()}
         visible
-        globalPopupRef={popupRef()}
+        onStationClick={vi.fn()}
         onStationsLoaded={onStationsLoaded}
       />,
     );
@@ -121,14 +84,7 @@ describe('WeatherStationsLayer', () => {
 
   it('calls onStationClick with the clicked station', async () => {
     const onStationClick = vi.fn();
-    render(
-      <WeatherStationsLayer
-        map={fake.asMap()}
-        visible
-        globalPopupRef={popupRef()}
-        onStationClick={onStationClick}
-      />,
-    );
+    render(<WeatherStationsLayer map={fake.asMap()} visible onStationClick={onStationClick} />);
     await waitFor(() => expect(liveMarkers()).toHaveLength(2));
     click(liveMarkers()[1]!.getElement());
     expect(onStationClick).toHaveBeenCalledTimes(1);
@@ -137,14 +93,7 @@ describe('WeatherStationsLayer', () => {
 
   it('makes markers keyboard-operable with a name that leads with the visible reading (FINDINGS H15)', async () => {
     const onStationClick = vi.fn();
-    render(
-      <WeatherStationsLayer
-        map={fake.asMap()}
-        visible
-        globalPopupRef={popupRef()}
-        onStationClick={onStationClick}
-      />,
-    );
+    render(<WeatherStationsLayer map={fake.asMap()} visible onStationClick={onStationClick} />);
     await waitFor(() => expect(liveMarkers()).toHaveLength(2));
     const [air, water] = liveMarkers().map((m) => m.getElement());
 
@@ -162,72 +111,32 @@ describe('WeatherStationsLayer', () => {
   });
 
   // VTL-50: old readings must not look like current conditions
-  it('greys out stale readings and says how old they are', async () => {
+  it('dims stale readings and says how old they are', async () => {
     vi.setSystemTime(new Date('2026-10-16T16:20:00Z')); // fixture is ~4 hours old
-    render(<WeatherStationsLayer map={fake.asMap()} visible globalPopupRef={popupRef()} />);
+    render(<WeatherStationsLayer map={fake.asMap()} visible onStationClick={vi.fn()} />);
     await waitFor(() => expect(liveMarkers()).toHaveLength(2));
     const air = liveMarkers()[0]!.getElement();
     expect(air.classList.contains('stale')).toBe(true);
+    expect(air.classList.contains('map-marker--dimmed')).toBe(true);
     expect(air.getAttribute('aria-label')).toBe(
       '45°, Barre-Montpelier Airport, reading from 4 hr ago',
     );
-
-    air.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    const html = openPopups()[0]?.html ?? '';
-    expect(html).toContain('station-popup-asof stale');
-    expect(html).toContain('Old reading: 4 hr ago');
   });
 
-  it('shows the reading time in the popup for fresh readings', async () => {
-    render(<WeatherStationsLayer map={fake.asMap()} visible globalPopupRef={popupRef()} />);
-    await waitFor(() => expect(liveMarkers()).toHaveLength(2));
-    const air = liveMarkers()[0]!.getElement();
-    expect(air.classList.contains('stale')).toBe(false);
-    air.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    const html = openPopups()[0]?.html ?? '';
-    expect(html).toMatch(/class="station-popup-asof">as of /);
-  });
-
-  it('shows 0°F and 0% as values, not N/A', async () => {
-    const base = makeStation();
-    useStations([makeStation({ weather: { ...base.weather, temperature: 0, humidity: 0 } })]);
-    render(<WeatherStationsLayer map={fake.asMap()} visible globalPopupRef={popupRef()} />);
-    await waitFor(() => expect(liveMarkers()).toHaveLength(1));
-    expect(liveMarkers()[0]!.getElement().textContent).toBe('0°');
-
-    click(liveMarkers()[0]!.getElement());
-    const text = openPopups()[0]?.getElement().textContent ?? '';
-    expect(text).toMatch(/Temperature\s*0°F/);
-    expect(text).toMatch(/Humidity\s*0%/);
-    expect(text).toMatch(/Pressure\s*1013\.25 mb/);
-    expect(text).toContain('Elevation: 1,165 ft');
-  });
-
-  it('shows N/A for missing readings', async () => {
+  it('shows 0° as a value and N/A when there is no reading', async () => {
     const base = makeStation();
     useStations([
-      makeStation({
-        elevation: null,
-        weather: {
-          ...base.weather,
-          temperature: Number.NaN,
-          windSpeed: null,
-          humidity: null,
-          pressure: null,
-        },
-      }),
+      makeStation({ weather: { ...base.weather, temperature: 0 } }),
+      makeStation({ id: 'KX', weather: { ...base.weather, temperature: Number.NaN } }),
     ]);
-    render(<WeatherStationsLayer map={fake.asMap()} visible globalPopupRef={popupRef()} />);
-    await waitFor(() => expect(liveMarkers()).toHaveLength(1));
-    expect(liveMarkers()[0]!.getElement().textContent).toBe('N/A');
-    click(liveMarkers()[0]!.getElement());
-    const text = openPopups()[0]?.getElement().textContent ?? '';
-    expect(text).toMatch(/Wind\s*N\/A/);
-    expect(text).not.toContain('Elevation');
+    render(<WeatherStationsLayer map={fake.asMap()} visible onStationClick={vi.fn()} />);
+    await waitFor(() => expect(liveMarkers()).toHaveLength(2));
+    expect(liveMarkers()[0]!.getElement().textContent).toBe('0°');
+    expect(liveMarkers()[1]!.getElement().textContent).toBe('N/A');
   });
 
   it('renders the water-temperature marker with a static droplet icon', async () => {
-    render(<WeatherStationsLayer map={fake.asMap()} visible globalPopupRef={popupRef()} />);
+    render(<WeatherStationsLayer map={fake.asMap()} visible onStationClick={vi.fn()} />);
     await waitFor(() => expect(liveMarkers()).toHaveLength(2));
     const water = liveMarkers()[1]!.getElement();
     expect(water.querySelector('svg path')).not.toBeNull();
@@ -241,35 +150,21 @@ describe('WeatherStationsLayer', () => {
       ),
     );
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    render(<WeatherStationsLayer map={fake.asMap()} visible globalPopupRef={popupRef()} />);
+    render(<WeatherStationsLayer map={fake.asMap()} visible onStationClick={vi.fn()} />);
     await waitFor(() => expect(spy).toHaveBeenCalled());
     expect(liveMarkers()).toHaveLength(0);
     spy.mockRestore();
   });
 
-  it('escapes hostile upstream strings in popup HTML', async () => {
+  it('puts hostile upstream strings into markers as text, never markup', async () => {
     const base = makeStation();
     useStations([
-      makeStation({
-        id: XSS_PAYLOAD,
-        name: XSS_PAYLOAD,
-        weather: {
-          ...base.weather,
-          windSpeed: XSS_PAYLOAD,
-          windDirection: XSS_PAYLOAD,
-          description: XSS_PAYLOAD,
-          temperatureUnit: XSS_PAYLOAD,
-          timestamp: XSS_PAYLOAD,
-        },
-      }),
+      makeStation({ id: XSS_PAYLOAD, name: XSS_PAYLOAD, weather: { ...base.weather } }),
     ]);
-    render(<WeatherStationsLayer map={fake.asMap()} visible globalPopupRef={popupRef()} />);
+    render(<WeatherStationsLayer map={fake.asMap()} visible onStationClick={vi.fn()} />);
     await waitFor(() => expect(liveMarkers()).toHaveLength(1));
-    click(liveMarkers()[0]!.getElement());
-
-    const html = openPopups()[0]?.html ?? '';
-    expectNoInjectedMarkup(html);
-    expectPayloadAsText(html);
-    expectNoInjectedMarkup(liveMarkers()[0]!.getElement());
+    const el = liveMarkers()[0]!.getElement();
+    expectNoInjectedMarkup(el);
+    expect(el.getAttribute('aria-label')).toContain(XSS_PAYLOAD);
   });
 });

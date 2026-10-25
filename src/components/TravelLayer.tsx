@@ -3,11 +3,11 @@ import { ChevronDown, ChevronRight, ZoomIn } from 'lucide-react';
 import maplibregl from 'maplibre-gl';
 import { fetchAllIncidentsWithStatus, type TravelIncident } from '../services/travelApi';
 import { getIncidentColor, shouldShowIncident } from '../utils/incidentColors';
-import { createMarkerElement } from '../utils/incidentIcons';
+import { getIncidentIcon } from '../utils/incidentIcons';
+import { useMapMarkers, type BuiltMarker } from '../hooks/useMapMarkers';
+import { createMapMarker } from '../utils/mapMarker';
 import { INTERVALS } from '../utils/constants';
 import { useVisibleInterval } from '../hooks/useVisibleInterval';
-import { escapeHTML } from '../utils/sanitize';
-import { cleanupMarkers, type MarkerEntry } from '../utils/markerCleanup';
 import type { MapLibreMap, IncidentType } from '../types';
 import StargazingLayer from './StargazingLayer';
 import { LAYER_STYLES, layerColorVars, type LayerStyleKey } from '../config/layers';
@@ -62,7 +62,8 @@ interface TravelLayerProps {
   onToggleStargazing: () => void;
   showTrafficFlow: boolean;
   onToggleTrafficFlow: () => void;
-  globalPopupRef: React.MutableRefObject<maplibregl.Popup | null>;
+  /** Opens an incident in the side panel (marker or list click) */
+  onIncidentClick?: (incident: TravelIncident) => void;
   mapStyleVersion: number;
 }
 
@@ -88,6 +89,28 @@ function getTypeLabel(type: IncidentType, short: boolean = false): string {
     HAZARD: 'Hazards',
   };
   return labels[type] || 'Other';
+}
+
+/** Singular names for marker labels */
+const INCIDENT_NAME: Record<IncidentType, string> = {
+  ACCIDENT: 'Accident',
+  CONSTRUCTION: 'Construction',
+  CLOSURE: 'Road closure',
+  FLOODING: 'Flooding',
+  HAZARD: 'Hazard',
+};
+
+function buildIncidentMarker(incident: TravelIncident): BuiltMarker {
+  const element = createMapMarker({
+    layer: incident.type,
+    // Hard-coded icon SVG, white via currentColor
+    iconSvg: getIncidentIcon(incident.type, 16, 'currentColor'),
+    label: `${INCIDENT_NAME[incident.type]}: ${incident.title}`,
+    title: incident.title,
+    className: 'incident-marker',
+  });
+  element.dataset.type = incident.type.toLowerCase();
+  return { lngLat: [incident.location.lng, incident.location.lat], element };
 }
 
 interface FilterChipProps {
@@ -156,7 +179,7 @@ function TravelLayer({
   onToggleStargazing,
   showTrafficFlow,
   onToggleTrafficFlow,
-  globalPopupRef,
+  onIncidentClick,
   mapStyleVersion,
 }: TravelLayerProps) {
   const [incidents, setIncidents] = useState<TravelIncident[]>([]);
@@ -174,7 +197,6 @@ function TravelLayer({
   const [error, setError] = useState<string | null>(null);
   // Sources that failed on the last refresh while others loaded
   const [unavailableSources, setUnavailableSources] = useState<string[]>([]);
-  const markersRef = useRef<MarkerEntry[]>([]);
   const onIncidentsLoadedRef = useRef(onIncidentsLoaded);
   useEffect(() => {
     onIncidentsLoadedRef.current = onIncidentsLoaded;
@@ -217,102 +239,89 @@ function TravelLayer({
     }));
   };
 
-  // Handle incident click to highlight affected area
-  const handleIncidentClick = (incident: TravelIncident): void => {
+  const onIncidentClickRef = useRef(onIncidentClick);
+  useEffect(() => {
+    onIncidentClickRef.current = onIncidentClick;
+  }, [onIncidentClick]);
+
+  /** Remove the highlighted route, if any */
+  const clearHighlight = useCallback((): void => {
     if (!map) return;
+    if (map.getLayer('incident-highlight')) map.removeLayer('incident-highlight');
+    if (map.getLayer('incident-highlight-outline')) map.removeLayer('incident-highlight-outline');
+    if (map.getSource('incident-highlight')) map.removeSource('incident-highlight');
+  }, [map]);
 
-    // Toggle selection - if already selected, deselect
-    if (selectedIncident?.id === incident.id) {
-      setSelectedIncident(null);
-      // Remove highlight layers
-      if (map.getLayer('incident-highlight')) {
-        map.removeLayer('incident-highlight');
-      }
-      if (map.getLayer('incident-highlight-outline')) {
-        map.removeLayer('incident-highlight-outline');
-      }
-      if (map.getSource('incident-highlight')) {
-        map.removeSource('incident-highlight');
-      }
-      return;
-    }
-
-    // Set new selection
-    setSelectedIncident(incident);
-
-    // Remove existing highlight
-    if (map.getLayer('incident-highlight')) {
-      map.removeLayer('incident-highlight');
-    }
-    if (map.getLayer('incident-highlight-outline')) {
-      map.removeLayer('incident-highlight-outline');
-    }
-    if (map.getSource('incident-highlight')) {
-      map.removeSource('incident-highlight');
-    }
-
-    // Add highlight if incident has geometry
-    if (incident.geometry) {
-      // Add source
-      map.addSource('incident-highlight', {
-        type: 'geojson',
-        data: {
-          type: 'Feature',
-          properties: {},
-          geometry: incident.geometry,
-        },
-      });
-
-      const color = getIncidentColor(incident.type);
-
-      // Add line layer for route
-      if (incident.geometry.type === 'LineString') {
+  /** Highlight an incident's route in its layer color; optionally bring it into view */
+  const showHighlight = useCallback(
+    (incident: TravelIncident, fit: boolean): void => {
+      if (!map) return;
+      clearHighlight();
+      const color = getIncidentColor(incident.type).primary;
+      if (incident.geometry?.type === 'LineString') {
+        map.addSource('incident-highlight', {
+          type: 'geojson',
+          data: { type: 'Feature', properties: {}, geometry: incident.geometry },
+        });
         map.addLayer({
           id: 'incident-highlight-outline',
           type: 'line',
           source: 'incident-highlight',
-          paint: {
-            'line-color': color.primary,
-            'line-width': 8,
-            'line-opacity': 0.4,
-          },
+          paint: { 'line-color': color, 'line-width': 8, 'line-opacity': 0.4 },
         });
-
         map.addLayer({
           id: 'incident-highlight',
           type: 'line',
           source: 'incident-highlight',
-          paint: {
-            'line-color': color.primary,
-            'line-width': 4,
-            'line-opacity': 0.8,
-          },
+          paint: { 'line-color': color, 'line-width': 4, 'line-opacity': 0.8 },
         });
       }
+      if (!fit) return;
+      const coordinates = incident.geometry?.coordinates;
+      if (coordinates && coordinates.length > 0) {
+        const bounds = coordinates.reduce(
+          (bnds, coord) => bnds.extend(coord),
+          new maplibregl.LngLatBounds(coordinates[0], coordinates[0]),
+        );
+        map.fitBounds(bounds, {
+          padding: { top: 100, bottom: 100, left: 450, right: 100 },
+          maxZoom: 14,
+        });
+      } else if (incident.location?.lat && incident.location?.lng) {
+        // Point reports (like flooding): fly to the location
+        map.flyTo({
+          center: [incident.location.lng, incident.location.lat],
+          zoom: 13,
+          duration: 1500,
+          padding: { top: 100, bottom: 100, left: 450, right: 100 },
+        });
+      }
+    },
+    [map, clearHighlight],
+  );
 
-      // Fit map to show the entire route
-      const coordinates = incident.geometry.coordinates;
-      const bounds = coordinates.reduce(
-        (bnds, coord) => {
-          return bnds.extend(coord);
-        },
-        new maplibregl.LngLatBounds(coordinates[0], coordinates[0]),
-      );
-
-      map.fitBounds(bounds, {
-        padding: { top: 100, bottom: 100, left: 450, right: 100 },
-        maxZoom: 14,
-      });
-    } else if (incident.location && incident.location.lat && incident.location.lng) {
-      // For point locations (like flooding), fly to the location
-      map.flyTo({
-        center: [incident.location.lng, incident.location.lat],
-        zoom: 13,
-        duration: 1500,
-        padding: { top: 100, bottom: 100, left: 450, right: 100 },
-      });
+  // List item: toggle the highlight and zoom to it; selecting also opens the panel
+  const handleIncidentClick = (incident: TravelIncident): void => {
+    if (!map) return;
+    if (selectedIncident?.id === incident.id) {
+      setSelectedIncident(null);
+      clearHighlight();
+      return;
     }
+    setSelectedIncident(incident);
+    showHighlight(incident, true);
+    onIncidentClickRef.current?.(incident);
   };
+
+  // Map marker: highlight in place (the user is already looking there) and open the panel
+  const handleMarkerActivate = useCallback(
+    (incident: TravelIncident): void => {
+      setSelectedIncident(incident);
+      showHighlight(incident, false);
+      onIncidentClickRef.current?.(incident);
+    },
+    [showHighlight],
+  );
 
   // Filter incidents by active filters and zoom level
   // Memoize to prevent unnecessary marker recreation
@@ -324,261 +333,12 @@ function TravelLayer({
     });
   }, [incidents, activeFilters, currentZoom]);
 
-  // Add markers to map when incidents or filters change
-  useEffect(() => {
-    const markers = markersRef.current;
-    if (!map || !visible) {
-      // Clear existing markers, event listeners, and popup
-      cleanupMarkers(markersRef.current);
-      if (globalPopupRef.current) {
-        globalPopupRef.current.remove();
-        globalPopupRef.current = null;
-      }
-      return;
-    }
-
-    // Close popup when clicking on map
-    const handleMapClick = (): void => {
-      if (globalPopupRef.current) {
-        globalPopupRef.current.remove();
-        globalPopupRef.current = null;
-      }
-    };
-    map.on('click', handleMapClick);
-
-    // Remove old markers and clean up event listeners
-    cleanupMarkers(markersRef.current);
-
-    // Add new markers for visible incidents
-    visibleIncidents.forEach((incident) => {
-      if (!incident.location || !incident.location.lat || !incident.location.lng) {
-        return;
-      }
-
-      const el = createMarkerElement(incident.type);
-      if (!el) return;
-
-      const marker = new maplibregl.Marker({ element: el })
-        .setLngLat([incident.location.lng, incident.location.lat])
-        .addTo(map);
-
-      // Create popup with theme-aware colors matching chip design
-
-      // Vintage topographic colors matching detail cards - solid cream background
-      const categoryColors: Record<
-        IncidentType,
-        { bg: string; border: string; text: string; badgeBg: string; badgeBorder: string }
-      > = {
-        ACCIDENT: {
-          bg: '#fbfdf4',
-          border: 'rgba(204, 102, 82, 0.4)',
-          text: '#6b3528',
-          badgeBg: 'rgba(204, 102, 82, 0.2)',
-          badgeBorder: 'rgba(204, 102, 82, 0.4)',
-        },
-        CONSTRUCTION: {
-          bg: '#fbfdf4',
-          border: 'rgba(218, 165, 32, 0.4)',
-          text: '#6b5210',
-          badgeBg: 'rgba(218, 165, 32, 0.2)',
-          badgeBorder: 'rgba(218, 165, 32, 0.4)',
-        },
-        CLOSURE: {
-          bg: '#fbfdf4',
-          border: 'rgba(219, 112, 147, 0.4)',
-          text: '#6d3849',
-          badgeBg: 'rgba(219, 112, 147, 0.2)',
-          badgeBorder: 'rgba(219, 112, 147, 0.4)',
-        },
-        FLOODING: {
-          bg: '#fbfdf4',
-          border: 'rgba(72, 157, 153, 0.4)',
-          text: '#254d4b',
-          badgeBg: 'rgba(72, 157, 153, 0.2)',
-          badgeBorder: 'rgba(72, 157, 153, 0.4)',
-        },
-        HAZARD: {
-          bg: '#fbfdf4',
-          border: 'rgba(214, 126, 44, 0.4)',
-          text: '#6a3e16',
-          badgeBg: 'rgba(214, 126, 44, 0.2)',
-          badgeBorder: 'rgba(214, 126, 44, 0.4)',
-        },
-      };
-
-      const catColors = categoryColors[incident.type];
-      const themeColors = {
-        title: catColors.text,
-        text: '#5d7c5a',
-        textSecondary: '#7a9576',
-        metadata: '#7a9576',
-        border: 'rgba(93, 124, 90, 0.12)',
-        background: '#fbfdf4',
-        categoryBg: catColors.bg,
-        categoryBorder: catColors.border,
-        categoryText: catColors.text,
-        badgeBg: catColors.badgeBg,
-        badgeBorder: catColors.badgeBorder,
-      };
-
-      // Escape user-controlled content to prevent XSS
-      const safeTitle = escapeHTML(incident.title);
-      const safeRoadName = escapeHTML(incident.roadName);
-      const safeDescription = escapeHTML(incident.description);
-      const safeSource = escapeHTML(incident.source);
-
-      // Location pin SVG icon
-      const pinIcon = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${themeColors.textSecondary}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`;
-
-      const popup = new maplibregl.Popup({
-        offset: 25,
-        closeButton: true,
-        closeOnClick: false,
-        maxWidth: '320px',
-        className: 'incident-popup',
-      }).setHTML(`
-        <div style="
-          padding: var(--space-7, 16px);
-          background: ${themeColors.categoryBg};
-          border-radius: var(--radius-xl, 12px);
-          border: 1px solid ${themeColors.border};
-          box-shadow: 0 6px 16px rgba(150, 150, 140, 0.12);
-          font-family: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        ">
-          <div style="
-            background: ${themeColors.badgeBg};
-            border: 2px solid ${themeColors.badgeBorder};
-            border-radius: var(--radius-lg, 8px);
-            padding: var(--space-3, 8px) var(--space-6, 14px);
-            margin-bottom: var(--space-7, 16px);
-            display: inline-flex;
-            align-items: center;
-            gap: var(--space-3, 8px);
-          ">
-            <span style="
-              color: ${themeColors.categoryText};
-              font-size: var(--font-size-lg, 13px);
-              font-weight: 600;
-              text-transform: uppercase;
-              letter-spacing: 0.05em;
-            ">${escapeHTML(incident.type)}</span>
-          </div>
-          <h3 style="
-            margin: 0 0 var(--space-3, 8px) 0;
-            color: ${themeColors.title};
-            font-size: var(--font-size-3xl, 18px);
-            font-weight: 700;
-            line-height: 1.2;
-          ">${safeTitle}</h3>
-          ${
-            safeRoadName
-              ? `
-            <div style="
-              display: flex;
-              align-items: center;
-              gap: 6px;
-              margin-bottom: 8px;
-              color: ${themeColors.text};
-              font-size: 12px;
-              font-weight: 500;
-            ">
-              ${pinIcon}
-              <span>${safeRoadName}</span>
-            </div>
-          `
-              : ''
-          }
-          ${
-            safeDescription
-              ? `
-            <p style="
-              margin: 0 0 10px 0;
-              color: ${themeColors.textSecondary};
-              font-size: 12px;
-              line-height: 1.5;
-            ">${safeDescription}</p>
-          `
-              : ''
-          }
-          <div style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-top: 8px;
-            border-top: 1px solid ${themeColors.border};
-          ">
-            <span style="
-              font-size: 10px;
-              color: ${themeColors.metadata};
-              font-style: italic;
-              font-weight: 500;
-            ">${safeSource}</span>
-            ${
-              incident.startTime
-                ? `
-              <span style="
-                font-size: 10px;
-                color: ${themeColors.metadata};
-                font-weight: 500;
-              ">${new Date(incident.startTime).toLocaleString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit',
-              })}</span>
-            `
-                : ''
-            }
-          </div>
-        </div>
-      `);
-
-      // Store click handler for cleanup
-      const handleMarkerClick = (e: MouseEvent): void => {
-        e.stopPropagation(); // Prevent map click from closing immediately
-
-        // Close existing popup if any (atomic operation)
-        if (globalPopupRef.current && globalPopupRef.current !== popup) {
-          globalPopupRef.current.remove();
-          globalPopupRef.current = null;
-        }
-
-        // Toggle popup: close if clicking same marker, open if different
-        if (globalPopupRef.current === popup) {
-          popup.remove();
-          globalPopupRef.current = null;
-        } else {
-          popup.setLngLat([incident.location.lng, incident.location.lat]).addTo(map);
-          globalPopupRef.current = popup;
-        }
-      };
-
-      // Add event listener and store for cleanup
-      el.addEventListener('click', handleMarkerClick as EventListener);
-
-      // Store marker and its cleanup function
-      markersRef.current.push({
-        marker: marker,
-        element: el,
-        handler: handleMarkerClick,
-      });
-    });
-
-    // Cleanup function
-    return () => {
-      // Clean up markers and event listeners
-      cleanupMarkers(markers);
-
-      // Clean up popup
-      if (globalPopupRef.current) {
-        globalPopupRef.current.remove();
-        globalPopupRef.current = null;
-      }
-
-      // Clean up map click handler
-      map.off('click', handleMapClick);
-    };
-  }, [map, visible, visibleIncidents, isDark, globalPopupRef]);
+  // Incidents with a usable location get a marker
+  const markerIncidents = useMemo(
+    () => visibleIncidents.filter((i) => i.location?.lat && i.location?.lng),
+    [visibleIncidents],
+  );
+  useMapMarkers(map, visible, markerIncidents, buildIncidentMarker, handleMarkerActivate);
 
   // Remove the highlight route when the layer unmounts
   useEffect(() => {

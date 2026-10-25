@@ -3,7 +3,6 @@
  * Using Lucide-style SVG icons for consistency
  */
 
-import { LAYER_STYLES } from '../config/layers';
 import type { IncidentType } from '@/types';
 
 // =============================================================================
@@ -31,7 +30,7 @@ const ICON_NAMES: Record<IncidentType, IncidentIconName> = {
  * @returns SVG markup string
  */
 export function getIncidentIcon(type: IncidentType, size = 20, color?: string): string {
-  const iconColor = color || getCategoryColors(type).iconColor;
+  const iconColor = color || '#ffffff';
   const strokeWidth = 2.5;
 
   const icons: Record<IncidentType, string> = {
@@ -87,82 +86,6 @@ export function getIncidentIcon(type: IncidentType, size = 20, color?: string): 
 // =============================================================================
 // DOM Element Creation
 // =============================================================================
-
-/**
- * Map marker colors: the layer color from the registry (VTL-64), so markers
- * match their filter chip; white ring and icon for contrast.
- */
-function getCategoryColors(type: IncidentType): {
-  bg: string;
-  border: string;
-  shadow: string;
-  iconColor: string;
-} {
-  // Unknown feed types fall back to Hazard, like the icons do
-  const style = LAYER_STYLES[type] ?? LAYER_STYLES.HAZARD;
-  return {
-    bg: style.color,
-    border: '#ffffff',
-    shadow: 'rgba(0, 0, 0, 0.3)',
-    iconColor: '#ffffff',
-  };
-}
-
-/**
- * Create a marker icon as an HTML element for MapLibre
- * Styled to match filter chip design with embossed effect
- * Note: innerHTML is safe here as all content comes from hardcoded SVG strings
- * @param type - Incident type
- * @returns Marker HTML element with hover effects
- */
-export function createMarkerElement(type: IncidentType): HTMLDivElement {
-  const el = document.createElement('div');
-  el.className = 'incident-marker';
-  el.dataset.type = type.toLowerCase();
-
-  const colors = getCategoryColors(type);
-
-  // Build marker structure - content is from trusted hardcoded sources only
-  const circleDiv = document.createElement('div');
-  circleDiv.className = 'marker-circle';
-  circleDiv.style.cssText = `
-    background: ${colors.bg};
-    border: 3px solid ${colors.border};
-    border-radius: 50%;
-    width: 34px;
-    height: 34px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 3px 8px ${colors.shadow};
-    cursor: pointer;
-    transition: all 0.2s ease;
-  `;
-
-  // SVG content is hardcoded in getIncidentIcon, not from external sources
-  const svgContent = getIncidentIcon(type, 16);
-  const template = document.createElement('template');
-  template.innerHTML = svgContent.trim();
-  const svgElement = template.content.firstChild;
-  if (svgElement) {
-    circleDiv.appendChild(svgElement);
-  }
-
-  el.appendChild(circleDiv);
-
-  // Add hover effect
-  el.addEventListener('mouseenter', () => {
-    circleDiv.style.transform = 'translateY(-2px) scale(1.1)';
-    circleDiv.style.boxShadow = `0 5px 12px ${colors.shadow}`;
-  });
-
-  el.addEventListener('mouseleave', () => {
-    circleDiv.style.transform = 'translateY(0) scale(1)';
-    circleDiv.style.boxShadow = `0 3px 8px ${colors.shadow}`;
-  });
-
-  return el;
-}
 
 // =============================================================================
 // Utility Functions

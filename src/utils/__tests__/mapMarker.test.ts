@@ -51,6 +51,18 @@ describe('createMapMarker (VTL-64)', () => {
     expect(el.querySelector('.map-marker-body svg path')).not.toBeNull();
   });
 
+  it('stacks an icon above text', () => {
+    const el = createMapMarker({
+      layer: 'weatherStations',
+      label: 'w',
+      iconSvg: '<svg></svg>',
+      text: '54°',
+    });
+    expect(el.classList.contains('map-marker--stacked')).toBe(true);
+    expect(el.querySelector('.map-marker-text')?.textContent).toBe('54°');
+    expect(el.querySelector('svg')).not.toBeNull();
+  });
+
   it('dims offline/stale markers and keeps extra classes', () => {
     const el = createMapMarker({
       layer: 'trafficCameras',
