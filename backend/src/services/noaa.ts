@@ -204,6 +204,7 @@ export async function getForecast(lat: number, lon: number): Promise<ForecastPer
     endTime: period.endTime,
     isDaytime: period.isDaytime,
     icon: period.icon,
+    precipChance: period.probabilityOfPrecipitation?.value ?? null,
     windSpeed: period.windSpeed,
     windDirection: period.windDirection,
   }));

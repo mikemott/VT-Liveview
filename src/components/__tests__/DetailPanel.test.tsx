@@ -29,11 +29,7 @@ describe('DetailPanel', () => {
     ['alert', { type: 'alert', data: makeAlertFeature() }, 'Weather Alert'],
     ['incident', { type: 'incident', data: makeVT511Incident() }, 'Traffic Incident'],
     ['station', { type: 'station', data: makeStation() }, 'Weather Station'],
-    [
-      'location',
-      { type: 'location', coordinates: { lat: 44.26, lng: -72.58 } },
-      'Location Details',
-    ],
+    ['location', { type: 'location', coordinates: { lat: 44.26, lng: -72.58 } }, "What's Here"],
   ])('renders the %s view with its title', (_type, content, title) => {
     const { container } = render(<DetailPanel content={content} onClose={vi.fn()} isDark />);
     expect(screen.getByRole('heading', { name: title })).toBeInTheDocument();

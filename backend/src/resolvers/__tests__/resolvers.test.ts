@@ -98,6 +98,7 @@ const forecastPeriod: ForecastPeriod = {
   startTime: '2026-10-16T18:00:00-04:00',
   endTime: '2026-10-17T06:00:00-04:00',
   isDaytime: false,
+  precipChance: 60,
   icon: null,
   windSpeed: '5 mph',
   windDirection: 'S',
@@ -323,7 +324,7 @@ describe('happy paths', () => {
     const { body } = await gql(
       `query($lat: Float!, $lon: Float!) { forecast(lat: $lat, lon: $lon) {
           name temperature temperatureUnit shortForecast detailedForecast startTime endTime
-          isDaytime icon windSpeed windDirection } }`,
+          isDaytime icon precipChance windSpeed windDirection } }`,
       { lat: 44, lon: -72.5 },
     );
     expect(body).toEqual({ data: { forecast: [forecastPeriod] } });

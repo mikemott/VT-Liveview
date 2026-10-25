@@ -51,6 +51,19 @@ export interface AlertFeature {
   geometry: AlertGeometry | null;
 }
 
+/** Something near a "What's here?" point */
+export type NearbyItem =
+  | { kind: 'roadWeather'; distanceMi: number; data: RoadWeatherStation }
+  | { kind: 'camera'; distanceMi: number; data: TrafficCamera }
+  | { kind: 'incident'; distanceMi: number; data: TravelIncident };
+
+export interface LocationContext {
+  /** Active weather alerts whose area covers the point */
+  alerts: AlertFeature[];
+  /** Nearest road temp and camera, and closures/accidents close by */
+  nearby: NearbyItem[];
+}
+
 // Union type for detail panel content
 export type DetailPanelContent =
   | { type: 'alert'; data: AlertFeature }
@@ -65,5 +78,10 @@ export type DetailPanelContent =
   | { type: 'campingArea'; data: CampingArea }
   | { type: 'darkSky'; data: DarkSkySite }
   | { type: 'seasonalRoad'; data: SeasonalRoad; status: RoadStatus }
-  | { type: 'location'; coordinates: { lat: number; lng: number } }
+  | {
+      type: 'location';
+      coordinates: { lat: number; lng: number };
+      /** What's around the point; filled in from loaded layer data (VTL-65) */
+      context?: LocationContext;
+    }
   | null;

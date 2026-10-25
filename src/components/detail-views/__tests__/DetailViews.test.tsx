@@ -1,14 +1,15 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import AlertDetail from '../AlertDetail';
 import IncidentDetail from '../IncidentDetail';
 import StationDetail from '../StationDetail';
 import LocationDetail from '../LocationDetail';
 import { useForecast } from '../../../hooks/useForecast';
-import type { ForecastPeriod } from '../../../types';
+import type { PointForecastPeriod } from '../../../hooks/useForecast';
 import {
   makeAlertFeature,
   makeVT511Incident,
+  makeRoadWeatherStation,
   makeStation,
 } from '../../../__fixtures__/components/data';
 import {
@@ -31,22 +32,20 @@ function forecastState(state: { data?: unknown; isLoading?: boolean; error?: unk
   } as unknown as ForecastResult);
 }
 
-function period(n: number, pop: number | null): ForecastPeriod {
+function period(n: number, pop: number | null): PointForecastPeriod {
   return {
-    number: n,
     name: `Period ${n}`,
-    startTime: '2026-10-16T18:00:00Z',
+    startTime: `2026-10-16T${String(n).padStart(2, '0')}:00:00Z`,
     endTime: '2026-10-17T06:00:00Z',
     isDaytime: n % 2 === 1,
     temperature: 40 + n,
     temperatureUnit: 'F',
-    temperatureTrend: null,
     windSpeed: '5 mph',
     windDirection: 'S',
-    icon: '',
+    icon: null,
     shortForecast: `Forecast ${n}`,
     detailedForecast: '',
-    probabilityOfPrecipitation: { unitCode: 'wmoUnit:percent', value: pop },
+    precipChance: pop,
   };
 }
 
@@ -226,53 +225,68 @@ describe('StationDetail', () => {
 describe('LocationDetail', () => {
   const coords = { lat: 44.2601, lng: -72.5754 };
 
-  it('requests the forecast for the coordinates and shows loading', () => {
+  it('names the nearest town and requests the forecast for the point', () => {
     forecastState({ isLoading: true });
     render(<LocationDetail coordinates={coords} isDark={false} />);
     expect(forecastMock).toHaveBeenCalledWith({ lat: coords.lat, lng: coords.lng, enabled: true });
-    expect(screen.getByText('Loading forecast...')).toBeInTheDocument();
-    expect(screen.getByText('44.2601°N, 72.5754°W')).toBeInTheDocument();
+    expect(screen.getByText('Near Montpelier')).toBeInTheDocument();
+    expect(screen.getByText('Washington County · 44.2601°N, 72.5754°W')).toBeInTheDocument();
+    expect(screen.getByText('Loading forecast…')).toBeInTheDocument();
   });
 
-  it('shows the error state', () => {
+  it('falls back to coordinates outside Vermont', () => {
+    forecastState({ data: { forecast: [] } });
+    render(<LocationDetail coordinates={{ lat: 42.36, lng: -71.06 }} isDark={false} />);
+    expect(screen.getByText('This spot')).toBeInTheDocument();
+    expect(screen.getByText('42.3600°N, 71.0600°W')).toBeInTheDocument();
+  });
+
+  it('says when the forecast fails', () => {
     forecastState({ error: new Error('down') });
     render(<LocationDetail coordinates={coords} isDark={false} />);
-    expect(screen.getByText('Unable to load forecast')).toBeInTheDocument();
-    expect(screen.queryByText('No forecast data available')).toBeNull();
+    expect(screen.getByText(/Couldn't load the forecast/)).toBeInTheDocument();
   });
 
-  it('shows the empty state', () => {
-    forecastState({ data: { forecast: [] } });
-    render(<LocationDetail coordinates={coords} isDark={false} />);
-    expect(screen.getByText('No forecast data available')).toBeInTheDocument();
-  });
-
-  it('renders up to six forecast periods with precipitation chances', () => {
+  it('shows the next four periods with precipitation chances', () => {
     forecastState({
       data: { forecast: Array.from({ length: 8 }, (_, i) => period(i + 1, i === 0 ? 60 : null)) },
     });
     const { container } = render(<LocationDetail coordinates={coords} isDark />);
-    expect(container.querySelectorAll('.forecast-period')).toHaveLength(6);
-    expect(screen.getByText('Period 1')).toBeInTheDocument();
-    expect(screen.queryByText('Period 7')).toBeNull();
-    expect(screen.getByText('60% chance')).toBeInTheDocument();
-    expect(container.querySelectorAll('.period-precip')).toHaveLength(1);
+    expect(container.querySelectorAll('.location-forecast li')).toHaveLength(4);
+    expect(screen.getByText('Forecast 1 · 60%')).toBeInTheDocument();
+    expect(screen.getByText('Forecast 2')).toBeInTheDocument();
+    expect(screen.queryByText('Period 5')).toBeNull();
   });
 
-  it('renders the astronomy section', () => {
+  it('lists covering alerts and nearby items, and opens them', () => {
     forecastState({ data: { forecast: [] } });
-    render(<LocationDetail coordinates={{ lat: -33.9, lng: 18.4 }} isDark={false} />);
-    expect(screen.getByText('33.9000°S, 18.4000°E')).toBeInTheDocument();
-    for (const label of [
-      'Sunrise',
-      'Sunset',
-      'Morning Golden Hour',
-      'Evening Golden Hour',
-      'Astronomical Twilight',
-      'Moon Phase',
-    ]) {
-      expect(screen.getByText(label)).toBeInTheDocument();
-    }
+    const onOpen = vi.fn();
+    const alert = makeAlertFeature();
+    const station = makeRoadWeatherStation();
+    render(
+      <LocationDetail
+        coordinates={coords}
+        context={{
+          alerts: [alert],
+          nearby: [{ kind: 'roadWeather', distanceMi: 0.42, data: station }],
+        }}
+        onOpen={onOpen}
+        isDark={false}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: alert.properties.event }));
+    expect(onOpen).toHaveBeenCalledWith({ type: 'alert', data: alert });
+    const near = screen.getByRole('button', { name: /Pavement 30°F/ });
+    expect(near).toHaveTextContent('0.4 mi');
+    fireEvent.click(near);
+    expect(onOpen).toHaveBeenCalledWith({ type: 'roadWeather', data: station });
+  });
+
+  it('drops the astronomy section for one sunrise/sunset line', () => {
+    forecastState({ data: { forecast: [] } });
+    const { container } = render(<LocationDetail coordinates={coords} isDark={false} />);
+    expect(container.querySelector('.location-sun')?.textContent).toMatch(/AM.*PM/);
+    expect(screen.queryByText('Moon Phase')).toBeNull();
   });
 
   it('renders hostile forecast strings as text', () => {

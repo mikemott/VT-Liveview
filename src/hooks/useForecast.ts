@@ -5,7 +5,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { graphqlClient } from '../services/graphqlClient';
 import { gql } from 'graphql-request';
-import type { ForecastPeriod } from '../types/weather';
 
 interface UseForecastParams {
   lat: number;
@@ -13,14 +12,32 @@ interface UseForecastParams {
   enabled: boolean; // Only fetch when DetailPanel is open
 }
 
-interface ForecastResponse {
-  forecast: ForecastPeriod[];
+/** A forecast period as the backend's GraphQL schema serves it */
+export interface PointForecastPeriod {
+  name: string;
+  startTime: string;
+  endTime: string;
+  isDaytime: boolean;
+  temperature: number;
+  temperatureUnit: string;
+  windSpeed: string | null;
+  windDirection: string | null;
+  icon: string | null;
+  shortForecast: string;
+  detailedForecast: string;
+  /** Chance of precipitation, 0–100 */
+  precipChance: number | null;
 }
 
+interface ForecastResponse {
+  forecast: PointForecastPeriod[];
+}
+
+// Only fields the schema has: asking for one it doesn't (e.g. `number`)
+// fails validation and the whole request with it (VTL-65)
 const FORECAST_QUERY = gql`
   query Forecast($lat: Float!, $lon: Float!) {
     forecast(lat: $lat, lon: $lon) {
-      number
       name
       startTime
       endTime
@@ -32,9 +49,7 @@ const FORECAST_QUERY = gql`
       icon
       shortForecast
       detailedForecast
-      probabilityOfPrecipitation {
-        value
-      }
+      precipChance
     }
   }
 `;

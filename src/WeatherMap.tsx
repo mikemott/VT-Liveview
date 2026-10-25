@@ -12,6 +12,8 @@ import RoadWeatherLayer from './components/RoadWeatherLayer';
 import type { RoadWeatherStation } from './services/roadWeatherApi';
 import { isRoadWeatherSeason } from './utils/roadWeather';
 import SeasonalRoadsLayer from './components/SeasonalRoadsLayer';
+import WhatsHerePin from './components/WhatsHerePin';
+import { buildLocationContext } from './utils/locationContext';
 import { SEASONAL_ROADS, type SeasonalRoad } from './data/seasonalRoads';
 import {
   closurePoints,
@@ -121,6 +123,19 @@ interface WeatherMapProps {
   /** Called when the map can't be created (e.g. WebGL context failure). */
   onMapUnavailable?: (reason: string) => void;
 }
+
+/** Hold this long on a touch screen to drop a "What's here?" pin (VTL-65) */
+const LONG_PRESS_MS = 550;
+/** True for an event that started on a map marker (or the "What's here?" pin) */
+function fromMarker(event: Event): boolean {
+  // The dispatch path, not target.closest(): React may already have removed the
+  // target (the pin's button re-renders on click) before the map sees the event
+  return event
+    .composedPath()
+    .some((node) => node instanceof Element && node.classList.contains('maplibregl-marker'));
+}
+/** Shown once per browser on the first plain map click */
+const WHATS_HERE_HINT_KEY = 'vtl:whats-here-hint';
 
 function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -237,6 +252,16 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
 
   // DetailPanel state
   const [detailPanelContent, setDetailPanelContent] = useState<DetailPanelContent>(null);
+  // "What's here?" pin dropped by long-press / right-click (VTL-65)
+  const [droppedPin, setDroppedPin] = useState<{ lat: number; lng: number } | null>(null);
+  // Map event handlers are bound once at map creation; they reach these through refs
+  const mapClickActionsRef = useRef<{
+    onEmptyClick: () => void;
+    onDropPin: (p: { lat: number; lng: number }) => void;
+  }>({
+    onEmptyClick: () => {},
+    onDropPin: () => {},
+  });
   // Short-lived message over the map (e.g. why "Locate me" didn't work)
   // `id` makes a repeated identical message a new notice (restarts the timer)
   const [mapNotice, setMapNotice] = useState<{ text: string; id: number } | null>(null);
@@ -708,9 +733,19 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
       }, INTERVALS.MAP_MOVE_DEBOUNCE);
     });
 
+    // Set when a long-press drops the pin: the tap that ends the press still
+    // fires a click, which must not close the pin it just dropped (VTL-65)
+    let longPressed = false;
+
     // Map click handler - show historical data or clear alert highlight
     map.current.on('click', (e) => {
       if (!map.current) return;
+      if (longPressed) {
+        longPressed = false;
+        return;
+      }
+      // Clicks on markers or the "What's here?" pin are theirs, not the map's
+      if (fromMarker(e.originalEvent)) return;
 
       // Check if clicking on any interactive feature (alerts, highlights)
       // Filter to only layers that exist to avoid MapLibre errors
@@ -729,15 +764,10 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
           : [];
       const clickedOnFeature = features.length > 0;
 
-      // If clicked on empty map, show location details
+      // A plain click on empty map closes things (VTL-65); "What's here?" is
+      // a deliberate long-press / right-click instead
       if (!clickedOnFeature) {
-        setDetailPanelContent({
-          type: 'location',
-          coordinates: {
-            lat: e.lngLat.lat,
-            lng: e.lngLat.lng,
-          },
-        });
+        mapClickActionsRef.current.onEmptyClick();
 
         // Clear alert highlight
         if (map.current.getLayer('alert-highlight-border')) {
@@ -751,6 +781,41 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         }
       }
     });
+
+    // "What's here?": right-click on desktop, long-press on touch screens (VTL-65)
+    map.current.on('contextmenu', (e) => {
+      e.preventDefault();
+      if (fromMarker(e.originalEvent)) return;
+      mapClickActionsRef.current.onDropPin({ lat: e.lngLat.lat, lng: e.lngLat.lng });
+    });
+    let pressTimer: ReturnType<typeof setTimeout> | null = null;
+    let pressStart: { x: number; y: number } | null = null;
+    const cancelPress = (): void => {
+      if (pressTimer) clearTimeout(pressTimer);
+      pressTimer = null;
+      pressStart = null;
+    };
+    map.current.on('touchstart', (e) => {
+      cancelPress();
+      longPressed = false;
+      if (e.originalEvent.touches.length !== 1 || fromMarker(e.originalEvent)) return;
+      const { lngLat, point } = e;
+      pressStart = { x: point.x, y: point.y };
+      pressTimer = setTimeout(() => {
+        pressTimer = null;
+        longPressed = true;
+        mapClickActionsRef.current.onDropPin({ lat: lngLat.lat, lng: lngLat.lng });
+      }, LONG_PRESS_MS);
+    });
+    map.current.on('touchmove', (e) => {
+      // A drag, not a press
+      if (pressStart && Math.hypot(e.point.x - pressStart.x, e.point.y - pressStart.y) > 10) {
+        cancelPress();
+      }
+    });
+    map.current.on('touchend', cancelPress);
+    map.current.on('touchcancel', cancelPress);
+    map.current.on('movestart', cancelPress);
 
     return () => {
       if (map.current) {
@@ -968,8 +1033,10 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
   useEffect(() => {
     closuresRef.current = closures;
   }, [closures]);
-  const handleIncidentsLoaded = useCallback((incidents: TravelIncident[]): void => {
-    const next = closurePoints(incidents);
+  const [incidents, setIncidents] = useState<TravelIncident[]>([]);
+  const handleIncidentsLoaded = useCallback((loaded: TravelIncident[]): void => {
+    setIncidents(loaded);
+    const next = closurePoints(loaded);
     // Same closures: keep the array so the road layer doesn't redraw
     setClosures((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
   }, []);
@@ -1178,7 +1245,44 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
   const closeDetailPanel = useCallback((): void => {
     pendingSelection.current = undefined;
     setDetailPanelContent(null);
+    setDroppedPin(null);
   }, []);
+
+  // "What's here?" (VTL-65)
+  const openWhatsHere = useCallback((point: { lat: number; lng: number }): void => {
+    pendingSelection.current = undefined;
+    setDroppedPin(null);
+    setDetailPanelContent({ type: 'location', coordinates: point });
+  }, []);
+  const panelOpenRef = useRef(false);
+  useEffect(() => {
+    panelOpenRef.current = detailPanelContent !== null;
+  }, [detailPanelContent]);
+  useEffect(() => {
+    mapClickActionsRef.current = {
+      onEmptyClick: () => {
+        const hadSomethingOpen = panelOpenRef.current;
+        closeDetailPanel();
+        // Teach the gesture once, the first time a plain click does nothing
+        if (hadSomethingOpen) return;
+        try {
+          if (localStorage.getItem(WHATS_HERE_HINT_KEY)) return;
+          localStorage.setItem(WHATS_HERE_HINT_KEY, '1');
+        } catch {
+          return;
+        }
+        showMapNotice(
+          isMobile
+            ? "Tip: press and hold a spot to see what's there"
+            : "Tip: right-click a spot to see what's there",
+        );
+      },
+      onDropPin: (point) => {
+        setDroppedPin(point);
+        navigator.vibrate?.(10);
+      },
+    };
+  }, [closeDetailPanel, showMapNotice, isMobile]);
 
   // A pasted or edited link in the same tab: move the map and apply layers
   useEffect(() => {
@@ -1277,6 +1381,34 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
     const message = shareResultMessage(result);
     if (message) showMapNotice(message);
   }, [showMapNotice]);
+
+  // The panel as shown: a "What's here?" point gets what's around it (VTL-65)
+  const shownPanelContent = useMemo((): DetailPanelContent => {
+    if (panelContent?.type !== 'location') return panelContent;
+    const { lat, lng } = panelContent.coordinates;
+    return {
+      ...panelContent,
+      context: buildLocationContext(lat, lng, {
+        alerts: visibleAlerts,
+        roadWeather,
+        cameras,
+        incidents,
+      }),
+    };
+  }, [panelContent, visibleAlerts, roadWeather, cameras, incidents]);
+
+  // Opening an alert or nearby item from the "What's here?" panel
+  const handlePanelNavigate = useCallback(
+    (content: DetailPanelContent): void => {
+      setDroppedPin(null);
+      if (content?.type === 'alert') handleAlertClick(content.data);
+      else setDetailPanelContent(content);
+    },
+    [handleAlertClick],
+  );
+
+  const pinPoint =
+    detailPanelContent?.type === 'location' ? detailPanelContent.coordinates : droppedPin;
 
   return (
     <div className={`weather-map-container ${isDark ? 'dark' : ''}`}>
@@ -1498,6 +1630,17 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
             />
           )}
 
+          {/* "What's here?" pin (VTL-65) */}
+          {mapLoaded && (
+            <WhatsHerePin
+              map={map.current}
+              point={pinPoint}
+              open={detailPanelContent?.type === 'location'}
+              onOpen={openWhatsHere}
+              onDismiss={() => setDroppedPin(null)}
+            />
+          )}
+
           {/* Seasonal notch/gap/toll road closures (VTL-55) */}
           {mapLoaded && (
             <SeasonalRoadsLayer
@@ -1570,9 +1713,10 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
 
       {/* Detail Panel */}
       <DetailPanel
-        content={panelContent}
+        content={shownPanelContent}
         onClose={closeDetailPanel}
         onShare={() => void handleShare()}
+        onNavigate={handlePanelNavigate}
         isDark={isDark}
       />
     </div>

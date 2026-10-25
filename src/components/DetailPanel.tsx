@@ -26,10 +26,18 @@ interface DetailPanelProps {
   onClose: () => void;
   /** Share a link to this view (the URL already includes the selection). */
   onShare?: () => void;
+  /** Open another item in the panel (from "What's here?" alerts and nearby) */
+  onNavigate?: (content: DetailPanelContent) => void;
   isDark: boolean;
 }
 
-export default function DetailPanel({ content, onClose, onShare, isDark }: DetailPanelProps) {
+export default function DetailPanel({
+  content,
+  onClose,
+  onShare,
+  onNavigate,
+  isDark,
+}: DetailPanelProps) {
   const isOpen = content !== null;
 
   // Close on Escape key
@@ -88,7 +96,7 @@ export default function DetailPanel({ content, onClose, onShare, isDark }: Detai
       case 'darkSky':
         return 'Stargazing';
       case 'location':
-        return 'Location Details';
+        return "What's Here";
       default:
         return 'Details';
     }
@@ -124,7 +132,14 @@ export default function DetailPanel({ content, onClose, onShare, isDark }: Detai
       case 'seasonalRoad':
         return <SeasonalRoadDetail road={content.data} status={content.status} isDark={isDark} />;
       case 'location':
-        return <LocationDetail coordinates={content.coordinates} isDark={isDark} />;
+        return (
+          <LocationDetail
+            coordinates={content.coordinates}
+            context={content.context}
+            onOpen={onNavigate}
+            isDark={isDark}
+          />
+        );
       default:
         return null;
     }
