@@ -87,6 +87,15 @@ const VERMONT_CENTER = {
 
 // Get Lucide icon based on severity - defined outside component for performance
 // Stable identity for an alert across refetches (merged alert ids are stable, FINDINGS H1)
+/** The layer that loads each kind of point of interest (shared links) */
+const POI_LAYER: Partial<Record<PoiKind, string>> = {
+  ski: 'skiResorts',
+  beach: 'beachSites',
+  creemee: 'creemeeStands',
+  camp: 'campingSites',
+  park: 'campingSites',
+};
+
 function alertKey(alert: AlertFeature): string {
   return alert.properties.id || alert.properties.event;
 }
@@ -1031,7 +1040,10 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         setDetailPanelContent(content);
       } else {
         pendingSelection.current = { type: 'poi', kind, id };
-        // Backcountry areas only load while their sub-toggle is on
+        // Its layer only loads while visible: a shared link may have it off
+        const layer = POI_LAYER[kind];
+        if (layer) setLayerVisibility((prev) => ({ ...prev, [layer]: true }));
+        // Backcountry areas also need their sub-toggle
         if (kind === 'park') setShowBackcountrySites(true);
       }
     },

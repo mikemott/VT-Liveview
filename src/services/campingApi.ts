@@ -81,6 +81,10 @@ const CAMPING_AREAS_WITH_BOUNDARIES_QUERY = gql`
         type
         coordinates
       }
+      sites {
+        id
+        siteType
+      }
     }
   }
 `;
