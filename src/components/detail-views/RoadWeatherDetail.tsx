@@ -54,9 +54,9 @@ export default function RoadWeatherDetail({ station, isDark }: RoadWeatherDetail
         <div className="road-weather-risk">{ROAD_RISK_LABELS[risk]}</div>
       </div>
 
-      <dl className="road-weather-rows">
+      <dl className="detail-rows">
         {rows.map(([label, value]) => (
-          <div key={label} className="road-weather-row">
+          <div key={label} className="detail-row">
             <dt>{label}</dt>
             <dd>{value}</dd>
           </div>

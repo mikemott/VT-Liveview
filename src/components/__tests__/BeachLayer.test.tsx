@@ -2,15 +2,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, waitFor } from '@testing-library/react';
 import BeachLayer from '../BeachLayer';
 import { fetchBeaches } from '../../services/beachApi';
-import type { Beach } from '../../services/beachApi';
 import { FakeMap, liveMarkers, openPopups, resetMaplibreMock } from '../../test/maplibreMock';
 import { makeBeach } from '../../__fixtures__/components/data';
-import { BEACH_COLORS } from '../../utils/beachColors';
-import {
-  XSS_PAYLOAD,
-  expectNoInjectedMarkup,
-  expectPayloadAsText,
-} from '../../__fixtures__/components/xss';
+import { XSS_PAYLOAD, expectNoInjectedMarkup } from '../../__fixtures__/components/xss';
 
 vi.mock('maplibre-gl', async () => (await import('../../test/maplibreMock')).maplibreModule);
 vi.mock('../../services/beachApi', () => ({ fetchBeaches: vi.fn() }));
@@ -31,15 +25,7 @@ describe('BeachLayer', () => {
     fake = new FakeMap();
     fetchMock.mockResolvedValue([
       makeBeach(),
-      makeBeach({
-        id: 'beach2',
-        name: 'Oakledge',
-        status: 'closed',
-        color: 'red',
-        waterQualityGrade: null,
-        advisory: 'Cyanobacteria bloom',
-        amenities: [],
-      }),
+      makeBeach({ id: 'beach2', name: 'Oakledge', status: 'closed', color: 'red' }),
     ]);
   });
 
@@ -50,61 +36,48 @@ describe('BeachLayer', () => {
     delete window.__xss;
   });
 
-  it('adds markers when visible and removes markers and popup on unmount', async () => {
-    const { unmount } = render(<BeachLayer map={fake.asMap()} visible />);
-    await waitFor(() => expect(liveMarkers()).toHaveLength(2));
-    expect(liveMarkers()[0]?.options.anchor).toBe('center');
-    click(liveMarkers()[0]!.getElement());
-    expect(openPopups()).toHaveLength(1);
+  it('adds markers while visible and removes them when hidden or unmounted', async () => {
+    const onLoaded = vi.fn();
+    const { rerender, unmount } = render(
+      <BeachLayer map={fake.asMap()} visible={false} onSelect={vi.fn()} onLoaded={onLoaded} />,
+    );
+    await waitFor(() => expect(onLoaded).toHaveBeenCalledTimes(1));
+    expect(liveMarkers()).toHaveLength(0);
 
+    rerender(<BeachLayer map={fake.asMap()} visible onSelect={vi.fn()} onLoaded={onLoaded} />);
+    await waitFor(() => expect(liveMarkers()).toHaveLength(2));
+    expect(liveMarkers()[0]?.lngLat).toEqual([-73.23, 44.49]);
+
+    rerender(
+      <BeachLayer map={fake.asMap()} visible={false} onSelect={vi.fn()} onLoaded={onLoaded} />,
+    );
+    expect(liveMarkers()).toHaveLength(0);
+
+    rerender(<BeachLayer map={fake.asMap()} visible onSelect={vi.fn()} onLoaded={onLoaded} />);
+    await waitFor(() => expect(liveMarkers()).toHaveLength(2));
     unmount();
     expect(liveMarkers()).toHaveLength(0);
-    expect(openPopups()).toHaveLength(0);
   });
 
-  it('removes markers and popup when hidden', async () => {
-    const { rerender } = render(<BeachLayer map={fake.asMap()} visible />);
-    await waitFor(() => expect(liveMarkers()).toHaveLength(2));
-    click(liveMarkers()[0]!.getElement());
-    rerender(<BeachLayer map={fake.asMap()} visible={false} />);
-    expect(liveMarkers()).toHaveLength(0);
-    expect(openPopups()).toHaveLength(0);
-  });
+  it.each([
+    ['open', 'green', '#15803d', 'Beach: North Beach, open'],
+    ['alert', 'yellow', '#a16207', 'Beach: North Beach, alert'],
+    ['closed', 'red', '#dc2626', 'Beach: North Beach, closed'],
+  ] as const)(
+    'fills a %s beach by status with the Beaches ring',
+    async (status, color, fill, label) => {
+      fetchMock.mockResolvedValue([makeBeach({ status, color })]);
+      render(<BeachLayer map={fake.asMap()} visible onSelect={vi.fn()} />);
+      await waitFor(() => expect(liveMarkers()).toHaveLength(1));
+      const el = liveMarkers()[0]!.getElement();
+      expect(el.style.getPropertyValue('--layer-color')).toBe('#ca8a04');
+      expect(el.style.getPropertyValue('--marker-fill')).toBe(fill);
+      expect(el.classList.contains('map-marker--status')).toBe(true);
+      expect(el.getAttribute('aria-label')).toBe(label);
+    },
+  );
 
-  it.each<[Beach['status'], string]>([
-    ['open', 'Open'],
-    ['alert', 'Alert'],
-    ['closed', 'Closed'],
-    ['unknown', 'Unknown'],
-  ])('labels status %s as %s', async (status, label) => {
-    fetchMock.mockResolvedValue([makeBeach({ status })]);
-    render(<BeachLayer map={fake.asMap()} visible />);
-    await waitFor(() => expect(liveMarkers()).toHaveLength(1));
-    click(liveMarkers()[0]!.getElement());
-    const status$ = openPopups()[0]!.getElement().querySelector('.beach-status');
-    expect(status$?.textContent).toContain(label);
-    expect(status$?.classList.contains(status)).toBe(true);
-  });
-
-  it('shows water quality and amenities, or the advisory, as available', async () => {
-    render(<BeachLayer map={fake.asMap()} visible />);
-    await waitFor(() => expect(liveMarkers()).toHaveLength(2));
-
-    click(liveMarkers()[0]!.getElement());
-    let el = openPopups()[0]!.getElement();
-    expect(el.querySelector('.quality-grade')?.textContent).toBe('A');
-    expect(el.textContent).toContain('12 per 100mL');
-    expect(el.querySelectorAll('.amenity')).toHaveLength(2);
-    expect(el.querySelector('.beach-advisory')).toBeNull();
-
-    click(liveMarkers()[1]!.getElement());
-    el = openPopups()[0]!.getElement();
-    expect(el.querySelector('.water-quality-section')).toBeNull();
-    expect(el.querySelector('.beach-advisory')?.textContent).toBe('Cyanobacteria bloom');
-    expect(el.querySelector('.beach-amenities')).toBeNull();
-  });
-
-  it('labels unmonitored beaches and stale off-season results instead of showing them as current', async () => {
+  it('greys out unmonitored and out-of-season beaches instead of showing them as current', async () => {
     vi.setSystemTime(new Date('2026-10-23T12:00:00Z'));
     fetchMock.mockResolvedValue([
       makeBeach({ lastTested: '09/21/2026 11:45 AM' }),
@@ -118,53 +91,43 @@ describe('BeachLayer', () => {
         eColiLevel: null,
       }),
     ]);
-    render(<BeachLayer map={fake.asMap()} visible />);
+    render(<BeachLayer map={fake.asMap()} visible onSelect={vi.fn()} />);
     await waitFor(() => expect(liveMarkers()).toHaveLength(2));
-
-    // Neither marker uses the yellow "advisory" color
     for (const marker of liveMarkers()) {
-      expect(marker.getElement().style.background).toBe(BEACH_COLORS.gray);
+      expect(marker.getElement().style.getPropertyValue('--marker-fill')).toBe('#64748b');
     }
+    expect(liveMarkers()[0]!.getElement().getAttribute('aria-label')).toBe(
+      'Beach: North Beach, season over',
+    );
+    expect(liveMarkers()[1]!.getElement().getAttribute('aria-label')).toBe(
+      'Beach: Lake Elmore, not monitored',
+    );
+  });
 
-    click(liveMarkers()[0]!.getElement());
-    let el = openPopups()[0]!.getElement();
-    expect(el.querySelector('.beach-status')?.textContent).toContain('Season over');
-    expect(el.querySelector('.beach-status-detail')?.textContent).toBe('Last tested Sep 21 (Open)');
-    expect(el.querySelector('.quality-grade')).toBeNull();
-
+  it('opens the clicked beach via onSelect, without a popup', async () => {
+    const onSelect = vi.fn();
+    render(<BeachLayer map={fake.asMap()} visible onSelect={onSelect} />);
+    await waitFor(() => expect(liveMarkers()).toHaveLength(2));
     click(liveMarkers()[1]!.getElement());
-    el = openPopups()[0]!.getElement();
-    expect(el.querySelector('.beach-status')?.textContent).toContain('Not monitored');
+    expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: 'beach2' }));
+    expect(openPopups()).toHaveLength(0);
   });
 
   it('renders no markers when the fetch fails', async () => {
     fetchMock.mockRejectedValue(new Error('down'));
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    render(<BeachLayer map={fake.asMap()} visible />);
-    await waitFor(() => expect(spy).toHaveBeenCalled());
+    render(<BeachLayer map={fake.asMap()} visible onSelect={vi.fn()} />);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
     expect(liveMarkers()).toHaveLength(0);
     spy.mockRestore();
   });
 
-  it('escapes hostile upstream strings in popup HTML', async () => {
-    fetchMock.mockResolvedValue([
-      makeBeach({
-        name: XSS_PAYLOAD,
-        town: XSS_PAYLOAD,
-        advisory: XSS_PAYLOAD,
-        waterQualityGrade: XSS_PAYLOAD,
-        amenities: [XSS_PAYLOAD],
-        status: XSS_PAYLOAD as Beach['status'],
-        color: XSS_PAYLOAD as Beach['color'],
-        lastTested: XSS_PAYLOAD,
-        lastUpdated: XSS_PAYLOAD,
-      }),
-    ]);
-    render(<BeachLayer map={fake.asMap()} visible />);
+  it('puts hostile upstream strings into the marker name as text, never markup', async () => {
+    fetchMock.mockResolvedValue([makeBeach({ name: XSS_PAYLOAD, town: XSS_PAYLOAD })]);
+    render(<BeachLayer map={fake.asMap()} visible onSelect={vi.fn()} />);
     await waitFor(() => expect(liveMarkers()).toHaveLength(1));
-    click(liveMarkers()[0]!.getElement());
-    const html = openPopups()[0]?.html ?? '';
-    expectNoInjectedMarkup(html);
-    expectPayloadAsText(html);
+    const el = liveMarkers()[0]!.getElement();
+    expectNoInjectedMarkup(el);
+    expect(el.getAttribute('aria-label')).toContain(XSS_PAYLOAD);
   });
 });

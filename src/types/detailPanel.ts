@@ -7,6 +7,12 @@ import type { TravelIncident } from '../services/travelApi';
 import type { ObservationStation } from './weather';
 import type { TrafficCamera } from '../services/cameraApi';
 import type { RoadWeatherStation } from '../services/roadWeatherApi';
+import type { SkiResort } from '../services/skiApi';
+import type { Beach } from '../services/beachApi';
+import type { CreemeeStand } from '../services/creemeeApi';
+import type { RecreationSite } from '../services/recreationApi';
+import type { CampingArea } from '../services/campingApi';
+import type { DarkSkySite } from './stargazing';
 import type { SeasonalRoad } from '../data/seasonalRoads';
 import type { RoadStatus } from '../utils/seasonalRoads';
 
@@ -52,6 +58,12 @@ export type DetailPanelContent =
   | { type: 'station'; data: ObservationStation }
   | { type: 'camera'; data: TrafficCamera }
   | { type: 'roadWeather'; data: RoadWeatherStation }
+  | { type: 'ski'; data: SkiResort }
+  | { type: 'beach'; data: Beach }
+  | { type: 'creemee'; data: CreemeeStand }
+  | { type: 'campground'; data: RecreationSite }
+  | { type: 'campingArea'; data: CampingArea }
+  | { type: 'darkSky'; data: DarkSkySite }
   | { type: 'seasonalRoad'; data: SeasonalRoad; status: RoadStatus }
   | { type: 'location'; coordinates: { lat: number; lng: number } }
   | null;

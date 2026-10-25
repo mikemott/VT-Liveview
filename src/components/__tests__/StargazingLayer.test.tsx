@@ -3,11 +3,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import StargazingLayer from '../StargazingLayer';
 import { FakeMap, liveMarkers, openPopups, resetMaplibreMock } from '../../test/maplibreMock';
 import { makeDarkSkySite } from '../../__fixtures__/components/data';
-import {
-  XSS_PAYLOAD,
-  expectNoInjectedMarkup,
-  expectPayloadAsText,
-} from '../../__fixtures__/components/xss';
+import { XSS_PAYLOAD, expectNoInjectedMarkup } from '../../__fixtures__/components/xss';
 import type { DarkSkySite } from '../../types/stargazing';
 
 const sites = vi.hoisted(() => ({ list: [] as DarkSkySite[] }));
@@ -47,7 +43,7 @@ describe('StargazingLayer', () => {
     delete window.__xss;
   });
 
-  it('adds zone layers, markers and a click listener, and removes all on unmount', () => {
+  it('adds zone layers and markers, and removes all on unmount', () => {
     const { unmount } = render(<StargazingLayer map={fake.asMap()} />);
     expect(fake.sourceIds()).toEqual(['dark-sky-zones']);
     expect(fake.layerIds()).toEqual(LAYERS);
@@ -56,10 +52,8 @@ describe('StargazingLayer', () => {
     expect(liveMarkers()[0]!.getElement().querySelector('svg')?.getAttribute('fill')).toBe(
       '#ffd700',
     );
-    expect(fake.listenerCount('click')).toBe(1);
-
-    click(liveMarkers()[0]!.getElement());
-    expect(openPopups()).toHaveLength(1);
+    // No popups and no map-level click listener (side panel, VTL-64)
+    expect(fake.listenerCount('click')).toBe(0);
 
     act(() => unmount());
     expect(liveMarkers()).toHaveLength(0);
@@ -85,31 +79,23 @@ describe('StargazingLayer', () => {
     expect(fake.layerIds()).toEqual([]);
   });
 
-  it('opens one popup at a time, closes it on map click and reports the site', () => {
+  it('opens the clicked site via onSiteClick, without a popup', () => {
     const onSiteClick = vi.fn();
     render(<StargazingLayer map={fake.asMap()} onSiteClick={onSiteClick} />);
-    click(liveMarkers()[0]!.getElement());
     click(liveMarkers()[1]!.getElement());
-    expect(openPopups()).toHaveLength(1);
     expect(onSiteClick).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'site2' }));
-
-    const content = openPopups()[0]!.domContent as HTMLElement;
-    expect(content.querySelector('h3')?.textContent).toBe('Lake Willoughby');
-    expect(content.querySelectorAll('.facility-tag')).toHaveLength(2);
-    expect(content.querySelector('.bortle-badge')?.textContent).toMatch(/^Bortle 3/);
-
-    fake.fire('click');
     expect(openPopups()).toHaveLength(0);
   });
 
-  it('rebuilds markers with dark popups when the theme changes', () => {
+  it('draws night-indigo markers with a spoken name and keeps them across theme changes', () => {
     const { rerender } = render(<StargazingLayer map={fake.asMap()} />);
     rerender(<StargazingLayer map={fake.asMap()} isDark />);
     expect(liveMarkers()).toHaveLength(2);
-    expect(fake.listenerCount('click')).toBe(1);
-    click(liveMarkers()[0]!.getElement());
-    const content = openPopups()[0]!.domContent as HTMLElement;
-    expect(content.classList.contains('dark')).toBe(true);
+    const el = liveMarkers()[1]!.getElement();
+    expect(el.style.getPropertyValue('--layer-color')).toBe('#312e81');
+    expect(el.getAttribute('role')).toBe('button');
+    expect(el.tabIndex).toBe(0);
+    expect(el.getAttribute('aria-label')).toBe('Dark sky site: Lake Willoughby, Bortle 3');
   });
 
   it('renders the conditions card, legend detail on hover and astronomy events', () => {
@@ -132,9 +118,8 @@ describe('StargazingLayer', () => {
   });
 
   it.todo('removes dark-sky layers on unmount even while isStyleLoaded() is false (FINDINGS H11)');
-  it.todo('star markers are keyboard focusable with an accessible name (FINDINGS H15)');
 
-  it('renders hostile site strings as text in the popup DOM', () => {
+  it('puts hostile site strings into the marker name as text, never markup', () => {
     sites.list = [
       makeDarkSkySite({
         name: XSS_PAYLOAD,
@@ -143,10 +128,8 @@ describe('StargazingLayer', () => {
       }),
     ];
     render(<StargazingLayer map={fake.asMap()} />);
-    click(liveMarkers()[0]!.getElement());
-    const content = openPopups()[0]!.domContent as HTMLElement;
-    expectNoInjectedMarkup(content);
-    expectPayloadAsText(content);
-    expectNoInjectedMarkup(liveMarkers()[0]!.getElement());
+    const el = liveMarkers()[0]!.getElement();
+    expectNoInjectedMarkup(el);
+    expect(el.getAttribute('aria-label')).toContain(XSS_PAYLOAD);
   });
 });

@@ -1,29 +1,33 @@
-import { useState, useEffect, useRef, memo } from 'react';
-import maplibregl from 'maplibre-gl';
-import { fetchCampingAreas } from '../services/campingApi';
-import type { CampingArea } from '../services/campingApi';
-import { escapeHTML } from '../utils/sanitize';
-import type { GeoJSONSource, MapLibreMap, Marker } from '../types';
-import './CampingAreasLayer.css';
-
-interface MarkerEntry {
-  marker: Marker;
-  element: HTMLDivElement;
-  handler: (e: MouseEvent) => void;
-}
+/**
+ * Backcountry camping areas: state parks/forests/WMAs with primitive sites.
+ * Park outlines are drawn as green zones; each area gets a shared marker
+ * (VTL-64) with its site count, and clicking opens it in the side panel.
+ */
+import { memo } from 'react';
+import type { GeoJSONSource } from 'maplibre-gl';
+import { useEffect, useRef } from 'react';
+import { fetchCampingAreas, type CampingArea } from '../services/campingApi';
+import { useLayerData } from '../hooks/useLayerData';
+import { useMapMarkers, type BuiltMarker } from '../hooks/useMapMarkers';
+import { createMapMarker } from '../utils/mapMarker';
+import { PARK_TYPE_LABELS } from '../utils/campingAreas';
+import type { MapLibreMap } from '../types';
 
 interface CampingAreasLayerProps {
   map: MapLibreMap | null;
   visible: boolean;
   mapStyleVersion?: number;
-  onAreaClick?: (area: CampingArea) => void;
-  onCountChange?: (count: number) => void;
+  onSelect: (area: CampingArea) => void;
+  /** Called after each successful fetch (counts, shared links) */
+  onLoaded?: (areas: CampingArea[]) => void;
 }
 
-// Lucide Tent icon SVG
+const REFRESH_MS = 24 * 60 * 60 * 1000;
+
+// Lucide Tent icon (hard-coded; white via currentColor)
 const TENT_ICON = `
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-       viewBox="0 0 24 24" fill="none" stroke="white"
+       viewBox="0 0 24 24" fill="none" stroke="currentColor"
        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M3.5 21 14 3"/>
     <path d="M20.5 21 10 3"/>
@@ -40,196 +44,32 @@ const PARK_TYPE_COLORS = {
   other: '#6b7280', // Gray
 };
 
-const PARK_TYPE_LABELS: Record<string, string> = {
-  state_park: 'State Park',
-  state_forest: 'State Forest',
-  wildlife_management_area: 'Wildlife Management Area',
-  other: 'Other',
-};
+const fetchAreas = (): Promise<CampingArea[]> =>
+  fetchCampingAreas({ minSites: 1, includeBoundaries: true });
 
-function createAreaMarker(area: CampingArea): HTMLDivElement {
-  const el = document.createElement('div');
-  el.className = 'camping-area-marker';
-
-  const color =
-    PARK_TYPE_COLORS[area.type as keyof typeof PARK_TYPE_COLORS] || PARK_TYPE_COLORS.other;
-
-  // Fixed dimensions like SkiLayer - prevents stretching
-  el.style.cssText = `
-    width: 48px;
-    height: 48px;
-    background: ${color};
-    border: 2px solid white;
-    border-radius: 50%;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: box-shadow 0.2s ease, border-width 0.2s ease;
-  `;
-
-  const iconWrapper = document.createElement('div');
-  iconWrapper.innerHTML = TENT_ICON;
-  iconWrapper.style.cssText = `
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
-    margin-bottom: 2px;
-  `;
-
-  const label = document.createElement('span');
-  label.textContent = area.siteCount.toString();
-  label.style.cssText = `
-    color: white;
-    font-weight: 700;
-    font-size: 11px;
-    line-height: 1;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  `;
-
-  el.appendChild(iconWrapper);
-  el.appendChild(label);
-
-  // Hover effect - NO TRANSFORM, only shadow/border like SkiLayer
-  el.addEventListener('mouseenter', () => {
-    el.style.boxShadow = `0 0 12px ${color}, 0 2px 8px rgba(0, 0, 0, 0.3)`;
-    el.style.borderWidth = '3px';
+function buildAreaMarker(area: CampingArea): BuiltMarker {
+  const type = PARK_TYPE_LABELS[area.type]?.toLowerCase() ?? 'area';
+  const element = createMapMarker({
+    layer: 'campingSites',
+    iconSvg: TENT_ICON,
+    text: String(area.siteCount),
+    label: `Backcountry camping: ${area.name}, ${type}, ${area.siteCount} site${area.siteCount === 1 ? '' : 's'}`,
+    title: area.name,
+    className: 'camping-area-marker',
   });
-
-  el.addEventListener('mouseleave', () => {
-    el.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.25)';
-    el.style.borderWidth = '2px';
-  });
-
-  return el;
-}
-
-function createPopupHTML(area: CampingArea): string {
-  const safeName = escapeHTML(area.name);
-  const typeLabel = escapeHTML(PARK_TYPE_LABELS[area.type] || area.type);
-  const color =
-    PARK_TYPE_COLORS[area.type as keyof typeof PARK_TYPE_COLORS] || PARK_TYPE_COLORS.other;
-
-  // Generate park website URL if it's a state park
-  let websiteLink = '';
-  if (area.type === 'state_park') {
-    const parkSlug = area.name
-      .toLowerCase()
-      .replace(/\s+state\s+park$/i, '')
-      .replace(/\s+/g, '-')
-      .replace(/[^a-z0-9-]/g, '');
-    websiteLink = `https://vtstateparks.com/${parkSlug}`;
-  }
-
-  return `
-    <div class="camping-areas-popup">
-      <div class="camping-areas-popup-header" style="border-left: 4px solid ${color};">
-        <h3 class="camping-areas-popup-title">${safeName}</h3>
-        <span class="camping-areas-popup-type">${typeLabel}</span>
-      </div>
-      <div class="camping-areas-popup-stats">
-        <div class="camping-areas-stat">
-          <div class="camping-areas-stat-icon">⛺</div>
-          <div class="camping-areas-stat-content">
-            <span class="camping-areas-stat-value">${area.siteCount}</span>
-            <span class="camping-areas-stat-label">Backcountry Site${area.siteCount !== 1 ? 's' : ''}</span>
-          </div>
-        </div>
-      </div>
-      ${
-        websiteLink
-          ? `
-        <div class="camping-areas-popup-footer">
-          <a href="${websiteLink}" target="_blank" rel="noopener noreferrer" class="camping-areas-link-btn">
-            Park Website →
-          </a>
-        </div>
-      `
-          : ''
-      }
-    </div>
-  `;
+  return { lngLat: [area.centroid.longitude, area.centroid.latitude], element };
 }
 
 function CampingAreasLayer({
   map,
   visible,
   mapStyleVersion,
-  onAreaClick,
-  onCountChange,
+  onSelect,
+  onLoaded,
 }: CampingAreasLayerProps) {
-  const [areas, setAreas] = useState<CampingArea[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const markersRef = useRef<MarkerEntry[]>([]);
-  const currentPopupRef = useRef<maplibregl.Popup | null>(null);
+  // Boundaries are large: only fetch once the layer is shown
+  const areas = useLayerData(!!map && visible, fetchAreas, REFRESH_MS, onLoaded, 'camping areas');
   const boundaryLayerAddedRef = useRef(false);
-
-  // Fetch camping areas
-  useEffect(() => {
-    if (import.meta.env.DEV) {
-      console.log('CampingAreasLayer: useEffect triggered', { visible, map: !!map });
-    }
-
-    if (!visible) {
-      if (import.meta.env.DEV) {
-        console.log('CampingAreasLayer: Not visible, skipping fetch');
-      }
-      return;
-    }
-
-    let isMounted = true;
-    setLoading(true);
-    setError(null);
-
-    if (import.meta.env.DEV) {
-      console.log('CampingAreasLayer: Fetching camping areas...');
-    }
-
-    fetchCampingAreas({ minSites: 1, includeBoundaries: true })
-      .then((data) => {
-        if (isMounted) {
-          setAreas(data);
-          setLoading(false);
-
-          // Report total backcountry site count
-          const totalBackcountrySites = data.reduce((sum, area) => sum + area.siteCount, 0);
-          const areasWithBoundaries = data.filter((a) => a.boundary).length;
-
-          if (onCountChange) {
-            onCountChange(totalBackcountrySites);
-          }
-
-          if (import.meta.env.DEV) {
-            console.log(
-              `CampingAreasLayer: Loaded ${data.length} camping areas with ${totalBackcountrySites} total sites`,
-            );
-            console.log(`CampingAreasLayer: ${areasWithBoundaries} areas have boundaries`);
-            console.log(
-              'CampingAreasLayer: First area with boundary:',
-              data.find((a) => a.boundary),
-            );
-          }
-        }
-      })
-      .catch((err) => {
-        if (isMounted) {
-          setError(err instanceof Error ? err.message : 'Failed to load camping areas');
-          setLoading(false);
-          if (import.meta.env.DEV) {
-            console.error('CampingAreasLayer error:', err);
-          }
-        }
-      });
-
-    return () => {
-      isMounted = false;
-    };
-    // TODO(VTL-45): `map` is read inside but omitted; adding it re-fetches on map change (see docs/review/FINDINGS.md)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible, onCountChange]);
 
   // Add boundary polygons layer (zones like stargazing)
   useEffect(() => {
@@ -363,128 +203,7 @@ function CampingAreasLayer({
     };
   }, [map, visible, areas, mapStyleVersion]);
 
-  // Update markers when areas or visibility changes
-  useEffect(() => {
-    if (import.meta.env.DEV) {
-      console.log('CampingAreasLayer: Marker useEffect triggered', {
-        hasMap: !!map,
-        mapLoaded: map?.loaded(),
-        visible,
-        areasCount: areas.length,
-      });
-    }
-
-    if (!map || !visible || areas.length === 0) {
-      if (import.meta.env.DEV) {
-        console.log('CampingAreasLayer: Skipping marker creation', {
-          hasMap: !!map,
-          visible,
-          areasCount: areas.length,
-        });
-      }
-      // Clear markers if not visible
-      markersRef.current.forEach(({ marker, element, handler }) => {
-        element.removeEventListener('click', handler);
-        marker.remove();
-      });
-      markersRef.current = [];
-      return;
-    }
-
-    // Clear existing markers
-    if (import.meta.env.DEV) {
-      console.log(`CampingAreasLayer: Clearing ${markersRef.current.length} existing markers`);
-    }
-    markersRef.current.forEach(({ marker, element, handler }) => {
-      element.removeEventListener('click', handler);
-      marker.remove();
-    });
-    markersRef.current = [];
-
-    // Add new markers
-    if (import.meta.env.DEV) {
-      const mapCenter = map.getCenter();
-      const mapZoom = map.getZoom();
-      console.log(`CampingAreasLayer: Creating ${areas.length} new markers`, {
-        mapCenter: [mapCenter.lng, mapCenter.lat],
-        mapZoom: mapZoom.toFixed(2),
-      });
-    }
-    areas.forEach((area, index) => {
-      const element = createAreaMarker(area);
-
-      const markerLngLat: [number, number] = [area.centroid.longitude, area.centroid.latitude];
-
-      const marker = new maplibregl.Marker({ element }).setLngLat(markerLngLat).addTo(map);
-
-      // Log first 3 markers with full details
-      if (import.meta.env.DEV && index < 3) {
-        console.log(`CampingAreasLayer: Added marker #${index + 1}:`, {
-          name: area.name,
-          siteCount: area.siteCount,
-          coordinates: markerLngLat,
-          hasBoundary: !!area.boundary,
-        });
-      }
-
-      // Click handler - simplified like SkiLayer (no setTimeout needed)
-      const handler = (e: MouseEvent) => {
-        e.stopPropagation();
-
-        // Close existing popup
-        if (currentPopupRef.current) {
-          currentPopupRef.current.remove();
-        }
-
-        // Create and show popup immediately
-        const popup = new maplibregl.Popup({
-          closeButton: true,
-          closeOnClick: true,
-          className: 'camping-areas-popup-container',
-          maxWidth: '300px',
-          offset: 25,
-        })
-          .setLngLat([area.centroid.longitude, area.centroid.latitude])
-          .setHTML(createPopupHTML(area))
-          .addTo(map);
-
-        currentPopupRef.current = popup;
-
-        // Notify parent if handler provided
-        if (onAreaClick) {
-          onAreaClick(area);
-        }
-      };
-
-      element.addEventListener('click', handler);
-
-      markersRef.current.push({ marker, element, handler });
-    });
-
-    // Cleanup on unmount
-    return () => {
-      markersRef.current.forEach(({ marker, element, handler }) => {
-        element.removeEventListener('click', handler);
-        marker.remove();
-      });
-      markersRef.current = [];
-
-      if (currentPopupRef.current) {
-        currentPopupRef.current.remove();
-        currentPopupRef.current = null;
-      }
-    };
-  }, [map, visible, areas, onAreaClick]);
-
-  // Show loading/error states
-  useEffect(() => {
-    if (loading && import.meta.env.DEV) {
-      console.log('Loading camping areas...');
-    }
-    if (error && import.meta.env.DEV) {
-      console.error('Camping areas layer error:', error);
-    }
-  }, [loading, error]);
+  useMapMarkers(map, visible, areas, buildAreaMarker, onSelect);
 
   return null;
 }

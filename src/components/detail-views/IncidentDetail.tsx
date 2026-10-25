@@ -55,15 +55,15 @@ export default function IncidentDetail({ incident, isDark }: IncidentDetailProps
 
       {description && <p className="incident-description">{description}</p>}
 
-      <dl className="road-weather-rows">
+      <dl className="detail-rows">
         {lanes && (
-          <div className="road-weather-row">
+          <div className="detail-row">
             <dt>Lanes</dt>
             <dd>{lanes}</dd>
           </div>
         )}
         {restrictions?.weight && (
-          <div className="road-weather-row">
+          <div className="detail-row">
             <dt>Weight limit</dt>
             {/* 511 sends bare pounds ("72000") */}
             <dd>
@@ -74,13 +74,13 @@ export default function IncidentDetail({ incident, isDark }: IncidentDetailProps
           </div>
         )}
         {restrictions?.width && (
-          <div className="road-weather-row">
+          <div className="detail-row">
             <dt>Width limit</dt>
             <dd>{restrictions.width}</dd>
           </div>
         )}
         {since && (
-          <div className="road-weather-row">
+          <div className="detail-row">
             <dt>Since</dt>
             <dd>{since}</dd>
           </div>

@@ -7,7 +7,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { graphql, HttpResponse } from 'msw';
 import { server } from '@/test/msw';
 import { fetchCampingAreas } from '../campingApi';
-import { fetchRecreationSites } from '../recreationApi';
+import { fetchCampgrounds, fetchRecreationSites } from '../recreationApi';
 import { fetchBeaches } from '../beachApi';
 import { fetchBackcountrySites } from '../backcountryApi';
 import { fetchCreemeeStands } from '../creemeeApi';
@@ -68,6 +68,23 @@ describe('fetchCampingAreas', () => {
       graphql.query('CampingAreas', () => HttpResponse.json({ errors: [{ message: 'db down' }] })),
     );
     await expect(fetchCampingAreas()).rejects.toThrow(/db down/);
+  });
+});
+
+describe('fetchCampgrounds', () => {
+  it('keeps camping and mixed sites only', async () => {
+    const site = (id: string, type: string) => ({ id, type });
+    server.use(
+      graphql.query('GetRecreationSites', () =>
+        HttpResponse.json({
+          data: {
+            recreationSites: [site('a', 'camping'), site('b', 'beach'), site('c', 'mixed')],
+          },
+        }),
+      ),
+    );
+    const sites = await fetchCampgrounds();
+    expect(sites.map((s) => s.id)).toEqual(['a', 'c']);
   });
 });
 

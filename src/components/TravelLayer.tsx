@@ -10,6 +10,7 @@ import { INTERVALS } from '../utils/constants';
 import { useVisibleInterval } from '../hooks/useVisibleInterval';
 import type { MapLibreMap, IncidentType } from '../types';
 import StargazingLayer from './StargazingLayer';
+import type { DarkSkySite } from '../types/stargazing';
 import { LAYER_STYLES, layerColorVars, type LayerStyleKey } from '../config/layers';
 import CampingContent from './CampingContent';
 import './TravelLayer.css';
@@ -64,6 +65,8 @@ interface TravelLayerProps {
   onToggleTrafficFlow: () => void;
   /** Opens an incident in the side panel (marker or list click) */
   onIncidentClick?: (incident: TravelIncident) => void;
+  /** Opens a dark sky site in the side panel */
+  onDarkSkySiteClick?: (site: DarkSkySite) => void;
   mapStyleVersion: number;
 }
 
@@ -180,6 +183,7 @@ function TravelLayer({
   showTrafficFlow,
   onToggleTrafficFlow,
   onIncidentClick,
+  onDarkSkySiteClick,
   mapStyleVersion,
 }: TravelLayerProps) {
   const [incidents, setIncidents] = useState<TravelIncident[]>([]);
@@ -479,7 +483,14 @@ function TravelLayer({
           </div>
 
           {/* Stargazing content - shown when stargazing chip is active */}
-          {showStargazing && <StargazingLayer map={map} isDark={isDark} key={mapStyleVersion} />}
+          {showStargazing && (
+            <StargazingLayer
+              map={map}
+              isDark={isDark}
+              key={mapStyleVersion}
+              {...(onDarkSkySiteClick ? { onSiteClick: onDarkSkySiteClick } : {})}
+            />
+          )}
 
           {/* Camping content - shown when camping chip is active */}
           {showCampingSites && (

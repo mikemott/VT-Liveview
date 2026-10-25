@@ -42,7 +42,13 @@ export type Selection =
   | { type: 'alert'; id: string }
   | { type: 'road'; id: string }
   | { type: 'roadwx'; id: string }
+  | { type: 'poi'; kind: PoiKind; id: string }
   | { type: 'location'; lat: number; lng: number };
+
+/** Points of interest from the side-panel layers (VTL-64): sel=<kind>:<id> */
+export const POI_KINDS = ['ski', 'beach', 'creemee', 'camp', 'park', 'darksky'] as const;
+export type PoiKind = (typeof POI_KINDS)[number];
+const isPoiKind = (k: string): k is PoiKind => (POI_KINDS as readonly string[]).includes(k);
 
 export interface UrlState {
   view?: MapView;
@@ -61,7 +67,7 @@ const inRange = (n: number, [min, max]: [number, number]): boolean =>
 
 /** Ids from upstream feeds; keep them to a safe, URL-friendly character set. */
 const SAFE_ID = /^[A-Za-z0-9._:-]{1,200}$/;
-/** Camera ids are human names ("I-89 SB BERLIN", "A & B"): also allow spaces, & ' ( ) /. */
+/** Camera and point-of-interest ids can be human names ("I-89 SB BERLIN", "A & B"): also allow spaces, & ' ( ) /. */
 const SAFE_CAMERA_ID = /^[A-Za-z0-9._:\-&'()/ ]{1,200}$/;
 
 function parseLatLng(text: string, separator: string): { lat: number; lng: number } | null {
@@ -108,6 +114,8 @@ export function parseUrlState(hash: string): UrlState {
       state.selection = { type: kind, id: value };
     } else if (kind === 'camera' && SAFE_CAMERA_ID.test(value)) {
       state.selection = { type: 'camera', id: value };
+    } else if (isPoiKind(kind) && SAFE_CAMERA_ID.test(value)) {
+      state.selection = { type: 'poi', kind, id: value };
     } else if (kind === 'pt') {
       const point = parseLatLng(value, ',');
       if (point) state.selection = { type: 'location', ...point };
@@ -133,6 +141,10 @@ export function buildUrlHash(state: {
   if (selection) {
     if (selection.type === 'location') {
       parts.push(`sel=pt:${round(selection.lat, 5)},${round(selection.lng, 5)}`);
+    } else if (selection.type === 'poi') {
+      if (SAFE_CAMERA_ID.test(selection.id)) {
+        parts.push(`sel=${selection.kind}:${encodeURIComponent(selection.id)}`);
+      }
     } else if ((selection.type === 'camera' ? SAFE_CAMERA_ID : SAFE_ID).test(selection.id)) {
       parts.push(`sel=${selection.type}:${encodeURIComponent(selection.id)}`);
     }

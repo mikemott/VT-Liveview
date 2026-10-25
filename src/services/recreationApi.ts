@@ -137,3 +137,9 @@ export async function fetchRecreationSites(): Promise<RecreationSite[]> {
     throw new Error('Failed to fetch recreation site data');
   }
 }
+
+/** Recreation sites with camping (camping and mixed), for the Camping layer */
+export async function fetchCampgrounds(): Promise<RecreationSite[]> {
+  const sites = await fetchRecreationSites();
+  return sites.filter((s) => s.type === 'camping' || s.type === 'mixed');
+}

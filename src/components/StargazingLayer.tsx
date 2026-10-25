@@ -1,9 +1,9 @@
-import { layerColor } from '../config/layers';
 import { useEffect, useRef, useState, useCallback } from 'react';
-import maplibregl from 'maplibre-gl';
+import { useMapMarkers, type BuiltMarker } from '../hooks/useMapMarkers';
+import { createMapMarker } from '../utils/mapMarker';
 import { VERMONT_DARK_SKY_ZONES } from '../data/lightPollution';
 import { DARK_SKY_SITES } from '../data/darkSkySites';
-import { BORTLE_COLORS, BORTLE_DESCRIPTIONS } from '../types/stargazing';
+import { BORTLE_DESCRIPTIONS } from '../types/stargazing';
 import { calculateMoonPhase, calculateStargazingScore } from '../utils/astronomy';
 import AstronomyEvents from './AstronomyEvents';
 import type { MapLibreMap } from '../types';
@@ -17,16 +17,25 @@ interface StargazingLayerProps {
   cloudCoverPercent?: number;
 }
 
-interface MarkerEntry {
-  marker: maplibregl.Marker;
-  element: HTMLDivElement;
-  handler: (e: MouseEvent) => void;
-}
-
 // Lucide Star icon as static SVG (one React root per marker was never safely unmounted)
 function starMarkerSVG(bortleClass: BortleClass): string {
   const color = bortleClass <= 3 ? '#ffd700' : bortleClass <= 5 ? '#ffa500' : '#888888';
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" aria-hidden="true" fill="${color}" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" aria-hidden="true" style="width:17px;height:17px" fill="${color}" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg>`;
+}
+
+const noop = (): void => {};
+
+function buildDarkSkyMarker(site: DarkSkySite): BuiltMarker {
+  // Night-indigo circle in the Stargazing layer color; the star inside keeps
+  // its gold/orange/grey sky-quality color
+  const element = createMapMarker({
+    layer: 'stargazing',
+    iconSvg: starMarkerSVG(site.bortleClass),
+    label: `Dark sky site: ${site.name}, Bortle ${site.bortleClass}`,
+    title: site.name,
+    className: `dark-sky-marker bortle-${site.bortleClass}`,
+  });
+  return { lngLat: site.coordinates, element };
 }
 
 export default function StargazingLayer({
@@ -37,8 +46,6 @@ export default function StargazingLayer({
 }: StargazingLayerProps) {
   const [hoveredBortle, setHoveredBortle] = useState<BortleClass | null>(null);
   const layersInitialized = useRef(false);
-  const markersRef = useRef<MarkerEntry[]>([]);
-  const currentPopupRef = useRef<maplibregl.Popup | null>(null);
 
   // Calculate current moon phase and stargazing quality
   const moonPhase = calculateMoonPhase();
@@ -72,22 +79,6 @@ export default function StargazingLayer({
     },
     [map],
   );
-
-  // Cleanup markers
-  const cleanupMarkers = useCallback(() => {
-    markersRef.current.forEach(({ marker, element, handler }) => {
-      if (element && handler) {
-        element.removeEventListener('click', handler as EventListener);
-      }
-      marker.remove();
-    });
-    markersRef.current = [];
-
-    if (currentPopupRef.current) {
-      currentPopupRef.current.remove();
-      currentPopupRef.current = null;
-    }
-  }, []);
 
   // Initialize light pollution layers
   useEffect(() => {
@@ -182,131 +173,9 @@ export default function StargazingLayer({
     }
   }, [map, hasLayer]);
 
-  // Create dark sky site markers (always shown when stargazing is active)
-  useEffect(() => {
-    if (!map) {
-      cleanupMarkers();
-      return;
-    }
-
-    // Create markers for each dark sky site
-    DARK_SKY_SITES.forEach((site) => {
-      const el = document.createElement('div');
-      el.className = `dark-sky-marker bortle-${site.bortleClass}`;
-      // Night-indigo circle in the Stargazing layer color (VTL-64); the star
-      // inside keeps its gold/orange/grey sky-quality color
-      el.style.setProperty('--layer-color', layerColor('stargazing'));
-      el.title = site.name;
-
-      el.innerHTML = starMarkerSVG(site.bortleClass);
-
-      const marker = new maplibregl.Marker({ element: el }).setLngLat(site.coordinates).addTo(map);
-
-      // Create popup content safely using DOM methods
-      const bortleInfo = BORTLE_DESCRIPTIONS[site.bortleClass];
-
-      const createPopupContent = (): HTMLDivElement => {
-        const container = document.createElement('div');
-        container.className = `stargazing-popup ${isDark ? 'dark' : ''}`;
-
-        // Header
-        const header = document.createElement('div');
-        header.className = 'popup-header';
-        const starIcon = document.createElement('span');
-        starIcon.className = 'popup-star';
-        starIcon.textContent = '★';
-        const title = document.createElement('h3');
-        title.textContent = site.name;
-        header.appendChild(starIcon);
-        header.appendChild(title);
-        container.appendChild(header);
-
-        // Bortle badge
-        const badge = document.createElement('div');
-        badge.className = 'bortle-badge';
-        badge.style.backgroundColor = BORTLE_COLORS[site.bortleClass];
-        badge.style.color = site.bortleClass <= 4 ? '#fff' : '#000';
-        badge.textContent = `Bortle ${site.bortleClass} - ${bortleInfo.description}`;
-        container.appendChild(badge);
-
-        // Description
-        const desc = document.createElement('p');
-        desc.className = 'popup-description';
-        desc.textContent = site.description;
-        container.appendChild(desc);
-
-        // Facilities
-        const facilities = document.createElement('div');
-        facilities.className = 'popup-facilities';
-        if (site.facilities.parking) {
-          const tag = document.createElement('span');
-          tag.className = 'facility-tag';
-          tag.textContent = '🅿️ Parking';
-          facilities.appendChild(tag);
-        }
-        if (site.facilities.camping) {
-          const tag = document.createElement('span');
-          tag.className = 'facility-tag';
-          tag.textContent = '⛺ Camping';
-          facilities.appendChild(tag);
-        }
-        if (site.facilities.restrooms) {
-          const tag = document.createElement('span');
-          tag.className = 'facility-tag';
-          tag.textContent = '🚻 Restrooms';
-          facilities.appendChild(tag);
-        }
-        container.appendChild(facilities);
-
-        // Viewing notes
-        const notes = document.createElement('p');
-        notes.className = 'popup-notes';
-        notes.textContent = site.viewingNotes;
-        container.appendChild(notes);
-
-        return container;
-      };
-
-      const popup = new maplibregl.Popup({
-        offset: 25,
-        closeButton: true,
-        closeOnClick: false,
-        maxWidth: '320px',
-      }).setDOMContent(createPopupContent());
-
-      const handleMarkerClick = (e: MouseEvent) => {
-        e.stopPropagation();
-
-        if (currentPopupRef.current) {
-          currentPopupRef.current.remove();
-        }
-
-        popup.setLngLat(site.coordinates).addTo(map);
-        currentPopupRef.current = popup;
-
-        if (onSiteClick) {
-          onSiteClick(site);
-        }
-      };
-
-      el.addEventListener('click', handleMarkerClick as EventListener);
-      markersRef.current.push({ marker, element: el, handler: handleMarkerClick });
-    });
-
-    // Close popup when clicking on map
-    const handleMapClick = () => {
-      if (currentPopupRef.current) {
-        currentPopupRef.current.remove();
-        currentPopupRef.current = null;
-      }
-    };
-    map.on('click', handleMapClick);
-
-    return () => {
-      cleanupMarkers();
-      map.off('click', handleMapClick);
-    };
-  }, [map, isDark, onSiteClick, cleanupMarkers]);
+  // Dark sky site markers (shown whenever stargazing is on); clicking opens
+  // the site in the side panel (VTL-64)
+  useMapMarkers(map, true, DARK_SKY_SITES, buildDarkSkyMarker, onSiteClick ?? noop);
 
   // Get quality color
   const getQualityColor = (rating: string): string => {

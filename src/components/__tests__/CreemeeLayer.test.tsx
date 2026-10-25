@@ -3,12 +3,8 @@ import { render, waitFor } from '@testing-library/react';
 import CreemeeLayer from '../CreemeeLayer';
 import { fetchCreemeeStands } from '../../services/creemeeApi';
 import { FakeMap, liveMarkers, openPopups, resetMaplibreMock } from '../../test/maplibreMock';
-import { makeCreemeeStand, omit } from '../../__fixtures__/components/data';
-import {
-  XSS_PAYLOAD,
-  expectNoInjectedMarkup,
-  expectPayloadAsText,
-} from '../../__fixtures__/components/xss';
+import { makeCreemeeStand } from '../../__fixtures__/components/data';
+import { XSS_PAYLOAD, expectNoInjectedMarkup } from '../../__fixtures__/components/xss';
 
 vi.mock('maplibre-gl', async () => (await import('../../test/maplibreMock')).maplibreModule);
 vi.mock('../../services/creemeeApi', () => ({ fetchCreemeeStands: vi.fn() }));
@@ -26,10 +22,7 @@ describe('CreemeeLayer', () => {
     fake = new FakeMap();
     fetchMock.mockResolvedValue([
       makeCreemeeStand(),
-      omit(
-        makeCreemeeStand({ id: 'c2', name: 'Plain Stand', specialties: [], featured: false }),
-        'description',
-      ),
+      makeCreemeeStand({ id: 'c2', name: 'Plain Stand', town: 'Barre', featured: false }),
     ]);
   });
 
@@ -39,67 +32,57 @@ describe('CreemeeLayer', () => {
     delete window.__xss;
   });
 
-  it('adds markers when visible and removes markers and popup on unmount', async () => {
-    const { unmount } = render(<CreemeeLayer map={fake.asMap()} visible />);
-    await waitFor(() => expect(liveMarkers()).toHaveLength(2));
-    click(liveMarkers()[0]!.getElement());
-    expect(openPopups()).toHaveLength(1);
+  it('adds markers while visible and removes them when hidden or unmounted', async () => {
+    const onLoaded = vi.fn();
+    const { rerender, unmount } = render(
+      <CreemeeLayer map={fake.asMap()} visible={false} onSelect={vi.fn()} onLoaded={onLoaded} />,
+    );
+    await waitFor(() => expect(onLoaded).toHaveBeenCalledTimes(1));
+    expect(onLoaded.mock.calls[0]![0]).toHaveLength(2);
+    expect(liveMarkers()).toHaveLength(0);
 
+    rerender(<CreemeeLayer map={fake.asMap()} visible onSelect={vi.fn()} onLoaded={onLoaded} />);
+    await waitFor(() => expect(liveMarkers()).toHaveLength(2));
+    rerender(
+      <CreemeeLayer map={fake.asMap()} visible={false} onSelect={vi.fn()} onLoaded={onLoaded} />,
+    );
+    expect(liveMarkers()).toHaveLength(0);
+
+    rerender(<CreemeeLayer map={fake.asMap()} visible onSelect={vi.fn()} onLoaded={onLoaded} />);
+    await waitFor(() => expect(liveMarkers()).toHaveLength(2));
     unmount();
     expect(liveMarkers()).toHaveLength(0);
-    expect(openPopups()).toHaveLength(0);
   });
 
-  it('removes markers and popup when hidden', async () => {
-    const { rerender } = render(<CreemeeLayer map={fake.asMap()} visible />);
+  it('uses the Creemee layer color and a spoken name, and opens via onSelect', async () => {
+    const onSelect = vi.fn();
+    render(<CreemeeLayer map={fake.asMap()} visible onSelect={onSelect} />);
     await waitFor(() => expect(liveMarkers()).toHaveLength(2));
-    click(liveMarkers()[0]!.getElement());
-    rerender(<CreemeeLayer map={fake.asMap()} visible={false} />);
-    expect(liveMarkers()).toHaveLength(0);
+    const el = liveMarkers()[1]!.getElement();
+    expect(el.style.getPropertyValue('--layer-color')).toBe('#78350f');
+    expect(el.classList.contains('map-marker--status')).toBe(false);
+    expect(el.getAttribute('aria-label')).toBe('Creemee stand: Plain Stand, Barre');
+
+    click(el);
+    expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: 'c2' }));
     expect(openPopups()).toHaveLength(0);
-  });
-
-  it('renders optional sections only when present and keeps one popup open', async () => {
-    render(<CreemeeLayer map={fake.asMap()} visible />);
-    await waitFor(() => expect(liveMarkers()).toHaveLength(2));
-
-    click(liveMarkers()[0]!.getElement());
-    const full = openPopups()[0]!.getElement();
-    expect(full.querySelector('.featured-badge')).not.toBeNull();
-    expect(full.querySelector('.stand-specialties li')?.textContent).toBe('Maple');
-    expect(full.querySelector('.stand-location')?.textContent).toContain('Waitsfield, VT');
-
-    click(liveMarkers()[1]!.getElement());
-    expect(openPopups()).toHaveLength(1);
-    const plain = openPopups()[0]!.getElement();
-    expect(plain.querySelector('.featured-badge')).toBeNull();
-    expect(plain.querySelector('.stand-description')).toBeNull();
-    expect(plain.querySelector('.stand-specialties')).toBeNull();
   });
 
   it('renders no markers when the fetch fails', async () => {
     fetchMock.mockRejectedValue(new Error('down'));
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    render(<CreemeeLayer map={fake.asMap()} visible />);
-    await waitFor(() => expect(spy).toHaveBeenCalled());
+    render(<CreemeeLayer map={fake.asMap()} visible onSelect={vi.fn()} />);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
     expect(liveMarkers()).toHaveLength(0);
     spy.mockRestore();
   });
 
-  it('escapes hostile upstream strings in popup HTML', async () => {
-    fetchMock.mockResolvedValue([
-      makeCreemeeStand({
-        name: XSS_PAYLOAD,
-        town: XSS_PAYLOAD,
-        description: XSS_PAYLOAD,
-        specialties: [XSS_PAYLOAD, XSS_PAYLOAD],
-      }),
-    ]);
-    render(<CreemeeLayer map={fake.asMap()} visible />);
+  it('puts hostile upstream strings into the marker name as text, never markup', async () => {
+    fetchMock.mockResolvedValue([makeCreemeeStand({ name: XSS_PAYLOAD, town: XSS_PAYLOAD })]);
+    render(<CreemeeLayer map={fake.asMap()} visible onSelect={vi.fn()} />);
     await waitFor(() => expect(liveMarkers()).toHaveLength(1));
-    click(liveMarkers()[0]!.getElement());
-    const html = openPopups()[0]?.html ?? '';
-    expectNoInjectedMarkup(html);
-    expectPayloadAsText(html);
+    const el = liveMarkers()[0]!.getElement();
+    expectNoInjectedMarkup(el);
+    expect(el.getAttribute('aria-label')).toContain(XSS_PAYLOAD);
   });
 });

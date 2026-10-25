@@ -1,13 +1,8 @@
 /**
  * Sanity checks for the seasonal layer configuration.
  */
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { SEASONAL_LAYERS } from '../seasonalLayers';
-
-vi.mock('@/components/SkiLayer', () => ({ default: () => null }));
-vi.mock('@/components/CreemeeLayer', () => ({ default: () => null }));
-vi.mock('../../components/SkiLayer', () => ({ default: () => null }));
-vi.mock('../../components/CreemeeLayer', () => ({ default: () => null }));
 
 describe('SEASONAL_LAYERS', () => {
   it('has unique ids', () => {
@@ -25,7 +20,6 @@ describe('SEASONAL_LAYERS', () => {
     for (const layer of SEASONAL_LAYERS) {
       expect(layer.label).not.toBe('');
       expect(layer.icon).toBeTruthy();
-      expect(layer.component).toBeTruthy();
       if (!layer.season) continue;
       expect(layer.season.label).not.toBe('');
       expect(new Set(layer.season.months).size).toBe(layer.season.months.length);
