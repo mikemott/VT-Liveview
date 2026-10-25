@@ -41,11 +41,12 @@ const PARTIAL_LANES =
   /^\s*(left|right|center|centre|middle|inside|outside|shoulder|one)\b[^,;]*\bclosed\b/i;
 
 export function isFullClosure(incident: ClosureCandidate): boolean {
+  // An explicit "road closed" / "all lanes closed" always counts
+  const text = `${incident.title} ${incident.description} ${incident.affectedLanes ?? ''}`;
+  if (FULL_CLOSURE_TEXT.test(text)) return true;
   // 511 types bridge work as CLOSURE even when only one lane is shut
   if (incident.affectedLanes && PARTIAL_LANES.test(incident.affectedLanes)) return false;
-  if (incident.type === 'CLOSURE') return true;
-  const text = `${incident.title} ${incident.description} ${incident.affectedLanes ?? ''}`;
-  return FULL_CLOSURE_TEXT.test(text);
+  return incident.type === 'CLOSURE';
 }
 
 /** Locations of full closures, for the seasonal-road override. */

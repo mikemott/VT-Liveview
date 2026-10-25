@@ -162,7 +162,8 @@
 }
 
 .filter-chip.active .chip-icon {
-  color: var(--chip-accent);
+  /* Same color as the label: the raw layer color can be < 3:1 on the tint */
+  color: inherit;
 }
 
 .filter-chip.active .chip-count {

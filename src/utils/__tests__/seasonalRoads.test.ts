@@ -151,6 +151,15 @@ describe('isFullClosure / closurePoints', () => {
     expect(isFullClosure({ ...base, type: 'CLOSURE', affectedLanes: 'Left lane closed' })).toBe(
       false,
     );
+    // An explicit full closure wins over a partial-lane field
+    expect(
+      isFullClosure({
+        ...base,
+        type: 'CLOSURE',
+        description: 'Road closed at the bridge',
+        affectedLanes: 'Left lane closed',
+      }),
+    ).toBe(true);
     // The real Oct 24 report: winter closure typed as construction, all lanes
     expect(
       isFullClosure({

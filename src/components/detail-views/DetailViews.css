@@ -716,11 +716,11 @@
   color: #b91c1c;
 }
 
-/* Seasonal closures plum (layer color, VTL-64) */
+/* Seasonal closures: the layer color from the registry (VTL-64) */
 .seasonal-status-seasonal {
-  background: rgba(134, 25, 143, 0.08);
-  border-color: rgba(134, 25, 143, 0.4);
-  color: #86198f;
+  background: color-mix(in srgb, var(--layer-color) 8%, transparent);
+  border-color: color-mix(in srgb, var(--layer-color) 40%, transparent);
+  color: var(--layer-color);
 }
 
 .seasonal-status-closingSoon {

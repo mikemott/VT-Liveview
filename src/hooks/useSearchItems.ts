@@ -151,6 +151,7 @@ export function useSearchItems(
       out.push({
         id: `incident:${inc.id}`,
         kind: 'incident',
+        layer: inc.type,
         name: inc.title,
         ...(inc.roadName ? { detail: inc.roadName, keywords: inc.roadName } : {}),
         lat,

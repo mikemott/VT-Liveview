@@ -16,10 +16,15 @@ const KIND_LAYER: Partial<Record<SearchKind, LayerStyleKey>> = {
   roadWeather: 'roadWeather',
 };
 
-function kindIcon(kind: SearchKind): LucideIcon {
-  const layer = KIND_LAYER[kind];
+/** The result's map layer: its own (incident type) or the one its kind implies */
+function resultLayer(item: SearchItem): LayerStyleKey | undefined {
+  return item.layer ?? KIND_LAYER[item.kind];
+}
+
+function resultIcon(item: SearchItem): LucideIcon {
+  const layer = resultLayer(item);
   if (layer) return LAYER_STYLES[layer].icon;
-  return kind === 'incident' ? TriangleAlert : MapPin;
+  return item.kind === 'incident' ? TriangleAlert : MapPin;
 }
 
 const KIND_LABEL: Record<SearchKind, string> = {
@@ -168,8 +173,8 @@ export default function SearchBox({
 
       <ul id={listId} role="listbox" className="search-results" hidden={!showList}>
         {results.map((item, i) => {
-          const Icon = kindIcon(item.kind);
-          const layer = KIND_LAYER[item.kind];
+          const Icon = resultIcon(item);
+          const layer = resultLayer(item);
           return (
             <li
               key={item.id}
