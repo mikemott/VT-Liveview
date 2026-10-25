@@ -18,14 +18,45 @@
   outline-offset: 2px;
 }
 
+/*
+ * Same look as a selected filter chip (VTL-68): a pale tint of the layer (or
+ * status) color, a mid-strength outline, and the icon/text in a deep shade.
+ * The tint is mixed with an opaque background rather than left transparent so
+ * the map doesn't show through and muddy the icon.
+ */
+.map-marker {
+  --marker-base: var(--marker-fill, var(--layer-color));
+  --marker-ground: #ffffff;
+  --marker-ink: color-mix(in srgb, var(--marker-base) 64%, black);
+  --marker-edge: color-mix(in srgb, var(--marker-base) 60%, var(--marker-ground));
+  /* Layer color for the outer ring (status markers, hover) */
+  --marker-ring: var(--layer-color);
+}
+
+.dark .map-marker {
+  /* Deep colors are lifted to read on the dark map, as chips do */
+  --marker-base: var(
+    --marker-fill,
+    var(--layer-color-dark, color-mix(in srgb, var(--layer-color) 48%, white))
+  );
+  --marker-ground: #1b1f24;
+  --marker-ink: var(--marker-base);
+  --marker-ring: var(--layer-color-dark, color-mix(in srgb, var(--layer-color) 48%, white));
+}
+
+.dark .map-marker--status {
+  /* Status colors (ski, water quality, pavement risk) get the same lift */
+  --marker-base: color-mix(in srgb, var(--marker-fill) 55%, white);
+}
+
 .map-marker-body {
   display: flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  background: var(--marker-fill, var(--layer-color));
-  border: 2px solid #ffffff;
-  color: #ffffff;
+  background: color-mix(in srgb, var(--marker-base) 18%, var(--marker-ground));
+  border: 2px solid var(--marker-edge);
+  color: var(--marker-ink);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   transition:
     transform 0.15s ease,
@@ -80,7 +111,7 @@
 /* Status fill: the layer color moves to an outer ring */
 .map-marker--status .map-marker-body {
   box-shadow:
-    0 0 0 2px var(--layer-color),
+    0 0 0 2px var(--marker-ring),
     0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
@@ -88,7 +119,7 @@
 .map-marker:focus-visible .map-marker-body {
   transform: scale(1.12);
   box-shadow:
-    0 0 0 2px var(--layer-color),
+    0 0 0 2px var(--marker-ring),
     0 4px 10px rgba(0, 0, 0, 0.35);
 }
 
