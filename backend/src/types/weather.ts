@@ -29,6 +29,8 @@ export interface ForecastPeriod {
   endTime: string;
   isDaytime: boolean;
   icon: string | null;
+  /** Chance of precipitation, 0–100, or null when NOAA doesn't give one */
+  precipChance: number | null;
   windSpeed: string | null;
   windDirection: string | null;
 }
@@ -168,6 +170,7 @@ export interface NOAAForecastPeriod {
   temperature: number;
   temperatureUnit: string;
   temperatureTrend: string | null;
+  probabilityOfPrecipitation?: { unitCode?: string; value: number | null } | null;
   windSpeed: string;
   windDirection: string;
   icon: string;

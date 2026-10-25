@@ -11,6 +11,7 @@ import type { BackcountrySite } from '../../services/backcountryApi';
 import type { CampingArea } from '../../services/campingApi';
 import type { Beach } from '../../services/beachApi';
 import type { RadarFrameData } from '../../hooks/useRadarAnimation';
+import type { RoadWeatherStation } from '../../services/roadWeatherApi';
 import type { AlertFeature, ObservationStation } from '../../types';
 import type { DarkSkySite } from '../../types/stargazing';
 
@@ -245,5 +246,27 @@ export function makeAlertFeature(
       expires: '2026-10-17T00:00:00Z',
       ...overrides,
     },
+  };
+}
+
+export function makeRoadWeatherStation(
+  overrides: Partial<RoadWeatherStation> = {},
+): RoadWeatherStation {
+  return {
+    id: '124',
+    name: 'I-89 BERLIN',
+    lat: 44.21,
+    lng: -72.58,
+    roadway: 'I-89',
+    direction: 'South',
+    location: 'BERLIN .2 MILES SOUTH OF EXIT 7',
+    surface: 'Wet',
+    pavementTempC: -1,
+    airTempC: 0.5,
+    dewPointC: -2,
+    friction: 0.55,
+    precip: null,
+    observedAt: '2026-10-16T12:00:00Z',
+    ...overrides,
   };
 }

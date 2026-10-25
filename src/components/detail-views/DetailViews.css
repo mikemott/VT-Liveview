@@ -359,143 +359,144 @@
 }
 
 /* =================================================================
-   Location Detail
+   Location Detail ("What's here?", VTL-65)
    ================================================================= */
 
-.location-detail {
-  padding: var(--space-7);
+.location-alerts,
+.location-forecast,
+.location-nearby {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.location-header {
+.location-alerts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: var(--space-4) 0;
+}
+
+.location-alert {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-5);
-  background: var(--color-bg-glass-subtle);
-  border: 1.5px solid var(--color-border-primary);
-  border-radius: var(--radius-xl);
-  margin-bottom: var(--space-8);
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(220, 38, 38, 0.45);
+  background: rgba(220, 38, 38, 0.08);
+  color: #b91c1c;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
 }
 
-.location-coords {
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-vermont-green);
-  font-size: var(--font-size-lg);
+.dark .location-alert {
+  color: #fca5a5;
 }
 
-.location-section {
-  margin-bottom: var(--space-10);
-  padding-bottom: var(--space-8);
-  border-bottom: 1px solid var(--color-border-secondary);
-}
-
-.location-section:last-child {
-  border-bottom: none;
-}
-
-.section-title {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
-  text-transform: uppercase;
-  letter-spacing: var(--letter-spacing-wider);
-  color: var(--color-vermont-green);
-  margin-bottom: var(--space-7);
-}
-
-/* Forecast Section */
-.forecast-periods {
+.location-forecast li {
   display: grid;
-  gap: var(--space-5);
+  grid-template-columns: 7.5em 3.5em 1fr;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border-secondary);
+  font-size: 14px;
 }
 
-.forecast-period {
-  background: var(--color-bg-glass-subtle);
-  border: 1.5px solid var(--color-border-primary);
-  border-radius: var(--radius-xl);
-  padding: var(--space-6);
-  transition: var(--transition-spring);
-}
-
-.forecast-period:hover {
-  transform: translateX(4px);
-  box-shadow: var(--shadow-md);
-}
-
-.period-name {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-vermont-green);
-  margin-bottom: var(--space-3);
-}
-
-.period-temp {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
-  margin-bottom: var(--space-2);
-}
-
-.period-conditions {
-  font-size: var(--font-size-base);
+.location-forecast-name {
   color: var(--color-text-tertiary);
-  margin-bottom: var(--space-2);
 }
 
-.period-precip {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--font-size-md);
+.location-forecast-temp {
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.location-forecast-text {
   color: var(--color-text-secondary);
 }
 
-/* Astronomy Section */
-.astronomy-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: var(--space-5);
+.location-nearby {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
-.astro-item {
-  background: var(--color-bg-glass-subtle);
-  border: 1.5px solid var(--color-border-primary);
-  border-radius: var(--radius-xl);
-  padding: var(--space-6);
-  transition: var(--transition-spring);
+.location-nearby-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in srgb, var(--layer-color) 35%, transparent);
+  background: color-mix(in srgb, var(--layer-color) 6%, transparent);
+  font: inherit;
+  text-align: left;
+  color: var(--color-text-primary);
+  cursor: pointer;
 }
 
-.astro-item:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+.location-nearby-item:hover,
+.location-nearby-item:focus-visible {
+  background: color-mix(in srgb, var(--layer-color) 12%, transparent);
 }
 
-.astro-label {
+.location-nearby-icon {
+  flex-shrink: 0;
+  color: var(--layer-color);
+}
+
+.dark .location-nearby-icon {
+  color: var(--layer-color-dark, color-mix(in srgb, var(--layer-color) 48%, white));
+}
+
+.location-nearby-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.location-nearby-title {
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.location-nearby-detail {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.location-nearby-distance {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-tertiary);
+}
+
+.location-sun {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-medium);
-  text-transform: uppercase;
-  letter-spacing: var(--letter-spacing-wide);
-  color: var(--color-text-tertiary);
-  margin-bottom: var(--space-3);
+  margin: var(--space-5) 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
 }
 
-.astro-value {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-vermont-green);
-}
-
-.moon-illumination {
-  font-size: var(--font-size-md);
-  color: var(--color-text-tertiary);
+.location-sun svg:nth-of-type(2) {
+  margin-left: var(--space-4);
 }
 
 /* Historical Summary Section */

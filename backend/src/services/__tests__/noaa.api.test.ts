@@ -214,9 +214,11 @@ describe('getForecast', () => {
       endTime: '2026-01-15T18:00:00-05:00',
       isDaytime: true,
       icon: 'https://api.weather.gov/icons/land/day/snow,60?size=medium',
+      precipChance: 60,
       windSpeed: '5 to 10 mph',
       windDirection: 'S',
     });
+    expect(periods[1]?.precipChance).toBe(20);
   });
 
   it('throws on a non-OK forecast response', async () => {

@@ -2,7 +2,6 @@
   "data": {
     "forecast": [
       {
-        "number": 1,
         "name": "Tonight",
         "startTime": "2026-10-16T18:00:00-04:00",
         "endTime": "2026-10-17T06:00:00-04:00",
@@ -14,10 +13,9 @@
         "icon": "https://api.weather.gov/icons/land/night/sct?size=medium",
         "shortForecast": "Partly Cloudy",
         "detailedForecast": "Partly cloudy, with a low around 38.",
-        "probabilityOfPrecipitation": { "value": null }
+        "precipChance": null
       },
       {
-        "number": 2,
         "name": "Saturday",
         "startTime": "2026-10-17T06:00:00-04:00",
         "endTime": "2026-10-17T18:00:00-04:00",
@@ -29,7 +27,7 @@
         "icon": "https://api.weather.gov/icons/land/day/rain_showers,40/bkn?size=medium",
         "shortForecast": "Chance Rain Showers",
         "detailedForecast": "A chance of rain showers. Mostly cloudy, with a high near 55.",
-        "probabilityOfPrecipitation": { "value": 40 }
+        "precipChance": 40
       }
     ]
   }

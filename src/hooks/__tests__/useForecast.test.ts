@@ -47,7 +47,7 @@ describe('useForecast', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(variables).toEqual({ lat: 44.26012, lon: -72.57541 });
     expect(result.current.data?.forecast).toHaveLength(2);
-    expect(result.current.data?.forecast[1]?.probabilityOfPrecipitation?.value).toBe(40);
+    expect(result.current.data?.forecast[1]?.precipChance).toBe(40);
   });
 
   it('keys the cache on coordinates rounded to 3 decimals', async () => {
