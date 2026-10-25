@@ -37,24 +37,34 @@ describe('DetailPanel', () => {
     expect(container.querySelector('.detail-view')).not.toBeNull();
   });
 
-  it('offers a share button for stations but not incidents (VTL-52)', () => {
-    const onShare = vi.fn();
+  it('offers a share menu for stations but not incidents (VTL-52, VTL-70)', () => {
+    const getShare = vi.fn(() => ({
+      url: 'https://vtliveview.com/?sel=station:KBTV',
+      text: 'Weather station: Burlington',
+    }));
+    const onClose = vi.fn();
     const { rerender } = render(
       <DetailPanel
         content={{ type: 'station', data: makeStation() }}
-        onClose={vi.fn()}
-        onShare={onShare}
+        onClose={onClose}
+        getShare={getShare}
         isDark={false}
       />,
     );
     fireEvent.click(screen.getByRole('button', { name: 'Share a link to this' }));
-    expect(onShare).toHaveBeenCalledTimes(1);
+    expect(getShare).toHaveBeenCalledTimes(1);
+    const menu = screen.getByRole('dialog', { name: 'Share a link to this' });
+    expect(menu).toHaveTextContent('Weather station: Burlington');
+    // Escape closes the menu, not the panel behind it
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(screen.queryByRole('dialog', { name: 'Share a link to this' })).toBeNull();
+    expect(onClose).not.toHaveBeenCalled();
 
     rerender(
       <DetailPanel
         content={{ type: 'incident', data: makeVT511Incident() }}
         onClose={vi.fn()}
-        onShare={onShare}
+        getShare={getShare}
         isDark={false}
       />,
     );

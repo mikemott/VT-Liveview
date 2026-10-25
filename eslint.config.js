@@ -48,6 +48,19 @@ export default defineConfig([
     },
   },
   {
+    // Cloudflare Pages Functions (worker runtime: fetch, Request, Response)
+    files: ['functions/**/*.ts'],
+    extends: [js.configs.recommended, tseslint.configs.recommendedTypeChecked],
+    languageOptions: {
+      ecmaVersion: 2022,
+      globals: globals.serviceworker,
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  },
+  {
     // Root-level tooling config files (vite, vitest, playwright, sentry, eslint)
     files: ['*.{js,ts}'],
     extends: [js.configs.recommended, tseslint.configs.recommended],

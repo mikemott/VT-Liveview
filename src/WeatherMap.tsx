@@ -54,14 +54,15 @@ import {
   type PoiKind,
   type UrlState,
 } from './utils/urlState';
-import { shareLink, shareResultMessage } from './utils/share';
+import { describeSelection, panelShareName, shareUrl } from './utils/sharePreview';
+import ShareMenu from './components/ShareMenu';
 import type { MapLibreMap, DetailPanelContent, AlertFeature, ObservationStation } from './types';
 import { VERMONT, INTERVALS } from './utils/constants';
 import { useIsMobile } from './hooks/useIsMobile';
 import { useSeasonalLayers } from './hooks/useSeasonalLayers';
 import { useVisibleInterval } from './hooks/useVisibleInterval';
 import { SEASONAL_LAYERS } from './config/seasonalLayers';
-import { Menu, X, AlertTriangle, AlertCircle, Info, Share2 } from 'lucide-react';
+import { Menu, X, AlertTriangle, AlertCircle, Info } from 'lucide-react';
 import { fetchMergedAlerts, type MergedAlertData } from './services/graphqlClient';
 
 // =============================================================================
@@ -1376,11 +1377,15 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
     [isMobile, stations, cameras, roadWeather, openSeasonalRoad, openPoi],
   );
 
-  const handleShare = useCallback(async (): Promise<void> => {
-    const result = await shareLink(window.location.href, document.title);
-    const message = shareResultMessage(result);
-    if (message) showMapNotice(message);
-  }, [showMapNotice]);
+  // What the share menu offers (VTL-70): a link whose query carries the view
+  // (so link previews can describe it) and a line naming what's shown
+  const getShare = useCallback(
+    (): { url: string; text: string } => ({
+      url: shareUrl(window.location.origin, window.location.hash),
+      text: describeSelection(currentSelection, panelShareName(detailPanelContent)),
+    }),
+    [currentSelection, detailPanelContent],
+  );
 
   // The panel as shown: a "What's here?" point gets what's around it (VTL-65)
   const shownPanelContent = useMemo((): DetailPanelContent => {
@@ -1454,15 +1459,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
 
       {/* Standalone Theme Toggle */}
       <div className="standalone-theme-toggle">
-        <button
-          type="button"
-          className={`map-share-button ${isDark ? 'dark' : ''}`}
-          onClick={() => void handleShare()}
-          title="Share this view"
-          aria-label="Share this view"
-        >
-          <Share2 size={18} />
-        </button>
+        <ShareMenu getShare={getShare} isDark={isDark} />
         <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
       </div>
 
@@ -1715,7 +1712,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
       <DetailPanel
         content={shownPanelContent}
         onClose={closeDetailPanel}
-        onShare={() => void handleShare()}
+        getShare={getShare}
         onNavigate={handlePanelNavigate}
         isDark={isDark}
       />
