@@ -188,12 +188,19 @@
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-3) var(--space-2);
-  background: var(--color-vermont-green-faint);
+  /* Cream like the controls panel's sections (VTL-72); the old green tint made
+     the whole weather card read cooler than the main panel in light mode */
+  background: var(--gradient-panel);
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-vermont-green-subtle);
   box-shadow: 0 2px 4px rgba(93, 124, 90, 0.08);
   scroll-snap-align: start;
   transition: all var(--transition-base);
+}
+
+.current-weather.dark .forecast-card {
+  /* Dark mode keeps its tint: a dark gradient would vanish into the card */
+  background: var(--color-vermont-green-faint);
 }
 
 .forecast-card:hover {
