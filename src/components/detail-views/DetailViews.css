@@ -710,11 +710,17 @@
   color: var(--color-text-secondary);
 }
 
-.seasonal-status-closed511,
-.seasonal-status-seasonal {
+.seasonal-status-closed511 {
   background: rgba(220, 38, 38, 0.1);
   border-color: rgba(220, 38, 38, 0.45);
   color: #b91c1c;
+}
+
+/* Seasonal closures: the layer color from the registry (VTL-64) */
+.seasonal-status-seasonal {
+  background: color-mix(in srgb, var(--layer-color) 8%, transparent);
+  border-color: color-mix(in srgb, var(--layer-color) 40%, transparent);
+  color: var(--layer-color);
 }
 
 .seasonal-status-closingSoon {
@@ -723,9 +729,12 @@
   color: #b45309;
 }
 
-.dark .seasonal-status-closed511,
-.dark .seasonal-status-seasonal {
+.dark .seasonal-status-closed511 {
   color: #fca5a5;
+}
+
+.dark .seasonal-status-seasonal {
+  color: #f0abfc;
 }
 
 .dark .seasonal-status-closingSoon {
@@ -806,11 +815,11 @@
   color: #b91c1c;
 }
 .road-weather-headline.risk-freezing {
-  background: rgba(29, 78, 216, 0.08);
-  border-color: rgba(29, 78, 216, 0.4);
+  background: rgba(14, 116, 144, 0.08);
+  border-color: rgba(14, 116, 144, 0.4);
 }
 .road-weather-headline.risk-freezing .road-weather-risk {
-  color: #1d4ed8;
+  color: #0e7490;
 }
 .road-weather-headline.risk-nearFreezing {
   background: var(--color-warning-subtle);
@@ -823,7 +832,7 @@
   color: #fca5a5;
 }
 .dark .road-weather-headline.risk-freezing .road-weather-risk {
-  color: #93c5fd;
+  color: #67e8f9;
 }
 .dark .road-weather-headline.risk-nearFreezing .road-weather-risk {
   color: #fcd34d;

@@ -4,6 +4,7 @@
 import { Ban, CalendarClock, ExternalLink, MapPin, Snowflake, Sun } from 'lucide-react';
 import type { SeasonalRoad } from '../../data/seasonalRoads';
 import { formatMonthDay, type RoadStatus } from '../../utils/seasonalRoads';
+import { layerColorVars } from '../../config/layers';
 import './DetailViews.css';
 
 interface SeasonalRoadDetailProps {
@@ -29,7 +30,11 @@ export default function SeasonalRoadDetail({ road, status, isDark }: SeasonalRoa
         <span>Between {road.between}</span>
       </div>
 
-      <div className={`seasonal-status seasonal-status-${status.status}`} role="status">
+      <div
+        className={`seasonal-status seasonal-status-${status.status}`}
+        role="status"
+        style={layerColorVars('seasonalRoads')}
+      >
         <Icon size={18} aria-hidden="true" />
         <span>{status.label}</span>
       </div>

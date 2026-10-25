@@ -1,3 +1,4 @@
+import { layerColor } from '../config/layers';
 import { useState, useEffect, useRef, memo } from 'react';
 import maplibregl from 'maplibre-gl';
 import { fetchRecreationSites } from '../services/recreationApi';
@@ -45,8 +46,10 @@ const CAMPFIRE_ICON = `
   </svg>
 `;
 
-const CAMPGROUND_COLOR = '#10b981'; // Green - for campgrounds
-const BACKCOUNTRY_COLOR = '#92400e'; // Brown - for backcountry sites
+// Camping layer greens (VTL-64): campgrounds use the layer color; backcountry
+// sites a deeper green of the same family, so both read as "Camping"
+const CAMPGROUND_COLOR = layerColor('campingSites');
+const BACKCOUNTRY_COLOR = '#14532d';
 
 // =============================================================================
 // Marker Creation

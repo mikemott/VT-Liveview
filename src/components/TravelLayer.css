@@ -145,194 +145,41 @@
   text-align: center;
 }
 
-/* Type-specific chip colors matching incident colors */
-
-/* Weather Stations - Soft Blue */
-.filter-chip.active[data-chip-type='weather'] {
-  background: rgba(88, 139, 174, 0.2);
-  border-color: rgba(88, 139, 174, 0.4);
-  color: #2d4a5e;
+/*
+ * Active chip colors come from the layer registry (src/config/layers.ts) via
+ * --layer-color, so each chip matches its markers on the map (VTL-64).
+ * color-mix keeps one rule for every layer: a pale tint, a mid border, and
+ * text/icon darkened (light) or lightened (dark) enough to stay readable.
+ */
+.filter-chip.active {
+  --chip-accent: var(--layer-color, var(--color-vermont-green));
+  background: color-mix(in srgb, var(--chip-accent) 16%, transparent);
+  border-color: color-mix(in srgb, var(--chip-accent) 55%, transparent);
+  color: color-mix(in srgb, var(--chip-accent) 64%, black);
   box-shadow:
-    inset 0 1px 2px rgba(0, 0, 0, 0.1),
-    0 2px 4px rgba(88, 139, 174, 0.18);
+    inset 0 1px 2px rgba(0, 0, 0, 0.08),
+    0 2px 4px color-mix(in srgb, var(--chip-accent) 18%, transparent);
 }
 
-/* Cameras - Slate (VTL-56) */
-.filter-chip.active[data-chip-type='cameras'] {
-  background: rgba(71, 85, 105, 0.16);
-  border-color: rgba(71, 85, 105, 0.4);
-  color: #334155;
+.filter-chip.active .chip-icon {
+  /* Same color as the label: the raw layer color can be < 3:1 on the tint */
+  color: inherit;
 }
 
-.dark .filter-chip.active[data-chip-type='cameras'] {
-  color: #cbd5e1;
+.filter-chip.active .chip-count {
+  background: color-mix(in srgb, var(--chip-accent) 22%, transparent);
+  color: inherit;
 }
 
-/* Road temps - Ice blue (VTL-61) */
-.filter-chip.active[data-chip-type='roadwx'] {
-  background: rgba(29, 78, 216, 0.12);
-  border-color: rgba(29, 78, 216, 0.4);
-  color: #1e3a8a;
-}
-
-.dark .filter-chip.active[data-chip-type='roadwx'] {
-  color: #93c5fd;
-}
-
-/* Seasonal closures - Deep red (VTL-55) */
-.filter-chip.active[data-chip-type='seasonal'] {
-  background: rgba(185, 28, 28, 0.12);
-  border-color: rgba(185, 28, 28, 0.4);
-  color: #7f1d1d;
-}
-
-.dark .filter-chip.active[data-chip-type='seasonal'] {
-  color: #fca5a5;
-}
-
-/* Accident - Terracotta Red */
-.filter-chip.active[data-chip-type='accident'] {
-  background: rgba(204, 102, 82, 0.2);
-  border-color: rgba(204, 102, 82, 0.4);
-  color: #6b3528;
-  box-shadow:
-    inset 0 1px 2px rgba(0, 0, 0, 0.1),
-    0 2px 4px rgba(204, 102, 82, 0.18);
-}
-
-.filter-chip.active[data-chip-type='accident'] .chip-count {
-  background: rgba(204, 102, 82, 0.25);
-  color: #6b3528;
-}
-
-/* Construction - Goldenrod */
-.filter-chip.active[data-chip-type='construction'] {
-  background: rgba(218, 165, 32, 0.2);
-  border-color: rgba(218, 165, 32, 0.4);
-  color: #6b5210;
-  box-shadow:
-    inset 0 1px 2px rgba(0, 0, 0, 0.1),
-    0 2px 4px rgba(218, 165, 32, 0.18);
-}
-
-.filter-chip.active[data-chip-type='construction'] .chip-count {
-  background: rgba(218, 165, 32, 0.25);
-  color: #6b5210;
-}
-
-/* Closure - Rose Pink */
-.filter-chip.active[data-chip-type='closure'] {
-  background: rgba(219, 112, 147, 0.2);
-  border-color: rgba(219, 112, 147, 0.4);
-  color: #6d3849;
-  box-shadow:
-    inset 0 1px 2px rgba(0, 0, 0, 0.1),
-    0 2px 4px rgba(219, 112, 147, 0.18);
-}
-
-.filter-chip.active[data-chip-type='closure'] .chip-count {
-  background: rgba(219, 112, 147, 0.25);
-  color: #6d3849;
-}
-
-/* Flooding - Teal */
-.filter-chip.active[data-chip-type='flooding'] {
-  background: rgba(72, 157, 153, 0.2);
-  border-color: rgba(72, 157, 153, 0.4);
-  color: #254d4b;
-  box-shadow:
-    inset 0 1px 2px rgba(0, 0, 0, 0.1),
-    0 2px 4px rgba(72, 157, 153, 0.18);
-}
-
-.filter-chip.active[data-chip-type='flooding'] .chip-count {
-  background: rgba(72, 157, 153, 0.25);
-  color: #254d4b;
-}
-
-/* Hazard - Burnt Orange */
-.filter-chip.active[data-chip-type='hazard'] {
-  background: rgba(214, 126, 44, 0.2);
-  border-color: rgba(214, 126, 44, 0.4);
-  color: #6a3e16;
-  box-shadow:
-    inset 0 1px 2px rgba(0, 0, 0, 0.1),
-    0 2px 4px rgba(214, 126, 44, 0.18);
-}
-
-.filter-chip.active[data-chip-type='hazard'] .chip-count {
-  background: rgba(214, 126, 44, 0.25);
-  color: #6a3e16;
-}
-
-/* Stargazing - Indigo/Purple (night sky) */
-.filter-chip.active[data-chip-type='stargazing'] {
-  background: rgba(99, 102, 241, 0.2);
-  border-color: rgba(99, 102, 241, 0.4);
-  color: #3730a3;
-  box-shadow:
-    inset 0 1px 2px rgba(0, 0, 0, 0.1),
-    0 2px 4px rgba(99, 102, 241, 0.18);
-}
-
-.filter-chip.active[data-chip-type='stargazing'] .chip-icon {
-  color: #6366f1;
-}
-
-/* Ski Resorts - Cool Blue */
-.filter-chip.active[data-chip-type='ski'] {
-  background: rgba(56, 189, 248, 0.2);
-  border-color: rgba(56, 189, 248, 0.4);
-  color: #0369a1;
-  box-shadow:
-    inset 0 1px 2px rgba(0, 0, 0, 0.1),
-    0 2px 4px rgba(56, 189, 248, 0.18);
-}
-
-.filter-chip.active[data-chip-type='ski'] .chip-icon {
-  color: #0ea5e9;
-}
-
-/* Creemee Stands - Warm Wheat/Cream */
-.filter-chip.active[data-chip-type='creemee'] {
-  background: rgba(245, 222, 179, 0.2);
-  border-color: rgba(245, 222, 179, 0.4);
-  color: #8b4513;
-  box-shadow:
-    inset 0 1px 2px rgba(0, 0, 0, 0.1),
-    0 2px 4px rgba(245, 222, 179, 0.18);
-}
-
-.filter-chip.active[data-chip-type='creemee'] .chip-icon {
-  color: #d2691e;
-}
-
-/* Camping - Nature Green */
-.filter-chip.active[data-chip-type='camping'] {
-  background: var(--chip-camping-bg);
-  border-color: var(--chip-camping-border);
-  color: var(--chip-camping-text);
-  box-shadow:
-    inset 0 1px 2px rgba(0, 0, 0, 0.1),
-    0 2px 4px var(--chip-camping-shadow);
-}
-
-.filter-chip.active[data-chip-type='camping'] .chip-icon {
-  color: var(--chip-camping-icon);
-}
-
-/* Beach - Ocean Blue */
-.filter-chip.active[data-chip-type='beach'] {
-  background: var(--chip-beach-bg);
-  border-color: var(--chip-beach-border);
-  color: var(--chip-beach-text);
-  box-shadow:
-    inset 0 1px 2px rgba(0, 0, 0, 0.1),
-    0 2px 4px var(--chip-beach-shadow);
-}
-
-.filter-chip.active[data-chip-type='beach'] .chip-icon {
-  color: var(--chip-beach-icon);
+.dark .filter-chip.active {
+  /* Deep colors (night indigo, slate) need lifting to show on the dark panel */
+  --chip-accent: var(
+    --layer-color-dark,
+    color-mix(in srgb, var(--layer-color, #6ee7b7) 48%, white)
+  );
+  background: color-mix(in srgb, var(--chip-accent) 16%, transparent);
+  border-color: color-mix(in srgb, var(--chip-accent) 50%, transparent);
+  color: var(--chip-accent);
 }
 
 /* Camping sub-filters */
@@ -428,131 +275,6 @@
 .incident-popup .maplibregl-popup-tip,
 .station-popup .maplibregl-popup-tip {
   border-top-color: #fbfdf4;
-}
-
-/* Dark mode chip adjustments */
-.dark .filter-chip.active[data-chip-type='accident'] {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.18) 0%, rgba(139, 92, 246, 0.12) 100%);
-  border-color: rgba(139, 92, 246, 0.4);
-  color: #c4b5fd;
-}
-
-.dark .filter-chip.active[data-chip-type='accident'] .chip-icon {
-  background: rgba(139, 92, 246, 0.25);
-  color: #c4b5fd;
-}
-
-.dark .filter-chip.active[data-chip-type='construction'] {
-  background: linear-gradient(135deg, rgba(249, 115, 22, 0.18) 0%, rgba(249, 115, 22, 0.12) 100%);
-  border-color: rgba(249, 115, 22, 0.4);
-  color: #fdba74;
-}
-
-.dark .filter-chip.active[data-chip-type='construction'] .chip-icon {
-  background: rgba(249, 115, 22, 0.25);
-  color: #fdba74;
-}
-
-.dark .filter-chip.active[data-chip-type='closure'] {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.18) 0%, rgba(239, 68, 68, 0.12) 100%);
-  border-color: rgba(239, 68, 68, 0.4);
-  color: #fca5a5;
-}
-
-.dark .filter-chip.active[data-chip-type='closure'] .chip-icon {
-  background: rgba(239, 68, 68, 0.25);
-  color: #fca5a5;
-}
-
-.dark .filter-chip.active[data-chip-type='flooding'] {
-  background: linear-gradient(135deg, rgba(20, 184, 166, 0.18) 0%, rgba(20, 184, 166, 0.12) 100%);
-  border-color: rgba(20, 184, 166, 0.4);
-  color: #5eead4;
-}
-
-.dark .filter-chip.active[data-chip-type='flooding'] .chip-icon {
-  background: rgba(20, 184, 166, 0.25);
-  color: #5eead4;
-}
-
-.dark .filter-chip.active[data-chip-type='hazard'] {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.18) 0%, rgba(245, 158, 11, 0.12) 100%);
-  border-color: rgba(245, 158, 11, 0.4);
-  color: #fcd34d;
-}
-
-.dark .filter-chip.active[data-chip-type='hazard'] .chip-icon {
-  background: rgba(245, 158, 11, 0.25);
-  color: #fcd34d;
-}
-
-.dark .filter-chip.active[data-chip-type='weather'] {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18) 0%, rgba(59, 130, 246, 0.12) 100%);
-  border-color: rgba(59, 130, 246, 0.4);
-  color: #93c5fd;
-}
-
-.dark .filter-chip.active[data-chip-type='weather'] .chip-icon {
-  background: rgba(59, 130, 246, 0.25);
-  color: #93c5fd;
-}
-
-.dark .filter-chip.active[data-chip-type='stargazing'] {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.22) 0%, rgba(139, 92, 246, 0.18) 100%);
-  border-color: rgba(139, 92, 246, 0.5);
-  color: #c4b5fd;
-}
-
-.dark .filter-chip.active[data-chip-type='stargazing'] .chip-icon {
-  background: rgba(139, 92, 246, 0.25);
-  color: #a78bfa;
-}
-
-.dark .filter-chip.active[data-chip-type='ski'] {
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.18) 0%, rgba(56, 189, 248, 0.12) 100%);
-  border-color: rgba(56, 189, 248, 0.4);
-  color: #7dd3fc;
-}
-
-.dark .filter-chip.active[data-chip-type='ski'] .chip-icon {
-  background: rgba(56, 189, 248, 0.25);
-  color: #7dd3fc;
-}
-
-.dark .filter-chip.active[data-chip-type='creemee'] {
-  background: linear-gradient(135deg, rgba(245, 222, 179, 0.18) 0%, rgba(245, 222, 179, 0.12) 100%);
-  border-color: rgba(245, 222, 179, 0.4);
-  color: #f5deb3;
-}
-
-.dark .filter-chip.active[data-chip-type='creemee'] .chip-icon {
-  background: rgba(245, 222, 179, 0.25);
-  color: #f5deb3;
-}
-
-/* Traffic Flow - Green/Yellow/Red gradient feel */
-.filter-chip.active[data-chip-type='traffic'] {
-  background: rgba(34, 197, 94, 0.2);
-  border-color: rgba(34, 197, 94, 0.4);
-  color: #166534;
-  box-shadow:
-    inset 0 1px 2px rgba(0, 0, 0, 0.1),
-    0 2px 4px rgba(34, 197, 94, 0.18);
-}
-
-.filter-chip.active[data-chip-type='traffic'] .chip-icon {
-  color: #22c55e;
-}
-
-.dark .filter-chip.active[data-chip-type='traffic'] {
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.18) 0%, rgba(34, 197, 94, 0.12) 100%);
-  border-color: rgba(34, 197, 94, 0.4);
-  color: #86efac;
-}
-
-.dark .filter-chip.active[data-chip-type='traffic'] .chip-icon {
-  background: rgba(34, 197, 94, 0.25);
-  color: #86efac;
 }
 
 /* Legacy filter-grid support (deprecated) */
@@ -686,50 +408,18 @@
   cursor: pointer;
 }
 
-/* Incident Item Category Colors - Match chips */
-.incident-item[data-incident-type='accident'] {
-  border-left-color: rgba(204, 102, 82, 0.6);
-  background: rgba(204, 102, 82, 0.06);
+/* Incident row accent from the layer registry via --layer-color (VTL-64) */
+.incident-item[style*='--layer-color'] {
+  border-left-color: color-mix(in srgb, var(--layer-color) 65%, transparent);
+  background: color-mix(in srgb, var(--layer-color) 6%, transparent);
 }
 
-.incident-item[data-incident-type='accident'] .incident-title {
-  color: #6b3528;
+.incident-item[style*='--layer-color'] .incident-title {
+  color: color-mix(in srgb, var(--layer-color) 60%, black);
 }
 
-.incident-item[data-incident-type='construction'] {
-  border-left-color: rgba(218, 165, 32, 0.6);
-  background: rgba(218, 165, 32, 0.06);
-}
-
-.incident-item[data-incident-type='construction'] .incident-title {
-  color: #6b5210;
-}
-
-.incident-item[data-incident-type='closure'] {
-  border-left-color: rgba(219, 112, 147, 0.6);
-  background: rgba(219, 112, 147, 0.06);
-}
-
-.incident-item[data-incident-type='closure'] .incident-title {
-  color: #6d3849;
-}
-
-.incident-item[data-incident-type='flooding'] {
-  border-left-color: rgba(72, 157, 153, 0.6);
-  background: rgba(72, 157, 153, 0.06);
-}
-
-.incident-item[data-incident-type='flooding'] .incident-title {
-  color: #254d4b;
-}
-
-.incident-item[data-incident-type='hazard'] {
-  border-left-color: rgba(214, 126, 44, 0.6);
-  background: rgba(214, 126, 44, 0.06);
-}
-
-.incident-item[data-incident-type='hazard'] .incident-title {
-  color: #6a3e16;
+.dark .incident-item[style*='--layer-color'] .incident-title {
+  color: color-mix(in srgb, var(--layer-color) 45%, white);
 }
 
 .incident-item:hover {

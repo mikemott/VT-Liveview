@@ -1,3 +1,4 @@
+import { layerColor } from '../config/layers';
 import { useState, useEffect, useRef, memo } from 'react';
 import maplibregl from 'maplibre-gl';
 import { fetchSkiResorts } from '../services/skiApi';
@@ -33,13 +34,17 @@ function createSkiResortMarker(resort: SkiResort): HTMLDivElement {
 
   const color = SKI_COLORS[resort.color as keyof typeof SKI_COLORS] || SKI_COLORS.yellow;
 
+  // Fill shows status; the outer ring is the layer color from the registry,
+  // so the marker matches its filter chip (VTL-64)
+  const ring = layerColor('skiResorts');
+
   el.style.cssText = `
     width: 32px;
     height: 32px;
     background: ${color};
     border: 2px solid white;
     border-radius: 50%;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 0 0 2px ${ring}, 0 2px 6px rgba(0, 0, 0, 0.25);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -51,12 +56,12 @@ function createSkiResortMarker(resort: SkiResort): HTMLDivElement {
 
   // Hover glow effect
   el.addEventListener('mouseenter', () => {
-    el.style.boxShadow = `0 0 12px ${color}, 0 2px 8px rgba(0, 0, 0, 0.3)`;
+    el.style.boxShadow = `0 0 0 2px ${ring}, 0 0 12px ${color}, 0 2px 8px rgba(0, 0, 0, 0.3)`;
     el.style.borderWidth = '3px';
   });
 
   el.addEventListener('mouseleave', () => {
-    el.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.25)';
+    el.style.boxShadow = `0 0 0 2px ${ring}, 0 2px 6px rgba(0, 0, 0, 0.25)`;
     el.style.borderWidth = '2px';
   });
 

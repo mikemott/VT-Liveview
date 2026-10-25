@@ -3,6 +3,7 @@
  * Using Lucide-style SVG icons for consistency
  */
 
+import { LAYER_STYLES } from '../config/layers';
 import type { IncidentType } from '@/types';
 
 // =============================================================================
@@ -88,8 +89,8 @@ export function getIncidentIcon(type: IncidentType, size = 20, color?: string): 
 // =============================================================================
 
 /**
- * Get category-specific colors for map markers
- * Vibrant, eye-catching colors for visibility on map
+ * Map marker colors: the layer color from the registry (VTL-64), so markers
+ * match their filter chip; white ring and icon for contrast.
  */
 function getCategoryColors(type: IncidentType): {
   bg: string;
@@ -97,42 +98,14 @@ function getCategoryColors(type: IncidentType): {
   shadow: string;
   iconColor: string;
 } {
-  const categoryColors: Record<
-    IncidentType,
-    { bg: string; border: string; shadow: string; iconColor: string }
-  > = {
-    ACCIDENT: {
-      bg: '#cc6652', // Vibrant terracotta red
-      border: '#ffffff', // White border for contrast
-      shadow: 'rgba(0, 0, 0, 0.3)',
-      iconColor: '#ffffff', // White icon
-    },
-    CONSTRUCTION: {
-      bg: '#daa520', // Vibrant goldenrod
-      border: '#ffffff',
-      shadow: 'rgba(0, 0, 0, 0.3)',
-      iconColor: '#ffffff',
-    },
-    CLOSURE: {
-      bg: '#db7093', // Vibrant rose pink
-      border: '#ffffff',
-      shadow: 'rgba(0, 0, 0, 0.3)',
-      iconColor: '#ffffff',
-    },
-    FLOODING: {
-      bg: '#489d99', // Vibrant teal
-      border: '#ffffff',
-      shadow: 'rgba(0, 0, 0, 0.3)',
-      iconColor: '#ffffff',
-    },
-    HAZARD: {
-      bg: '#d67e2c', // Vibrant burnt orange
-      border: '#ffffff',
-      shadow: 'rgba(0, 0, 0, 0.3)',
-      iconColor: '#ffffff',
-    },
+  // Unknown feed types fall back to Hazard, like the icons do
+  const style = LAYER_STYLES[type] ?? LAYER_STYLES.HAZARD;
+  return {
+    bg: style.color,
+    border: '#ffffff',
+    shadow: 'rgba(0, 0, 0, 0.3)',
+    iconColor: '#ffffff',
   };
-  return categoryColors[type] || categoryColors.HAZARD;
 }
 
 /**

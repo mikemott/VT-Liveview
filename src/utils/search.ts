@@ -3,6 +3,8 @@
  * Small and dependency-free: a few hundred items, ranked by match quality.
  */
 
+import type { LayerStyleKey } from '../config/layers';
+
 export type SearchKind =
   | 'town'
   | 'ski'
@@ -28,6 +30,8 @@ export interface SearchItem {
   lng: number;
   /** [west, south, east, north] to fit instead of flying to the point. */
   bounds?: [number, number, number, number];
+  /** Map layer this result belongs to, when it isn't implied by `kind` (incident type) */
+  layer?: LayerStyleKey;
 }
 
 /** Lower-case, strip accents and punctuation, expand St./Mt. abbreviations. */

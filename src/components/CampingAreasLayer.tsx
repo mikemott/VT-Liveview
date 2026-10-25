@@ -32,10 +32,11 @@ const TENT_ICON = `
   </svg>
 `;
 
+// Greens of the Camping layer color (VTL-64) so areas match the Camping chip
 const PARK_TYPE_COLORS = {
-  state_park: '#92400e', // Brown (wilderness/backcountry)
-  state_forest: '#78350f', // Dark brown
-  wildlife_management_area: '#b45309', // Medium brown
+  state_park: '#15803d',
+  state_forest: '#166534',
+  wildlife_management_area: '#3f6212',
   other: '#6b7280', // Gray
 };
 
@@ -289,7 +290,7 @@ function CampingAreasLayer({
       map.getSource<GeoJSONSource>('camping-area-boundaries')?.setData(geojson);
     }
 
-    // Add fill layer if it doesn't exist (prominent brown zones like stargazing)
+    // Add fill layer if it doesn't exist (green zones, Camping layer color)
     if (!map.getLayer('camping-area-boundaries-fill')) {
       map.addLayer({
         id: 'camping-area-boundaries-fill',
@@ -300,19 +301,19 @@ function CampingAreasLayer({
             'match',
             ['get', 'type'],
             'state_park',
-            '#92400e', // Brown for state parks
+            PARK_TYPE_COLORS.state_park,
             'state_forest',
-            '#78350f', // Dark brown for state forests
+            PARK_TYPE_COLORS.state_forest,
             'wildlife_management_area',
-            '#b45309', // Medium brown for WMAs
-            '#6b7280', // Gray for other
+            PARK_TYPE_COLORS.wildlife_management_area,
+            PARK_TYPE_COLORS.other,
           ],
           'fill-opacity': 0.5, // Prominent like stargazing (50%)
         },
       });
     }
 
-    // Add outline layer if it doesn't exist (glowing brown border)
+    // Add outline layer if it doesn't exist (glowing green border)
     if (!map.getLayer('camping-area-boundaries-outline')) {
       map.addLayer({
         id: 'camping-area-boundaries-outline',
@@ -323,11 +324,11 @@ function CampingAreasLayer({
             'match',
             ['get', 'type'],
             'state_park',
-            '#d97706', // Amber outline
+            '#22c55e', // Lighter green outlines (VTL-64)
             'state_forest',
-            '#b45309', // Medium brown outline
+            '#16a34a',
             'wildlife_management_area',
-            '#f59e0b', // Bright amber outline
+            '#65a30d',
             '#9ca3af', // Light gray for other
           ],
           'line-width': 2,

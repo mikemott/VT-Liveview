@@ -2,6 +2,7 @@
  * Tests for incident color mapping and severity logic
  */
 
+import { LAYER_STYLES } from '../../config/layers';
 import { describe, it, expect } from 'vitest';
 import {
   INCIDENT_COLORS,
@@ -37,31 +38,31 @@ describe('INCIDENT_COLORS', () => {
 describe('getIncidentColor', () => {
   it('should return correct color for ACCIDENT', () => {
     const color = getIncidentColor('ACCIDENT');
-    expect(color.primary).toBe('#8B5CF6');
-    expect(color.name).toBe('purple');
+    expect(color.primary).toBe(LAYER_STYLES.ACCIDENT.color);
+    expect(color.name).toBe('violet');
   });
 
   it('should return correct color for CONSTRUCTION', () => {
     const color = getIncidentColor('CONSTRUCTION');
-    expect(color.primary).toBe('#F97316');
+    expect(color.primary).toBe(LAYER_STYLES.CONSTRUCTION.color);
     expect(color.name).toBe('orange');
   });
 
   it('should return correct color for CLOSURE', () => {
     const color = getIncidentColor('CLOSURE');
-    expect(color.primary).toBe('#EF4444');
+    expect(color.primary).toBe(LAYER_STYLES.CLOSURE.color);
     expect(color.name).toBe('red');
   });
 
   it('should return correct color for FLOODING', () => {
     const color = getIncidentColor('FLOODING');
-    expect(color.primary).toBe('#14B8A6');
+    expect(color.primary).toBe(LAYER_STYLES.FLOODING.color);
     expect(color.name).toBe('teal');
   });
 
   it('should return correct color for HAZARD', () => {
     const color = getIncidentColor('HAZARD');
-    expect(color.primary).toBe('#F59E0B');
+    expect(color.primary).toBe(LAYER_STYLES.HAZARD.color);
     expect(color.name).toBe('amber');
   });
 

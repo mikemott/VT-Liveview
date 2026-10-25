@@ -125,6 +125,8 @@ function SeasonalRoadsLayer({
       paint: {
         'line-color': colorExpression,
         'line-width': ['interpolate', ['linear'], ['zoom'], 7, 2.5, 12, 5],
+        // Closing soon: same plum, lighter, so it reads as "not yet"
+        'line-opacity': ['match', ['get', 'status'], 'closingSoon', 0.55, 1],
         'line-dasharray': [2, 1.5],
       },
     });

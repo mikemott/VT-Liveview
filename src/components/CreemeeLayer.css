@@ -5,9 +5,6 @@
   --creemee-popup-text: #5d7c5a;
   --creemee-popup-border: rgba(93, 124, 90, 0.2);
   --creemee-popup-shadow: rgba(150, 150, 140, 0.15);
-  --creemee-marker-bg: #f5deb3;
-  --creemee-marker-border: #8b4513;
-  --creemee-marker-color: #8b4513;
 }
 
 .dark {
@@ -15,9 +12,6 @@
   --creemee-popup-text: #c5d8c2;
   --creemee-popup-border: rgba(150, 190, 145, 0.3);
   --creemee-popup-shadow: rgba(0, 0, 0, 0.3);
-  --creemee-marker-bg: #8b7355;
-  --creemee-marker-border: #d2b48c;
-  --creemee-marker-color: #d2b48c;
 }
 
 .creemee-popup-content {
@@ -129,7 +123,8 @@
 .creemee-stand-marker {
   width: 32px;
   height: 32px;
-  background: var(--creemee-marker-bg);
+  /* Layer color from the registry (VTL-64); white icon */
+  background: var(--layer-color);
   border: 2px solid white;
   border-radius: 50%;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
@@ -144,7 +139,7 @@
 
 .creemee-stand-marker:hover {
   box-shadow:
-    0 0 12px var(--creemee-marker-bg),
+    0 0 12px var(--layer-color),
     0 2px 8px rgba(0, 0, 0, 0.3);
   border-width: 3px;
 }

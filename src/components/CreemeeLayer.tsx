@@ -1,3 +1,4 @@
+import { layerColor } from '../config/layers';
 import { useState, useEffect, useRef, memo } from 'react';
 import maplibregl from 'maplibre-gl';
 import { fetchCreemeeStands } from '../services/creemeeApi';
@@ -31,6 +32,7 @@ const CREEMEE_ICON = `
 function createCreemeeMarker(): HTMLDivElement {
   const el = document.createElement('div');
   el.className = 'creemee-stand-marker';
+  el.style.setProperty('--layer-color', layerColor('creemeeStands'));
   el.innerHTML = CREEMEE_ICON;
   return el;
 }

@@ -61,6 +61,29 @@ describe('SearchBox', () => {
     expect(input).toHaveAttribute('aria-expanded', 'false');
   });
 
+  it('colors results by map layer, including each incident type (VTL-64)', () => {
+    const { input } = setup({
+      items: [
+        ...ITEMS,
+        {
+          id: 'incident:1',
+          kind: 'incident',
+          layer: 'CLOSURE',
+          name: 'Stowe bridge closed',
+          lat: 44.5,
+          lng: -72.7,
+        },
+      ],
+    });
+    fireEvent.change(input, { target: { value: 'stowe' } });
+    const icon = (name: RegExp): SVGElement =>
+      screen.getByRole('option', { name }).querySelector('svg.search-kind')!;
+    expect(icon(/Stowe Mountain Resort/).getAttribute('style')).toContain('#0284c7');
+    expect(icon(/Stowe bridge closed/).getAttribute('style')).toContain('#dc2626');
+    // Towns aren't a map layer: no layer color
+    expect(icon(/Lamoille County/).getAttribute('style')).toBeNull();
+  });
+
   it('selects with the mouse', () => {
     const { input, onSelect } = setup();
     fireEvent.focus(input);

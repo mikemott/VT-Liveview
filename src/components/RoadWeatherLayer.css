@@ -22,7 +22,7 @@
   box-sizing: border-box;
   border-radius: 4px;
   border: 2px solid #ffffff;
-  background: #334155;
+  background: var(--layer-color);
   color: #ffffff;
   font-family: var(--font-family, system-ui, sans-serif);
   font-size: 12px;
@@ -46,14 +46,25 @@
   outline-offset: 2px;
 }
 
+/*
+ * Risk states replace the fill with a status color; an outer ring in the
+ * layer color keeps them recognizable as road temps (VTL-64).
+ */
+.road-weather-marker:is(.risk-nearFreezing, .risk-freezing, .risk-hazard)
+  .road-weather-marker-body {
+  box-shadow:
+    0 0 0 2px var(--layer-color),
+    0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
 /* Pavement 33–36 °F */
 .road-weather-marker.risk-nearFreezing .road-weather-marker-body {
   background: #b45309;
 }
 
-/* Pavement at or below 32 °F */
+/* Pavement at or below 32 °F: ice cyan (not Stations blue) */
 .road-weather-marker.risk-freezing .road-weather-marker-body {
-  background: #1d4ed8;
+  background: #0e7490;
 }
 
 /* Ice / snow / frost reported on the surface */

@@ -10,35 +10,22 @@ import type {
   IncidentColorMap,
   Incident,
 } from '@/types';
+import { LAYER_STYLES } from '../config/layers';
 
-/** Color configuration for each incident type */
+/** Color configuration for each incident type, from the layer registry (VTL-64) */
+const incidentColor = (type: IncidentType, name: string): IncidentColor => ({
+  primary: LAYER_STYLES[type].color,
+  background: `${LAYER_STYLES[type].color}20`,
+  name,
+});
+
 export const INCIDENT_COLORS: IncidentColorMap = {
-  ACCIDENT: {
-    primary: '#8B5CF6',
-    background: '#8B5CF620',
-    name: 'purple',
-  },
-  CONSTRUCTION: {
-    primary: '#F97316',
-    background: '#F9731620',
-    name: 'orange',
-  },
-  CLOSURE: {
-    primary: '#EF4444',
-    background: '#EF444420',
-    name: 'red',
-  },
-  FLOODING: {
-    primary: '#14B8A6',
-    background: '#14B8A620',
-    name: 'teal',
-  },
-  HAZARD: {
-    primary: '#F59E0B',
-    background: '#F59E0B20',
-    name: 'amber',
-  },
-} as const;
+  ACCIDENT: incidentColor('ACCIDENT', 'violet'),
+  CONSTRUCTION: incidentColor('CONSTRUCTION', 'orange'),
+  CLOSURE: incidentColor('CLOSURE', 'red'),
+  FLOODING: incidentColor('FLOODING', 'teal'),
+  HAZARD: incidentColor('HAZARD', 'amber'),
+};
 
 /**
  * Get color configuration for an incident type
