@@ -148,13 +148,14 @@
 /*
  * A selected chip is filled with its layer color (src/config/layers.ts, via
  * --layer-color), exactly like that layer's markers on the map (VTL-66).
- * Every layer color keeps ~3:1 or better with white text.
+ * Text is black or white, whichever reads better on that color (--layer-on,
+ * >= 4.5:1; see textOn in layers.ts).
  */
 .filter-chip.active {
   --chip-accent: var(--layer-color, var(--color-vermont-green));
   background: var(--chip-accent);
   border-color: var(--chip-accent);
-  color: #ffffff;
+  color: var(--layer-on, #ffffff);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.18),
     0 2px 6px color-mix(in srgb, var(--chip-accent) 35%, transparent);
@@ -170,7 +171,7 @@
 }
 
 .filter-chip.active .chip-count {
-  background: rgba(255, 255, 255, 0.22);
+  background: color-mix(in srgb, var(--layer-on, #ffffff) 18%, transparent);
   color: inherit;
 }
 

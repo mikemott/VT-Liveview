@@ -6,8 +6,8 @@
  *
  * The palette was picked for distinctness (VTL-66): every pair is >= 17
  * CIEDE2000 apart as the full color, which is what both markers and selected
- * chips (filled, white text) show. Colors carrying a white icon keep ~3:1
- * contrast or better with it. Change a color only after re-checking every
+ * chips (filled) show. White marker icons keep ~3:1 contrast or better; chip
+ * text uses black or white, whichever reads better (textOn, >= 4.5:1). Change a color only after re-checking every
  * pair; layerPalette.test.ts enforces both.
  */
 import type { CSSProperties } from 'react';
@@ -91,11 +91,33 @@ export const LAYER_STYLES: Record<LayerStyleKey, LayerStyle> = {
 
 export const layerColor = (key: LayerStyleKey): string => LAYER_STYLES[key].color;
 
-/** `style` for an element whose CSS uses var(--layer-color). */
+/** WCAG relative luminance of a #rrggbb color */
+export function relativeLuminance(hex: string): number {
+  const [r, g, b] = [1, 3, 5].map((i) => {
+    const c = parseInt(hex.slice(i, i + 2), 16) / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  }) as [number, number, number];
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+/**
+ * Text color for a label filled with `hex`: white or black, whichever has
+ * more contrast. One of them always clears 4.5:1 (their ratios multiply to 21).
+ */
+export function textOn(hex: string): '#ffffff' | '#000000' {
+  const l = relativeLuminance(hex);
+  return 1.05 / (l + 0.05) >= (l + 0.05) / 0.05 ? '#ffffff' : '#000000';
+}
+
+/**
+ * `style` for an element whose CSS uses var(--layer-color); --layer-on is the
+ * readable text color on a fill of that color (selected chips).
+ */
 export function layerColorVars(key: LayerStyleKey): CSSProperties {
   const { color, colorDark } = LAYER_STYLES[key];
   return {
     '--layer-color': color,
+    '--layer-on': textOn(color),
     ...(colorDark ? { '--layer-color-dark': colorDark } : {}),
   } as CSSProperties;
 }

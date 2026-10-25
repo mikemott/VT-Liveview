@@ -4,7 +4,7 @@
  * colors read as the same layer.
  */
 import { describe, expect, it } from 'vitest';
-import { LAYER_STYLES } from '../layers';
+import { LAYER_STYLES, relativeLuminance, textOn } from '../layers';
 
 type Lab = [number, number, number];
 
@@ -72,13 +72,13 @@ function deltaE2000([L1, a1, b1]: Lab, [L2, a2, b2]: Lab): number {
   );
 }
 
-function luminance(hex: string): number {
-  const [r, g, b] = [1, 3, 5].map((i) => {
-    const c = parseInt(hex.slice(i, i + 2), 16) / 255;
-    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-  }) as [number, number, number];
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-}
+const contrast = (x: string, y: string): number => {
+  const [hi, lo] = [relativeLuminance(x), relativeLuminance(y)].sort((m, n) => n - m) as [
+    number,
+    number,
+  ];
+  return (hi + 0.05) / (lo + 0.05);
+};
 
 const entries = Object.entries(LAYER_STYLES).map(([key, s]) => ({ key, color: s.color }));
 
@@ -101,10 +101,18 @@ describe('layer palette', () => {
     expect(close).toEqual([]);
   });
 
-  it('keeps white text and icons readable on every color', () => {
+  it('keeps white marker icons visible on every color (3:1 for graphics, ~2.9 floor)', () => {
     const low = entries
-      .map(({ key, color }) => ({ key, ratio: 1.05 / (luminance(color) + 0.05) }))
+      .map(({ key, color }) => ({ key, ratio: contrast(color, '#ffffff') }))
       .filter(({ ratio }) => ratio < 2.9)
+      .map(({ key, ratio }) => `${key}: ${ratio.toFixed(2)}`);
+    expect(low).toEqual([]);
+  });
+
+  it('gives selected chip text at least 4.5:1 on every color', () => {
+    const low = entries
+      .map(({ key, color }) => ({ key, ratio: contrast(color, textOn(color)) }))
+      .filter(({ ratio }) => ratio < 4.5)
       .map(({ key, ratio }) => `${key}: ${ratio.toFixed(2)}`);
     expect(low).toEqual([]);
   });
