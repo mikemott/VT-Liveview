@@ -5,6 +5,7 @@ import { Ban, CalendarClock, ExternalLink, MapPin, Snowflake, Sun } from 'lucide
 import type { SeasonalRoad } from '../../data/seasonalRoads';
 import { formatMonthDay, type RoadStatus } from '../../utils/seasonalRoads';
 import { layerColorVars } from '../../config/layers';
+import LayerBadge from './LayerBadge';
 import './DetailViews.css';
 
 interface SeasonalRoadDetailProps {
@@ -24,6 +25,7 @@ export default function SeasonalRoadDetail({ road, status, isDark }: SeasonalRoa
   const Icon = STATUS_ICON[status.status];
   return (
     <div className={`detail-view seasonal-road-detail ${isDark ? 'dark' : ''}`}>
+      <LayerBadge layer="seasonalRoads" label="Seasonal road" />
       <div className="station-name">{road.name}</div>
       <div className="station-location">
         <MapPin size={14} />

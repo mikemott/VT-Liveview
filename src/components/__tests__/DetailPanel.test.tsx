@@ -4,7 +4,7 @@ import DetailPanel from '../DetailPanel';
 import type { DetailPanelContent } from '../../types';
 import {
   makeAlertFeature,
-  makeDetailIncident,
+  makeVT511Incident,
   makeStation,
 } from '../../__fixtures__/components/data';
 
@@ -27,7 +27,7 @@ describe('DetailPanel', () => {
 
   it.each<[string, DetailPanelContent, string]>([
     ['alert', { type: 'alert', data: makeAlertFeature() }, 'Weather Alert'],
-    ['incident', { type: 'incident', data: makeDetailIncident() }, 'Traffic Incident'],
+    ['incident', { type: 'incident', data: makeVT511Incident() }, 'Traffic Incident'],
     ['station', { type: 'station', data: makeStation() }, 'Weather Station'],
     [
       'location',
@@ -56,7 +56,7 @@ describe('DetailPanel', () => {
 
     rerender(
       <DetailPanel
-        content={{ type: 'incident', data: makeDetailIncident() }}
+        content={{ type: 'incident', data: makeVT511Incident() }}
         onClose={vi.fn()}
         onShare={onShare}
         isDark={false}

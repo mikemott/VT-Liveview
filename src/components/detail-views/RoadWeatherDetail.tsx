@@ -5,6 +5,7 @@ import { MapPin } from 'lucide-react';
 import type { RoadWeatherStation } from '../../services/roadWeatherApi';
 import { getObservationAge } from '../../utils/observationAge';
 import { cToF, describeFriction, getRoadRisk, ROAD_RISK_LABELS } from '../../utils/roadWeather';
+import LayerBadge from './LayerBadge';
 import './DetailViews.css';
 
 interface RoadWeatherDetailProps {
@@ -36,6 +37,7 @@ export default function RoadWeatherDetail({ station, isDark }: RoadWeatherDetail
 
   return (
     <div className={`detail-view road-weather-detail ${isDark ? 'dark' : ''}`}>
+      <LayerBadge layer="roadWeather" label="Road weather station" />
       <div className="station-name">{station.name}</div>
       {(where || station.location) && (
         <div className="station-location">
@@ -52,9 +54,9 @@ export default function RoadWeatherDetail({ station, isDark }: RoadWeatherDetail
         <div className="road-weather-risk">{ROAD_RISK_LABELS[risk]}</div>
       </div>
 
-      <dl className="road-weather-rows">
+      <dl className="detail-rows">
         {rows.map(([label, value]) => (
-          <div key={label} className="road-weather-row">
+          <div key={label} className="detail-row">
             <dt>{label}</dt>
             <dd>{value}</dd>
           </div>

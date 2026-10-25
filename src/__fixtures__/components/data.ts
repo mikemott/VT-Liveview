@@ -11,7 +11,7 @@ import type { BackcountrySite } from '../../services/backcountryApi';
 import type { CampingArea } from '../../services/campingApi';
 import type { Beach } from '../../services/beachApi';
 import type { RadarFrameData } from '../../hooks/useRadarAnimation';
-import type { AlertFeature, Incident, ObservationStation } from '../../types';
+import type { AlertFeature, ObservationStation } from '../../types';
 import type { DarkSkySite } from '../../types/stargazing';
 
 /** Copy of `obj` without the given (optional) keys. */
@@ -245,23 +245,5 @@ export function makeAlertFeature(
       expires: '2026-10-17T00:00:00Z',
       ...overrides,
     },
-  };
-}
-
-export function makeDetailIncident(overrides: Partial<Incident> = {}): Incident {
-  return {
-    id: 'inc-1',
-    type: 'CONSTRUCTION',
-    title: 'Paving on US-2',
-    description: 'Alternating one-way traffic',
-    latitude: 44.26,
-    longitude: -72.57,
-    source: 'VT511',
-    severity: 'MODERATE',
-    road: 'US-2',
-    direction: 'EB',
-    startTime: '2026-10-16T10:00:00Z',
-    lastUpdated: '2026-10-16T11:00:00Z',
-    ...overrides,
   };
 }

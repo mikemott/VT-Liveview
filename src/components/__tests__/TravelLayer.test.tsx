@@ -5,11 +5,7 @@ import TravelLayer from '../TravelLayer';
 import { fetchAllIncidents, fetchAllIncidentsWithStatus } from '../../services/travelApi';
 import { FakeMap, liveMarkers, openPopups, resetMaplibreMock } from '../../test/maplibreMock';
 import { makeVT511Incident } from '../../__fixtures__/components/data';
-import {
-  XSS_PAYLOAD,
-  expectNoInjectedMarkup,
-  expectPayloadAsText,
-} from '../../__fixtures__/components/xss';
+import { XSS_PAYLOAD, expectNoInjectedMarkup } from '../../__fixtures__/components/xss';
 import { INTERVALS } from '../../utils/constants';
 
 vi.mock('maplibre-gl', async () => (await import('../../test/maplibreMock')).maplibreModule);
@@ -87,7 +83,7 @@ describe('TravelLayer', () => {
       onToggleStargazing: noop,
       showTrafficFlow: false,
       onToggleTrafficFlow: noop,
-      globalPopupRef: { current: null },
+      onIncidentClick: vi.fn(),
       mapStyleVersion: 0,
     };
   });
@@ -103,10 +99,8 @@ describe('TravelLayer', () => {
     const { unmount } = render(<TravelLayer {...props} />);
     // Only ACCIDENT is enabled by default
     await waitFor(() => expect(liveMarkers()).toHaveLength(2));
-    expect(fake.listenerCount('click')).toBe(1);
-
-    click(liveMarkers()[0]!.getElement());
-    expect(openPopups()).toHaveLength(1);
+    // No popups and no map-level click listener any more (side panel, VTL-64)
+    expect(fake.listenerCount('click')).toBe(0);
 
     // Select the route incident so highlight layers exist
     fireEvent.click(screen.getByText('Crash on US-7'));
@@ -115,21 +109,18 @@ describe('TravelLayer', () => {
     unmount();
     expect(liveMarkers()).toHaveLength(0);
     expect(openPopups()).toHaveLength(0);
-    expect(props.globalPopupRef.current).toBeNull();
     expect(fake.listenerCount()).toBe(0);
     expect(fake.layerIds()).toEqual([]);
     expect(fake.sourceIds()).toEqual([]);
     expect(fake.errors).toEqual([]);
   });
 
-  it('removes markers, popup and listener when hidden, and renders no panel', async () => {
+  it('removes markers when hidden, and renders no panel', async () => {
     const { rerender, container } = render(<TravelLayer {...props} />);
     await waitFor(() => expect(liveMarkers()).toHaveLength(2));
-    click(liveMarkers()[0]!.getElement());
 
     rerender(<TravelLayer {...props} visible={false} />);
     expect(liveMarkers()).toHaveLength(0);
-    expect(openPopups()).toHaveLength(0);
     expect(fake.listenerCount()).toBe(0);
     expect(container).toBeEmptyDOMElement();
   });
@@ -235,6 +226,10 @@ describe('TravelLayer', () => {
     fireEvent.click(screen.getByText('Crash on US-7'));
     expect(fake.sourceIds()).toEqual(['incident-highlight']);
     expect(fake.fitBounds).toHaveBeenCalledTimes(1);
+    // Selecting from the list also opens it in the side panel
+    expect(props.onIncidentClick).toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'Crash on US-7' }),
+    );
 
     fireEvent.click(screen.getByText('Crash on US-7'));
     expect(fake.sourceIds()).toEqual([]);
@@ -252,18 +247,29 @@ describe('TravelLayer', () => {
     );
   });
 
-  it('toggles a marker popup and closes it on map click', async () => {
+  it('opens a marker in the side panel and highlights it without moving the map', async () => {
+    render(<TravelLayer {...props} />);
+    await waitFor(() => expect(liveMarkers()).toHaveLength(2));
+    const route = liveMarkers().find((m) =>
+      m.getElement().getAttribute('aria-label')?.includes('US-7'),
+    )!;
+    click(route.getElement());
+    expect(props.onIncidentClick).toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'Crash on US-7' }),
+    );
+    expect(fake.sourceIds()).toEqual(['incident-highlight']);
+    expect(fake.fitBounds).not.toHaveBeenCalled();
+    expect(openPopups()).toHaveLength(0);
+  });
+
+  it('gives incident markers the layer color and a keyboard name', async () => {
     render(<TravelLayer {...props} />);
     await waitFor(() => expect(liveMarkers()).toHaveLength(2));
     const el = liveMarkers()[0]!.getElement();
-    click(el);
-    click(el);
-    expect(openPopups()).toHaveLength(0);
-    click(el);
-    click(liveMarkers()[1]!.getElement());
-    expect(openPopups()).toHaveLength(1);
-    fake.fire('click');
-    expect(openPopups()).toHaveLength(0);
+    expect(el.getAttribute('role')).toBe('button');
+    expect(el.tabIndex).toBe(0);
+    expect(el.getAttribute('aria-label')).toMatch(/^Accident: Crash on/);
+    expect(el.style.getPropertyValue('--layer-color')).toBe('#7c3aed');
   });
 
   it('collapses the panel and forwards the layer chip toggles', async () => {
@@ -296,12 +302,10 @@ describe('TravelLayer', () => {
     expect(screen.getByTestId('stargazing-panel')).toBeInTheDocument();
   });
 
-  it.todo(
-    'keeps incident markers and the open popup when zoom changes within a threshold bucket (FINDINGS C2)',
-  );
+  it.todo('keeps incident markers when zoom changes within a threshold bucket (FINDINGS C2)');
   it.todo('incident list items and section header are keyboard accessible (FINDINGS H15)');
 
-  it('escapes hostile upstream strings in popup HTML', async () => {
+  it('puts hostile upstream strings into marker names as text, never markup', async () => {
     fetchMock.mockResolvedValue([
       makeVT511Incident({
         title: XSS_PAYLOAD,
@@ -313,9 +317,8 @@ describe('TravelLayer', () => {
     ]);
     render(<TravelLayer {...props} />);
     await waitFor(() => expect(liveMarkers()).toHaveLength(1));
-    click(liveMarkers()[0]!.getElement());
-    const html = openPopups()[0]?.html ?? '';
-    expectNoInjectedMarkup(html);
-    expectPayloadAsText(html);
+    const el = liveMarkers()[0]!.getElement();
+    expectNoInjectedMarkup(el.outerHTML);
+    expect(el.getAttribute('aria-label')).toContain(XSS_PAYLOAD);
   });
 });

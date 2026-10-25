@@ -6,12 +6,6 @@ import { renderHook } from '@testing-library/react';
 import { useSeasonalLayers } from '../useSeasonalLayers';
 import type { LayerConfig } from '@/config/seasonalLayers';
 
-// Layer components are irrelevant here; avoid pulling MapLibre into the test.
-vi.mock('@/components/SkiLayer', () => ({ default: () => null }));
-vi.mock('@/components/CreemeeLayer', () => ({ default: () => null }));
-vi.mock('../../components/SkiLayer', () => ({ default: () => null }));
-vi.mock('../../components/CreemeeLayer', () => ({ default: () => null }));
-
 function atMonth(month: number): void {
   vi.useFakeTimers({ toFake: ['Date'] });
   vi.setSystemTime(new Date(2026, month - 1, 15, 12));

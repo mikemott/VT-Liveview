@@ -1,122 +1,93 @@
 /**
- * IncidentDetail - Display traffic incident information
+ * IncidentDetail - a VT 511 report or USGS flood gauge, in the side panel (VTL-64)
  */
-
-import { AlertCircle, Construction, X, Droplets, AlertTriangle as Hazard } from 'lucide-react';
-import type { Incident } from '../../types';
-import { getIncidentColor } from '../../utils/incidentColors';
+import { MapPin } from 'lucide-react';
+import type { TravelIncident } from '../../services/travelApi';
+import type { IncidentType } from '../../types';
+import LayerBadge from './LayerBadge';
 import './DetailViews.css';
 
 interface IncidentDetailProps {
-  incident: Incident;
+  incident: TravelIncident;
   isDark: boolean;
 }
 
+/** Singular names for the badge */
+const TYPE_LABEL: Record<IncidentType, string> = {
+  ACCIDENT: 'Accident',
+  CONSTRUCTION: 'Construction',
+  CLOSURE: 'Road closure',
+  FLOODING: 'Flooding',
+  HAZARD: 'Hazard',
+};
+
+function formatWhen(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
 export default function IncidentDetail({ incident, isDark }: IncidentDetailProps) {
-  const colors = getIncidentColor(incident.type);
-
-  const getIcon = () => {
-    const iconProps = { size: 20 };
-
-    switch (incident.type) {
-      case 'ACCIDENT':
-        return <AlertCircle {...iconProps} />;
-      case 'CONSTRUCTION':
-        return <Construction {...iconProps} />;
-      case 'CLOSURE':
-        return <X {...iconProps} />;
-      case 'FLOODING':
-        return <Droplets {...iconProps} />;
-      case 'HAZARD':
-        return <Hazard {...iconProps} />;
-      default:
-        return <AlertCircle {...iconProps} />;
-    }
-  };
-
-  const formatDate = (isoString: string): string => {
-    const date = new Date(isoString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMins / 60);
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffDays > 0) {
-      return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-    } else if (diffHours > 0) {
-      return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-    } else if (diffMins > 0) {
-      return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
-    } else {
-      return 'Just now';
-    }
-  };
-
-  const getSeverityLabel = (severity: string): string => {
-    return severity.charAt(0).toUpperCase() + severity.slice(1).toLowerCase();
-  };
-
-  const incidentType = incident.type.toLowerCase();
+  const lanes = 'affectedLanes' in incident ? incident.affectedLanes : null;
+  const restrictions = 'roadRestrictions' in incident ? incident.roadRestrictions : undefined;
+  const since = formatWhen(incident.startTime);
+  const description =
+    incident.description && incident.description.trim() !== incident.title.trim()
+      ? incident.description
+      : null;
 
   return (
-    <div
-      className={`detail-view incident-detail ${isDark ? 'dark' : ''}`}
-      data-incident-type={incidentType}
-    >
-      {/* Type badge */}
-      <div className="incident-type-badge" data-incident-type={incidentType}>
-        {getIcon()}
-        <span>{colors.name}</span>
-      </div>
-
-      {/* Title */}
-      <div className="incident-title" data-incident-type={incidentType}>
-        {incident.title}
-      </div>
-
-      {/* Severity */}
-      <div className="incident-severity-label">Severity: {getSeverityLabel(incident.severity)}</div>
-
-      {/* Location */}
-      {incident.road && (
-        <div className="incident-section">
-          <div className="section-label">Location</div>
-          <div className="section-value">
-            {incident.road}
-            {incident.direction && ` (${incident.direction})`}
-          </div>
+    <div className={`detail-view incident-detail ${isDark ? 'dark' : ''}`}>
+      <LayerBadge layer={incident.type} label={TYPE_LABEL[incident.type]} />
+      <div className="station-name">{incident.title}</div>
+      {incident.roadName && (
+        <div className="station-location">
+          <MapPin size={14} />
+          <span>{incident.roadName}</span>
         </div>
       )}
 
-      {/* Description */}
-      <div className="incident-section">
-        <div className="section-label">Description</div>
-        <div className="section-value incident-description">{incident.description}</div>
-      </div>
+      {description && <p className="incident-description">{description}</p>}
 
-      {/* Timing */}
-      <div className="incident-timing">
-        {incident.startTime && (
-          <div className="timing-row">
-            <span className="timing-label">Started:</span>
-            <span className="timing-value">{formatDate(incident.startTime)}</span>
+      <dl className="detail-rows">
+        {lanes && (
+          <div className="detail-row">
+            <dt>Lanes</dt>
+            <dd>{lanes}</dd>
           </div>
         )}
-        {incident.endTime && (
-          <div className="timing-row">
-            <span className="timing-label">Expected End:</span>
-            <span className="timing-value">{formatDate(incident.endTime)}</span>
+        {restrictions?.weight && (
+          <div className="detail-row">
+            <dt>Weight limit</dt>
+            {/* 511 sends bare pounds ("72000") */}
+            <dd>
+              {/^\d+$/.test(restrictions.weight)
+                ? `${Number(restrictions.weight).toLocaleString()} lbs`
+                : restrictions.weight}
+            </dd>
           </div>
         )}
-        <div className="timing-row">
-          <span className="timing-label">Last Updated:</span>
-          <span className="timing-value">{formatDate(incident.lastUpdated)}</span>
-        </div>
-      </div>
+        {restrictions?.width && (
+          <div className="detail-row">
+            <dt>Width limit</dt>
+            <dd>{restrictions.width}</dd>
+          </div>
+        )}
+        {since && (
+          <div className="detail-row">
+            <dt>Since</dt>
+            <dd>{since}</dd>
+          </div>
+        )}
+      </dl>
 
-      {/* Source */}
-      <div className="incident-source">Source: {incident.source}</div>
+      <div className="station-updated">Source: {incident.source}</div>
     </div>
   );
 }

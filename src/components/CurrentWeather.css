@@ -236,7 +236,8 @@
   font-family: 'Space Mono', monospace;
 }
 
-.station-name {
+/* Scoped: an unscoped .station-name leaked into every side-panel title */
+.current-weather .station-name {
   margin-top: var(--space-3);
   padding-top: var(--space-3);
   border-top: 1px solid var(--color-vermont-green-subtle);

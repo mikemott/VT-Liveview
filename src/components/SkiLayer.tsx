@@ -1,253 +1,60 @@
-import { layerColor } from '../config/layers';
-import { useState, useEffect, useRef, memo } from 'react';
-import maplibregl from 'maplibre-gl';
-import { fetchSkiResorts } from '../services/skiApi';
-import type { SkiResort } from '../services/skiApi';
-import { SKI_COLORS } from '../utils/skiColors';
-import { escapeHTML } from '../utils/sanitize';
-import type { MapLibreMap, Marker } from '../types';
-import './SkiLayer.css';
-
-interface MarkerEntry {
-  marker: Marker;
-  element: HTMLDivElement;
-  handler: (e: MouseEvent) => void;
-}
+/**
+ * Ski areas (Ski Vermont conditions). Shared markers (VTL-64): the fill shows
+ * conditions (green/yellow/red, grey when not reporting) with the Ski layer's
+ * sky-blue ring; clicking opens the area in the side panel.
+ */
+import { memo } from 'react';
+import { fetchSkiResorts, type SkiResort } from '../services/skiApi';
+import { useLayerData } from '../hooks/useLayerData';
+import { useMapMarkers, type BuiltMarker } from '../hooks/useMapMarkers';
+import { createMapMarker } from '../utils/mapMarker';
+import { isSkiReporting, SKI_STATUS_FILL } from '../utils/skiStatus';
+import type { MapLibreMap } from '../types';
 
 interface SkiLayerProps {
   map: MapLibreMap | null;
   visible: boolean;
+  onSelect: (resort: SkiResort) => void;
+  /** Called after each successful fetch (shared links, search) */
+  onLoaded?: (resorts: SkiResort[]) => void;
 }
 
-// Lucide Mountain icon SVG
+/** Conditions are scraped twice a day */
+const REFRESH_MS = 6 * 60 * 60 * 1000;
+
+// Lucide Mountain icon (hard-coded; white via currentColor)
 const MOUNTAIN_ICON = `
-  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
-       viewBox="0 0 24 24" fill="none" stroke="white"
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+       viewBox="0 0 24 24" fill="none" stroke="currentColor"
        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="m8 3 4 8 5-5 5 15H2L8 3z"/>
   </svg>
 `;
 
-function createSkiResortMarker(resort: SkiResort): HTMLDivElement {
-  const el = document.createElement('div');
-  el.className = 'ski-resort-marker';
+const CONDITION: Record<string, string> = {
+  green: 'good conditions',
+  yellow: 'decent conditions',
+  red: 'limited conditions',
+};
 
-  const color = SKI_COLORS[resort.color as keyof typeof SKI_COLORS] || SKI_COLORS.yellow;
-
-  // Fill shows status; the outer ring is the layer color from the registry,
-  // so the marker matches its filter chip (VTL-64)
-  const ring = layerColor('skiResorts');
-
-  el.style.cssText = `
-    width: 32px;
-    height: 32px;
-    background: ${color};
-    border: 2px solid white;
-    border-radius: 50%;
-    box-shadow: 0 0 0 2px ${ring}, 0 2px 6px rgba(0, 0, 0, 0.25);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: box-shadow 0.2s ease, border-width 0.2s ease;
-  `;
-
-  el.innerHTML = MOUNTAIN_ICON;
-
-  // Hover glow effect
-  el.addEventListener('mouseenter', () => {
-    el.style.boxShadow = `0 0 0 2px ${ring}, 0 0 12px ${color}, 0 2px 8px rgba(0, 0, 0, 0.3)`;
-    el.style.borderWidth = '3px';
+function buildSkiMarker(resort: SkiResort): BuiltMarker {
+  const reporting = isSkiReporting(resort);
+  const color = resort.color as keyof typeof SKI_STATUS_FILL;
+  const fill = reporting ? (SKI_STATUS_FILL[color] ?? SKI_STATUS_FILL.yellow) : SKI_STATUS_FILL.off;
+  const element = createMapMarker({
+    layer: 'skiResorts',
+    iconSvg: MOUNTAIN_ICON,
+    statusFill: fill,
+    label: `Ski area: ${resort.name}, ${reporting ? (CONDITION[resort.color] ?? 'conditions reported') : 'not reporting yet'}`,
+    title: resort.name,
+    className: 'ski-resort-marker',
   });
-
-  el.addEventListener('mouseleave', () => {
-    el.style.boxShadow = `0 0 0 2px ${ring}, 0 2px 6px rgba(0, 0, 0, 0.25)`;
-    el.style.borderWidth = '2px';
-  });
-
-  return el;
+  return { lngLat: [resort.longitude, resort.latitude], element };
 }
 
-function createPopupHTML(resort: SkiResort): string {
-  const formatTime = (isoString: string) => {
-    const date = new Date(isoString);
-    return date.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    });
-  };
-
-  // Sanitize all dynamic content to prevent XSS
-  const safeName = escapeHTML(resort.name);
-
-  // The scraper defaults lift/trail totals to 1 when a resort isn't reporting
-  // (e.g. off-season), so "0/1" means "no data", not "1 lift, closed".
-  const reported = (open: number, total: number) => open > 0 || total > 1;
-  const inches = (v: number | null) => (v !== null ? `${escapeHTML(String(v))}"` : null);
-  const stats = [
-    resort.snowfall24hr !== null ? `<div>❄️ Fresh: ${inches(resort.snowfall24hr)}</div>` : '',
-    reported(resort.trailsOpen, resort.trailsTotal)
-      ? `<div>🎿 Trails: ${escapeHTML(String(resort.trailsOpen))}/${escapeHTML(String(resort.trailsTotal))}</div>`
-      : '',
-    reported(resort.liftsOpen, resort.liftsTotal)
-      ? `<div>🚡 Lifts: ${escapeHTML(String(resort.liftsOpen))}/${escapeHTML(String(resort.liftsTotal))}</div>`
-      : '',
-    resort.tempCurrent !== null
-      ? `<div>🌡️ Temp: ${escapeHTML(String(resort.tempCurrent))}°F</div>`
-      : '',
-    resort.baseDepth !== null ? `<div>📊 Base: ${inches(resort.baseDepth)}</div>` : '',
-    resort.snowfallCumulative !== null
-      ? `<div>📈 Season: ${inches(resort.snowfallCumulative)}</div>`
-      : '',
-  ].filter(Boolean);
-  const safeLogoUrl = escapeHTML(resort.logoUrl);
-
-  return `
-    <div class="ski-popup-content">
-      ${resort.logoUrl ? `<img src="${safeLogoUrl}" alt="${safeName}" class="resort-logo" />` : ''}
-      <h3>${safeName}</h3>
-      ${
-        stats.length > 0
-          ? `<div class="stats-grid">${stats.join('')}</div>`
-          : `<div class="ski-no-report">Not reporting conditions yet. Check the resort's website for opening dates.</div>`
-      }
-      <div class="last-updated">Updated: ${formatTime(resort.lastUpdated)}</div>
-    </div>
-  `;
-}
-
-function SkiLayer({ map, visible }: SkiLayerProps) {
-  const [resorts, setResorts] = useState<SkiResort[]>([]);
-  const [_loading, setLoading] = useState(false);
-  const markersRef = useRef<MarkerEntry[]>([]);
-  const currentPopupRef = useRef<maplibregl.Popup | null>(null);
-
-  // Fetch resorts on mount and every 6 hours
-  useEffect(() => {
-    if (!map) return;
-
-    const fetchResorts = async (): Promise<void> => {
-      if (!map) return;
-
-      setLoading(true);
-      try {
-        const data = await fetchSkiResorts();
-        setResorts(data);
-      } catch (error) {
-        // Silently fail - ski data is non-critical
-        if (import.meta.env.DEV) {
-          console.error('Error fetching ski resorts:', error);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    void fetchResorts();
-    const interval = setInterval(() => void fetchResorts(), 6 * 60 * 60 * 1000); // 6 hours
-    return () => clearInterval(interval);
-  }, [map]);
-
-  // Add markers to map when resorts change
-  useEffect(() => {
-    if (!map || !visible) {
-      // Clear existing markers
-      markersRef.current.forEach(({ marker, element, handler }) => {
-        if (element && handler) {
-          element.removeEventListener('click', handler as EventListener);
-        }
-        marker.remove();
-      });
-      markersRef.current = [];
-
-      // Close popup when layer is hidden
-      if (currentPopupRef.current) {
-        currentPopupRef.current.remove();
-        currentPopupRef.current = null;
-      }
-      return;
-    }
-
-    // Remove old markers
-    markersRef.current.forEach(({ marker, element, handler }) => {
-      if (element && handler) {
-        element.removeEventListener('click', handler as EventListener);
-      }
-      marker.remove();
-    });
-    markersRef.current = [];
-
-    // Add new markers for resorts
-    resorts.forEach((resort) => {
-      const el = createSkiResortMarker(resort);
-
-      const marker = new maplibregl.Marker({
-        element: el,
-        anchor: 'center', // Pin marker to center (prevents zoom drift)
-      })
-        .setLngLat([resort.longitude, resort.latitude])
-        .addTo(map);
-
-      // Click handler opens popup
-      const handleMarkerClick = (e: MouseEvent): void => {
-        e.stopPropagation();
-
-        // Close existing popup
-        if (currentPopupRef.current) {
-          currentPopupRef.current.remove();
-        }
-
-        const popup = new maplibregl.Popup({
-          closeButton: true,
-          closeOnClick: true,
-          className: 'ski-popup',
-          maxWidth: '320px',
-        })
-          .setLngLat([resort.longitude, resort.latitude])
-          .setHTML(createPopupHTML(resort))
-          .addTo(map);
-
-        currentPopupRef.current = popup;
-
-        // Handle logo load errors
-        const popupElement = popup.getElement();
-        const logoImg = popupElement?.querySelector('.resort-logo') as HTMLImageElement;
-        if (logoImg) {
-          logoImg.addEventListener('error', () => {
-            logoImg.style.display = 'none';
-          });
-        }
-      };
-
-      el.addEventListener('click', handleMarkerClick as EventListener);
-
-      markersRef.current.push({
-        marker: marker,
-        element: el,
-        handler: handleMarkerClick,
-      });
-    });
-
-    // Cleanup
-    return () => {
-      markersRef.current.forEach(({ marker, element, handler }) => {
-        if (element && handler) {
-          element.removeEventListener('click', handler as EventListener);
-        }
-        marker.remove();
-      });
-      markersRef.current = [];
-
-      if (currentPopupRef.current) {
-        currentPopupRef.current.remove();
-        currentPopupRef.current = null;
-      }
-    };
-  }, [map, visible, resorts]);
-
-  // No UI panel - markers only
+function SkiLayer({ map, visible, onSelect, onLoaded }: SkiLayerProps) {
+  const resorts = useLayerData(!!map, fetchSkiResorts, REFRESH_MS, onLoaded, 'ski resorts');
+  useMapMarkers(map, visible, resorts, buildSkiMarker, onSelect);
   return null;
 }
 

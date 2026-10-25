@@ -21,6 +21,40 @@ describe('parseUrlState', () => {
     });
   });
 
+  it('round-trips point-of-interest selections (VTL-64)', () => {
+    const hash = buildUrlHash({
+      view: { zoom: 12, lat: 44.53, lng: -72.78 },
+      layers: new Set(['skiResorts']),
+      selection: { type: 'poi', kind: 'ski', id: 'stowe' },
+    });
+    expect(hash).toBe('#map=12/44.53/-72.78&layers=ski&sel=ski:stowe');
+    expect(parseUrlState(hash).selection).toEqual({ type: 'poi', kind: 'ski', id: 'stowe' });
+
+    const park = buildUrlHash({
+      view: { zoom: 10, lat: 44.3, lng: -72.3 },
+      layers: new Set(['campingSites']),
+      selection: { type: 'poi', kind: 'park', id: 'Groton & Co (VT)' },
+    });
+    expect(park).toBe('#map=10/44.3/-72.3&layers=camping&sel=park:Groton%20%26%20Co%20(VT)');
+    expect(parseUrlState(park).selection).toEqual({
+      type: 'poi',
+      kind: 'park',
+      id: 'Groton & Co (VT)',
+    });
+  });
+
+  it('ignores unknown point-of-interest kinds and unsafe ids', () => {
+    expect(parseUrlState('#sel=volcano:etna').selection).toBeUndefined();
+    expect(parseUrlState('#sel=beach:<img>').selection).toBeUndefined();
+    expect(
+      buildUrlHash({
+        view: { zoom: 10, lat: 44.3, lng: -72.3 },
+        layers: new Set(),
+        selection: { type: 'poi', kind: 'beach', id: '<img>' },
+      }),
+    ).not.toContain('sel=');
+  });
+
   it('round-trips the road weather layer and a station selection', () => {
     const hash = buildUrlHash({
       view: { zoom: 10, lat: 44.21, lng: -72.58 },

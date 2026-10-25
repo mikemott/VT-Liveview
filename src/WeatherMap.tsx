@@ -24,6 +24,13 @@ import CreemeeLayer from './components/CreemeeLayer';
 import CampingLayer from './components/CampingLayer';
 import CampingAreasLayer from './components/CampingAreasLayer';
 import BeachLayer from './components/BeachLayer';
+import type { SkiResort } from './services/skiApi';
+import type { Beach } from './services/beachApi';
+import type { CreemeeStand } from './services/creemeeApi';
+import type { RecreationSite } from './services/recreationApi';
+import type { CampingArea } from './services/campingApi';
+import type { DarkSkySite } from './types/stargazing';
+import { DARK_SKY_SITES } from './data/darkSkySites';
 import CurrentWeather from './components/CurrentWeather';
 import RadarOverlay from './components/RadarOverlay';
 import ThemeToggle from './components/ThemeToggle';
@@ -42,6 +49,7 @@ import {
   parseUrlState,
   type LayerId,
   type Selection,
+  type PoiKind,
   type UrlState,
 } from './utils/urlState';
 import { shareLink, shareResultMessage } from './utils/share';
@@ -79,6 +87,15 @@ const VERMONT_CENTER = {
 
 // Get Lucide icon based on severity - defined outside component for performance
 // Stable identity for an alert across refetches (merged alert ids are stable, FINDINGS H1)
+/** The layer that loads each kind of point of interest (shared links) */
+const POI_LAYER: Partial<Record<PoiKind, string>> = {
+  ski: 'skiResorts',
+  beach: 'beachSites',
+  creemee: 'creemeeStands',
+  camp: 'campingSites',
+  park: 'campingSites',
+};
+
 function alertKey(alert: AlertFeature): string {
   return alert.properties.id || alert.properties.event;
 }
@@ -113,7 +130,6 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
     onMapUnavailableRef.current = onMapUnavailable;
   }, [onMapUnavailable]);
   const map = useRef<MapLibreMap | null>(null);
-  const globalPopupRef = useRef<maplibregl.Popup | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
   // Map view, layers and selection from a shared link (read once, VTL-52)
@@ -879,6 +895,18 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         return { type: 'camera', id: detailPanelContent.data.id };
       case 'roadWeather':
         return { type: 'roadwx', id: detailPanelContent.data.id };
+      case 'ski':
+        return { type: 'poi', kind: 'ski', id: detailPanelContent.data.id };
+      case 'beach':
+        return { type: 'poi', kind: 'beach', id: detailPanelContent.data.id };
+      case 'creemee':
+        return { type: 'poi', kind: 'creemee', id: detailPanelContent.data.id };
+      case 'campground':
+        return { type: 'poi', kind: 'camp', id: detailPanelContent.data.id };
+      case 'campingArea':
+        return { type: 'poi', kind: 'park', id: detailPanelContent.data.id };
+      case 'darkSky':
+        return { type: 'poi', kind: 'darksky', id: detailPanelContent.data.id };
       case 'seasonalRoad':
         return { type: 'road', id: detailPanelContent.data.id };
       case 'alert':
@@ -961,6 +989,123 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
     if (road && status) setDetailPanelContent({ type: 'seasonalRoad', data: road, status });
   }, []);
 
+  // Points of interest in the side panel (VTL-64): latest items per layer,
+  // for shared links (sel=<kind>:<id>) and search
+  const poiItems = useRef<{
+    ski: SkiResort[];
+    beach: Beach[];
+    creemee: CreemeeStand[];
+    camp: RecreationSite[];
+    park: CampingArea[];
+  }>({ ski: [], beach: [], creemee: [], camp: [], park: [] });
+
+  const poiContent = useCallback((kind: PoiKind, id: string): DetailPanelContent => {
+    const items = poiItems.current;
+    const find = <T extends { id: string }>(list: T[]): T | undefined =>
+      list.find((x) => x.id === id);
+    switch (kind) {
+      case 'ski': {
+        const data = find(items.ski);
+        return data ? { type: 'ski', data } : null;
+      }
+      case 'beach': {
+        const data = find(items.beach);
+        return data ? { type: 'beach', data } : null;
+      }
+      case 'creemee': {
+        const data = find(items.creemee);
+        return data ? { type: 'creemee', data } : null;
+      }
+      case 'camp': {
+        const data = find(items.camp);
+        return data ? { type: 'campground', data } : null;
+      }
+      case 'park': {
+        const data = find(items.park);
+        return data ? { type: 'campingArea', data } : null;
+      }
+      case 'darksky': {
+        const data = DARK_SKY_SITES.find((x) => x.id === id);
+        return data ? { type: 'darkSky', data } : null;
+      }
+    }
+  }, []);
+
+  /** Open now if the item is loaded; otherwise wait for its layer's data */
+  const openPoi = useCallback(
+    (kind: PoiKind, id: string): void => {
+      const content = poiContent(kind, id);
+      if (content) {
+        pendingSelection.current = undefined;
+        setDetailPanelContent(content);
+      } else {
+        pendingSelection.current = { type: 'poi', kind, id };
+        // Its layer only loads while visible: a shared link may have it off
+        const layer = POI_LAYER[kind];
+        if (layer) setLayerVisibility((prev) => ({ ...prev, [layer]: true }));
+        // Backcountry areas also need their sub-toggle
+        if (kind === 'park') setShowBackcountrySites(true);
+      }
+    },
+    [poiContent],
+  );
+
+  /** A layer's items arrived: remember them and open a waiting selection */
+  const poiLoaded = useCallback(
+    (kind: Exclude<PoiKind, 'darksky'>, items: { id: string }[]): void => {
+      (poiItems.current as Record<string, { id: string }[]>)[kind] = items;
+      const pending = pendingSelection.current;
+      if (pending?.type !== 'poi' || pending.kind !== kind) return;
+      pendingSelection.current = undefined;
+      const content = poiContent(kind, pending.id);
+      if (content) setDetailPanelContent(content);
+    },
+    [poiContent],
+  );
+
+  const onSkiLoaded = useCallback((r: SkiResort[]) => poiLoaded('ski', r), [poiLoaded]);
+  const onBeachLoaded = useCallback((b: Beach[]) => poiLoaded('beach', b), [poiLoaded]);
+  const onCreemeeLoaded = useCallback((c: CreemeeStand[]) => poiLoaded('creemee', c), [poiLoaded]);
+  const onCampgroundsLoaded = useCallback(
+    (sites: RecreationSite[]) => {
+      setCampgroundCount(sites.length);
+      poiLoaded('camp', sites);
+    },
+    [poiLoaded],
+  );
+  const onCampingAreasLoaded = useCallback(
+    (areas: CampingArea[]) => {
+      setBackcountryCount(areas.reduce((sum, a) => sum + a.siteCount, 0));
+      poiLoaded('park', areas);
+    },
+    [poiLoaded],
+  );
+
+  const selectSki = useCallback(
+    (data: SkiResort) => setDetailPanelContent({ type: 'ski', data }),
+    [],
+  );
+  const selectBeach = useCallback(
+    (data: Beach) => setDetailPanelContent({ type: 'beach', data }),
+    [],
+  );
+  const selectCreemee = useCallback(
+    (data: CreemeeStand) => setDetailPanelContent({ type: 'creemee', data }),
+    [],
+  );
+  const selectCampground = useCallback(
+    (data: RecreationSite) => setDetailPanelContent({ type: 'campground', data }),
+    [],
+  );
+  const selectCampingArea = useCallback(
+    (data: CampingArea) => setDetailPanelContent({ type: 'campingArea', data }),
+    [],
+  );
+  const selectDarkSky = useCallback(
+    (data: DarkSkySite) => setDetailPanelContent({ type: 'darkSky', data }),
+    [],
+  );
+
   // Restore a point or alert selection from the link once the map / alerts are ready
   useEffect(() => {
     const pending = pendingSelection.current;
@@ -974,13 +1119,16 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
     } else if (pending.type === 'road') {
       pendingSelection.current = undefined;
       openSeasonalRoad(pending.id);
+    } else if (pending.type === 'poi') {
+      // Opens now if loaded (dark sky sites are static); otherwise stays pending
+      openPoi(pending.kind, pending.id);
     } else if (pending.type === 'alert' && alertsLoaded) {
       pendingSelection.current = undefined;
       const alert = alerts.find((a) => a.properties.id === pending.id);
       // An expired alert is simply not opened
       if (alert) handleAlertClick(alert);
     }
-  }, [mapLoaded, alertsLoaded, alerts, handleAlertClick, openSeasonalRoad]);
+  }, [mapLoaded, alertsLoaded, alerts, handleAlertClick, openSeasonalRoad, openPoi]);
 
   // Restore a station selection once stations have loaded
   // Latest stations, for search (VTL-53)
@@ -1003,6 +1151,10 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
     pendingSelection.current = undefined;
     const camera = loaded.find((c) => c.id === pending.id);
     if (camera) setDetailPanelContent({ type: 'camera', data: camera });
+  }, []);
+  // Travel incidents open in the side panel (VTL-64)
+  const handleIncidentClick = useCallback((incident: TravelIncident): void => {
+    setDetailPanelContent({ type: 'incident', data: incident });
   }, []);
   const handleCameraClick = useCallback((camera: TrafficCamera): void => {
     setDetailPanelContent({ type: 'camera', data: camera });
@@ -1045,11 +1197,12 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
       }
       // Roads are static data, so open now; others wait for their data
       if (next.selection?.type === 'road') openSeasonalRoad(next.selection.id);
+      else if (next.selection?.type === 'poi') openPoi(next.selection.kind, next.selection.id);
       else if (next.selection) pendingSelection.current = next.selection;
     };
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
-  }, [openSeasonalRoad]);
+  }, [openSeasonalRoad, openPoi]);
 
   // ===========================================================================
   // Search (VTL-53)
@@ -1101,6 +1254,14 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         const camera = cameras.find((c) => `camera:${c.id}` === item.id);
         if (camera) setDetailPanelContent({ type: 'camera', data: camera });
       }
+      const poiKind: Partial<Record<SearchItem['kind'], PoiKind>> = {
+        ski: 'ski',
+        beach: 'beach',
+        creemee: 'creemee',
+        campground: 'camp',
+      };
+      const kind = poiKind[item.kind];
+      if (kind) openPoi(kind, item.id.slice(item.id.indexOf(':') + 1));
       if (item.kind === 'roadWeather') {
         const station = roadWeather.find((s) => `roadwx:${s.id}` === item.id);
         if (station) setDetailPanelContent({ type: 'roadWeather', data: station });
@@ -1108,7 +1269,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
       if (item.kind === 'road') openSeasonalRoad(item.id.slice('road:'.length));
       if (isMobile) setControlsPanelOpen(false);
     },
-    [isMobile, stations, cameras, roadWeather, openSeasonalRoad],
+    [isMobile, stations, cameras, roadWeather, openSeasonalRoad, openPoi],
   );
 
   const handleShare = useCallback(async (): Promise<void> => {
@@ -1248,7 +1409,8 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
               onToggleStargazing={toggleStargazing}
               showTrafficFlow={showTrafficFlow}
               onToggleTrafficFlow={toggleTrafficFlow}
-              globalPopupRef={globalPopupRef}
+              onIncidentClick={handleIncidentClick}
+              onDarkSkySiteClick={selectDarkSky}
               mapStyleVersion={mapStyleVersion}
               campgroundCount={campgroundCount}
               backcountryCount={backcountryCount}
@@ -1262,23 +1424,26 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
               visible={isLayerVisible('weatherStations')}
               onStationClick={handleStationClick}
               onStationsLoaded={handleStationsLoaded}
-              globalPopupRef={globalPopupRef}
             />
           )}
 
           {/* Ski Resorts Layer */}
-          {mapLoaded && <SkiLayer map={map.current} visible={isLayerVisible('skiResorts')} />}
+          {mapLoaded && (
+            <SkiLayer
+              map={map.current}
+              visible={isLayerVisible('skiResorts')}
+              onSelect={selectSki}
+              onLoaded={onSkiLoaded}
+            />
+          )}
 
           {/* Camping Sites Layer - Campgrounds shown individually */}
           {mapLoaded && showCampgrounds && (
             <CampingLayer
               map={map.current}
               visible={isLayerVisible('campingSites')}
-              showCampgrounds={true}
-              showBackcountry={false}
-              onCountsChange={(campgrounds, _backcountry) => {
-                setCampgroundCount(campgrounds);
-              }}
+              onSelect={selectCampground}
+              onLoaded={onCampgroundsLoaded}
             />
           )}
 
@@ -1288,16 +1453,29 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
               map={map.current}
               visible={isLayerVisible('campingSites')}
               mapStyleVersion={mapStyleVersion}
-              onCountChange={setBackcountryCount}
+              onSelect={selectCampingArea}
+              onLoaded={onCampingAreasLoaded}
             />
           )}
 
           {/* Beach Sites Layer */}
-          {mapLoaded && <BeachLayer map={map.current} visible={isLayerVisible('beachSites')} />}
+          {mapLoaded && (
+            <BeachLayer
+              map={map.current}
+              visible={isLayerVisible('beachSites')}
+              onSelect={selectBeach}
+              onLoaded={onBeachLoaded}
+            />
+          )}
 
           {/* Creemee Stands Layer */}
           {mapLoaded && (
-            <CreemeeLayer map={map.current} visible={isLayerVisible('creemeeStands')} />
+            <CreemeeLayer
+              map={map.current}
+              visible={isLayerVisible('creemeeStands')}
+              onSelect={selectCreemee}
+              onLoaded={onCreemeeLoaded}
+            />
           )}
 
           {/* Road weather stations (VTL-61) */}

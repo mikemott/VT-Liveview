@@ -1,83 +1,9 @@
 /*
- * Road weather station markers (VTL-61): a square-cornered "road sign" pill
- * with the pavement temperature, so they read differently from the round
- * weather-station markers. All text colors keep >= 4.5:1 on their fills.
+ * Road weather markers (VTL-61) are shared map-marker pills (src/utils/mapMarker.ts)
+ * showing the pavement temperature. Only the layer-specific touch lives here.
  */
-.road-weather-marker {
-  cursor: pointer;
-  border-radius: 4px;
-}
 
-/*
- * MapLibre positions .road-weather-marker with `transform`; never give it a
- * transform or transform transition (markers drifted while panning, VTL-63).
- */
-.road-weather-marker-body {
-  min-width: 34px;
-  height: 22px;
-  padding: 0 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  border-radius: 4px;
-  border: 2px solid #ffffff;
-  background: var(--layer-color);
-  color: #ffffff;
-  font-family: var(--font-family, system-ui, sans-serif);
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: 0.01em;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease;
-}
-
-.road-weather-marker:hover .road-weather-marker-body,
-.road-weather-marker:focus-visible .road-weather-marker-body {
-  transform: scale(1.12);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
-}
-
-.road-weather-marker:focus-visible {
-  outline: 3px solid #1d4ed8;
-  outline-offset: 2px;
-}
-
-/*
- * Risk states replace the fill with a status color; an outer ring in the
- * layer color keeps them recognizable as road temps (VTL-64).
- */
-.road-weather-marker:is(.risk-nearFreezing, .risk-freezing, .risk-hazard)
-  .road-weather-marker-body {
-  box-shadow:
-    0 0 0 2px var(--layer-color),
-    0 2px 6px rgba(0, 0, 0, 0.3);
-}
-
-/* Pavement 33–36 °F */
-.road-weather-marker.risk-nearFreezing .road-weather-marker-body {
-  background: #b45309;
-}
-
-/* Pavement at or below 32 °F: ice cyan (not Stations blue) */
-.road-weather-marker.risk-freezing .road-weather-marker-body {
-  background: #0e7490;
-}
-
-/* Ice / snow / frost reported on the surface */
-.road-weather-marker.risk-hazard .road-weather-marker-body {
-  background: #b91c1c;
-}
-
-/* Only an air temperature (no pavement sensor) */
-.road-weather-marker.air-only .road-weather-marker-body {
+/* Station without a pavement sensor: the number is the air temperature */
+.road-weather-marker.air-only .map-marker-body {
   border-style: dashed;
-}
-
-.road-weather-marker.stale .road-weather-marker-body {
-  background: #64748b;
-  opacity: 0.6;
 }

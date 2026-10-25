@@ -4,11 +4,7 @@ import SkiLayer from '../SkiLayer';
 import { fetchSkiResorts } from '../../services/skiApi';
 import { FakeMap, liveMarkers, openPopups, resetMaplibreMock } from '../../test/maplibreMock';
 import { makeSkiResort } from '../../__fixtures__/components/data';
-import {
-  XSS_PAYLOAD,
-  expectNoInjectedMarkup,
-  expectPayloadAsText,
-} from '../../__fixtures__/components/xss';
+import { XSS_PAYLOAD, expectNoInjectedMarkup } from '../../__fixtures__/components/xss';
 
 vi.mock('maplibre-gl', async () => (await import('../../test/maplibreMock')).maplibreModule);
 vi.mock('../../services/skiApi', () => ({ fetchSkiResorts: vi.fn() }));
@@ -18,6 +14,17 @@ const fetchMock = vi.mocked(fetchSkiResorts);
 function click(el: HTMLElement): void {
   el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 }
+
+const NOT_REPORTING = {
+  snowfall24hr: null,
+  snowfallCumulative: null,
+  baseDepth: null,
+  tempCurrent: null,
+  liftsOpen: 0,
+  liftsTotal: 1,
+  trailsOpen: 0,
+  trailsTotal: 1,
+};
 
 describe('SkiLayer', () => {
   let fake: FakeMap;
@@ -37,115 +44,81 @@ describe('SkiLayer', () => {
   });
 
   it('adds one marker per resort when visible and removes them all on unmount', async () => {
-    const { unmount } = render(<SkiLayer map={fake.asMap()} visible />);
+    const { unmount } = render(<SkiLayer map={fake.asMap()} visible onSelect={vi.fn()} />);
     await waitFor(() => expect(liveMarkers()).toHaveLength(2));
     expect(liveMarkers()[0]?.lngLat).toEqual([-72.78, 44.53]);
-
-    click(liveMarkers()[0]!.getElement());
-    expect(openPopups()).toHaveLength(1);
 
     unmount();
     expect(liveMarkers()).toHaveLength(0);
     expect(openPopups()).toHaveLength(0);
   });
 
-  it('does not add markers while hidden and removes them when hidden', async () => {
-    const { rerender } = render(<SkiLayer map={fake.asMap()} visible={false} />);
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+  it('fetches while hidden (for links/search) but only shows markers while visible', async () => {
+    const onLoaded = vi.fn();
+    const { rerender } = render(
+      <SkiLayer map={fake.asMap()} visible={false} onSelect={vi.fn()} onLoaded={onLoaded} />,
+    );
+    await waitFor(() => expect(onLoaded).toHaveBeenCalledTimes(1));
+    expect(onLoaded.mock.calls[0]![0]).toHaveLength(2);
     expect(liveMarkers()).toHaveLength(0);
 
-    rerender(<SkiLayer map={fake.asMap()} visible />);
+    rerender(<SkiLayer map={fake.asMap()} visible onSelect={vi.fn()} onLoaded={onLoaded} />);
+    await waitFor(() => expect(liveMarkers()).toHaveLength(2));
+
+    rerender(
+      <SkiLayer map={fake.asMap()} visible={false} onSelect={vi.fn()} onLoaded={onLoaded} />,
+    );
+    expect(liveMarkers()).toHaveLength(0);
+  });
+
+  it('fills by conditions with the Ski layer ring and a spoken name', async () => {
+    fetchMock.mockResolvedValue([
+      makeSkiResort(),
+      makeSkiResort({ id: 'jay', name: 'Jay Peak', color: 'red' }),
+      makeSkiResort({ id: 'bolton', name: 'Bolton Valley', color: 'red', ...NOT_REPORTING }),
+    ]);
+    render(<SkiLayer map={fake.asMap()} visible onSelect={vi.fn()} />);
+    await waitFor(() => expect(liveMarkers()).toHaveLength(3));
+    const [stowe, jay, bolton] = liveMarkers().map((m) => m.getElement());
+
+    for (const el of [stowe!, jay!, bolton!]) {
+      expect(el.style.getPropertyValue('--layer-color')).toBe('#0284c7');
+      expect(el.classList.contains('map-marker--status')).toBe(true);
+      expect(el.getAttribute('role')).toBe('button');
+    }
+    expect(stowe!.style.getPropertyValue('--marker-fill')).toBe('#16a34a');
+    expect(jay!.style.getPropertyValue('--marker-fill')).toBe('#dc2626');
+    // Off-season: grey, not the red "limited conditions"
+    expect(bolton!.style.getPropertyValue('--marker-fill')).toBe('#64748b');
+
+    expect(stowe!.getAttribute('aria-label')).toBe('Ski area: Stowe, good conditions');
+    expect(bolton!.getAttribute('aria-label')).toBe('Ski area: Bolton Valley, not reporting yet');
+  });
+
+  it('opens the clicked resort via onSelect, without a popup', async () => {
+    const onSelect = vi.fn();
+    render(<SkiLayer map={fake.asMap()} visible onSelect={onSelect} />);
     await waitFor(() => expect(liveMarkers()).toHaveLength(2));
     click(liveMarkers()[1]!.getElement());
-
-    rerender(<SkiLayer map={fake.asMap()} visible={false} />);
-    expect(liveMarkers()).toHaveLength(0);
+    expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: 'jay' }));
     expect(openPopups()).toHaveLength(0);
   });
 
-  it('does nothing without a map', () => {
-    render(<SkiLayer map={null} visible />);
-    expect(fetchMock).not.toHaveBeenCalled();
-    expect(liveMarkers()).toHaveLength(0);
-  });
-
-  it('keeps only one popup open at a time', async () => {
-    render(<SkiLayer map={fake.asMap()} visible />);
-    await waitFor(() => expect(liveMarkers()).toHaveLength(2));
-    click(liveMarkers()[0]!.getElement());
-    click(liveMarkers()[1]!.getElement());
-    expect(openPopups()).toHaveLength(1);
-    expect(openPopups()[0]?.html).toContain('Jay Peak');
-  });
-
-  it('renders reported conditions and omits missing values', async () => {
-    fetchMock.mockResolvedValue([
-      makeSkiResort({ snowfall24hr: null, tempCurrent: null, baseDepth: 0 }),
-    ]);
-    render(<SkiLayer map={fake.asMap()} visible />);
-    await waitFor(() => expect(liveMarkers()).toHaveLength(1));
-    click(liveMarkers()[0]!.getElement());
-    const text = openPopups()[0]?.getElement().textContent ?? '';
-    expect(text).not.toContain('Fresh');
-    expect(text).not.toContain('Temp');
-    expect(text).toContain('Base: 0"');
-    expect(text).toContain('Trails: 80/116');
-    expect(text).toContain('Lifts: 8/12');
-  });
-
-  // Off-season the scraper reports 0/1 lifts and trails and no snow data (VTL-49)
-  it('says the resort is not reporting instead of showing placeholder 0/1 counts', async () => {
-    fetchMock.mockResolvedValue([
-      makeSkiResort({
-        snowfall24hr: null,
-        snowfallCumulative: null,
-        liftsOpen: 0,
-        liftsTotal: 1,
-        trailsOpen: 0,
-        trailsTotal: 1,
-        tempCurrent: null,
-        baseDepth: null,
-        status: 'closed',
-      }),
-    ]);
-    render(<SkiLayer map={fake.asMap()} visible />);
-    await waitFor(() => expect(liveMarkers()).toHaveLength(1));
-    click(liveMarkers()[0]!.getElement());
-    const el = openPopups()[0]!.getElement();
-    expect(el.querySelector('.stats-grid')).toBeNull();
-    expect(el.querySelector('.ski-no-report')?.textContent).toContain(
-      'Not reporting conditions yet',
-    );
-    expect(el.textContent).not.toContain('0/1');
-  });
-
-  it('survives a fetch failure without markers', async () => {
-    fetchMock.mockRejectedValue(new Error('boom'));
+  it('renders no markers when the fetch fails', async () => {
+    fetchMock.mockRejectedValue(new Error('down'));
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    render(<SkiLayer map={fake.asMap()} visible />);
-    await waitFor(() => expect(spy).toHaveBeenCalled());
+    render(<SkiLayer map={fake.asMap()} visible onSelect={vi.fn()} />);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
     expect(liveMarkers()).toHaveLength(0);
     spy.mockRestore();
   });
 
-  it('escapes hostile upstream strings in popup HTML', async () => {
-    fetchMock.mockResolvedValue([
-      makeSkiResort({
-        name: XSS_PAYLOAD,
-        logoUrl: XSS_PAYLOAD,
-        lastUpdated: XSS_PAYLOAD,
-        status: XSS_PAYLOAD,
-        color: XSS_PAYLOAD,
-      }),
-    ]);
-    render(<SkiLayer map={fake.asMap()} visible />);
+  it('puts hostile upstream strings into the marker name as text, never markup', async () => {
+    fetchMock.mockResolvedValue([makeSkiResort({ name: XSS_PAYLOAD, color: XSS_PAYLOAD })]);
+    render(<SkiLayer map={fake.asMap()} visible onSelect={vi.fn()} />);
     await waitFor(() => expect(liveMarkers()).toHaveLength(1));
-    click(liveMarkers()[0]!.getElement());
-
-    const html = openPopups()[0]?.html ?? '';
-    // The logo <img> is legitimate; it must not gain a handler and its src is inert text.
-    expectNoInjectedMarkup(html, { allowedImgSelector: 'img.resort-logo' });
-    expectPayloadAsText(html);
-    expect(liveMarkers()[0]!.getElement().querySelector('img')).toBeNull();
+    const el = liveMarkers()[0]!.getElement();
+    expectNoInjectedMarkup(el);
+    expect(el.getAttribute('aria-label')).toContain(XSS_PAYLOAD);
   });
 });

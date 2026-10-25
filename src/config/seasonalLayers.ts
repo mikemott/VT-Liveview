@@ -1,7 +1,5 @@
 import { ComponentType } from 'react';
 import { Mountain, IceCream } from 'lucide-react';
-import SkiLayer from '../components/SkiLayer';
-import CreemeeLayer from '../components/CreemeeLayer';
 import type { MapLibreMap } from '../types';
 // LakeConditionsLayer will be added in future phases (will need Waves icon)
 
@@ -13,8 +11,7 @@ import type { MapLibreMap } from '../types';
  *
  * Adding a new seasonal layer:
  * 1. Define the layer config below
- * 2. Create the component (follow SkiLayer.tsx pattern)
- * 3. Add to SEASONAL_LAYERS array
+ * 2. Add it to SEASONAL_LAYERS (and its colour/icon to src/config/layers.ts)
  */
 
 // =============================================================================
@@ -36,7 +33,6 @@ export interface LayerConfig {
   label: string;
   icon: ComponentType<{ size?: number; strokeWidth?: number }>;
   season?: SeasonConfig; // undefined = always available
-  component: ComponentType<LayerProps>;
 }
 
 // =============================================================================
@@ -52,7 +48,6 @@ export const SEASONAL_LAYERS: LayerConfig[] = [
       months: [11, 12, 1, 2, 3], // November - March
       label: 'Ski Season',
     },
-    component: SkiLayer,
   },
   {
     id: 'creemeeStands',
@@ -62,7 +57,6 @@ export const SEASONAL_LAYERS: LayerConfig[] = [
       months: [4, 5, 6, 7, 8, 9], // April - September
       label: 'Creemee Season',
     },
-    component: CreemeeLayer,
   },
   // Uncomment when LakeConditionsLayer is implemented (future)
   // {
@@ -73,7 +67,6 @@ export const SEASONAL_LAYERS: LayerConfig[] = [
   //     months: [6, 7, 8],  // June - August
   //     label: 'Lake Season'
   //   },
-  //   component: LakeConditionsLayer
   // },
 ];
 

@@ -2,7 +2,7 @@
  * Tests for incident marker icons and DOM marker elements.
  */
 import { describe, it, expect } from 'vitest';
-import { getIncidentIcon, createMarkerElement, getIncidentIconName } from '../incidentIcons';
+import { getIncidentIcon, getIncidentIconName } from '../incidentIcons';
 import type { IncidentType } from '@/types';
 
 const TYPES: IncidentType[] = ['ACCIDENT', 'CONSTRUCTION', 'CLOSURE', 'FLOODING', 'HAZARD'];
@@ -32,33 +32,6 @@ describe('getIncidentIcon', () => {
     expect(getIncidentIcon(unknown, 20, '#fff')).toBe(getIncidentIcon('HAZARD', 20, '#fff'));
     // and the hazard colours when no colour is given
     expect(getIncidentIcon(unknown)).toBe(getIncidentIcon('HAZARD'));
-  });
-});
-
-describe('createMarkerElement', () => {
-  it('builds a marker div containing a circle with an inline SVG', () => {
-    const el = createMarkerElement('ACCIDENT');
-    expect(el.tagName).toBe('DIV');
-    expect(el.className).toBe('incident-marker');
-    expect(el.dataset.type).toBe('accident');
-
-    const circle = el.querySelector<HTMLDivElement>('.marker-circle');
-    expect(circle).not.toBeNull();
-    expect(circle?.querySelector('svg')).not.toBeNull();
-    expect(circle?.querySelector('svg')?.getAttribute('width')).toBe('16');
-  });
-
-  it('applies hover styles on mouseenter and resets on mouseleave', () => {
-    const el = createMarkerElement('CONSTRUCTION');
-    const circle = el.querySelector<HTMLDivElement>('.marker-circle')!;
-
-    el.dispatchEvent(new Event('mouseenter'));
-    expect(circle.style.transform).toBe('translateY(-2px) scale(1.1)');
-    expect(circle.style.boxShadow).toContain('12px');
-
-    el.dispatchEvent(new Event('mouseleave'));
-    expect(circle.style.transform).toBe('translateY(0) scale(1)');
-    expect(circle.style.boxShadow).toContain('8px');
   });
 });
 

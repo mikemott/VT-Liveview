@@ -6,6 +6,7 @@ import { MapPin, RefreshCw, VideoOff } from 'lucide-react';
 import { fetchCameraImage, type CameraImage, type TrafficCamera } from '../../services/cameraApi';
 import { useVisibleInterval } from '../../hooks/useVisibleInterval';
 import { getObservationAge } from '../../utils/observationAge';
+import LayerBadge from './LayerBadge';
 import './DetailViews.css';
 
 /** How often to reload the picture while the panel is open. */
@@ -74,6 +75,7 @@ export default function CameraDetail({ camera, isDark }: CameraDetailProps) {
 
   return (
     <div className={`detail-view camera-detail ${isDark ? 'dark' : ''}`}>
+      <LayerBadge layer="trafficCameras" label="Traffic camera" />
       <div className="station-name">{camera.name}</div>
       {where && (
         <div className="station-location">

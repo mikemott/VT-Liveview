@@ -7,9 +7,10 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
+/** [path from src/, class of the element MapLibre positions] */
 const MARKERS: [file: string, markerClass: string][] = [
-  ['CameraLayer.css', 'camera-marker'],
-  ['RoadWeatherLayer.css', 'road-weather-marker'],
+  ['utils/mapMarker.css', 'map-marker'],
+  ['components/RoadWeatherLayer.css', 'road-weather-marker'],
 ];
 
 /** [selector, declarations] for each top-level rule (no nesting in these files). */
@@ -21,7 +22,7 @@ function rules(css: string): [string, string][] {
 describe('map marker CSS (VTL-63)', () => {
   for (const [file, cls] of MARKERS) {
     it(`${file}: .${cls} itself gets no transform or transition`, () => {
-      const css = readFileSync(join(__dirname, '..', file), 'utf8');
+      const css = readFileSync(join(__dirname, '..', '..', file), 'utf8');
       // Selectors that target the marker element itself (optionally with
       // modifier classes / pseudo-classes), not a descendant of it
       const self = new RegExp(`^\\.${cls}(?:[.:][\\w-]+(?:\\([^)]*\\))?)*$`);

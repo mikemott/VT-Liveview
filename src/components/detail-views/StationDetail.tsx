@@ -5,6 +5,7 @@
 import { MapPin, Thermometer, Wind, Droplets, Gauge } from 'lucide-react';
 import type { ObservationStation } from '../../types';
 import { getObservationAge } from '../../utils/observationAge';
+import LayerBadge from './LayerBadge';
 import './DetailViews.css';
 
 interface StationDetailProps {
@@ -34,6 +35,10 @@ export default function StationDetail({ station, isDark }: StationDetailProps) {
 
   return (
     <div className={`detail-view station-detail ${isDark ? 'dark' : ''}`}>
+      <LayerBadge
+        layer="weatherStations"
+        label={station.id.startsWith('USGS-') ? 'Water temperature' : 'Weather station'}
+      />
       {/* Station name */}
       <div className="station-name">{name}</div>
 

@@ -13,6 +13,12 @@ import LocationDetail from './detail-views/LocationDetail';
 import CameraDetail from './detail-views/CameraDetail';
 import SeasonalRoadDetail from './detail-views/SeasonalRoadDetail';
 import RoadWeatherDetail from './detail-views/RoadWeatherDetail';
+import SkiDetail from './detail-views/SkiDetail';
+import BeachDetail from './detail-views/BeachDetail';
+import CreemeeDetail from './detail-views/CreemeeDetail';
+import CampgroundDetail from './detail-views/CampgroundDetail';
+import CampingAreaDetail from './detail-views/CampingAreaDetail';
+import DarkSkyDetail from './detail-views/DarkSkyDetail';
 import './DetailPanel.css';
 
 interface DetailPanelProps {
@@ -69,6 +75,18 @@ export default function DetailPanel({ content, onClose, onShare, isDark }: Detai
         return 'Seasonal Road';
       case 'roadWeather':
         return 'Road Weather';
+      case 'ski':
+        return 'Ski Area';
+      case 'beach':
+        return 'Beach';
+      case 'creemee':
+        return 'Creemee Stand';
+      case 'campground':
+        return 'Campground';
+      case 'campingArea':
+        return 'Backcountry Camping';
+      case 'darkSky':
+        return 'Stargazing';
       case 'location':
         return 'Location Details';
       default:
@@ -91,6 +109,18 @@ export default function DetailPanel({ content, onClose, onShare, isDark }: Detai
         return <CameraDetail key={content.data.id} camera={content.data} isDark={isDark} />;
       case 'roadWeather':
         return <RoadWeatherDetail station={content.data} isDark={isDark} />;
+      case 'ski':
+        return <SkiDetail resort={content.data} isDark={isDark} />;
+      case 'beach':
+        return <BeachDetail beach={content.data} isDark={isDark} />;
+      case 'creemee':
+        return <CreemeeDetail stand={content.data} isDark={isDark} />;
+      case 'campground':
+        return <CampgroundDetail site={content.data} isDark={isDark} />;
+      case 'campingArea':
+        return <CampingAreaDetail area={content.data} isDark={isDark} />;
+      case 'darkSky':
+        return <DarkSkyDetail site={content.data} isDark={isDark} />;
       case 'seasonalRoad':
         return <SeasonalRoadDetail road={content.data} status={content.status} isDark={isDark} />;
       case 'location':

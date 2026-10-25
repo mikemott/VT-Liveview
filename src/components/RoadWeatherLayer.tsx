@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState, memo } from 'react';
-import maplibregl from 'maplibre-gl';
 import { fetchRoadWeather, type RoadWeatherStation } from '../services/roadWeatherApi';
 import { useVisibleInterval } from '../hooks/useVisibleInterval';
-import { layerColor } from '../config/layers';
+import { useMapMarkers, type BuiltMarker } from '../hooks/useMapMarkers';
+import { createMapMarker } from '../utils/mapMarker';
 import { getObservationAge } from '../utils/observationAge';
 import { getRoadRisk, headlineTempF, ROAD_RISK_LABELS } from '../utils/roadWeather';
-import type { MapLibreMap, Marker } from '../types';
+import type { MapLibreMap } from '../types';
 import './RoadWeatherLayer.css';
 
 interface RoadWeatherLayerProps {
@@ -16,56 +16,47 @@ interface RoadWeatherLayerProps {
   onStationsLoaded?: (stations: RoadWeatherStation[]) => void;
 }
 
-interface MarkerEntry {
-  marker: Marker;
-  element: HTMLDivElement;
-  handler: (e: MouseEvent) => void;
-}
-
 /** Stations report every ~5 minutes */
 const REFRESH_MS = 5 * 60 * 1000;
 
-function createRoadWeatherMarker(station: RoadWeatherStation): HTMLDivElement {
+/** Status fills; the slate layer color shows as the ring (VTL-64) */
+const RISK_FILL: Partial<Record<ReturnType<typeof getRoadRisk>, string>> = {
+  nearFreezing: '#b45309', // 33–36 °F
+  freezing: '#0e7490', // ≤ 32 °F: ice cyan, not Stations blue
+  hazard: '#b91c1c', // ice / snow / frost reported
+};
+
+function buildRoadWeatherMarker(station: RoadWeatherStation): BuiltMarker {
   const temp = headlineTempF(station);
   const risk = getRoadRisk(station);
   const stale = getObservationAge(station.observedAt).isStale;
-
-  const el = document.createElement('div');
-  el.className = [
-    'road-weather-marker',
-    `risk-${risk}`,
-    temp?.kind === 'air' ? 'air-only' : '',
-    stale ? 'stale' : '',
-  ]
-    .filter(Boolean)
-    .join(' ');
-  // MapLibre positions `el` with a transform; visuals and hover zoom live on
-  // the inner body so they never fight that transform (VTL-63).
-  // textContent: no markup from the feed reaches innerHTML
-  const body = document.createElement('span');
-  body.className = 'road-weather-marker-body';
-  body.textContent = temp ? `${temp.value}°` : '–';
-  el.appendChild(body);
-  el.style.setProperty('--layer-color', layerColor('roadWeather'));
-  el.setAttribute('role', 'button');
-  el.tabIndex = 0;
   const reading = temp
     ? `${temp.kind === 'pavement' ? 'pavement' : 'air'} ${temp.value}°F`
     : 'no temperature';
-  el.setAttribute(
-    'aria-label',
-    `Road weather: ${station.name}, ${reading}, ${ROAD_RISK_LABELS[risk].toLowerCase()}${
+  const fill = stale ? undefined : RISK_FILL[risk];
+  const element = createMapMarker({
+    layer: 'roadWeather',
+    shape: 'pill',
+    // textContent: no markup from the feed reaches the DOM as HTML
+    text: temp ? `${temp.value}°` : '–',
+    label: `Road weather: ${station.name}, ${reading}, ${ROAD_RISK_LABELS[risk].toLowerCase()}${
       stale ? ' (old reading)' : ''
     }`,
-  );
-  el.title = station.name;
-  el.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      el.click();
-    }
+    title: station.name,
+    ...(fill ? { statusFill: fill } : {}),
+    dimmed: stale,
+    className: [
+      'road-weather-marker',
+      `risk-${risk}`,
+      temp?.kind === 'air' ? 'air-only' : '',
+      stale ? 'stale' : '',
+    ]
+      .filter(Boolean)
+      .join(' '),
   });
-  return el;
+  // Most stations share a pole with a traffic camera: float the pill just above
+  // the point (like a label) so a camera icon there doesn't cover the reading
+  return { lngLat: [station.lng, station.lat], element, anchor: 'bottom', offset: [0, -14] };
 }
 
 function RoadWeatherLayer({
@@ -75,7 +66,6 @@ function RoadWeatherLayer({
   onStationsLoaded,
 }: RoadWeatherLayerProps) {
   const [stations, setStations] = useState<RoadWeatherStation[]>([]);
-  const markersRef = useRef<MarkerEntry[]>([]);
   const onLoadedRef = useRef(onStationsLoaded);
   useEffect(() => {
     onLoadedRef.current = onStationsLoaded;
@@ -104,31 +94,7 @@ function RoadWeatherLayer({
     };
   }, [map, refreshTick]);
 
-  useEffect(() => {
-    const clear = (): void => {
-      for (const { marker, element, handler } of markersRef.current) {
-        element.removeEventListener('click', handler);
-        marker.remove();
-      }
-      markersRef.current = [];
-    };
-    clear();
-    if (!map || !visible) return clear;
-
-    for (const station of stations) {
-      const element = createRoadWeatherMarker(station);
-      const handler = (e: MouseEvent): void => {
-        e.stopPropagation();
-        onStationClick(station);
-      };
-      element.addEventListener('click', handler);
-      const marker = new maplibregl.Marker({ element })
-        .setLngLat([station.lng, station.lat])
-        .addTo(map);
-      markersRef.current.push({ marker, element, handler });
-    }
-    return clear;
-  }, [map, visible, stations, onStationClick]);
+  useMapMarkers(map, visible, stations, buildRoadWeatherMarker, onStationClick);
 
   return null;
 }
