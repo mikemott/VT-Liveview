@@ -993,3 +993,31 @@
 .map-notice button:hover {
   background: var(--color-vermont-green-faint);
 }
+
+/* Contact link at the bottom of the controls panel (VTL-74) */
+.panel-footer {
+  margin-top: var(--space-6);
+  padding: var(--space-4) 0 var(--space-2);
+  border-top: 1px solid var(--color-border-divider);
+  text-align: center;
+}
+
+.panel-contact {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+}
+
+.panel-contact:hover {
+  color: var(--color-vermont-green);
+  text-decoration: underline;
+}
+
+.panel-contact:focus-visible {
+  outline: 2px solid var(--color-vermont-green);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}

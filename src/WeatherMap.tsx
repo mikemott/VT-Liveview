@@ -62,7 +62,7 @@ import { useIsMobile } from './hooks/useIsMobile';
 import { useSeasonalLayers } from './hooks/useSeasonalLayers';
 import { useVisibleInterval } from './hooks/useVisibleInterval';
 import { SEASONAL_LAYERS } from './config/seasonalLayers';
-import { Menu, X, AlertTriangle, AlertCircle, Info } from 'lucide-react';
+import { Menu, X, AlertTriangle, AlertCircle, Info, Mail } from 'lucide-react';
 import { fetchMergedAlerts, type MergedAlertData } from './services/graphqlClient';
 
 // =============================================================================
@@ -1696,6 +1696,14 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
               </div>
             </div>
           )}
+
+          {/* Contact (VTL-74): forwards to the maintainer via Cloudflare Email Routing */}
+          <footer className="panel-footer">
+            <a className="panel-contact" href="mailto:hello@vtliveview.com">
+              <Mail size={13} aria-hidden="true" />
+              <span>Contact: hello@vtliveview.com</span>
+            </a>
+          </footer>
         </div>
       </div>
 
