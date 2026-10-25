@@ -3,7 +3,9 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getMapStyle, isDarkMode, onThemeChange } from '../mapStyles';
+import { getMapStyle, isDarkMode, onThemeChange, vermontBorderSource } from '../mapStyles';
+import { VERMONT_OUTLINE } from '../../data/vermontOutline';
+import { pointInGeometry } from '../geo';
 
 describe('getMapStyle', () => {
   it('should return a valid MapLibre style specification', () => {
@@ -49,6 +51,51 @@ describe('getMapStyle', () => {
   it('should have multiple layers for a complete map', () => {
     const style = getMapStyle(false);
     expect(style.layers.length).toBeGreaterThan(10);
+  });
+});
+
+describe('Vermont border (VTL-69)', () => {
+  it('is drawn on top of the base map, so app layers added later sit above it', () => {
+    const ids = getMapStyle(false).layers.map((l) => l.id);
+    expect(ids.slice(-3)).toEqual(['vermont-outside-dim', 'vermont-border-halo', 'vermont-border']);
+  });
+
+  it('is part of both themes', () => {
+    for (const dark of [false, true]) {
+      const style = getMapStyle(dark);
+      expect(style.sources['vermont-border']).toBeDefined();
+      expect(style.layers.some((l) => l.id === 'vermont-border')).toBe(true);
+    }
+  });
+
+  it('outlines Vermont: one closed ring inside the state extent', () => {
+    expect(VERMONT_OUTLINE).toHaveLength(1);
+    const ring = VERMONT_OUTLINE[0]!;
+    expect(ring[0]).toEqual(ring[ring.length - 1]);
+    const lngs = ring.map(([lng]) => lng);
+    const lats = ring.map(([, lat]) => lat);
+    expect(Math.min(...lngs)).toBeGreaterThan(-73.45); // Lake Champlain state line
+    expect(Math.max(...lngs)).toBeLessThan(-71.45); // Connecticut River
+    expect(Math.min(...lats)).toBeGreaterThan(42.72); // Massachusetts line
+    expect(Math.max(...lats)).toBeLessThan(45.02); // Canadian border
+  });
+
+  it('dims outside Vermont, with Vermont as the hole', () => {
+    const source = vermontBorderSource() as { data: GeoJSON.FeatureCollection };
+    const outside = source.data.features.find((f) => f.properties?.kind === 'outside')!;
+    const rings = (outside.geometry as GeoJSON.Polygon).coordinates;
+    expect(rings).toHaveLength(2);
+    expect(rings[1]).toBe(VERMONT_OUTLINE[0]);
+    // Burlington is inside the outline, Plattsburgh NY and Hanover NH are not
+    const vt = VERMONT_OUTLINE.map((ring) => [ring]);
+    const inside = (lng: number, lat: number): boolean =>
+      pointInGeometry([lng, lat], { type: 'MultiPolygon', coordinates: vt });
+    expect(inside(-73.212, 44.476)).toBe(true);
+    expect(inside(-73.452, 44.699)).toBe(false);
+    expect(inside(-72.289, 43.702)).toBe(false);
+    // The state line runs down Lake Champlain, not along the shore
+    expect(inside(-73.25, 44.6)).toBe(true); // open water off Colchester
+    expect(inside(-73.395, 44.62)).toBe(false); // Valcour Island, NY
   });
 });
 

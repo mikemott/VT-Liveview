@@ -9,3 +9,6 @@ public
 
 # Prose is hand-formatted (and CLAUDE.md is owner-maintained)
 *.md
+
+# Generated geometry: one point per line would be ~1,800 lines of noise
+src/data/vermontOutline.ts

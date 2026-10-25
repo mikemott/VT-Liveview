@@ -5,8 +5,14 @@
  */
 
 import { layers, LIGHT, DARK, type Flavor } from '@protomaps/basemaps';
-import type { StyleSpecification } from 'maplibre-gl';
+import type {
+  ExpressionSpecification,
+  LayerSpecification,
+  SourceSpecification,
+  StyleSpecification,
+} from 'maplibre-gl';
 import { VERMONT } from './constants';
+import { VERMONT_OUTLINE } from '../data/vermontOutline';
 import { calculateSunTimes } from './time';
 
 // =============================================================================
@@ -15,6 +21,102 @@ import { calculateSunTimes } from './time';
 
 /** Theme change callback */
 type ThemeChangeCallback = (isDark: boolean) => void;
+
+// =============================================================================
+// Vermont border (VTL-69)
+// =============================================================================
+
+export const VERMONT_BORDER_SOURCE = 'vermont-border';
+
+/**
+ * The state outline and a mask covering everything outside it. Part of the
+ * base style, so it survives theme swaps and always sits under the app's own
+ * layers (alerts, radar, roads and markers are added on top).
+ */
+export function vermontBorderSource(): SourceSpecification {
+  const world: [number, number][] = [
+    [-180, -85],
+    [180, -85],
+    [180, 85],
+    [-180, 85],
+    [-180, -85],
+  ];
+  return {
+    type: 'geojson',
+    data: {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: { kind: 'outside' },
+          // Vermont punched out of a world-sized polygon
+          geometry: { type: 'Polygon', coordinates: [world, ...VERMONT_OUTLINE] },
+        },
+        {
+          type: 'Feature',
+          properties: { kind: 'vermont' },
+          geometry: {
+            type: 'MultiPolygon',
+            coordinates: VERMONT_OUTLINE.map((ring) => [ring]),
+          },
+        },
+      ],
+    },
+  };
+}
+
+export function vermontBorderLayers(isDark: boolean): LayerSpecification[] {
+  /** Line width that grows as you zoom in */
+  const width = (base: number): ExpressionSpecification => [
+    'interpolate',
+    ['linear'],
+    ['zoom'],
+    5,
+    base,
+    9,
+    base * 1.5,
+    13,
+    base * 2.2,
+  ];
+  return [
+    {
+      // Neighboring states and Québec get a light wash, so Vermont stands out
+      id: 'vermont-outside-dim',
+      type: 'fill',
+      source: VERMONT_BORDER_SOURCE,
+      filter: ['==', ['get', 'kind'], 'outside'],
+      paint: {
+        'fill-color': isDark ? '#000000' : '#475569',
+        'fill-opacity': isDark ? 0.32 : 0.14,
+      },
+    },
+    {
+      // Soft halo so the line reads over terrain, water and roads alike
+      id: 'vermont-border-halo',
+      type: 'line',
+      source: VERMONT_BORDER_SOURCE,
+      filter: ['==', ['get', 'kind'], 'vermont'],
+      layout: { 'line-join': 'round' },
+      paint: {
+        'line-color': isDark ? '#0b0f14' : '#ffffff',
+        'line-opacity': 0.7,
+        'line-width': width(4),
+      },
+    },
+    {
+      id: 'vermont-border',
+      type: 'line',
+      source: VERMONT_BORDER_SOURCE,
+      filter: ['==', ['get', 'kind'], 'vermont'],
+      layout: { 'line-join': 'round' },
+      paint: {
+        'line-color': isDark ? '#cbd5e1' : '#334155',
+        'line-opacity': 0.9,
+        'line-width': width(1.5),
+      },
+    },
+  ];
+}
 
 // =============================================================================
 // Map Style Generation
@@ -86,8 +188,9 @@ export function getMapStyle(isDark = false): StyleSpecification {
         attribution:
           '<a href="https://protomaps.com">Protomaps</a> | <a href="https://openstreetmap.org">© OpenStreetMap</a>',
       },
+      [VERMONT_BORDER_SOURCE]: vermontBorderSource(),
     },
-    layers: adjustedLayers,
+    layers: [...adjustedLayers, ...vermontBorderLayers(isDark)],
   };
 }
 
