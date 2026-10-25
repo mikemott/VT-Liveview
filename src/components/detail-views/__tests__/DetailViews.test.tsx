@@ -119,7 +119,7 @@ describe('IncidentDetail', () => {
     );
     const badge = container.querySelector('.layer-badge') as HTMLElement;
     expect(badge).toHaveTextContent('Road closure');
-    expect(badge.style.getPropertyValue('--layer-color')).toBe('#dc2626');
+    expect(badge.style.getPropertyValue('--layer-color')).toBe('#b91c1c');
     expect(screen.getByText('Bridge out on VT-100')).toBeInTheDocument();
     expect(screen.getByText('VT-100')).toBeInTheDocument();
     expect(screen.getByText('Detour via VT-17')).toBeInTheDocument();

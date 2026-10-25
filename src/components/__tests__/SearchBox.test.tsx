@@ -78,8 +78,8 @@ describe('SearchBox', () => {
     fireEvent.change(input, { target: { value: 'stowe' } });
     const icon = (name: RegExp): SVGElement =>
       screen.getByRole('option', { name }).querySelector('svg.search-kind')!;
-    expect(icon(/Stowe Mountain Resort/).getAttribute('style')).toContain('#0284c7');
-    expect(icon(/Stowe bridge closed/).getAttribute('style')).toContain('#dc2626');
+    expect(icon(/Stowe Mountain Resort/).getAttribute('style')).toContain('#0891b2');
+    expect(icon(/Stowe bridge closed/).getAttribute('style')).toContain('#b91c1c');
     // Towns aren't a map layer: no layer color
     expect(icon(/Lamoille County/).getAttribute('style')).toBeNull();
   });

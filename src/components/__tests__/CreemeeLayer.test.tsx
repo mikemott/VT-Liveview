@@ -59,7 +59,7 @@ describe('CreemeeLayer', () => {
     render(<CreemeeLayer map={fake.asMap()} visible onSelect={onSelect} />);
     await waitFor(() => expect(liveMarkers()).toHaveLength(2));
     const el = liveMarkers()[1]!.getElement();
-    expect(el.style.getPropertyValue('--layer-color')).toBe('#78350f');
+    expect(el.style.getPropertyValue('--layer-color')).toBe('#9d174d');
     expect(el.classList.contains('map-marker--status')).toBe(false);
     expect(el.getAttribute('aria-label')).toBe('Creemee stand: Plain Stand, Barre');
 

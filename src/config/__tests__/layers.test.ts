@@ -36,10 +36,14 @@ describe('layer registry (VTL-64)', () => {
   });
 
   it('exposes the color as a CSS variable', () => {
-    expect(layerColorVars('trafficCameras')).toEqual({ '--layer-color': '#db2777' });
-    expect(layerColorVars('stargazing')).toEqual({
-      '--layer-color': '#312e81',
-      '--layer-color-dark': '#a5b4fc',
+    expect(layerColorVars('trafficCameras')).toEqual({
+      '--layer-color': '#ec4899',
+      '--layer-on': '#000000',
+    });
+    expect(layerColorVars('roadWeather')).toEqual({
+      '--layer-color': '#334155',
+      '--layer-on': '#ffffff',
+      '--layer-color-dark': '#94a3b8',
     });
   });
 });

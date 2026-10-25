@@ -82,7 +82,7 @@ describe('SkiLayer', () => {
     const [stowe, jay, bolton] = liveMarkers().map((m) => m.getElement());
 
     for (const el of [stowe!, jay!, bolton!]) {
-      expect(el.style.getPropertyValue('--layer-color')).toBe('#0284c7');
+      expect(el.style.getPropertyValue('--layer-color')).toBe('#0891b2');
       expect(el.classList.contains('map-marker--status')).toBe(true);
       expect(el.getAttribute('role')).toBe('button');
     }

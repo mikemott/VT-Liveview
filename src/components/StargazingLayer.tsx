@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useMapMarkers, type BuiltMarker } from '../hooks/useMapMarkers';
 import { createMapMarker } from '../utils/mapMarker';
+import { textOn } from '../config/layers';
 import { VERMONT_DARK_SKY_ZONES } from '../data/lightPollution';
 import { DARK_SKY_SITES } from '../data/darkSkySites';
 import { BORTLE_DESCRIPTIONS } from '../types/stargazing';
@@ -239,7 +240,10 @@ export default function StargazingLayer({
               <div className="quality-info">
                 <span
                   className="quality-rating"
-                  style={{ backgroundColor: getQualityColor(qualityRating) }}
+                  style={{
+                    backgroundColor: getQualityColor(qualityRating),
+                    color: textOn(getQualityColor(qualityRating)),
+                  }}
                 >
                   {qualityRating}
                 </span>
