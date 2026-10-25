@@ -80,7 +80,29 @@ const contrast = (x: string, y: string): number => {
   return (hi + 0.05) / (lo + 0.05);
 };
 
-const entries = Object.entries(LAYER_STYLES).map(([key, s]) => ({ key, color: s.color }));
+const entries = Object.entries(LAYER_STYLES).map(([key, s]) => ({
+  key,
+  color: s.color,
+  ink: s.ink,
+}));
+
+/** Pairs that share a color on purpose (VTL-73): both mean "road closed" */
+const SHARED = new Set(['CLOSURE|seasonalRoads', 'seasonalRoads|CLOSURE']);
+
+/** Mix two #rrggbb colors like CSS color-mix(in srgb, a p, b) */
+function mix(a: string, b: string, p: number): string {
+  const ch = (hex: string, i: number): number => parseInt(hex.slice(i, i + 2), 16);
+  return `#${[1, 3, 5]
+    .map((i) =>
+      Math.round(p * ch(a, i) + (1 - p) * ch(b, i))
+        .toString(16)
+        .padStart(2, '0'),
+    )
+    .join('')}`;
+}
+
+/** The light panel behind chips (--gradient-panel) */
+const PANEL = '#fafcf3';
 
 describe('layer palette', () => {
   it('matches a reference CIEDE2000 value', () => {
@@ -94,6 +116,7 @@ describe('layer palette', () => {
       for (let j = i + 1; j < entries.length; j++) {
         const a = entries[i]!;
         const b = entries[j]!;
+        if (SHARED.has(`${a.key}|${b.key}`)) continue;
         const d = deltaE2000(hexToLab(a.color), hexToLab(b.color));
         if (d < 17) close.push(`${a.key} ${a.color} / ${b.key} ${b.color}: ${d.toFixed(1)}`);
       }
@@ -101,10 +124,15 @@ describe('layer palette', () => {
     expect(close).toEqual([]);
   });
 
-  it('keeps white marker icons visible on every color (3:1 for graphics, ~2.9 floor)', () => {
+  it('keeps chip and marker text readable on the pale tint (4.5:1)', () => {
+    // Selected chips and markers: a 16-18% tint of the color, with the text
+    // and icon in the layer's ink (or the color darkened 64% toward black)
     const low = entries
-      .map(({ key, color }) => ({ key, ratio: contrast(color, '#ffffff') }))
-      .filter(({ ratio }) => ratio < 2.9)
+      .map(({ key, color, ink }) => {
+        const text = ink ?? mix(color, '#000000', 0.64);
+        return { key, ratio: contrast(text, mix(color, PANEL, 0.16)) };
+      })
+      .filter(({ ratio }) => ratio < 4.5)
       .map(({ key, ratio }) => `${key}: ${ratio.toFixed(2)}`);
     expect(low).toEqual([]);
   });

@@ -52,8 +52,9 @@ export function createMapMarker(options: MapMarkerOptions): HTMLDivElement {
     .join(' ');
   el.dataset.layer = layer;
   el.style.setProperty('--layer-color', LAYER_STYLES[layer].color);
-  const { colorDark } = LAYER_STYLES[layer];
+  const { colorDark, ink } = LAYER_STYLES[layer];
   if (colorDark) el.style.setProperty('--layer-color-dark', colorDark);
+  if (ink) el.style.setProperty('--layer-ink', ink);
   if (statusFill) el.style.setProperty('--marker-fill', statusFill);
 
   el.setAttribute('role', 'button');

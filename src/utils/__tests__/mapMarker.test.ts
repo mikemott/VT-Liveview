@@ -8,7 +8,7 @@ describe('createMapMarker (VTL-64)', () => {
     expect(el.tabIndex).toBe(0);
     expect(el.getAttribute('aria-label')).toBe('Traffic camera: Berlin');
     expect(el.dataset.layer).toBe('trafficCameras');
-    expect(el.style.getPropertyValue('--layer-color')).toBe('#ec4899');
+    expect(el.style.getPropertyValue('--layer-color')).toBe('#ffd000');
     expect(el.className).toBe('map-marker map-marker--circle');
     // Visuals on an inner body; MapLibre owns the outer element's transform
     expect(el.firstElementChild?.className).toBe('map-marker-body');

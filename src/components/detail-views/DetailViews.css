@@ -104,14 +104,14 @@
   border-radius: var(--radius-full);
   border: 1px solid color-mix(in srgb, var(--layer-color) 50%, transparent);
   background: color-mix(in srgb, var(--layer-color) 14%, transparent);
-  color: color-mix(in srgb, var(--layer-color) 64%, black);
+  color: var(--layer-ink, color-mix(in srgb, var(--layer-color) 64%, black));
   font-size: 12px;
   font-weight: var(--font-weight-semibold);
   letter-spacing: 0.01em;
 }
 
 .layer-badge svg {
-  color: var(--layer-color);
+  color: var(--layer-ink, var(--layer-color));
 }
 
 .dark .layer-badge {
@@ -449,7 +449,7 @@
 
 .location-nearby-icon {
   flex-shrink: 0;
-  color: var(--layer-color);
+  color: var(--layer-ink, var(--layer-color));
 }
 
 .dark .location-nearby-icon {
@@ -637,7 +637,7 @@
 .seasonal-status-seasonal {
   background: color-mix(in srgb, var(--layer-color) 8%, transparent);
   border-color: color-mix(in srgb, var(--layer-color) 40%, transparent);
-  color: var(--layer-color);
+  color: var(--layer-ink, var(--layer-color));
 }
 
 .seasonal-status-closingSoon {
