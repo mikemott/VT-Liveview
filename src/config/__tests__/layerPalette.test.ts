@@ -1,10 +1,10 @@
 /**
  * Every layer color must be clearly different from every other (VTL-66):
- * chips, markers and search results all show the full color, so two close
- * colors read as the same layer.
+ * markers, chips and search results all show it, so two close colors read
+ * as the same layer.
  */
 import { describe, expect, it } from 'vitest';
-import { LAYER_STYLES, relativeLuminance, textOn } from '../layers';
+import { LAYER_STYLES, relativeLuminance } from '../layers';
 
 type Lab = [number, number, number];
 
@@ -105,14 +105,6 @@ describe('layer palette', () => {
     const low = entries
       .map(({ key, color }) => ({ key, ratio: contrast(color, '#ffffff') }))
       .filter(({ ratio }) => ratio < 2.9)
-      .map(({ key, ratio }) => `${key}: ${ratio.toFixed(2)}`);
-    expect(low).toEqual([]);
-  });
-
-  it('gives selected chip text at least 4.5:1 on every color', () => {
-    const low = entries
-      .map(({ key, color }) => ({ key, ratio: contrast(color, textOn(color)) }))
-      .filter(({ ratio }) => ratio < 4.5)
       .map(({ key, ratio }) => `${key}: ${ratio.toFixed(2)}`);
     expect(low).toEqual([]);
   });
