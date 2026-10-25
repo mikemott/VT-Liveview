@@ -21,7 +21,7 @@ export interface MapMarkerOptions {
   title?: string;
   /** Trusted, hard-coded SVG markup (never feed data) */
   iconSvg?: string;
-  /** Text shown instead of an icon, e.g. "42°" (set with textContent) */
+  /** Text, e.g. "42°" (set with textContent); shown under the icon if both are given */
   text?: string;
   /** circle (icons) or pill (text readings) */
   shape?: 'circle' | 'pill';
@@ -72,8 +72,17 @@ export function createMapMarker(options: MapMarkerOptions): HTMLDivElement {
     const template = document.createElement('template');
     template.innerHTML = iconSvg.trim();
     body.append(template.content);
-  } else if (text !== undefined) {
-    body.textContent = text;
+  }
+  if (text !== undefined) {
+    if (iconSvg) {
+      el.classList.add('map-marker--stacked');
+      const span = document.createElement('span');
+      span.className = 'map-marker-text';
+      span.textContent = text;
+      body.append(span);
+    } else {
+      body.textContent = text;
+    }
   }
   el.appendChild(body);
   return el;

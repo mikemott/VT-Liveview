@@ -1,41 +1,31 @@
-import { layerColor } from '../config/layers';
-import { useState, useEffect, useRef, memo, useCallback } from 'react';
-import maplibregl from 'maplibre-gl';
+/**
+ * Weather observation stations (NWS + USGS water temperature).
+ *
+ * Markers come from the shared builder (VTL-64): a blue circle with the
+ * temperature; USGS water stations add a droplet. Clicking opens the station
+ * in the side panel.
+ */
+import { useState, useEffect, useRef, memo } from 'react';
 import { graphqlClient } from '../services/graphqlClient';
 import { gql } from 'graphql-request';
 import { INTERVALS } from '../utils/constants';
 import { useVisibleInterval } from '../hooks/useVisibleInterval';
-import { escapeHTML } from '../utils/sanitize';
+import { useMapMarkers, type BuiltMarker } from '../hooks/useMapMarkers';
+import { createMapMarker } from '../utils/mapMarker';
 import { getObservationAge } from '../utils/observationAge';
-import type { MapLibreMap, Marker, ObservationStation } from '../types';
-import './WeatherStationsLayer.css';
-
-// =============================================================================
-// Types
-// =============================================================================
+import type { MapLibreMap, ObservationStation } from '../types';
 
 interface StationsResponse {
   observationStations: ObservationStation[];
 }
 
-interface MarkerEntry {
-  marker: Marker;
-  element: HTMLDivElement;
-  handler: (e: MouseEvent) => void;
-}
-
 interface WeatherStationsLayerProps {
   map: MapLibreMap | null;
   visible: boolean;
-  onStationClick?: (station: ObservationStation) => void;
+  onStationClick: (station: ObservationStation) => void;
   /** Called after each successful stations fetch (used to restore a shared selection). */
   onStationsLoaded?: (stations: ObservationStation[]) => void;
-  globalPopupRef: React.MutableRefObject<maplibregl.Popup | null>;
 }
-
-// =============================================================================
-// GraphQL Query
-// =============================================================================
 
 const STATIONS_QUERY = gql`
   query GetObservationStations {
@@ -62,10 +52,6 @@ const STATIONS_QUERY = gql`
   }
 `;
 
-// =============================================================================
-// Helper Functions
-// =============================================================================
-
 // Lucide Droplet icon as static SVG (a React root per marker was never unmounted)
 const DROPLET_ICON = `
   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
@@ -78,141 +64,39 @@ const DROPLET_ICON = `
 const isNum = (v: number | null | undefined): v is number =>
   typeof v === 'number' && Number.isFinite(v);
 
-function createWeatherStationMarker(station: ObservationStation): HTMLDivElement {
-  const el = document.createElement('div');
-  el.className = 'weather-station-marker';
-
-  // Check if this is a water temperature sensor (USGS station)
+function buildStationMarker(station: ObservationStation): BuiltMarker {
   const isWaterTemp = station.id.startsWith('USGS-');
-
-  // Different colors for water temp vs air temp. Both backgrounds keep white
-  // 10-11px text at >= 4.5:1 contrast (WCAG AA, FINDINGS H17).
-  const stationColors = isWaterTemp
-    ? {
-        bg: layerColor('weatherStations'), // Layer color (VTL-64); larger + droplet for water
-        border: '#ffffff',
-        shadow: 'rgba(37, 99, 235, 0.4)',
-        text: '#ffffff',
-      }
-    : {
-        bg: layerColor('weatherStations'), // Layer color (VTL-64)
-        border: '#ffffff',
-        shadow: 'rgba(0, 0, 0, 0.3)',
-        text: '#ffffff',
-      };
-
-  // Grey out readings that are too old to describe current conditions (VTL-50).
-  // #6b7280 keeps white 10-11px text at >= 4.5:1 contrast.
+  // Grey out readings that are too old to describe current conditions (VTL-50)
   const age = getObservationAge(station.weather?.timestamp);
-  if (age.isStale) {
-    stationColors.bg = '#6b7280';
-    stationColors.shadow = 'rgba(0, 0, 0, 0.25)';
-  }
-
-  // Larger size for water temp sensors
-  const size = isWaterTemp ? 42 : 34;
-
-  // Create inner element for content and hover effects
-  const inner = document.createElement('div');
-  inner.style.cssText = `
-    width: ${size}px;
-    height: ${size}px;
-    background: ${stationColors.bg};
-    border: 3px solid ${stationColors.border};
-    border-radius: 50%;
-    box-shadow: 0 3px 8px ${stationColors.shadow};
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: ${isWaterTemp ? '11px' : '10px'};
-    font-weight: 700;
-    color: ${stationColors.text};
-    transform-origin: center center;
-    will-change: transform;
-    gap: 1px;
-    opacity: ${age.isStale ? 0.85 : 1};
-  `;
-  if (age.isStale) el.classList.add('stale');
-
-  // Validate temperature before rendering
   const temp = station.weather?.temperature;
-  const tempDisplay =
-    temp !== null && temp !== undefined && Number.isFinite(temp) ? `${Math.round(temp)}°` : 'N/A';
+  const tempDisplay = isNum(temp) ? `${Math.round(temp)}°` : 'N/A';
 
-  if (isWaterTemp) {
-    // Create water droplet icon container
-    const iconContainer = document.createElement('div');
-    iconContainer.style.cssText = `
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: -2px;
-    `;
-
-    iconContainer.innerHTML = DROPLET_ICON;
-
-    inner.appendChild(iconContainer);
-
-    // Add temperature text below icon
-    const tempText = document.createElement('div');
-    tempText.textContent = tempDisplay;
-    tempText.style.cssText = `
-      font-size: 10px;
-      line-height: 1;
-    `;
-    inner.appendChild(tempText);
-  } else {
-    // Regular air temperature display
-    inner.textContent = tempDisplay;
-  }
-
-  // Add hover effect to inner element only
-  inner.addEventListener('mouseenter', () => {
-    inner.style.transform = 'translateY(-2px) scale(1.1)';
-    inner.style.boxShadow = `0 5px 12px ${stationColors.shadow}`;
-  });
-
-  inner.addEventListener('mouseleave', () => {
-    inner.style.transform = 'translateY(0) scale(1)';
-    inner.style.boxShadow = `0 3px 8px ${stationColors.shadow}`;
-  });
-
-  el.appendChild(inner);
-
-  // maplibre gives markers role="button" but a generic "Map marker" name and no tab
-  // stop. Lead the name with the visible reading so speech/voice control matches what
-  // is shown, and make Enter/Space activate it like a click (FINDINGS H15).
+  // Lead the name with the visible reading so speech/voice control matches
+  // what is shown (FINDINGS H15)
   const reading = isWaterTemp ? `${tempDisplay} water temperature` : tempDisplay;
   const staleNote = age.isStale && age.ago ? `, reading from ${age.ago}` : '';
-  el.setAttribute('aria-label', `${reading}, ${station.name}${staleNote}`);
-  el.tabIndex = 0;
-  el.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      el.click();
-    }
+
+  const element = createMapMarker({
+    layer: 'weatherStations',
+    text: tempDisplay,
+    ...(isWaterTemp ? { iconSvg: DROPLET_ICON } : {}),
+    label: `${reading}, ${station.name}${staleNote}`,
+    title: station.name,
+    dimmed: age.isStale,
+    className: ['weather-station-marker', isWaterTemp ? 'water' : '', age.isStale ? 'stale' : '']
+      .filter(Boolean)
+      .join(' '),
   });
-
-  return el;
+  return { lngLat: [station.location.lng, station.location.lat], element };
 }
-
-// =============================================================================
-// Component
-// =============================================================================
 
 function WeatherStationsLayer({
   map,
   visible,
   onStationClick,
   onStationsLoaded,
-  globalPopupRef,
 }: WeatherStationsLayerProps) {
   const [stations, setStations] = useState<ObservationStation[]>([]);
-  const [_loading, setLoading] = useState(false);
-  const markersRef = useRef<MarkerEntry[]>([]);
 
   // Ref so a new callback identity doesn't refetch
   const onStationsLoadedRef = useRef(onStationsLoaded);
@@ -220,258 +104,32 @@ function WeatherStationsLayer({
     onStationsLoadedRef.current = onStationsLoaded;
   }, [onStationsLoaded]);
 
-  const fetchStations = useCallback(async (): Promise<void> => {
+  // Fetch once there's a map, then every 15 minutes while the page is visible
+  const [refreshTick, setRefreshTick] = useState(0);
+  useVisibleInterval(() => setRefreshTick((t) => t + 1), map ? INTERVALS.STATIONS_REFRESH : null);
+  useEffect(() => {
     if (!map) return;
-    setLoading(true);
-    try {
-      const data = await graphqlClient.request<StationsResponse>(STATIONS_QUERY);
-      setStations(data.observationStations);
-      onStationsLoadedRef.current?.(data.observationStations);
-    } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error('Error fetching weather stations:', error);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [map]);
-
-  // Fetch stations on mount, then every 15 minutes while the page is visible
-  useEffect(() => {
-    void fetchStations();
-  }, [fetchStations]);
-  useVisibleInterval(() => void fetchStations(), map ? INTERVALS.STATIONS_REFRESH : null);
-
-  // Add markers to map when stations change
-  useEffect(() => {
-    if (!map || !visible) {
-      // Clear existing markers and popup
-      markersRef.current.forEach(({ marker, element, handler }) => {
-        if (element && handler) {
-          element.removeEventListener('click', handler as EventListener);
+    let cancelled = false;
+    const load = async (): Promise<void> => {
+      try {
+        const data = await graphqlClient.request<StationsResponse>(STATIONS_QUERY);
+        if (cancelled) return;
+        setStations(data.observationStations);
+        onStationsLoadedRef.current?.(data.observationStations);
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.error('Error fetching weather stations:', error);
         }
-        marker.remove();
-      });
-      markersRef.current = [];
-      if (globalPopupRef.current) {
-        globalPopupRef.current.remove();
-        globalPopupRef.current = null;
-      }
-      return;
-    }
-
-    // Remove old markers
-    markersRef.current.forEach(({ marker, element, handler }) => {
-      if (element && handler) {
-        element.removeEventListener('click', handler as EventListener);
-      }
-      marker.remove();
-    });
-    markersRef.current = [];
-
-    // Close popup on map click
-    const handleMapClick = (): void => {
-      if (globalPopupRef.current) {
-        globalPopupRef.current.remove();
-        globalPopupRef.current = null;
       }
     };
-    map.on('click', handleMapClick);
-
-    // Add new markers for stations
-    stations.forEach((station) => {
-      const el = createWeatherStationMarker(station);
-
-      const marker = new maplibregl.Marker({ element: el })
-        .setLngLat([station.location.lng, station.location.lat])
-        .addTo(map);
-
-      // Check if this is a water temperature sensor
-      const isWaterTemp = station.id.startsWith('USGS-');
-
-      // Weather station colors (soft blue from style guide) - solid cream background
-      // Use vibrant blue for water temp sensors
-      const stationColors = isWaterTemp
-        ? {
-            bg: '#fbfdf4',
-            border: 'rgba(59, 130, 246, 0.4)',
-            text: '#1e40af',
-            badgeBg: 'rgba(59, 130, 246, 0.2)',
-            badgeBorder: 'rgba(59, 130, 246, 0.4)',
-            secondary: '#3b82f6',
-            metadata: '#3b82f6',
-          }
-        : {
-            bg: '#fbfdf4',
-            border: 'rgba(88, 139, 174, 0.4)',
-            text: '#2c5368',
-            badgeBg: 'rgba(88, 139, 174, 0.2)',
-            badgeBorder: 'rgba(88, 139, 174, 0.4)',
-            secondary: '#7a9576',
-            metadata: '#7a9576',
-          };
-
-      const safeName = escapeHTML(station.name);
-      const badgeText = isWaterTemp ? 'Water Temperature' : 'Weather Station';
-      const w = station.weather;
-      const temp = isNum(w?.temperature) ? `${Math.round(w.temperature)}°F` : 'N/A';
-      const wind = w?.windSpeed ? escapeHTML(w.windSpeed) : 'N/A';
-      const humidity = isNum(w?.humidity) ? `${Math.round(w.humidity)}%` : 'N/A';
-      const pressure = isNum(w?.pressure) ? `${(w.pressure / 100).toFixed(2)} mb` : 'N/A';
-      const age = getObservationAge(w?.timestamp);
-      const asOfLine = age.asOf
-        ? `<div class="station-popup-asof${age.isStale ? ' stale' : ''}">${
-            age.isStale
-              ? `⚠️ Old reading: ${escapeHTML(age.ago ?? '')} (${escapeHTML(age.asOf)})`
-              : escapeHTML(age.asOf)
-          }</div>`
-        : '';
-
-      // Create popup
-      const popup = new maplibregl.Popup({
-        offset: 25,
-        closeButton: true,
-        closeOnClick: false,
-        maxWidth: '280px',
-        className: 'station-popup',
-      }).setHTML(`
-        <div style="
-          padding: var(--space-7, 16px);
-          background: ${stationColors.bg};
-          border-radius: var(--radius-xl, 12px);
-          border: 1px solid rgba(93, 124, 90, 0.12);
-          box-shadow: 0 6px 16px rgba(150, 150, 140, 0.12);
-          font-family: 'Public Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-        ">
-          <div style="
-            background: ${stationColors.badgeBg};
-            border: 2px solid ${stationColors.badgeBorder};
-            border-radius: var(--radius-lg, 8px);
-            padding: var(--space-2, 6px) var(--space-4, 10px);
-            margin-bottom: var(--space-5, 12px);
-            display: inline-flex;
-            align-items: center;
-            gap: var(--space-2, 6px);
-          ">
-            <span style="
-              color: ${stationColors.text};
-              font-size: var(--font-size-sm, 10px);
-              font-weight: 600;
-              text-transform: uppercase;
-              letter-spacing: 0.05em;
-            ">${badgeText}</span>
-          </div>
-          <h3 style="
-            margin: 0 0 var(--space-5, 12px) 0;
-            color: ${stationColors.text};
-            font-size: var(--font-size-2xl, 16px);
-            font-weight: 700;
-            line-height: 1.2;
-          ">${safeName}</h3>
-          <div style="
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: var(--space-4, 10px);
-            margin-bottom: var(--space-3, 8px);
-          ">
-            <div style="
-              font-size: var(--font-size-sm, 10px);
-              color: ${stationColors.secondary};
-            ">
-              <div style="font-weight: 600; margin-bottom: 2px;">Temperature</div>
-              <div style="font-size: var(--font-size-xl, 14px); color: ${stationColors.text}; font-weight: 700;">${temp}</div>
-            </div>
-            <div style="
-              font-size: var(--font-size-sm, 10px);
-              color: ${stationColors.secondary};
-            ">
-              <div style="font-weight: 600; margin-bottom: 2px;">Wind</div>
-              <div style="font-size: var(--font-size-lg, 13px); color: ${stationColors.text}; font-weight: 600;">${wind}</div>
-            </div>
-            <div style="
-              font-size: var(--font-size-sm, 10px);
-              color: ${stationColors.secondary};
-            ">
-              <div style="font-weight: 600; margin-bottom: 2px;">Humidity</div>
-              <div style="font-size: var(--font-size-lg, 13px); color: ${stationColors.text}; font-weight: 600;">${humidity}</div>
-            </div>
-            <div style="
-              font-size: var(--font-size-sm, 10px);
-              color: ${stationColors.secondary};
-            ">
-              <div style="font-weight: 600; margin-bottom: 2px;">Pressure</div>
-              <div style="font-size: var(--font-size-lg, 13px); color: ${stationColors.text}; font-weight: 600;">${pressure}</div>
-            </div>
-          </div>
-          ${asOfLine}
-          ${
-            station.elevation
-              ? `
-            <div style="
-              padding-top: var(--space-3, 8px);
-              border-top: 1px solid rgba(93, 124, 90, 0.12);
-              font-size: var(--font-size-sm, 10px);
-              color: ${stationColors.metadata};
-              font-weight: 500;
-            ">
-              Elevation: ${station.elevation.toLocaleString()} ft
-            </div>
-          `
-              : ''
-          }
-        </div>
-      `);
-
-      // Click handler opens popup
-      const handleMarkerClick = (e: MouseEvent): void => {
-        e.stopPropagation();
-
-        // Close existing popup if any (atomic operation)
-        if (globalPopupRef.current && globalPopupRef.current !== popup) {
-          globalPopupRef.current.remove();
-          globalPopupRef.current = null;
-        }
-
-        // Toggle popup: close if clicking same marker, open if different
-        if (globalPopupRef.current === popup) {
-          popup.remove();
-          globalPopupRef.current = null;
-        } else {
-          popup.setLngLat([station.location.lng, station.location.lat]).addTo(map);
-          globalPopupRef.current = popup;
-          onStationClick?.(station);
-        }
-      };
-
-      el.addEventListener('click', handleMarkerClick as EventListener);
-
-      markersRef.current.push({
-        marker: marker,
-        element: el,
-        handler: handleMarkerClick,
-      });
-    });
-
-    // Cleanup
+    void load();
     return () => {
-      markersRef.current.forEach(({ marker, element, handler }) => {
-        if (element && handler) {
-          element.removeEventListener('click', handler as EventListener);
-        }
-        marker.remove();
-      });
-      markersRef.current = [];
-
-      // Clean up popup and map click handler
-      if (globalPopupRef.current) {
-        globalPopupRef.current.remove();
-        globalPopupRef.current = null;
-      }
-      map.off('click', handleMapClick);
+      cancelled = true;
     };
-  }, [map, visible, stations, globalPopupRef, onStationClick]);
+  }, [map, refreshTick]);
 
-  // No UI panel - markers only
+  useMapMarkers(map, visible, stations, buildStationMarker, onStationClick);
+
   return null;
 }
 

@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import AlertDetail from '../AlertDetail';
 import IncidentDetail from '../IncidentDetail';
@@ -8,9 +8,8 @@ import { useForecast } from '../../../hooks/useForecast';
 import type { ForecastPeriod } from '../../../types';
 import {
   makeAlertFeature,
-  makeDetailIncident,
+  makeVT511Incident,
   makeStation,
-  omit,
 } from '../../../__fixtures__/components/data';
 import {
   XSS_PAYLOAD,
@@ -105,59 +104,49 @@ describe('AlertDetail', () => {
 });
 
 describe('IncidentDetail', () => {
-  beforeEach(() => {
-    vi.useFakeTimers({ toFake: ['Date'] });
-    vi.setSystemTime(new Date('2026-10-16T12:00:00Z'));
-  });
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  it('renders type, severity, location and relative times', () => {
-    render(
+  it('shows the layer badge, road, details and source (VTL-64)', () => {
+    const { container } = render(
       <IncidentDetail
-        incident={makeDetailIncident({ endTime: '2026-10-13T12:00:00Z' })}
+        incident={makeVT511Incident({
+          type: 'CLOSURE',
+          title: 'Bridge out on VT-100',
+          description: 'Detour via VT-17',
+          roadName: 'VT-100',
+          affectedLanes: 'All lanes closed',
+          roadRestrictions: { weight: '72000', width: null },
+        })}
         isDark={false}
       />,
     );
-    expect(screen.getByText('Paving on US-2')).toBeInTheDocument();
-    expect(screen.getByText('Severity: Moderate')).toBeInTheDocument();
-    expect(screen.getByText('US-2 (EB)')).toBeInTheDocument();
-    expect(screen.getByText('2 hours ago')).toBeInTheDocument();
-    expect(screen.getByText('1 hour ago')).toBeInTheDocument();
-    expect(screen.getByText('3 days ago')).toBeInTheDocument();
-    expect(screen.getByText('Source: VT511')).toBeInTheDocument();
+    const badge = container.querySelector('.layer-badge') as HTMLElement;
+    expect(badge).toHaveTextContent('Road closure');
+    expect(badge.style.getPropertyValue('--layer-color')).toBe('#dc2626');
+    expect(screen.getByText('Bridge out on VT-100')).toBeInTheDocument();
+    expect(screen.getByText('VT-100')).toBeInTheDocument();
+    expect(screen.getByText('Detour via VT-17')).toBeInTheDocument();
+    expect(screen.getByText('All lanes closed')).toBeInTheDocument();
+    expect(screen.getByText('72,000 lbs')).toBeInTheDocument();
+    expect(screen.queryByText('Width limit')).toBeNull();
+    expect(screen.getByText('Source: VT 511')).toBeInTheDocument();
   });
 
-  it.each([
-    ['ACCIDENT', '2026-10-16T11:59:00Z', '1 min ago'],
-    ['CLOSURE', '2026-10-16T11:55:00Z', '5 mins ago'],
-    ['FLOODING', '2026-10-15T12:00:00Z', '1 day ago'],
-    ['HAZARD', '2026-10-16T12:00:00Z', 'Just now'],
-  ] as const)('renders %s incidents (%s -> %s)', (type, lastUpdated, label) => {
+  it('skips a description that only repeats the title', () => {
     const { container } = render(
       <IncidentDetail
-        incident={omit(makeDetailIncident({ type, lastUpdated }), 'road', 'startTime')}
+        incident={makeVT511Incident({ title: 'Crash', description: 'Crash' })}
         isDark
       />,
     );
-    expect(container.querySelector('.incident-detail')).toHaveAttribute(
-      'data-incident-type',
-      type.toLowerCase(),
-    );
-    expect(container.querySelector('.incident-type-badge svg')).not.toBeNull();
-    expect(screen.getByText(label)).toBeInTheDocument();
-    expect(screen.queryByText('Location')).toBeNull();
+    expect(container.querySelector('.incident-description')).toBeNull();
   });
 
   it('renders hostile strings as text', () => {
     const { container } = render(
       <IncidentDetail
-        incident={makeDetailIncident({
+        incident={makeVT511Incident({
           title: XSS_PAYLOAD,
-          description: XSS_PAYLOAD,
-          road: XSS_PAYLOAD,
-          direction: XSS_PAYLOAD,
+          description: `${XSS_PAYLOAD} more`,
+          roadName: XSS_PAYLOAD,
         })}
         isDark={false}
       />,

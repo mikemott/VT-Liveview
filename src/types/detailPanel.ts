@@ -3,7 +3,7 @@
  * Defines the different types of content that can be displayed in the detail panel
  */
 
-import type { Incident } from './incidents';
+import type { TravelIncident } from '../services/travelApi';
 import type { ObservationStation } from './weather';
 import type { TrafficCamera } from '../services/cameraApi';
 import type { RoadWeatherStation } from '../services/roadWeatherApi';
@@ -48,7 +48,7 @@ export interface AlertFeature {
 // Union type for detail panel content
 export type DetailPanelContent =
   | { type: 'alert'; data: AlertFeature }
-  | { type: 'incident'; data: Incident }
+  | { type: 'incident'; data: TravelIncident }
   | { type: 'station'; data: ObservationStation }
   | { type: 'camera'; data: TrafficCamera }
   | { type: 'roadWeather'; data: RoadWeatherStation }
