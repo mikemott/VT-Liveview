@@ -5,9 +5,8 @@
  * color from here, so a chip always matches what it shows on the map.
  *
  * The palette was picked for distinctness (VTL-66): every pair is >= 17
- * CIEDE2000 apart as the full color, which is what both markers and selected
- * chips (filled) show. White marker icons keep ~3:1 contrast or better; chip
- * text uses black or white, whichever reads better (textOn, >= 4.5:1). Change a color only after re-checking every
+ * CIEDE2000 apart as the full color (markers, lines, badges); selected chips
+ * show a pale tint of it. White marker icons keep ~3:1 contrast or better. Change a color only after re-checking every
  * pair; layerPalette.test.ts enforces both.
  */
 import type { CSSProperties } from 'react';
@@ -109,15 +108,11 @@ export function textOn(hex: string): '#ffffff' | '#000000' {
   return 1.05 / (l + 0.05) >= (l + 0.05) / 0.05 ? '#ffffff' : '#000000';
 }
 
-/**
- * `style` for an element whose CSS uses var(--layer-color); --layer-on is the
- * readable text color on a fill of that color (selected chips).
- */
+/** `style` for an element whose CSS uses var(--layer-color). */
 export function layerColorVars(key: LayerStyleKey): CSSProperties {
   const { color, colorDark } = LAYER_STYLES[key];
   return {
     '--layer-color': color,
-    '--layer-on': textOn(color),
     ...(colorDark ? { '--layer-color-dark': colorDark } : {}),
   } as CSSProperties;
 }

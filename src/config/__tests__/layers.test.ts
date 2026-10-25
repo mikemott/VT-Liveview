@@ -36,13 +36,9 @@ describe('layer registry (VTL-64)', () => {
   });
 
   it('exposes the color as a CSS variable', () => {
-    expect(layerColorVars('trafficCameras')).toEqual({
-      '--layer-color': '#ec4899',
-      '--layer-on': '#000000',
-    });
+    expect(layerColorVars('trafficCameras')).toEqual({ '--layer-color': '#ec4899' });
     expect(layerColorVars('roadWeather')).toEqual({
       '--layer-color': '#334155',
-      '--layer-on': '#ffffff',
       '--layer-color-dark': '#94a3b8',
     });
   });
