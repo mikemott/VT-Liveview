@@ -136,7 +136,8 @@ export async function onRequest(context: Context): Promise<Response> {
   const html = applyPreview(await page.text(), preview, url.toString());
   const headers = new Headers(page.headers);
   headers.delete('content-length');
-  // Previews change with live data (alerts expire, cameras rename); keep caches short
-  headers.set('cache-control', 'public, max-age=300');
+  // Browsers revalidate (a stale index.html would point at old bundles after a
+  // deploy); shared caches may keep the preview for 5 minutes
+  headers.set('cache-control', 'public, max-age=0, s-maxage=300');
   return new Response(html, { status: page.status, headers });
 }

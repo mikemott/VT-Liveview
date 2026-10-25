@@ -158,7 +158,7 @@ describe('Pages Function', () => {
     const html = await res.text();
     expect(fetchMock.mock.calls[0]?.[0]).toBe('https://api.test/api/cameras');
     expect(html).toContain('<title>Live traffic camera: I-89 SB Berlin — VT LiveView</title>');
-    expect(res.headers.get('cache-control')).toBe('public, max-age=300');
+    expect(res.headers.get('cache-control')).toBe('public, max-age=0, s-maxage=300');
     fetchMock.mockRestore();
   });
 
