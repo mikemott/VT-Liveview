@@ -1,10 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import AlertDetail from '../AlertDetail';
 import IncidentDetail from '../IncidentDetail';
 import StationDetail from '../StationDetail';
 import LocationDetail from '../LocationDetail';
 import { useForecast } from '../../../hooks/useForecast';
+import { useAirQuality } from '../../../hooks/useAirQuality';
 import type { PointForecastPeriod } from '../../../hooks/useForecast';
 import {
   makeAlertFeature,
@@ -19,6 +20,9 @@ import {
 } from '../../../__fixtures__/components/xss';
 
 vi.mock('../../../hooks/useForecast', () => ({ useForecast: vi.fn() }));
+vi.mock('../../../hooks/useAirQuality', () => ({
+  useAirQuality: vi.fn(() => ({ data: undefined })),
+}));
 
 type ForecastResult = ReturnType<typeof useForecast>;
 const forecastMock = vi.mocked(useForecast);
@@ -296,5 +300,89 @@ describe('LocationDetail', () => {
     const { container } = render(<LocationDetail coordinates={coords} isDark={false} />);
     expectNoInjectedMarkup(container);
     expectPayloadAsText(container);
+  });
+});
+
+describe('LocationDetail air quality (VTL-75)', () => {
+  const airMock = vi.mocked(useAirQuality);
+  const ymd = (offsetDays: number): string =>
+    new Date(Date.now() + offsetDays * 86400000).toLocaleDateString('en-CA', {
+      timeZone: 'America/New_York',
+    });
+
+  it('shows the nearest monitor, guidance when unhealthy, and the next days', () => {
+    forecastMock.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error: null,
+    } as ForecastResult);
+    airMock.mockReturnValue({
+      data: {
+        current: {
+          id: 'x',
+          name: 'Underhill',
+          agency: null,
+          lat: 44.53,
+          lng: -72.87,
+          aqi: 112,
+          category: 3,
+          pollutant: 'PM2.5',
+          readings: [],
+          observedAt: '2026-10-26T14:00:00Z',
+          distanceMi: 14.6,
+        },
+        forecast: [
+          {
+            date: ymd(-1),
+            aqi: 30,
+            category: 1,
+            pollutant: 'OZONE',
+            reportingArea: 'N VT',
+            actionDay: false,
+          },
+          {
+            date: ymd(0),
+            aqi: 105,
+            category: 3,
+            pollutant: 'PM2.5',
+            reportingArea: 'N VT',
+            actionDay: true,
+          },
+          {
+            date: ymd(1),
+            aqi: null,
+            category: 2,
+            pollutant: 'PM2.5',
+            reportingArea: 'N VT',
+            actionDay: false,
+          },
+        ],
+      },
+    } as unknown as ReturnType<typeof useAirQuality>);
+    render(<LocationDetail coordinates={{ lat: 44.48, lng: -73.21 }} isDark={false} />);
+
+    expect(screen.getByText('Air quality')).toBeInTheDocument();
+    expect(screen.getByText('AQI 112')).toBeInTheDocument();
+    expect(screen.getByText(/Underhill monitor, 15 mi away/)).toBeInTheDocument();
+    expect(screen.getByText(/older adults and children should limit/)).toBeInTheDocument();
+    const days = screen.getByRole('list', { name: 'Air quality forecast' });
+    // Yesterday's forecast is dropped; a category-only day shows its name
+    expect(
+      within(days)
+        .getAllByRole('listitem')
+        .map((li) => li.textContent),
+    ).toEqual([expect.stringMatching(/^TodayAQI 105.*action day$/), 'TomorrowModerate']);
+    expect(screen.getByText(/Air quality: EPA AirNow/)).toBeInTheDocument();
+  });
+
+  it('shows no air quality section when there is none', () => {
+    forecastMock.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error: null,
+    } as ForecastResult);
+    airMock.mockReturnValue({ data: undefined } as ReturnType<typeof useAirQuality>);
+    render(<LocationDetail coordinates={{ lat: 44.48, lng: -73.21 }} isDark={false} />);
+    expect(screen.queryByText('Air quality')).toBeNull();
   });
 });

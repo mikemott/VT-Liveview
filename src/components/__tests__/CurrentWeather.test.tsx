@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactElement } from 'react';
+import { http, HttpResponse } from 'msw';
+import { server } from '../../test/msw';
 import CurrentWeather from '../CurrentWeather';
 import {
   fetchCurrentWeather,
@@ -129,4 +131,45 @@ describe('CurrentWeather', () => {
     expect(screen.queryByText('Tonight')).toBeNull();
   });
   it.todo('the expandable card is keyboard operable (FINDINGS H15 / a11y)');
+
+  describe('air quality (VTL-75)', () => {
+    it('shows the nearest monitor reading with its category color', async () => {
+      server.use(
+        http.get('*/api/air-quality', () =>
+          HttpResponse.json({
+            current: {
+              id: '500210002',
+              name: 'Rutland State St',
+              agency: null,
+              lat: 43.61,
+              lng: -72.98,
+              aqi: 59,
+              category: 2,
+              pollutant: 'PM2.5',
+              readings: [{ pollutant: 'PM2.5', aqi: 59, category: 2 }],
+              observedAt: '2026-10-26T14:00:00Z',
+              distanceMi: 8.4,
+            },
+            forecast: [],
+          }),
+        ),
+      );
+      renderWithClient(<CurrentWeather />);
+      const badge = await screen.findByText('AQI 59');
+      expect(badge).toHaveStyle({ background: '#ffff00', color: '#000000' });
+      expect(screen.getByText('Moderate')).toBeInTheDocument();
+      expect(badge.closest('.weather-aqi')).toHaveAttribute(
+        'title',
+        'Fine particles (PM2.5) at the Rutland State St monitor, 8 mi away (EPA AirNow)',
+      );
+    });
+
+    it('leaves the line out when air quality is unavailable', async () => {
+      renderWithClient(<CurrentWeather />);
+      await screen.findByText('51');
+      // The default handler answers 503 (not configured)
+      await new Promise((r) => setTimeout(r, 50));
+      expect(document.querySelector('.weather-aqi')).toBeNull();
+    });
+  });
 });

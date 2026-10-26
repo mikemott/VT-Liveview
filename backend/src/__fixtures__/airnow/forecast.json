@@ -1,0 +1,72 @@
+[
+  {
+    "dateIssue": "2026-10-26",
+    "dateValid": "2026-10-26",
+    "reportingArea": "Northern Vermont",
+    "reportingAreaCode": "vt001",
+    "stateCode": "VT",
+    "parameterName": "PM2.5",
+    "aqi": 33,
+    "forecastAgency": "Vermont Air Quality and Climate Division",
+    "categoryNumber": 1,
+    "categoryName": "Good",
+    "actionDay": false,
+    "discussion": ""
+  },
+  {
+    "dateIssue": "2026-10-26",
+    "dateValid": "2026-10-26",
+    "reportingArea": "Northern Vermont",
+    "reportingAreaCode": "vt001",
+    "stateCode": "VT",
+    "parameterName": "OZONE",
+    "aqi": 38,
+    "forecastAgency": "Vermont Air Quality and Climate Division",
+    "categoryNumber": 1,
+    "categoryName": "Good",
+    "actionDay": false,
+    "discussion": ""
+  },
+  {
+    "dateIssue": "2026-10-26",
+    "dateValid": "2026-10-27",
+    "reportingArea": "Northern Vermont",
+    "reportingAreaCode": "vt001",
+    "stateCode": "VT",
+    "parameterName": "PM2.5",
+    "aqi": -1,
+    "forecastAgency": "Vermont Air Quality and Climate Division",
+    "categoryNumber": 2,
+    "categoryName": "Moderate",
+    "actionDay": false,
+    "discussion": ""
+  },
+  {
+    "dateIssue": "2026-10-26",
+    "dateValid": "2026-10-27",
+    "reportingArea": "Northern Vermont",
+    "reportingAreaCode": "vt001",
+    "stateCode": "VT",
+    "parameterName": "OZONE",
+    "aqi": 42,
+    "forecastAgency": "Vermont Air Quality and Climate Division",
+    "categoryNumber": 1,
+    "categoryName": "Good",
+    "actionDay": false,
+    "discussion": ""
+  },
+  {
+    "dateIssue": "2026-10-26",
+    "dateValid": "2026-10-28",
+    "reportingArea": "Northern Vermont",
+    "reportingAreaCode": "vt001",
+    "stateCode": "VT",
+    "parameterName": "PM10",
+    "aqi": -1,
+    "forecastAgency": "Vermont Air Quality and Climate Division",
+    "categoryNumber": -1,
+    "categoryName": "",
+    "actionDay": false,
+    "discussion": ""
+  }
+]

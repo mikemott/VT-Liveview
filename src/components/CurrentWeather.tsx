@@ -10,6 +10,8 @@ import { Wind, Droplets, ChevronDown } from 'lucide-react';
 import WeatherIcon from './WeatherIcon';
 import { getWeatherIconName, getWeatherIconFromNOAAUrl } from '../utils/weatherIconMapping';
 import { isCurrentlyDaytime } from '../utils/time';
+import { useAirQuality } from '../hooks/useAirQuality';
+import { aqiCategory, aqiShortName, pollutantLabel } from '../utils/aqi';
 import './CurrentWeather.css';
 
 // Default location: Montpelier, VT
@@ -49,6 +51,10 @@ export default function CurrentWeather({
     retry: 2,
     placeholderData: (previousData) => previousData, // Keep previous data during refetch
   });
+
+  // Air quality is a bonus line: if it fails or isn't configured, it just doesn't show
+  const { data: air } = useAirQuality(lat, lon);
+  const aqNow = air?.current ?? null;
 
   if (isLoading) {
     return (
@@ -122,6 +128,25 @@ export default function CurrentWeather({
 
       {/* Hide description when mobile collapsed */}
       {!showMinimalView && <div className="weather-description">{weatherData.description}</div>}
+
+      {/* Air quality (VTL-75): nearest AirNow monitor */}
+      {!showMinimalView && aqNow && (
+        <div
+          className="weather-aqi"
+          title={`${pollutantLabel(aqNow.pollutant)} at the ${aqNow.name} monitor, ${Math.round(aqNow.distanceMi)} mi away (EPA AirNow)`}
+        >
+          <span
+            className="weather-aqi-badge"
+            style={{
+              background: aqiCategory(aqNow.category).color,
+              color: aqiCategory(aqNow.category).text,
+            }}
+          >
+            AQI {aqNow.aqi}
+          </span>
+          <span className="weather-aqi-label">{aqiShortName(aqNow.category)}</span>
+        </div>
+      )}
 
       {isExpanded && (
         <>

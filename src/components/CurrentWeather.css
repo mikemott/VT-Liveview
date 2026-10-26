@@ -370,3 +370,24 @@
 .current-weather.mobile {
   min-height: 44px;
 }
+
+/* Air quality line (VTL-75) */
+.weather-aqi {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  /* Tucked under the description, clear of the expand arrow below */
+  margin-top: calc(-1 * var(--space-2));
+  margin-bottom: var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.weather-aqi-badge {
+  padding: 1px 8px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.02em;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
