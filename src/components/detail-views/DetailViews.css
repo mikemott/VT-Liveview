@@ -928,3 +928,42 @@
   gap: var(--space-3);
   font-size: var(--font-size-sm);
 }
+
+/* Air quality monitor (VTL-76) */
+.aq-headline {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin: var(--space-5) 0 var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-lg);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+.aq-headline-value {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.aq-headline-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.aq-headline-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+.aq-headline-name {
+  font-weight: var(--font-weight-semibold);
+}
+
+.aq-reading {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}

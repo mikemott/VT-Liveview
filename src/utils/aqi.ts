@@ -3,7 +3,7 @@
  * readable text color for each, plus short guidance.
  * https://www.airnow.gov/aqi/aqi-basics/
  */
-import type { Pollutant } from '../services/airQualityApi';
+import type { AirQualityForecastDay, Pollutant } from '../services/airQualityApi';
 
 export interface AqiCategory {
   name: string;
@@ -61,4 +61,35 @@ export function aqiShortName(category: number): string {
 
 export function pollutantLabel(p: Pollutant): string {
   return p === 'OZONE' ? 'Ozone' : p === 'PM2.5' ? 'Fine particles (PM2.5)' : 'Particles (PM10)';
+}
+
+/** Vermont's calendar date (YYYY-MM-DD) for a moment */
+const vtDate = (d: Date): string => d.toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+
+/** "Today", "Tomorrow" or the weekday for a forecast date (YYYY-MM-DD) */
+export function dayLabel(date: string, now: Date = new Date()): string {
+  if (date === vtDate(now)) return 'Today';
+  if (date === vtDate(new Date(now.getTime() + 24 * 3600 * 1000))) return 'Tomorrow';
+  return new Date(`${date}T12:00:00`).toLocaleDateString('en-US', { weekday: 'long' });
+}
+
+/** Forecast days from today on, at most `max` */
+export function upcomingAirDays(
+  forecast: readonly AirQualityForecastDay[],
+  now: Date = new Date(),
+  max = 3,
+): AirQualityForecastDay[] {
+  const today = vtDate(now);
+  return forecast.filter((d) => d.date >= today).slice(0, max);
+}
+
+/**
+ * AirNow stamps a reading with the start of its hour and posts it 20-60
+ * minutes after the hour ends, so a current reading is up to ~2 hours "old".
+ */
+export const AIR_READING_STALE_MINUTES = 150;
+
+export function isAirReadingStale(observedAt: string, now: Date = new Date()): boolean {
+  const t = new Date(observedAt).getTime();
+  return Number.isFinite(t) && now.getTime() - t > AIR_READING_STALE_MINUTES * 60_000;
 }

@@ -10,6 +10,7 @@ import type { SearchItem } from '../utils/search';
 import type { ObservationStation } from '../types';
 import type { TrafficCamera } from '../services/cameraApi';
 import type { RoadWeatherStation } from '../services/roadWeatherApi';
+import type { AirQualityMonitor } from '../services/airQualityApi';
 import { SEASONAL_ROADS } from '../data/seasonalRoads';
 import { roadBounds, roadCenter } from '../utils/seasonalRoads';
 
@@ -50,6 +51,7 @@ export function useSearchItems(
   stations: readonly ObservationStation[],
   cameras: readonly TrafficCamera[] = [],
   roadWeather: readonly RoadWeatherStation[] = [],
+  airMonitors: readonly AirQualityMonitor[] = [],
 ): { items: SearchItem[]; loading: boolean } {
   const opts = { enabled, staleTime: 10 * 60 * 1000, retry: 1 } as const;
   const [ski, beaches, creemee, recreation, incidents] = useQueries({
@@ -144,6 +146,17 @@ export function useSearchItems(
         lng: r.lng,
       });
     }
+    for (const m of airMonitors) {
+      out.push({
+        id: `aq:${m.id}`,
+        kind: 'airQuality',
+        name: m.name,
+        ...(m.agency ? { detail: m.agency } : {}),
+        keywords: 'air quality aqi smoke ozone pm2.5',
+        lat: m.lat,
+        lng: m.lng,
+      });
+    }
     out.push(...ROAD_ITEMS);
     for (const inc of incidents.data ?? []) {
       const { lat, lng } = inc.location;
@@ -168,6 +181,7 @@ export function useSearchItems(
     stations,
     cameras,
     roadWeather,
+    airMonitors,
   ]);
 
   const loading =

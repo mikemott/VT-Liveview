@@ -26,6 +26,7 @@ import {
   ThermometerSnowflake,
   Video,
   Waves,
+  Wind,
 } from 'lucide-react';
 import type { IncidentType } from '../types';
 
@@ -34,6 +35,7 @@ export type LayerStyleKey =
   | 'trafficFlow'
   | 'trafficCameras'
   | 'roadWeather'
+  | 'airQuality'
   | 'seasonalRoads'
   | IncidentType
   | 'skiResorts'
@@ -74,6 +76,13 @@ export const LAYER_STYLES: Record<LayerStyleKey, LayerStyle> = {
     color: '#334155',
     colorDark: '#94a3b8',
     description: 'Pavement temperature and surface from VTrans road weather stations',
+  },
+  airQuality: {
+    label: 'Air quality',
+    icon: Wind,
+    // Stone grey: markers are tinted by EPA category, this is only the ring (VTL-76)
+    color: '#78716c',
+    description: 'EPA AirNow air quality monitors (AQI)',
   },
   seasonalRoads: {
     label: 'Seasonal closures',

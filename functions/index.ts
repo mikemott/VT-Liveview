@@ -64,6 +64,12 @@ export function makeLookup(api: string): NameLookup {
         const { cameras } = await getJson<{ cameras: Named[] }>(`${api}/api/cameras`);
         return findName(cameras, selection.id);
       }
+      case 'aq': {
+        const { monitors } = await getJson<{ monitors: Named[] }>(
+          `${api}/api/air-quality/monitors`,
+        );
+        return findName(monitors, selection.id);
+      }
       case 'roadwx': {
         const { stations } = await getJson<{ stations: Named[] }>(`${api}/api/road-weather`);
         return findName(stations, selection.id);

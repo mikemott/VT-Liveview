@@ -13,6 +13,7 @@ import LocationDetail from './detail-views/LocationDetail';
 import CameraDetail from './detail-views/CameraDetail';
 import SeasonalRoadDetail from './detail-views/SeasonalRoadDetail';
 import RoadWeatherDetail from './detail-views/RoadWeatherDetail';
+import AirQualityDetail from './detail-views/AirQualityDetail';
 import SkiDetail from './detail-views/SkiDetail';
 import BeachDetail from './detail-views/BeachDetail';
 import CreemeeDetail from './detail-views/CreemeeDetail';
@@ -84,6 +85,8 @@ export default function DetailPanel({
         return 'Seasonal Road';
       case 'roadWeather':
         return 'Road Weather';
+      case 'airQuality':
+        return 'Air Quality';
       case 'ski':
         return 'Ski Area';
       case 'beach':
@@ -118,6 +121,8 @@ export default function DetailPanel({
         return <CameraDetail key={content.data.id} camera={content.data} isDark={isDark} />;
       case 'roadWeather':
         return <RoadWeatherDetail station={content.data} isDark={isDark} />;
+      case 'airQuality':
+        return <AirQualityDetail monitor={content.data} isDark={isDark} />;
       case 'ski':
         return <SkiDetail resort={content.data} isDark={isDark} />;
       case 'beach':

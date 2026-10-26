@@ -66,6 +66,18 @@ describe('parseUrlState', () => {
     expect(parseUrlState(hash).layers).toEqual(new Set(['roadWeather']));
   });
 
+  it('round-trips the air quality layer and a monitor selection (VTL-76)', () => {
+    const hash = buildUrlHash({
+      view: { zoom: 8, lat: 43.6, lng: -72.98 },
+      layers: new Set(['airQuality']),
+      selection: { type: 'aq', id: '500210002' },
+    });
+    expect(hash).toBe('#map=8/43.6/-72.98&layers=air&sel=aq:500210002');
+    expect(parseUrlState(hash).selection).toEqual({ type: 'aq', id: '500210002' });
+    expect(parseUrlState(hash).layers).toEqual(new Set(['airQuality']));
+    expect(parseUrlState('#sel=aq:<script>').selection).toBeUndefined();
+  });
+
   it('round-trips the seasonal roads layer and a road selection', () => {
     const hash = buildUrlHash({
       view: { zoom: 11, lat: 44.56, lng: -72.79 },

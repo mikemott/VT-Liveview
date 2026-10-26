@@ -35,7 +35,7 @@ relative to this directory.
 | `anr/recreation-sites.json` | `https://anrmaps.vermont.gov/arcgis/rest/services/Open_Data/OPENDATA_ANR_TOURISM_SP_NOCACHE_v2/MapServer/166/query?where=F_CAMP%3D'Y'+OR+…&outFields=*&f=json&returnGeometry=true` |
 | `anr/backcountry-campsites.json` | `https://anrmaps.vermont.gov/arcgis/rest/services/Open_Data/OPENDATA_ANR_TOURISM_SP_NOCACHE_v2/MapServer/175/query?where=Type+IN+(1,2,3,4,5,6)&outFields=…&f=json&returnGeometry=true` |
 | `anr/park-boundaries.geojson` | `https://anrmaps.vermont.gov/arcgis/rest/services/Open_Data/OPENDATA_ANR_CADASTRAL_SP_NOCACHE_v2/MapServer/38/query?where=ANRDept%3D'FPR'&outFields=…&f=geojson&returnGeometry=true` |
-| `airnow/monitors.json` | `https://www.airnowapi.org/aq/data/?parameters=OZONE,PM25&BBOX=-73.9,42.4,-71.0,45.4&dataType=A&verbose=1&monitorType=0&format=application/json` (shape from a recorded Sept 2026 response; values invented, one -999 row) |
+| `airnow/monitors.json` | `https://www.airnowapi.org/aq/data/?parameters=OZONE,PM25&BBOX=-73.9,42.4,-71.0,45.4&dataType=A&verbose=1&monitorType=2&format=application/json` (shape from a recorded Sept 2026 response; values invented, one -999 row) |
 | `airnow/forecast.json` | `https://www.airnowapi.org/aq/forecast/current/?latitude=…&longitude=…&format=application/json` (shape from a recorded Sept 2026 response; values invented, includes category-only aqi -1) |
 
 The recreation and backcountry services reject responses with fewer than 20 or 50
