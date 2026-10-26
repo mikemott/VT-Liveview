@@ -17,6 +17,7 @@ import { clearStationsCache } from './services/noaa.js';
 import { fetchSkiConditions } from './services/skiConditions.js';
 import { createTrafficCameraService } from './services/trafficCameras.js';
 import { createRoadWeatherService } from './services/roadWeather.js';
+import { createAirQualityService } from './services/airQuality.js';
 import { validateEnv, isProd } from './types/index.js';
 import { getDb, checkDatabaseHealth, isDatabaseEnabled } from './db/index.js';
 import { getCollectorStatus } from './scheduler/index.js';
@@ -292,6 +293,50 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
       return { error: 'Road weather stations are unavailable' };
     }
   });
+
+  // Air quality from EPA AirNow (VTL-75)
+  const airQuality = createAirQualityService(env.AIRNOW_API_KEY);
+
+  fastify.get(
+    '/api/air-quality/monitors',
+    async (_request: FastifyRequest, reply: FastifyReply) => {
+      // Not configured is a normal empty answer, not an error: browsers log
+      // every 4xx/5xx to the console
+      if (!airQuality.configured) return { configured: false, monitors: [] };
+      try {
+        const monitors = await airQuality.getMonitors();
+        reply.header('Cache-Control', 'public, max-age=600');
+        return { monitors };
+      } catch (error) {
+        fastify.log.warn({ err: error }, 'Air quality monitors fetch failed');
+        reply.code(502);
+        return { error: 'Air quality monitors are unavailable' };
+      }
+    },
+  );
+
+  fastify.get<{ Querystring: { lat?: string; lon?: string } }>(
+    '/api/air-quality',
+    async (request, reply) => {
+      const lat = Number(request.query.lat);
+      const lon = Number(request.query.lon);
+      // Same bounds the map allows (src/utils/urlState.ts)
+      if (!(lat >= 40.5 && lat <= 47.5 && lon >= -77.5 && lon <= -68.5)) {
+        reply.code(400);
+        return { error: 'lat and lon must be within the Vermont map area' };
+      }
+      if (!airQuality.configured) return { configured: false, current: null, forecast: [] };
+      try {
+        const result = await airQuality.getPoint(lat, lon);
+        reply.header('Cache-Control', 'public, max-age=600');
+        return result;
+      } catch (error) {
+        fastify.log.warn({ err: error }, 'Air quality fetch failed');
+        reply.code(502);
+        return { error: 'Air quality is unavailable' };
+      }
+    },
+  );
 
   fastify.get('/api/cameras', async (_request: FastifyRequest, reply: FastifyReply) => {
     try {

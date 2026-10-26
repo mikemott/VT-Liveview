@@ -8,6 +8,7 @@ import {
   makeStation,
 } from '../../__fixtures__/components/data';
 
+vi.mock('../../hooks/useAirQuality', () => ({ useAirQuality: () => ({ data: undefined }) }));
 vi.mock('../../hooks/useForecast', () => ({
   useForecast: () => ({ data: undefined, isLoading: true, error: null }),
 }));
