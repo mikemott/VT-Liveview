@@ -300,10 +300,9 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
   fastify.get(
     '/api/air-quality/monitors',
     async (_request: FastifyRequest, reply: FastifyReply) => {
-      if (!airQuality.configured) {
-        reply.code(503);
-        return { error: 'Air quality is not configured' };
-      }
+      // Not configured is a normal empty answer, not an error: browsers log
+      // every 4xx/5xx to the console
+      if (!airQuality.configured) return { configured: false, monitors: [] };
       try {
         const monitors = await airQuality.getMonitors();
         reply.header('Cache-Control', 'public, max-age=600');
@@ -326,10 +325,7 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
         reply.code(400);
         return { error: 'lat and lon must be within the Vermont map area' };
       }
-      if (!airQuality.configured) {
-        reply.code(503);
-        return { error: 'Air quality is not configured' };
-      }
+      if (!airQuality.configured) return { configured: false, current: null, forecast: [] };
       try {
         const result = await airQuality.getPoint(lat, lon);
         reply.header('Cache-Control', 'public, max-age=600');

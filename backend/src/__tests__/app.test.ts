@@ -501,14 +501,14 @@ describe('air quality (VTL-75)', () => {
   const monitorsJson = JSON.parse(loadText('airnow/monitors.json')) as unknown[];
   const forecastJson = JSON.parse(loadText('airnow/forecast.json')) as unknown[];
 
-  it('answers 503 without an AirNow key', async () => {
+  it('answers an empty 200 without an AirNow key (no console errors in browsers)', async () => {
     const app = await loadApp({ AIRNOW_API_KEY: undefined });
-    expect((await app.inject({ method: 'GET', url: '/api/air-quality/monitors' })).statusCode).toBe(
-      503,
-    );
-    expect(
-      (await app.inject({ method: 'GET', url: '/api/air-quality?lat=44.3&lon=-72.6' })).statusCode,
-    ).toBe(503);
+    const monitors = await app.inject({ method: 'GET', url: '/api/air-quality/monitors' });
+    expect(monitors.statusCode).toBe(200);
+    expect(monitors.json()).toEqual({ configured: false, monitors: [] });
+    const point = await app.inject({ method: 'GET', url: '/api/air-quality?lat=44.3&lon=-72.6' });
+    expect(point.statusCode).toBe(200);
+    expect(point.json()).toEqual({ configured: false, current: null, forecast: [] });
   });
 
   it('rejects points outside the map area', async () => {

@@ -167,7 +167,7 @@ describe('CurrentWeather', () => {
     it('leaves the line out when air quality is unavailable', async () => {
       renderWithClient(<CurrentWeather />);
       await screen.findByText('51');
-      // The default handler answers 503 (not configured)
+      // The default handler answers "not configured" (no reading)
       await new Promise((r) => setTimeout(r, 50));
       expect(document.querySelector('.weather-aqi')).toBeNull();
     });

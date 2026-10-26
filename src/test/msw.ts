@@ -12,7 +12,7 @@ import { setupServer } from 'msw/node';
  */
 export const defaultHandlers = [
   http.get('*/api/air-quality', () =>
-    HttpResponse.json({ error: 'Air quality is not configured' }, { status: 503 }),
+    HttpResponse.json({ configured: false, current: null, forecast: [] }),
   ),
 ];
 
