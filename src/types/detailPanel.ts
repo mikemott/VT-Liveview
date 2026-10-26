@@ -7,6 +7,7 @@ import type { TravelIncident } from '../services/travelApi';
 import type { ObservationStation } from './weather';
 import type { TrafficCamera } from '../services/cameraApi';
 import type { RoadWeatherStation } from '../services/roadWeatherApi';
+import type { AirQualityMonitor } from '../services/airQualityApi';
 import type { SkiResort } from '../services/skiApi';
 import type { Beach } from '../services/beachApi';
 import type { CreemeeStand } from '../services/creemeeApi';
@@ -71,6 +72,7 @@ export type DetailPanelContent =
   | { type: 'station'; data: ObservationStation }
   | { type: 'camera'; data: TrafficCamera }
   | { type: 'roadWeather'; data: RoadWeatherStation }
+  | { type: 'airQuality'; data: AirQualityMonitor }
   | { type: 'ski'; data: SkiResort }
   | { type: 'beach'; data: Beach }
   | { type: 'creemee'; data: CreemeeStand }

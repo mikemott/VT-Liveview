@@ -8,7 +8,7 @@ describe('layer registry (VTL-64)', () => {
   const entries = Object.entries(LAYER_STYLES);
 
   it('gives every layer a label, icon and #rrggbb color', () => {
-    expect(entries.length).toBe(15);
+    expect(entries.length).toBe(16);
     for (const [, style] of entries) {
       expect(style.label).not.toBe('');
       expect(style.icon).toBeTruthy();

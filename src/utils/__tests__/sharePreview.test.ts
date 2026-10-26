@@ -162,6 +162,21 @@ describe('Pages Function', () => {
     fetchMock.mockRestore();
   });
 
+  it('names a shared air quality monitor from the monitors list (VTL-76)', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(
+        new Response(JSON.stringify({ monitors: [{ id: '500210002', name: 'Rutland' }] })),
+      );
+    const lookup = makeLookup('https://api.test');
+    expect(await lookup({ type: 'aq', id: '500210002' })).toBe('Rutland');
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('https://api.test/api/air-quality/monitors');
+    expect(describeSelection({ type: 'aq', id: '500210002' }, 'Rutland')).toBe(
+      'Air quality: Rutland',
+    );
+    fetchMock.mockRestore();
+  });
+
   it('looks seasonal roads and stargazing sites up locally, with no network', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch');
     const lookup = makeLookup('https://api.test');

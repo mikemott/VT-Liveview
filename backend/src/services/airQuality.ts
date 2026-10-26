@@ -1,15 +1,15 @@
 /**
  * Air quality from EPA AirNow (VTL-75).
  *
- * - Monitors: hourly ozone and PM2.5 AQI for permanent monitors in a box around
+ * - Monitors: hourly ozone and PM2.5 AQI for permanent and temporary monitors in a box around
  *   Vermont (neighbouring NY/NH/MA/QC sites help near the border). One request
  *   per TTL serves everyone; we keep each site's latest reading per pollutant.
  * - Forecast: the daily AQI forecast for the reporting area covering a point,
  *   cached per ~0.1° cell with LRU eviction.
  *
- * Vermont has only a handful of monitors (Bennington, Rutland, Underhill), so a
- * point's "current" reading is the nearest monitor's, and we always say which
- * monitor and how far away.
+ * Vermont has only a handful of monitors (Burlington, Underhill, Rutland,
+ * Bennington), so a point's "current" reading is the nearest monitor's, and we
+ * always say which monitor and how far away.
  *
  * Response shapes follow recorded AirNow responses (Sept 2026): the bounding-box
  * service uses PascalCase (SiteName, AQI, Category, UTC); the newer forecast
@@ -274,7 +274,8 @@ export function createAirQualityService(apiKey: string | undefined, now: () => n
       BBOX,
       dataType: 'A',
       verbose: '1',
-      monitorType: '0',
+      // Permanent and temporary monitors: states add temporary ones during smoke events
+      monitorType: '2',
       includerawconcentrations: '0',
     });
     return parseMonitors(rows);

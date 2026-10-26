@@ -6,7 +6,8 @@
  * - map:    zoom/lat/lng
  * - layers: the map layers that are on (anything not listed is off)
  * - sel:    what the detail panel shows: station:<id>, camera:<id>, alert:<id>,
- *           road:<id> (seasonal road), roadwx:<id> (road weather station)
+ *           road:<id> (seasonal road), roadwx:<id> (road weather station),
+ *           aq:<id> (air quality monitor)
  *           or pt:<lat>,<lng>
  *
  * The hash (not the query string) keeps it client-only: no server round trip,
@@ -27,6 +28,7 @@ export const LAYER_KEYS = {
   cameras: 'trafficCameras',
   seasonal: 'seasonalRoads',
   roadwx: 'roadWeather',
+  air: 'airQuality',
 } as const;
 
 export type LayerKey = keyof typeof LAYER_KEYS;
@@ -44,6 +46,7 @@ export type Selection =
   | { type: 'alert'; id: string }
   | { type: 'road'; id: string }
   | { type: 'roadwx'; id: string }
+  | { type: 'aq'; id: string }
   | { type: 'poi'; kind: PoiKind; id: string }
   | { type: 'location'; lat: number; lng: number };
 
@@ -110,7 +113,11 @@ export function parseUrlState(hash: string): UrlState {
     const kind = sel.slice(0, colon);
     const value = sel.slice(colon + 1);
     if (
-      (kind === 'station' || kind === 'alert' || kind === 'road' || kind === 'roadwx') &&
+      (kind === 'station' ||
+        kind === 'alert' ||
+        kind === 'road' ||
+        kind === 'roadwx' ||
+        kind === 'aq') &&
       SAFE_ID.test(value)
     ) {
       state.selection = { type: kind, id: value };

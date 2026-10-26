@@ -43,6 +43,8 @@ interface TravelLayerProps {
   /** Road weather stations chip (VTL-61); omitted props hide the chip. */
   showRoadWeather?: boolean;
   onToggleRoadWeather?: () => void;
+  showAirQuality?: boolean;
+  onToggleAirQuality?: () => void;
   /** Called with every successful incident refresh (seasonal-road override). */
   onIncidentsLoaded?: (incidents: TravelIncident[]) => void;
   showSkiResorts: boolean;
@@ -163,6 +165,8 @@ function TravelLayer({
   onToggleSeasonalRoads,
   showRoadWeather = false,
   onToggleRoadWeather,
+  showAirQuality = false,
+  onToggleAirQuality,
   onIncidentsLoaded,
   showSkiResorts,
   onToggleSkiResorts,
@@ -422,6 +426,14 @@ function TravelLayer({
                   chipType="roadwx"
                   active={showRoadWeather}
                   onClick={onToggleRoadWeather}
+                />
+              )}
+              {onToggleAirQuality && (
+                <FilterChip
+                  layer="airQuality"
+                  chipType="air"
+                  active={showAirQuality}
+                  onClick={onToggleAirQuality}
                 />
               )}
               {onToggleSeasonalRoads && (

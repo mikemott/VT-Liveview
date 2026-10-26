@@ -59,6 +59,8 @@ export function selectionLabel(selection: Selection): string {
       return 'Seasonal road';
     case 'roadwx':
       return 'Road temperature';
+    case 'aq':
+      return 'Air quality';
     case 'location':
       return "What's here";
     case 'poi':
@@ -107,6 +109,7 @@ const DESCRIPTIONS: Record<Selection['type'], string> = {
   alert: 'National Weather Service alert on a live map of Vermont weather and roads.',
   road: 'Seasonal road status, plus closures, radar and alerts across Vermont.',
   roadwx: 'Live pavement temperature and surface, plus radar and road closures.',
+  aq: 'Current air quality (AQI) from EPA AirNow, plus radar, roads and alerts across Vermont.',
   location: 'Forecast, alerts and what’s nearby on a live map of Vermont.',
   poi: 'On a live map of Vermont roads, weather, alerts and outdoor spots.',
 };

@@ -11,7 +11,8 @@ import WeatherIcon from './WeatherIcon';
 import { getWeatherIconName, getWeatherIconFromNOAAUrl } from '../utils/weatherIconMapping';
 import { isCurrentlyDaytime } from '../utils/time';
 import { useAirQuality } from '../hooks/useAirQuality';
-import { aqiCategory, aqiShortName, pollutantLabel } from '../utils/aqi';
+import { aqiShortName, aqiToneVars, pollutantLabel } from '../utils/aqi';
+import '../styles/aqi.css';
 import './CurrentWeather.css';
 
 // Default location: Montpelier, VT
@@ -135,13 +136,7 @@ export default function CurrentWeather({
           className="weather-aqi"
           title={`${pollutantLabel(aqNow.pollutant)} at the ${aqNow.name} monitor, ${Math.round(aqNow.distanceMi)} mi away (EPA AirNow)`}
         >
-          <span
-            className="weather-aqi-badge"
-            style={{
-              background: aqiCategory(aqNow.category).color,
-              color: aqiCategory(aqNow.category).text,
-            }}
-          >
+          <span className="weather-aqi-badge aqi-tone" style={aqiToneVars(aqNow.category)}>
             AQI {aqNow.aqi}
           </span>
           <span className="weather-aqi-label">{aqiShortName(aqNow.category)}</span>

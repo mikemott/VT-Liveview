@@ -10,6 +10,8 @@ import CameraLayer from './components/CameraLayer';
 import type { TrafficCamera } from './services/cameraApi';
 import RoadWeatherLayer from './components/RoadWeatherLayer';
 import type { RoadWeatherStation } from './services/roadWeatherApi';
+import AirQualityLayer from './components/AirQualityLayer';
+import type { AirQualityMonitor } from './services/airQualityApi';
 import { isRoadWeatherSeason } from './utils/roadWeather';
 import SeasonalRoadsLayer from './components/SeasonalRoadsLayer';
 import WhatsHerePin from './components/WhatsHerePin';
@@ -201,6 +203,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
       beachSites: false, // Off by default - user can enable manually
       trafficCameras: false, // Off by default (VTL-56)
       roadWeather: isRoadWeatherSeason(), // On November–March (VTL-61)
+      airQuality: false, // Off by default (VTL-76)
       // On while any notch/gap road is closed or about to close (VTL-55)
       seasonalRoads: [...getSeasonalStatuses([]).values()].some((s) => s.status !== 'open'),
     };
@@ -961,6 +964,8 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         return { type: 'camera', id: detailPanelContent.data.id };
       case 'roadWeather':
         return { type: 'roadwx', id: detailPanelContent.data.id };
+      case 'airQuality':
+        return { type: 'aq', id: detailPanelContent.data.id };
       case 'ski':
         return { type: 'poi', kind: 'ski', id: detailPanelContent.data.id };
       case 'beach':
@@ -997,6 +1002,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         'beachSites',
         'trafficCameras',
         'roadWeather',
+        'airQuality',
         'seasonalRoads',
       ] as const
     )
@@ -1242,6 +1248,22 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
     setDetailPanelContent({ type: 'roadWeather', data: station });
   }, []);
 
+  // Air quality monitors (VTL-76): latest list for search, and shared-link restore
+  const [airMonitors, setAirMonitors] = useState<AirQualityMonitor[]>([]);
+  const airMonitorsRef = useRef<AirQualityMonitor[]>([]);
+  const handleAirMonitorsLoaded = useCallback((loaded: AirQualityMonitor[]): void => {
+    setAirMonitors(loaded);
+    airMonitorsRef.current = loaded;
+    const pending = pendingSelection.current;
+    if (pending?.type !== 'aq') return;
+    pendingSelection.current = undefined;
+    const monitor = loaded.find((m) => m.id === pending.id);
+    if (monitor) setDetailPanelContent({ type: 'airQuality', data: monitor });
+  }, []);
+  const handleAirMonitorClick = useCallback((monitor: AirQualityMonitor): void => {
+    setDetailPanelContent({ type: 'airQuality', data: monitor });
+  }, []);
+
   // Opening something else (or closing the panel) drops an unresolved selection
   const closeDetailPanel = useCallback((): void => {
     pendingSelection.current = undefined;
@@ -1303,7 +1325,13 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
       // Roads are static data, so open now; others wait for their data
       if (next.selection?.type === 'road') openSeasonalRoad(next.selection.id);
       else if (next.selection?.type === 'poi') openPoi(next.selection.kind, next.selection.id);
-      else if (next.selection) pendingSelection.current = next.selection;
+      else if (next.selection?.type === 'aq') {
+        // Monitors refresh only every 20 minutes: open from the loaded list if we can
+        const { id } = next.selection;
+        const monitor = airMonitorsRef.current.find((m) => m.id === id);
+        if (monitor) setDetailPanelContent({ type: 'airQuality', data: monitor });
+        else pendingSelection.current = next.selection;
+      } else if (next.selection) pendingSelection.current = next.selection;
     };
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
@@ -1319,6 +1347,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
     stations,
     cameras,
     roadWeather,
+    airMonitors,
   );
 
   const handleSearchSelect = useCallback(
@@ -1347,6 +1376,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         station: 'weatherStations',
         camera: 'trafficCameras',
         roadWeather: 'roadWeather',
+        airQuality: 'airQuality',
         road: 'seasonalRoads',
       };
       const layer = layerFor[item.kind];
@@ -1371,10 +1401,14 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         const station = roadWeather.find((s) => `roadwx:${s.id}` === item.id);
         if (station) setDetailPanelContent({ type: 'roadWeather', data: station });
       }
+      if (item.kind === 'airQuality') {
+        const monitor = airMonitors.find((m) => `aq:${m.id}` === item.id);
+        if (monitor) setDetailPanelContent({ type: 'airQuality', data: monitor });
+      }
       if (item.kind === 'road') openSeasonalRoad(item.id.slice('road:'.length));
       if (isMobile) setControlsPanelOpen(false);
     },
-    [isMobile, stations, cameras, roadWeather, openSeasonalRoad, openPoi],
+    [isMobile, stations, cameras, roadWeather, airMonitors, openSeasonalRoad, openPoi],
   );
 
   // What the share menu offers (VTL-70): a link whose query carries the view
@@ -1519,6 +1553,8 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
               onToggleCameras={() => toggleLayer('trafficCameras')}
               showRoadWeather={isLayerVisible('roadWeather')}
               onToggleRoadWeather={() => toggleLayer('roadWeather')}
+              showAirQuality={isLayerVisible('airQuality')}
+              onToggleAirQuality={() => toggleLayer('airQuality')}
               showSeasonalRoads={isLayerVisible('seasonalRoads')}
               onToggleSeasonalRoads={() => toggleLayer('seasonalRoads')}
               onIncidentsLoaded={handleIncidentsLoaded}
@@ -1614,6 +1650,16 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
               visible={isLayerVisible('roadWeather')}
               onStationClick={handleRoadWeatherClick}
               onStationsLoaded={handleRoadWeatherLoaded}
+            />
+          )}
+
+          {/* Air quality monitors (VTL-76) */}
+          {mapLoaded && (
+            <AirQualityLayer
+              map={map.current}
+              visible={isLayerVisible('airQuality')}
+              onMonitorClick={handleAirMonitorClick}
+              onMonitorsLoaded={handleAirMonitorsLoaded}
             />
           )}
 
