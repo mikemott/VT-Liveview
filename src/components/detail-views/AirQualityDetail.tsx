@@ -4,7 +4,13 @@
 import type { AirQualityMonitor } from '../../services/airQualityApi';
 import { useAirQuality } from '../../hooks/useAirQuality';
 import { getObservationAge } from '../../utils/observationAge';
-import { aqiCategory, isAirReadingStale, pollutantLabel, upcomingAirDays } from '../../utils/aqi';
+import {
+  aqiCategory,
+  aqiToneVars,
+  isAirReadingStale,
+  pollutantLabel,
+  upcomingAirDays,
+} from '../../utils/aqi';
 import { isInVermont } from '../../utils/vermont';
 import LayerBadge from './LayerBadge';
 import AqiBadge, { AqiForecastList } from './AqiBadge';
@@ -31,11 +37,7 @@ export default function AirQualityDetail({ monitor, isDark }: AirQualityDetailPr
       <LayerBadge layer="airQuality" label="Air quality monitor" />
       <DetailHeader name={monitor.name} location={monitor.agency} />
 
-      <div
-        className="aq-headline"
-        role="status"
-        style={{ background: category.color, color: category.text }}
-      >
+      <div className="aq-headline aqi-tone" role="status" style={aqiToneVars(monitor.category)}>
         <span className="aq-headline-value">{monitor.aqi}</span>
         <span className="aq-headline-text">
           <span className="aq-headline-label">AQI</span>

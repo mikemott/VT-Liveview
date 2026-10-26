@@ -156,7 +156,8 @@ describe('CurrentWeather', () => {
       );
       renderWithClient(<CurrentWeather />);
       const badge = await screen.findByText('AQI 59');
-      expect(badge).toHaveStyle({ background: '#ffff00', color: '#000000' });
+      expect(badge).toHaveClass('aqi-tone');
+      expect(badge.style.getPropertyValue('--aqi-color')).toBe('#a16207');
       expect(screen.getByText('Moderate')).toBeInTheDocument();
       expect(badge.closest('.weather-aqi')).toHaveAttribute(
         'title',

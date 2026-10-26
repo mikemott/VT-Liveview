@@ -1,0 +1,16 @@
+/*
+ * AQI badges and banners (VTL-75/76): the same soft tint, outline and deep
+ * text as the app's status banners and selected chips. Colors come from
+ * aqiToneVars() in src/utils/aqi.ts.
+ */
+.aqi-tone {
+  background: color-mix(in srgb, var(--aqi-color) 12%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--aqi-color) 45%, transparent);
+  color: var(--aqi-ink);
+}
+
+.dark .aqi-tone {
+  background: color-mix(in srgb, var(--aqi-color) 22%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--aqi-ink-dark) 40%, transparent);
+  color: var(--aqi-ink-dark);
+}

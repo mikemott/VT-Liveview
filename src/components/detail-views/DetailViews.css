@@ -878,7 +878,7 @@
   object-fit: contain;
 }
 
-/* What's here: air quality (VTL-75) */
+/* What's here: air quality (VTL-75); colors in src/styles/aqi.css */
 .aqi-badge {
   display: inline-block;
   flex-shrink: 0;
@@ -888,7 +888,6 @@
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-bold);
   text-align: center;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
 }
 
 .location-aqi-now {
@@ -937,7 +936,6 @@
   margin: var(--space-5) 0 var(--space-3);
   padding: var(--space-4) var(--space-5);
   border-radius: var(--radius-lg);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
 }
 
 .aq-headline-value {

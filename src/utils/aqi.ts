@@ -1,54 +1,78 @@
 /**
- * EPA Air Quality Index categories (VTL-75): names, official colors and a
- * readable text color for each, plus short guidance.
+ * EPA Air Quality Index categories (VTL-75): names, theme colors and short
+ * guidance.
  * https://www.airnow.gov/aqi/aqi-basics/
  */
 import type { AirQualityForecastDay, Pollutant } from '../services/airQualityApi';
 
 export interface AqiCategory {
   name: string;
-  /** Official EPA color */
+  /**
+   * Tint, outline and map-marker color. Muted to match the app's other status
+   * colors (ski and beach markers, status banners) rather than the EPA's
+   * highlighter shades; the order (green, yellow, orange, red, purple, maroon)
+   * is the EPA's, so it still reads as the familiar scale.
+   */
   color: string;
-  /** Text color with >= 4.5:1 on `color` */
-  text: string;
+  /** Text on the light tint (>= 4.5:1; aqi.test.ts checks) */
+  ink: string;
+  /** Text on the dark tint */
+  inkDark: string;
   /** One-line guidance */
   advice: string;
 }
 
 export const AQI_CATEGORIES: Record<number, AqiCategory> = {
-  1: { name: 'Good', color: '#00e400', text: '#000000', advice: 'Air quality is good.' },
+  1: {
+    name: 'Good',
+    color: '#16a34a', // ski "green"
+    ink: '#166534',
+    inkDark: '#86efac',
+    advice: 'Air quality is good.',
+  },
   2: {
     name: 'Moderate',
-    color: '#ffff00',
-    text: '#000000',
+    color: '#a16207', // ski / beach "yellow"
+    ink: '#854d0e',
+    inkDark: '#fcd34d',
     advice: 'Unusually sensitive people should consider limiting long outdoor exertion.',
   },
   3: {
     name: 'Unhealthy for Sensitive Groups',
-    color: '#ff7e00',
-    text: '#000000',
+    color: '#ea580c', // Construction orange
+    ink: '#9a3412',
+    inkDark: '#fdba74',
     advice:
       'People with heart or lung disease, older adults and children should limit long outdoor exertion.',
   },
   4: {
     name: 'Unhealthy',
-    color: '#ff0000',
-    text: '#000000',
+    color: '#dc2626', // --color-error
+    ink: '#b91c1c',
+    inkDark: '#fca5a5',
     advice: 'Everyone should limit long outdoor exertion; sensitive groups should avoid it.',
   },
   5: {
     name: 'Very Unhealthy',
-    color: '#8f3f97',
-    text: '#ffffff',
+    color: '#9333ea',
+    ink: '#7e22ce',
+    inkDark: '#d8b4fe',
     advice: 'Everyone should avoid long outdoor exertion.',
   },
   6: {
     name: 'Hazardous',
-    color: '#7e0023',
-    text: '#ffffff',
+    color: '#9f1239',
+    ink: '#881337',
+    inkDark: '#fda4af',
     advice: 'Everyone should avoid all outdoor exertion.',
   },
 };
+
+/** CSS variables for an element with the `aqi-tone` class (src/styles/aqi.css) */
+export function aqiToneVars(category: number): Record<string, string> {
+  const c = aqiCategory(category);
+  return { '--aqi-color': c.color, '--aqi-ink': c.ink, '--aqi-ink-dark': c.inkDark };
+}
 
 export function aqiCategory(category: number): AqiCategory {
   return AQI_CATEGORIES[category] ?? AQI_CATEGORIES[1]!;

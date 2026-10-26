@@ -101,7 +101,7 @@ describe('AirQualityLayer (VTL-76)', () => {
     expect(rutland!.textContent).toBe('112');
     expect(rutland!.dataset.layer).toBe('airQuality');
     expect(rutland!.className).toContain('aqi-3');
-    expect(rutland!.style.getPropertyValue('--marker-fill')).toBe('#ff7e00');
+    expect(rutland!.style.getPropertyValue('--marker-fill')).toBe('#ea580c');
     expect(rutland!.getAttribute('aria-label')).toBe(
       'Air quality: Rutland, AQI 112, unhealthy for sensitive groups (Fine particles (PM2.5))',
     );

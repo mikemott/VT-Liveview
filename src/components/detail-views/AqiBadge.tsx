@@ -2,14 +2,15 @@
  * Air quality pieces shared by What's here (VTL-75) and the monitor panel (VTL-76).
  */
 import type { AirQualityForecastDay } from '../../services/airQualityApi';
-import { aqiCategory, aqiShortName, dayLabel } from '../../utils/aqi';
+import { aqiCategory, aqiShortName, aqiToneVars, dayLabel } from '../../utils/aqi';
+import '../../styles/aqi.css';
 import './DetailViews.css';
 
-/** AQI value (or category name) on its official EPA color */
+/** AQI value (or category name) in its category's tone */
 export default function AqiBadge({ category, aqi }: { category: number; aqi: number | null }) {
   const c = aqiCategory(category);
   return (
-    <span className="aqi-badge" style={{ background: c.color, color: c.text }}>
+    <span className="aqi-badge aqi-tone" style={aqiToneVars(category)}>
       {aqi !== null ? `AQI ${aqi}` : c.name}
     </span>
   );
