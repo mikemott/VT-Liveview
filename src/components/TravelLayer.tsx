@@ -142,7 +142,7 @@ function FilterChip({ layer, chipType, active, onClick, count = 0 }: FilterChipP
       <span className="chip-icon">
         <Icon size={14} strokeWidth={2.5} aria-hidden="true" />
       </span>
-      {label}
+      <span className="chip-label">{label}</span>
       {count > 0 && <span className="chip-count">{count}</span>}
     </button>
   );
