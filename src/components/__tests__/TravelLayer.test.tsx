@@ -236,6 +236,37 @@ describe('TravelLayer', () => {
     expect(fake.layerIds()).toEqual([]);
   });
 
+  it('clears the highlight when its type is filtered off (VTL-77)', async () => {
+    render(<TravelLayer {...props} />);
+    await waitFor(() => expect(liveMarkers()).toHaveLength(2));
+    fireEvent.click(screen.getByText('Crash on US-7'));
+    expect(fake.sourceIds()).toEqual(['incident-highlight']);
+
+    fireEvent.click(screen.getByRole('button', { name: /Accidents/ }));
+    expect(fake.sourceIds()).toEqual([]);
+    expect(fake.layerIds()).toEqual([]);
+  });
+
+  it('clears the highlight when the panel closes or shows something else (VTL-77)', async () => {
+    const { rerender } = render(<TravelLayer {...props} openIncidentId={null} />);
+    await waitFor(() => expect(liveMarkers()).toHaveLength(2));
+    const route = liveMarkers().find((m) =>
+      m.getElement().getAttribute('aria-label')?.includes('US-7'),
+    )!;
+    const id = (props.onIncidentClick as ReturnType<typeof vi.fn>).mock.calls.length;
+    click(route.getElement());
+    const incident = (props.onIncidentClick as ReturnType<typeof vi.fn>).mock.calls[id]![0] as {
+      id: string;
+    };
+    // The panel opens on it: the highlight stays
+    rerender(<TravelLayer {...props} openIncidentId={incident.id} />);
+    expect(fake.sourceIds()).toEqual(['incident-highlight']);
+
+    // The panel closes: the highlight goes
+    rerender(<TravelLayer {...props} openIncidentId={null} />);
+    expect(fake.sourceIds()).toEqual([]);
+  });
+
   it('flies to point incidents and replaces a previous highlight', async () => {
     render(<TravelLayer {...props} />);
     await waitFor(() => expect(liveMarkers()).toHaveLength(2));
