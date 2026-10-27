@@ -1575,6 +1575,9 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
               showTrafficFlow={showTrafficFlow}
               onToggleTrafficFlow={toggleTrafficFlow}
               onIncidentClick={handleIncidentClick}
+              openIncidentId={
+                detailPanelContent?.type === 'incident' ? detailPanelContent.data.id : null
+              }
               onDarkSkySiteClick={selectDarkSky}
               mapStyleVersion={mapStyleVersion}
               campgroundCount={campgroundCount}

@@ -67,6 +67,11 @@ interface TravelLayerProps {
   onToggleTrafficFlow: () => void;
   /** Opens an incident in the side panel (marker or list click) */
   onIncidentClick?: (incident: TravelIncident) => void;
+  /**
+   * The incident the detail panel shows (null when it shows something else or
+   * is closed). The highlighted route goes away when this stops matching.
+   */
+  openIncidentId?: string | null;
   /** Opens a dark sky site in the side panel */
   onDarkSkySiteClick?: (site: DarkSkySite) => void;
   mapStyleVersion: number;
@@ -187,6 +192,7 @@ function TravelLayer({
   showTrafficFlow,
   onToggleTrafficFlow,
   onIncidentClick,
+  openIncidentId,
   onDarkSkySiteClick,
   mapStyleVersion,
 }: TravelLayerProps) {
@@ -330,6 +336,18 @@ function TravelLayer({
     },
     [showHighlight],
   );
+
+  // Drop the highlighted route once its incident is filtered off (e.g. the
+  // Construction chip is turned off) or the panel moves on or closes
+  const highlightStale =
+    selectedIncident !== null &&
+    (!activeFilters[selectedIncident.type] ||
+      (openIncidentId !== undefined && openIncidentId !== selectedIncident.id));
+  useEffect(() => {
+    if (!highlightStale) return;
+    clearHighlight();
+    setSelectedIncident(null);
+  }, [highlightStale, clearHighlight]);
 
   // Filter incidents by active filters and zoom level
   // Memoize to prevent unnecessary marker recreation
