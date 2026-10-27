@@ -99,10 +99,21 @@
 }
 
 /* Filter Chips - 2 rows of 3 layout */
+/*
+ * Chips wrap like words (VTL-78): each takes the width its label needs and
+ * grows to fill its row, so a wider font or a count badge moves a chip to the
+ * next row instead of pushing a fixed column out of the panel.
+ */
 .filter-chips {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-2);
+}
+
+/* Soaks up the last row's spare room so its chips keep their natural width */
+.filter-chips::after {
+  content: '';
+  flex: 10 1 0;
 }
 
 .filter-chip {
@@ -122,6 +133,13 @@
   font-weight: var(--font-weight-semibold);
   color: var(--color-vermont-green);
   position: relative;
+  flex: 1 1 auto;
+  justify-content: center;
+  max-width: 100%;
+}
+
+.filter-chip .chip-label {
+  white-space: nowrap;
 }
 
 .filter-chip:hover {
@@ -135,14 +153,21 @@
   align-items: center;
 }
 
+/* Count as a corner badge, so it never takes width from the label (VTL-78) */
 .filter-chip .chip-count {
-  background: var(--color-bg-glass-subtle);
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-full);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
+  position: absolute;
+  top: -7px;
+  right: 6px;
   min-width: 18px;
+  padding: 1px 5px;
+  border-radius: var(--radius-full);
+  border: 1px solid currentColor;
+  background: var(--color-bg-primary);
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
   text-align: center;
+  pointer-events: none;
 }
 
 /*
@@ -167,7 +192,6 @@
 }
 
 .filter-chip.active .chip-count {
-  background: color-mix(in srgb, var(--chip-accent) 22%, transparent);
   color: inherit;
 }
 
@@ -662,10 +686,6 @@
 
 /* Mobile Responsive */
 @media (max-width: 640px) {
-  .filter-chips {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
   .filter-grid {
     grid-template-columns: 1fr;
   }
