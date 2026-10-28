@@ -138,9 +138,9 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
     maxAge: 86400, // Cache preflight responses for 24 hours
   });
 
-  // Rate limiting for proxy endpoints (100 requests per minute)
+  // Rate limiting for proxy endpoints (RATE_LIMIT_MAX per minute, default 100)
   await fastify.register(rateLimit, {
-    max: 100,
+    max: env.RATE_LIMIT_MAX,
     timeWindow: '1 minute',
     // Only apply to API routes, not GraphQL or health
     allowList: (request) => {

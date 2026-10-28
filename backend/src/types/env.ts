@@ -18,6 +18,14 @@ const envSchema = z.object({
   // CORS configuration (production only)
   ALLOWED_ORIGINS: z.string().optional(),
 
+  // REST rate limit per IP per minute (GraphQL and /health are exempt). The
+  // E2E server raises it: parallel test browsers share one IP (VTL-81).
+  RATE_LIMIT_MAX: z
+    .string()
+    .default('100')
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().int().min(1)),
+
   // Admin authentication
   ADMIN_TOKEN: z.string().optional(),
 

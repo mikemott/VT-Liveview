@@ -1817,6 +1817,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
             <EvChargerLayer
               map={map.current}
               visible={isLayerVisible('evChargers')}
+              load={searchActive || initialUrlState.selection?.type === 'ev'}
               onSelect={handleEvChargerClick}
               onLoaded={handleEvChargersLoaded}
             />

@@ -49,6 +49,8 @@ export default defineConfig({
         ALLOWED_ORIGINS: FRONTEND_URL,
         CONTACT_EMAIL: 'e2e@example.com',
         ENABLE_COLLECTOR: 'false',
+        // Every test browser shares one IP; a page load makes ~10 REST calls
+        RATE_LIMIT_MAX: '2000',
       },
     },
     {

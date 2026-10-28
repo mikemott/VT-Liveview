@@ -90,11 +90,23 @@ describe('EvChargerLayer (VTL-81)', () => {
     expect(liveMarkers()).toHaveLength(1);
   });
 
+  it('fetches only when shown or asked to (search, shared links)', async () => {
+    const fake = new FakeMap();
+    const { rerender } = render(
+      <EvChargerLayer map={fake.asMap()} visible={false} onSelect={vi.fn()} />,
+    );
+    await new Promise((r) => setTimeout(r, 20));
+    expect(fetchMock).not.toHaveBeenCalled();
+    rerender(<EvChargerLayer map={fake.asMap()} visible={false} load onSelect={vi.fn()} />);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    expect(liveMarkers()).toHaveLength(0);
+  });
+
   it('adds no markers while hidden and reports clicks', async () => {
     const fake = new FakeMap();
     const onSelect = vi.fn();
     const { rerender } = render(
-      <EvChargerLayer map={fake.asMap()} visible={false} onSelect={onSelect} />,
+      <EvChargerLayer map={fake.asMap()} visible={false} load onSelect={onSelect} />,
     );
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
     expect(liveMarkers()).toHaveLength(0);

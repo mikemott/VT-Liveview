@@ -165,11 +165,17 @@ function SeasonalRoadsLayer({
       map.off('click', HIT_ID, onClick);
       map.off('mouseenter', HIT_ID, onEnter);
       map.off('mouseleave', HIT_ID, onLeave);
-      // After a style swap maplibre has already dropped them
-      for (const id of [...LAYER_IDS].reverse()) {
-        if (map.getLayer(id)) map.removeLayer(id);
+      // After a style swap maplibre has already dropped them; after a WebGL
+      // context loss the map can briefly have no style at all, and getLayer
+      // throws (VTL-81)
+      try {
+        for (const id of [...LAYER_IDS].reverse()) {
+          if (map.getLayer(id)) map.removeLayer(id);
+        }
+        if (map.getSource(SEASONAL_SOURCE_ID)) map.removeSource(SEASONAL_SOURCE_ID);
+      } catch {
+        // No style: nothing left to remove
       }
-      if (map.getSource(SEASONAL_SOURCE_ID)) map.removeSource(SEASONAL_SOURCE_ID);
     };
   }, [map, visible, isDark, mapStyleVersion]);
 

@@ -118,9 +118,14 @@ function FireDangerLayer({
     else void map.once('idle', add);
     return () => {
       if (!styleReady) map.off('idle', add);
-      if (map.getLayer(OUTLINE)) map.removeLayer(OUTLINE);
-      if (map.getLayer(FILL)) map.removeLayer(FILL);
-      if (map.getSource(SOURCE)) map.removeSource(SOURCE);
+      // After a WebGL context loss the map can briefly have no style, and getLayer throws
+      try {
+        if (map.getLayer(OUTLINE)) map.removeLayer(OUTLINE);
+        if (map.getLayer(FILL)) map.removeLayer(FILL);
+        if (map.getSource(SOURCE)) map.removeSource(SOURCE);
+      } catch {
+        // No style: nothing left to remove
+      }
     };
   }, [map, visible, areas, stale, mapStyleVersion]);
 

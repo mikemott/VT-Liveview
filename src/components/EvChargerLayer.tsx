@@ -14,6 +14,11 @@ import type { MapLibreMap } from '../types';
 interface EvChargerLayerProps {
   map: MapLibreMap | null;
   visible: boolean;
+  /**
+   * Fetch while hidden too (search open, a shared link to a charger). The
+   * list is ~250 KB, so it isn't loaded on every visit.
+   */
+  load?: boolean;
   onSelect: (station: EvCharger) => void;
   /** Called after each successful fetch (search, shared links) */
   onLoaded?: (stations: EvCharger[]) => void;
@@ -45,8 +50,14 @@ function buildEvMarker(station: EvCharger): BuiltMarker {
   return { lngLat: [station.lng, station.lat], element };
 }
 
-function EvChargerLayer({ map, visible, onSelect, onLoaded }: EvChargerLayerProps) {
-  const stations = useLayerData(!!map, fetchEvChargers, REFRESH_MS, onLoaded, 'EV chargers');
+function EvChargerLayer({ map, visible, load = false, onSelect, onLoaded }: EvChargerLayerProps) {
+  const stations = useLayerData(
+    !!map && (visible || load),
+    fetchEvChargers,
+    REFRESH_MS,
+    onLoaded,
+    'EV chargers',
+  );
 
   const [closeIn, setCloseIn] = useState(() => (map?.getZoom() ?? 0) >= LEVEL2_MIN_ZOOM);
   useEffect(() => {

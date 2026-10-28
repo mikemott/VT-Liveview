@@ -226,6 +226,17 @@ describe('rate limiting', () => {
     expect(limited.headers['retry-after']).toBeDefined();
   });
 
+  it('takes its limit from RATE_LIMIT_MAX (VTL-81)', async () => {
+    server.use(http.get(VT511, () => HttpResponse.text('<ok/>')));
+    const app = await loadApp({ RATE_LIMIT_MAX: '3' });
+    for (let i = 0; i < 3; i++) {
+      expect((await app.inject({ method: 'GET', url: '/api/vt511/incidents' })).statusCode).toBe(
+        200,
+      );
+    }
+    expect((await app.inject({ method: 'GET', url: '/api/vt511/incidents' })).statusCode).toBe(429);
+  });
+
   it('exempts /health', async () => {
     const app = await loadApp();
 
