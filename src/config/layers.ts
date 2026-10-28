@@ -18,6 +18,7 @@ import {
   Car,
   Construction,
   Droplet,
+  Flame,
   IceCream,
   Mountain,
   Snowflake,
@@ -40,6 +41,7 @@ export type LayerStyleKey =
   | 'airQuality'
   | 'riverGauges'
   | 'evChargers'
+  | 'fireDanger'
   | 'seasonalRoads'
   | IncidentType
   | 'skiResorts'
@@ -102,6 +104,14 @@ export const LAYER_STYLES: Record<LayerStyleKey, LayerStyle> = {
     color: '#e86890',
     ink: '#8a2347',
     description: 'Public EV charging: DC fast statewide, Level 2 when zoomed in (DOE AFDC)',
+  },
+  fireDanger: {
+    label: 'Fire danger',
+    icon: Flame,
+    // Charred brown; the areas and markers take the NFDRS rating colors (VTL-81)
+    color: '#482800',
+    colorDark: '#d6a46b',
+    description: 'Daily fire danger for Vermont’s five rating areas (Forests, Parks & Recreation)',
   },
   seasonalRoads: {
     label: 'Seasonal closures',

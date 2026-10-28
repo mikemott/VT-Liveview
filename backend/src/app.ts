@@ -21,6 +21,7 @@ import { createAirQualityService } from './services/airQuality.js';
 import { createRiverService, GAUGE_ID } from './services/rivers.js';
 import { createClimateService } from './services/climate.js';
 import { createEvChargerService } from './services/evChargers.js';
+import { createFireDangerService } from './services/fireDanger.js';
 import { validateEnv, isProd } from './types/index.js';
 import { getDb, checkDatabaseHealth, isDatabaseEnabled } from './db/index.js';
 import { getCollectorStatus } from './scheduler/index.js';
@@ -416,6 +417,21 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
       fastify.log.warn({ err: error }, 'EV charger fetch failed');
       reply.code(502);
       return { error: 'EV chargers are unavailable' };
+    }
+  });
+
+  // Fire danger ratings from Vermont FPR (VTL-81)
+  const fireDanger = createFireDangerService();
+
+  fastify.get('/api/fire-danger', async (_request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const danger = await fireDanger.get();
+      reply.header('Cache-Control', 'public, max-age=900');
+      return danger;
+    } catch (error) {
+      fastify.log.warn({ err: error }, 'Fire danger fetch failed');
+      reply.code(502);
+      return { error: 'Fire danger ratings are unavailable' };
     }
   });
 

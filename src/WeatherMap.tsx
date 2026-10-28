@@ -14,6 +14,9 @@ import AirQualityLayer from './components/AirQualityLayer';
 import type { AirQualityMonitor } from './services/airQualityApi';
 import RiverLayer from './components/RiverLayer';
 import EvChargerLayer from './components/EvChargerLayer';
+import FireDangerLayer from './components/FireDangerLayer';
+import { areaView, type FireDanger, type FireDangerArea } from './services/fireDangerApi';
+import { isFireDangerStale } from './utils/fireDanger';
 import type { EvCharger } from './services/evChargerApi';
 import type { RiverGauge } from './services/riverApi';
 import { floodSeverity, worstCategory } from './utils/rivers';
@@ -199,8 +202,12 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
   });
   // Unified layer visibility state
   // null = auto (follow season), true = forced on, false = forced off
-  // Any river gauge at (or forecast for) minor flooding or worse (VTL-81)
-  const [riversFlooding, setRiversFlooding] = useState(false);
+  // Layers that show themselves while something is happening, until the user
+  // toggles them (VTL-81): rivers while flooding, fire danger while High or worse
+  const [autoShown, setAutoShown] = useState<Record<string, boolean>>({});
+  const setAutoShow = useCallback((layerId: string, on: boolean): void => {
+    setAutoShown((prev) => (prev[layerId] === on ? prev : { ...prev, [layerId]: on }));
+  }, []);
   const [layerVisibility, setLayerVisibility] = useState<Record<string, boolean | null>>(() => {
     const defaults: Record<string, boolean | null> = {
       weatherStations: true, // Core layer - always on by default
@@ -213,6 +220,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
       airQuality: false, // Off by default (VTL-76)
       riverGauges: null, // Auto: on while any gauge is flooding or forecast to (VTL-81)
       evChargers: false, // Off by default (VTL-81)
+      fireDanger: null, // Auto: on while any area is High or worse (VTL-81)
       // On while any notch/gap road is closed or about to close (VTL-55)
       seasonalRoads: [...getSeasonalStatuses([]).values()].some((s) => s.status !== 'open'),
     };
@@ -247,7 +255,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
       // If user has manually toggled, respect that
       if (manualToggle !== null) return manualToggle;
 
-      if (layerId === 'riverGauges') return riversFlooding;
+      if (layerId in autoShown) return autoShown[layerId]!;
 
       // Otherwise, check if it's a seasonal layer and if it's in season
       const seasonalConfig = SEASONAL_LAYERS.find((l) => l.id === layerId);
@@ -258,7 +266,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
       // Non-seasonal layers default to false if not in visibility state
       return false;
     },
-    [layerVisibility, isInSeason, riversFlooding],
+    [layerVisibility, isInSeason, autoShown],
   );
 
   // Mobile responsiveness
@@ -921,15 +929,15 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
           if (current === true) return { ...prev, [layerId]: false };
           return { ...prev, [layerId]: null };
         } else if (current === null) {
-          // Auto layer (rivers while flooding): the first tap flips what's shown
-          return { ...prev, [layerId]: !(layerId === 'riverGauges' && riversFlooding) };
+          // Auto layer: the first tap flips what's shown
+          return { ...prev, [layerId]: !(autoShown[layerId] ?? false) };
         } else {
           // Core layer: simple boolean toggle
           return { ...prev, [layerId]: !current };
         }
       });
     },
-    [riversFlooding],
+    [autoShown],
   );
 
   // Convenience functions for backward compatibility
@@ -987,6 +995,8 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         return { type: 'river', id: detailPanelContent.data.id };
       case 'evCharger':
         return { type: 'ev', id: detailPanelContent.data.id };
+      case 'fireDanger':
+        return { type: 'fire', id: detailPanelContent.data.id };
       case 'ski':
         return { type: 'poi', kind: 'ski', id: detailPanelContent.data.id };
       case 'beach':
@@ -1026,6 +1036,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         'airQuality',
         'riverGauges',
         'evChargers',
+        'fireDanger',
         'seasonalRoads',
       ] as const
     )
@@ -1289,17 +1300,44 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
 
   // River gauges (VTL-81): latest list for search, and shared-link restore
   const [riverGauges, setRiverGauges] = useState<RiverGauge[]>([]);
-  const handleRiverGaugesLoaded = useCallback((loaded: RiverGauge[]): void => {
-    setRiverGauges(loaded);
-    setRiversFlooding(loaded.some((g) => floodSeverity(worstCategory(g)) >= 2));
-    const pending = pendingSelection.current;
-    if (pending?.type !== 'river') return;
-    pendingSelection.current = undefined;
-    const gauge = loaded.find((g) => g.id === pending.id);
-    if (gauge) setDetailPanelContent({ type: 'river', data: gauge });
-  }, []);
+  const handleRiverGaugesLoaded = useCallback(
+    (loaded: RiverGauge[]): void => {
+      setRiverGauges(loaded);
+      setAutoShow(
+        'riverGauges',
+        loaded.some((g) => floodSeverity(worstCategory(g)) >= 2),
+      );
+      const pending = pendingSelection.current;
+      if (pending?.type !== 'river') return;
+      pendingSelection.current = undefined;
+      const gauge = loaded.find((g) => g.id === pending.id);
+      if (gauge) setDetailPanelContent({ type: 'river', data: gauge });
+    },
+    [setAutoShow],
+  );
   const handleRiverGaugeClick = useCallback((gauge: RiverGauge): void => {
     setDetailPanelContent({ type: 'river', data: gauge });
+  }, []);
+
+  // Fire danger (VTL-81): auto-show, search, and shared-link restore
+  const [fireDanger, setFireDanger] = useState<FireDanger | null>(null);
+  const handleFireDangerLoaded = useCallback(
+    (loaded: FireDanger): void => {
+      setFireDanger(loaded);
+      setAutoShow(
+        'fireDanger',
+        !isFireDangerStale(loaded.updatedAt) && loaded.areas.some((a) => (a.rating ?? 0) >= 3),
+      );
+      const pending = pendingSelection.current;
+      if (pending?.type !== 'fire') return;
+      pendingSelection.current = undefined;
+      const area = loaded.areas.find((a) => a.id === pending.id);
+      if (area) setDetailPanelContent({ type: 'fireDanger', data: areaView(area, loaded) });
+    },
+    [setAutoShow],
+  );
+  const handleFireDangerClick = useCallback((area: FireDangerArea, danger: FireDanger): void => {
+    setDetailPanelContent({ type: 'fireDanger', data: areaView(area, danger) });
   }, []);
 
   // EV chargers (VTL-81): latest list for search, and shared-link restore
@@ -1402,6 +1440,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
     airMonitors,
     riverGauges,
     evChargers,
+    fireDanger?.areas,
   );
 
   const handleSearchSelect = useCallback(
@@ -1433,6 +1472,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         airQuality: 'airQuality',
         river: 'riverGauges',
         evCharger: 'evChargers',
+        fireDanger: 'fireDanger',
         road: 'seasonalRoads',
       };
       const layer = layerFor[item.kind];
@@ -1465,6 +1505,10 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         const gauge = riverGauges.find((g) => `river:${g.id}` === item.id);
         if (gauge) setDetailPanelContent({ type: 'river', data: gauge });
       }
+      if (item.kind === 'fireDanger' && fireDanger) {
+        const area = fireDanger.areas.find((a) => `fire:${a.id}` === item.id);
+        if (area) setDetailPanelContent({ type: 'fireDanger', data: areaView(area, fireDanger) });
+      }
       if (item.kind === 'evCharger') {
         const station = evChargers.find((s) => `ev:${s.id}` === item.id);
         if (station) setDetailPanelContent({ type: 'evCharger', data: station });
@@ -1474,6 +1518,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
     },
     [
       evChargers,
+      fireDanger,
       isMobile,
       stations,
       cameras,
@@ -1633,6 +1678,8 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
               onToggleRivers={() => toggleLayer('riverGauges')}
               showEvChargers={isLayerVisible('evChargers')}
               onToggleEvChargers={() => toggleLayer('evChargers')}
+              showFireDanger={isLayerVisible('fireDanger')}
+              onToggleFireDanger={() => toggleLayer('fireDanger')}
               showSeasonalRoads={isLayerVisible('seasonalRoads')}
               onToggleSeasonalRoads={() => toggleLayer('seasonalRoads')}
               onIncidentsLoaded={handleIncidentsLoaded}
@@ -1751,6 +1798,17 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
               visible={isLayerVisible('riverGauges')}
               onSelect={handleRiverGaugeClick}
               onLoaded={handleRiverGaugesLoaded}
+            />
+          )}
+
+          {/* Fire danger areas (VTL-81) */}
+          {mapLoaded && (
+            <FireDangerLayer
+              map={map.current}
+              visible={isLayerVisible('fireDanger')}
+              mapStyleVersion={mapStyleVersion}
+              onSelect={handleFireDangerClick}
+              onLoaded={handleFireDangerLoaded}
             />
           )}
 

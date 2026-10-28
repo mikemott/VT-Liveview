@@ -13,6 +13,7 @@ import type { RoadWeatherStation } from '../services/roadWeatherApi';
 import type { AirQualityMonitor } from '../services/airQualityApi';
 import type { RiverGauge } from '../services/riverApi';
 import type { EvCharger } from '../services/evChargerApi';
+import type { FireDangerArea } from '../services/fireDangerApi';
 import { SEASONAL_ROADS } from '../data/seasonalRoads';
 import { roadBounds, roadCenter } from '../utils/seasonalRoads';
 
@@ -56,6 +57,7 @@ export function useSearchItems(
   airMonitors: readonly AirQualityMonitor[] = [],
   riverGauges: readonly RiverGauge[] = [],
   evChargers: readonly EvCharger[] = [],
+  fireAreas: readonly FireDangerArea[] = [],
 ): { items: SearchItem[]; loading: boolean } {
   const opts = { enabled, staleTime: 10 * 60 * 1000, retry: 1 } as const;
   const [ski, beaches, creemee, recreation, incidents] = useQueries({
@@ -182,6 +184,17 @@ export function useSearchItems(
         lng: s.lng,
       });
     }
+    for (const a of fireAreas) {
+      out.push({
+        id: `fire:${a.id}`,
+        kind: 'fireDanger',
+        name: `Fire danger: ${a.name}`,
+        detail: a.description,
+        keywords: 'fire danger burn permit wildfire',
+        lat: a.labelLat,
+        lng: a.labelLng,
+      });
+    }
     out.push(...ROAD_ITEMS);
     for (const inc of incidents.data ?? []) {
       const { lat, lng } = inc.location;
@@ -209,6 +222,7 @@ export function useSearchItems(
     airMonitors,
     riverGauges,
     evChargers,
+    fireAreas,
   ]);
 
   const loading =

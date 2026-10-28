@@ -8,7 +8,7 @@
  * - sel:    what the detail panel shows: station:<id>, camera:<id>, alert:<id>,
  *           road:<id> (seasonal road), roadwx:<id> (road weather station),
  *           aq:<id> (air quality monitor), river:<id> (river gauge),
- *           ev:<id> (EV charger)
+ *           ev:<id> (EV charger), fire:<area> (fire danger rating area)
  *           or pt:<lat>,<lng>
  *
  * The hash (not the query string) keeps it client-only: no server round trip,
@@ -32,6 +32,7 @@ export const LAYER_KEYS = {
   air: 'airQuality',
   rivers: 'riverGauges',
   ev: 'evChargers',
+  fire: 'fireDanger',
 } as const;
 
 export type LayerKey = keyof typeof LAYER_KEYS;
@@ -52,6 +53,7 @@ export type Selection =
   | { type: 'aq'; id: string }
   | { type: 'river'; id: string }
   | { type: 'ev'; id: string }
+  | { type: 'fire'; id: string }
   | { type: 'poi'; kind: PoiKind; id: string }
   | { type: 'location'; lat: number; lng: number };
 
@@ -124,7 +126,8 @@ export function parseUrlState(hash: string): UrlState {
         kind === 'roadwx' ||
         kind === 'aq' ||
         kind === 'river' ||
-        kind === 'ev') &&
+        kind === 'ev' ||
+        kind === 'fire') &&
       SAFE_ID.test(value)
     ) {
       state.selection = { type: kind, id: value };

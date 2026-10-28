@@ -65,6 +65,8 @@ export function selectionLabel(selection: Selection): string {
       return 'River level';
     case 'ev':
       return 'EV charger';
+    case 'fire':
+      return 'Fire danger';
     case 'location':
       return "What's here";
     case 'poi':
@@ -116,6 +118,7 @@ const DESCRIPTIONS: Record<Selection['type'], string> = {
   aq: 'Current air quality (AQI) from EPA AirNow, plus radar, roads and alerts across Vermont.',
   river: 'Live river level and flood stage from NWS gauges, plus radar, roads and alerts.',
   ev: 'Public EV charging station, plus radar, road closures and alerts across Vermont.',
+  fire: 'Today’s fire danger rating from Vermont Forests, Parks & Recreation, on a live map.',
   location: 'Forecast, alerts and what’s nearby on a live map of Vermont.',
   poi: 'On a live map of Vermont roads, weather, alerts and outdoor spots.',
 };

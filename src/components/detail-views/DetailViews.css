@@ -967,7 +967,7 @@
   gap: var(--space-2);
 }
 
-/* River gauges (VTL-81); tone colors in src/styles/flood.css */
+/* River gauges (VTL-81); tone colors in src/styles/tone.css */
 .river-forecast-warning {
   margin: 0 0 var(--space-3);
   padding: var(--space-3) var(--space-5);
@@ -1020,4 +1020,10 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2) var(--space-5);
+}
+
+/* Fire danger (VTL-81); tone colors in src/styles/tone.css */
+.fire-danger-level {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
 }

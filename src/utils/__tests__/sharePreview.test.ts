@@ -209,6 +209,21 @@ describe('Pages Function', () => {
     fetchMock.mockRestore();
   });
 
+  it('names a shared fire danger area (VTL-81)', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(
+        new Response(JSON.stringify({ areas: [{ id: '3', name: 'Champlain Valley' }] })),
+      );
+    const lookup = makeLookup('https://api.test');
+    expect(await lookup({ type: 'fire', id: '3' })).toBe('Champlain Valley');
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('https://api.test/api/fire-danger');
+    expect(describeSelection({ type: 'fire', id: '3' }, 'Champlain Valley')).toBe(
+      'Fire danger: Champlain Valley',
+    );
+    fetchMock.mockRestore();
+  });
+
   it('looks seasonal roads and stargazing sites up locally, with no network', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch');
     const lookup = makeLookup('https://api.test');

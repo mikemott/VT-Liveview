@@ -78,6 +78,10 @@ export function makeLookup(api: string): NameLookup {
         const { stations } = await getJson<{ stations: Named[] }>(`${api}/api/ev-chargers`);
         return findName(stations, selection.id);
       }
+      case 'fire': {
+        const { areas } = await getJson<{ areas: Named[] }>(`${api}/api/fire-danger`);
+        return findName(areas, selection.id);
+      }
       case 'roadwx': {
         const { stations } = await getJson<{ stations: Named[] }>(`${api}/api/road-weather`);
         return findName(stations, selection.id);

@@ -113,6 +113,12 @@ export const upstreamHandlers = [
     HttpResponse.json(loadJson('afdc/stations-vt.json')),
   ),
 
+  // Vermont FPR fire danger ratings (VTL-81)
+  http.get(
+    'https://services5.arcgis.com/Uzks6LSde6r23wwG/arcgis/rest/services/Vermont_Fire_Danger_-_Public/FeatureServer/1/query',
+    () => HttpResponse.json(loadJson('anr/fire-danger.geojson')),
+  ),
+
   // NOAA Climate Data Online (only called when NOAA_CDO_TOKEN is set)
   http.get('https://www.ncei.noaa.gov/cdo-web/api/v2/data', () =>
     HttpResponse.json(loadJson('ncei-cdo/data-ghcnd.json')),

@@ -51,6 +51,9 @@ interface TravelLayerProps {
   /** EV chargers chip (VTL-81) */
   showEvChargers?: boolean;
   onToggleEvChargers?: () => void;
+  /** Fire danger chip (VTL-81) */
+  showFireDanger?: boolean;
+  onToggleFireDanger?: () => void;
   /** Called with every successful incident refresh (seasonal-road override). */
   onIncidentsLoaded?: (incidents: TravelIncident[]) => void;
   showSkiResorts: boolean;
@@ -182,6 +185,8 @@ function TravelLayer({
   onToggleRivers,
   showEvChargers = false,
   onToggleEvChargers,
+  showFireDanger = false,
+  onToggleFireDanger,
   onIncidentsLoaded,
   showSkiResorts,
   onToggleSkiResorts,
@@ -470,6 +475,14 @@ function TravelLayer({
                   chipType="rivers"
                   active={showRivers}
                   onClick={onToggleRivers}
+                />
+              )}
+              {onToggleFireDanger && (
+                <FilterChip
+                  layer="fireDanger"
+                  chipType="fire"
+                  active={showFireDanger}
+                  onClick={onToggleFireDanger}
                 />
               )}
               {onToggleEvChargers && (

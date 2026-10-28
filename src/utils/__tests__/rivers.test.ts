@@ -100,9 +100,9 @@ describe('flood tones', () => {
     const low: string[] = [];
     for (const category of Object.keys(FLOOD_LEVELS) as (keyof typeof FLOOD_LEVELS)[]) {
       const vars = floodToneVars(category);
-      const color = vars['--flood-color']!;
-      const light = contrast(vars['--flood-ink']!, mix(color, LIGHT, 0.12));
-      const dark = contrast(vars['--flood-ink-dark']!, mix(color, DARK, 0.22));
+      const color = vars['--tone-color']!;
+      const light = contrast(vars['--tone-ink']!, mix(color, LIGHT, 0.12));
+      const dark = contrast(vars['--tone-ink-dark']!, mix(color, DARK, 0.22));
       if (light < 4.5) low.push(`${category} light ${light.toFixed(2)}`);
       if (dark < 4.5) low.push(`${category} dark ${dark.toFixed(2)}`);
     }

@@ -10,6 +10,7 @@ import type { RoadWeatherStation } from '../services/roadWeatherApi';
 import type { AirQualityMonitor } from '../services/airQualityApi';
 import type { RiverGauge } from '../services/riverApi';
 import type { EvCharger } from '../services/evChargerApi';
+import type { FireDangerAreaView } from '../services/fireDangerApi';
 import type { SkiResort } from '../services/skiApi';
 import type { Beach } from '../services/beachApi';
 import type { CreemeeStand } from '../services/creemeeApi';
@@ -77,6 +78,7 @@ export type DetailPanelContent =
   | { type: 'airQuality'; data: AirQualityMonitor }
   | { type: 'river'; data: RiverGauge }
   | { type: 'evCharger'; data: EvCharger }
+  | { type: 'fireDanger'; data: FireDangerAreaView }
   | { type: 'ski'; data: SkiResort }
   | { type: 'beach'; data: Beach }
   | { type: 'creemee'; data: CreemeeStand }

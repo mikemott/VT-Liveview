@@ -100,6 +100,16 @@ describe('parseUrlState', () => {
     expect(parseUrlState(hash).layers).toEqual(new Set(['evChargers']));
   });
 
+  it('round-trips the fire danger layer and an area selection (VTL-81)', () => {
+    const hash = buildUrlHash({
+      view: { zoom: 7, lat: 44, lng: -72.7 },
+      layers: new Set(['fireDanger']),
+      selection: { type: 'fire', id: '3' },
+    });
+    expect(hash).toBe('#map=7/44/-72.7&layers=fire&sel=fire:3');
+    expect(parseUrlState(hash).selection).toEqual({ type: 'fire', id: '3' });
+  });
+
   it('round-trips the seasonal roads layer and a road selection', () => {
     const hash = buildUrlHash({
       view: { zoom: 11, lat: 44.56, lng: -72.79 },

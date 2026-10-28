@@ -16,7 +16,7 @@ import {
 } from '../../utils/rivers';
 import LayerBadge from './LayerBadge';
 import { DetailHeader, DetailRows, DetailSource } from './DetailParts';
-import '../../styles/flood.css';
+import '../../styles/tone.css';
 import './DetailViews.css';
 
 interface RiverDetailProps {
@@ -153,7 +153,7 @@ export default function RiverDetail({ gauge, isDark }: RiverDetailProps) {
       <LayerBadge layer="riverGauges" label={isLake ? 'Lake gauge' : 'River gauge'} />
       <DetailHeader name={gauge.name} location={where} />
 
-      <div className="aq-headline flood-tone" role="status" style={floodToneVars(gauge.category)}>
+      <div className="aq-headline status-tone" role="status" style={floodToneVars(gauge.category)}>
         <span className="aq-headline-value">
           {gauge.stageFt === null ? '—' : gauge.stageFt.toFixed(gauge.stageFt >= 100 ? 1 : 2)}
         </span>
@@ -165,7 +165,7 @@ export default function RiverDetail({ gauge, isDark }: RiverDetailProps) {
 
       {forecastWorse && gauge.forecastCategory && (
         <div
-          className="river-forecast-warning flood-tone"
+          className="river-forecast-warning status-tone"
           role="status"
           style={floodToneVars(gauge.forecastCategory)}
         >

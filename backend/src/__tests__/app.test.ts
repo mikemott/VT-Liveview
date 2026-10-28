@@ -652,3 +652,24 @@ describe('EV chargers (VTL-81)', () => {
     expect((await app.inject({ method: 'GET', url: '/api/ev-chargers' })).statusCode).toBe(502);
   });
 });
+
+describe('fire danger (VTL-81)', () => {
+  const SERVICE =
+    'https://services5.arcgis.com/Uzks6LSde6r23wwG/arcgis/rest/services/Vermont_Fire_Danger_-_Public/FeatureServer/1/query';
+  const dangerJson = JSON.parse(loadText('anr/fire-danger.geojson')) as Record<string, unknown>;
+
+  it('serves the rating areas', async () => {
+    server.use(http.get(SERVICE, () => HttpResponse.json(dangerJson)));
+    const app = await loadApp();
+    const res = await app.inject({ method: 'GET', url: '/api/fire-danger' });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['cache-control']).toBe('public, max-age=900');
+    expect(res.json<{ areas: unknown[] }>().areas).toHaveLength(5);
+  });
+
+  it('answers 502 when the service is down', async () => {
+    server.use(http.get(SERVICE, () => new HttpResponse(null, { status: 503 })));
+    const app = await loadApp();
+    expect((await app.inject({ method: 'GET', url: '/api/fire-danger' })).statusCode).toBe(502);
+  });
+});

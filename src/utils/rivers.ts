@@ -45,14 +45,14 @@ export function worstCategory(gauge: RiverGauge): FloodCategory {
   return f && SEVERITY[f] > SEVERITY[gauge.category] ? f : gauge.category;
 }
 
-/** CSS variables for an element with the `flood-tone` class (src/styles/flood.css) */
+/** CSS variables for an element with the `status-tone` class (src/styles/tone.css) */
 export function floodToneVars(category: FloodCategory): Record<string, string> {
   const l = FLOOD_LEVELS[category];
   return {
     // Normal levels use the ski "green"; no reading is plain slate
-    '--flood-color': l.color ?? (category === 'no_flooding' ? '#16a34a' : '#64748b'),
-    '--flood-ink': l.ink,
-    '--flood-ink-dark': l.inkDark,
+    '--tone-color': l.color ?? (category === 'no_flooding' ? '#16a34a' : '#64748b'),
+    '--tone-ink': l.ink,
+    '--tone-ink-dark': l.inkDark,
   };
 }
 
