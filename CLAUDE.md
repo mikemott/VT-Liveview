@@ -1,936 +1,185 @@
 # VT-Liveview Development Guide for Claude
 
-## 🎯 What Is This Project?
+**VT-Liveview** is a hyper-local, real-time map of Vermont. It pulls free public
+data into one MapLibre web app: NOAA weather and alerts, radar, VT 511
+traffic, cameras and road weather, USGS river gauges, air quality, ski,
+beaches, camping, creemee stands and stargazing.
 
-**VT-Liveview** is a hyper-local, real-time information map for Vermont that aggregates data from multiple free public sources into a single, beautiful web interface.
+- **GitHub:** https://github.com/mikemott/VT-Liveview
+- **Linear:** team VTL, project "VT LiveView"
+- **Read next:** `PROJECT.md` (status + roadmap), `docs/architecture.md` (how it fits together), `docs/decisions/` (ADRs), `docs/review/FINDINGS.md` (open review findings)
 
-**Core Features:**
-- 🌦️ Live weather radar (Iowa Environmental Mesonet)
-- ⚠️ NOAA weather alerts with zone highlighting
-- 🚗 Real-time traffic incidents (Vermont 511)
-- 🚧 Road closures and construction zones
-- 🌊 USGS flood monitoring at river gauges
-- 🌓 Automatic dark mode based on Vermont sunrise/sunset
-- 📱 Mobile-responsive glassmorphism UI
-
-**GitHub:** https://github.com/mikemott/VT-Liveview
+Everything is **TypeScript** (`.ts`/`.tsx`). Trust the code over any older doc,
+including the root-level `*_REPORT.md`/`*_SUMMARY.md` files, which are historical.
 
 ---
 
-## 🏗️ Architecture Overview
+## Tech stack
 
-### Tech Stack
-```
-┌─────────────────────────────────────────────────────┐
-│ Frontend (React 19 + Vite 7)                       │
-│ ├── MapLibre GL 5.15 (vector mapping)              │
-│ ├── React Query (caching & data fetching)          │
-│ ├── Protomaps (OpenStreetMap vector tiles)         │
-│ └── Lucide React (icons)                           │
-└─────────────────────────────────────────────────────┘
-                         ↕ GraphQL/REST
-┌─────────────────────────────────────────────────────┐
-│ Backend (Fastify 4 + Apollo GraphQL)               │
-│ ├── GraphQL API for weather data                   │
-│ ├── NOAA API proxy (alerts, forecasts)             │
-│ ├── IEM radar tile aggregation                     │
-│ └── VT 511 XML parser (traffic incidents)          │
-└─────────────────────────────────────────────────────┘
-                         ↕ HTTP/JSON/XML
-┌─────────────────────────────────────────────────────┐
-│ External Free Public APIs                          │
-│ ├── NOAA Weather API (alerts, forecasts)           │
-│ ├── Iowa Environmental Mesonet (radar tiles)       │
-│ ├── Vermont 511 (traffic, construction, closures)  │
-│ └── USGS Water Services (river gauges)             │
-└─────────────────────────────────────────────────────┘
-```
+| | |
+|---|---|
+| Frontend | React 19, Vite 7, MapLibre GL 5, TanStack Query 5, graphql-request, Protomaps basemap, Lucide icons, zod |
+| Backend | Fastify 4, Apollo Server 4, node-cron collectors, Drizzle ORM + postgres-js (optional DB), cheerio scraper, zod env |
+| Tests | Vitest 4 + MSW (frontend: happy-dom + Testing Library; backend: node + `fastify.inject`), Playwright + axe for E2E |
+| Tooling | ESLint (type-aware typescript-eslint, react-hooks, jsx-a11y), Prettier, husky + lint-staged |
+| Hosting | Frontend → Cloudflare Pages (+ `functions/` Pages Function) · Backend → Fly.io `vt-liveview-api` (region `bos`, `node:22-alpine`) |
 
-### Deployment
-- **Frontend:** Cloudflare Pages (automatic on push to `main`)
-- **Backend:** Deployable to VPS, Railway, Render, Docker, Proxmox LXC
+Node **22** (`.nvmrc`).
 
 ---
 
-## 🔄 Development Workflow
+## Commands
 
-**⚠️ CRITICAL: NEVER commit directly to `main` branch!**
-
-All work follows a Branch → PR → CodeRabbit Review → Merge workflow.
-
-### Linear Integration
-
-This project uses Linear for issue tracking with automatic GitHub integration.
-
-**Branch Naming Convention:**
-```bash
-vtl-XXX-short-description    # lowercase, Linear issue ID prefix
-# Example: vtl-12-add-air-quality → VTL-12
-```
-
-**Magic Words (in PR body or commits):**
-- `Closes VTL-XXX` - Auto-closes issue on merge
-- `Fixes VTL-XXX` - Auto-closes issue on merge
-
-**What Happens Automatically:**
-1. **PR opened** → Linear issue moves to "In Review" status
-2. **PR opened** → Comment added to Linear issue with PR link
-3. **PR merged with magic words** → Linear issue auto-closes
-
-### Creating Pull Requests
+The same scripts exist in the repo root (frontend) and in `backend/`:
 
 ```bash
-# 1. Create feature branch (use Linear issue ID!)
-git checkout -b vtl-XXX-short-description
-
-# 2. Make changes and commit
-git add . && git commit -m "feat: description"
-
-# 3. Push and create PR (include magic words!)
-git push -u origin vtl-XXX-short-description
-gh pr create --title "feat: description" --body "Closes VTL-XXX\n\n## Summary\n- Change 1"
-```
-
-**Note:** A PR template is provided at `.github/pull_request_template.md` with `Closes VTL-` pre-filled.
-
-### Branch Freshness Policy
-
-**⚠️ CRITICAL: Keep branches up-to-date with main to avoid merge conflicts and stale code!**
-
-**Branch Lifetime Rules:**
-- Feature branches should live **< 3 days** from creation to merge
-- Rebase from `main` **daily** if branch is still active
-- Branches **>5 commits behind main** MUST be rebased before PR can merge
-- Branches **>7 days old** should be closed and recreated from fresh main
-
-**Before Creating a PR:**
-```bash
-# Always rebase from main before creating PR
-git fetch origin main
-git rebase origin/main
-
-# Resolve any conflicts
-# Then push and create PR
-git push -u origin vtl-XXX-your-branch
-gh pr create ...
-```
-
-**If Your PR Gets Stale:**
-```bash
-# Fetch latest main
-git fetch origin main
-
-# Rebase your branch
-git rebase origin/main
-
-# Force push (your branch only!)
-git push --force-with-lease
-```
-
-**Why This Matters:**
-- Prevents merge conflicts from accumulating
-- Ensures your code works with latest changes
-- Avoids situations like PR #14 (closed due to TypeScript migration)
-- GitHub branch protection will enforce "branches must be up to date before merging"
-
-**For Major Migrations** (like TypeScript, major refactors):
-- Create pinned issue: "🚨 [Migration Name] - All open PRs must rebase by [date]"
-- Comment on all open PRs with deadline
-- Give 48-hour warning before starting migration
-
-### Review CodeRabbit Feedback (AUTOMATIC - Claude Does This)
-
-**After creating a PR, Claude automatically:**
-1. Waits ~30-60 seconds for CodeRabbit to complete its review
-2. Fetches the review: `gh pr view <number> --comments`
-3. Analyzes all feedback and code suggestions
-
-**Claude uses judgment to prioritize feedback:**
-- ✅ **Always fix:** Security issues, bugs, runtime errors, backward compatibility breaks
-- ✅ **Fix if straightforward:** High-impact improvements that are quick wins
-- 📝 **Document for later:** Larger architectural refactorings (create Linear issue)
-- ⏭️ **Skip:** Minor style preferences, subjective suggestions, or conflicts with project patterns
-
-**Not all CodeRabbit feedback requires action** - Claude makes pragmatic decisions about what adds value vs. what's noise. The goal is to catch real issues, not to satisfy every bot suggestion.
-
-### Merge After Review
-
-```bash
-gh pr merge <number> --squash --delete-branch
-```
-
-### Automation in Place
-
-| Automation | Trigger | Action |
-|------------|---------|--------|
-| **CodeRabbit** | PR opened/updated | AI code review (GitHub App) |
-| **Linear Sync** | PR opened/reopened | Update Linear issue to "In Review", add PR link comment |
-| **Deploy** | Push to `main` | Build & deploy to Cloudflare Pages |
-| **Sentry** | Production deploy | Upload source maps |
-
-**Required GitHub Secret:** `LINEAR_API_KEY` - Get from Linear Settings → API → Personal API Keys
-
----
-
-## 🚀 Quick Start for Development
-
-### Prerequisites
-- Node.js 20+
-- npm
-- Protomaps API key (free tier: 1M views/month)
-
-### Setup Steps
-```bash
-# 1. Install frontend dependencies
-npm install
-
-# 2. Install backend dependencies
-cd backend
-npm install
-cd ..
-
-# 3. Set up environment
-cp .env.example .env
-# Edit .env and add your Protomaps API key:
-# VITE_PROTOMAPS_API_KEY=your_key_here
-
-# 4. Start backend (terminal 1)
-cd backend
-npm run dev  # Runs on http://localhost:4000
-
-# 5. Start frontend (terminal 2)
-npm run dev  # Runs on http://localhost:5173
-```
-
-### Environment Variables
-
-**Frontend (.env):**
-```bash
-# REQUIRED
-VITE_PROTOMAPS_API_KEY=pm_xxxxx  # Get free at https://protomaps.com/api
-
-# OPTIONAL
-VITE_BACKEND_URL=http://localhost:4000        # Backend GraphQL endpoint
-VITE_GRAPHQL_ENDPOINT=http://localhost:4000/graphql
-```
-
-**Backend (backend/.env):**
-```bash
-# Server config
-PORT=4000                                     # Default: 4000
-HOST=0.0.0.0                                  # Default: 0.0.0.0
-NODE_ENV=development                          # development | production
-
-# CORS (production only)
-ALLOWED_ORIGINS=https://your-domain.com       # Comma-separated list
-
-# NOAA API User-Agent
-CONTACT_EMAIL=your-email@example.com          # Required by NOAA ToS
-
-# Monitoring (optional)
-SENTRY_DSN=your_sentry_dsn                    # Error tracking
-SENTRY_ENVIRONMENT=development                # Environment name
-SENTRY_TRACES_SAMPLE_RATE=0.1                 # 10% of transactions
-SENTRY_PROFILES_SAMPLE_RATE=0.1               # 10% of traces
-```
-
-**Local Secrets for Claude Sessions (.env.local):**
-```bash
-# This file is gitignored and contains tokens for deployments/integrations
-# Claude sessions should read this file for API tokens
-
-FLY_API_TOKEN=...     # Fly.io deploy token (for backend deployments)
-LINEAR_API_KEY=...    # Linear API key (for issue tracking)
-NOAA_CDO_TOKEN=...    # NOAA Climate Data Online token (historical weather)
-```
-
-**Using tokens in Claude sessions:**
-```bash
-# Load Fly.io token for deployments
-source .env.local 2>/dev/null
-export PATH="$HOME/.fly/bin:$PATH"
-fly secrets set KEY=value  # Now authenticated
-```
-
----
-
-## 📂 Project Structure
-
-```
-VT-Liveview/
-├── src/                              # React frontend
-│   ├── WeatherMap.jsx                # ⭐ Main map component (12KB, complex)
-│   ├── App.jsx                       # Root component with React Query provider
-│   ├── main.jsx                      # Entry point
-│   │
-│   ├── components/
-│   │   ├── CurrentWeather.jsx        # Weather display widget
-│   │   ├── RadarOverlay.jsx          # Radar animation layer + controls
-│   │   ├── TravelLayer.jsx           # Traffic incidents layer + filtering
-│   │   └── ThemeToggle.jsx           # Dark mode toggle button
-│   │
-│   ├── hooks/
-│   │   └── useRadarAnimation.js      # Radar frame animation logic
-│   │
-│   ├── services/
-│   │   ├── graphqlClient.js          # GraphQL client setup
-│   │   ├── travelApi.js              # VT 511 + USGS aggregator
-│   │   └── vt511Api.js               # VT 511 XML parser
-│   │
-│   ├── utils/
-│   │   ├── mapStyles.js              # Protomaps style configuration
-│   │   ├── incidentIcons.js          # Icon mapping utilities
-│   │   └── incidentColors.js         # Category color coding
-│   │
-│   ├── App.css                       # Root styles + theme variables
-│   └── index.css                     # Global styles
-│
-├── backend/
-│   ├── src/
-│   │   ├── server.js                 # ⭐ Fastify server + GraphQL setup
-│   │   ├── schema.graphql            # GraphQL type definitions
-│   │   │
-│   │   ├── resolvers/
-│   │   │   └── index.js              # GraphQL resolvers
-│   │   │
-│   │   └── services/
-│   │       ├── noaa.js               # NOAA API integration (alerts, forecasts)
-│   │       └── radar.js              # IEM radar tile service
-│   │
-│   └── package.json                  # Backend dependencies
-│
-├── .github/
-│   ├── pull_request_template.md      # PR template with Linear magic words
-│   └── workflows/
-│       ├── deploy.yml                # Cloudflare Pages CI/CD + Sentry uploads
-│       └── linear-sync.yml           # Linear ↔ GitHub PR sync automation
-│
-├── Configuration Files
-│   ├── package.json                  # Frontend dependencies (8 core, 11 dev)
-│   ├── vite.config.js                # Vite build configuration
-│   ├── eslint.config.js              # ESLint rules (flat config)
-│   ├── sentry.config.js              # Sentry initialization
-│   └── index.html                    # HTML entry point (Orbitron font)
-│
-└── Documentation
-    ├── README.md                     # User-facing documentation
-    ├── CLAUDE.md                     # THIS FILE - Claude development guide
-    ├── AUDIT_REPORT.md               # Comprehensive audit findings (37% complete)
-    └── SESSION_1_SUMMARY.md          # Recent audit session notes
-```
-
-### Key Files to Know
-
-| File | Size | Purpose | When to Edit |
-|------|------|---------|--------------|
-| `src/WeatherMap.jsx` | 12KB | Main map component, alert management, theme switching | Map initialization, alert display logic |
-| `backend/src/server.js` | 4KB | Fastify + Apollo GraphQL setup, CORS, routes | API endpoints, server config |
-| `backend/src/services/noaa.js` | 8KB | NOAA API integration with LRU cache | Weather data fetching |
-| `src/components/TravelLayer.jsx` | 10KB | Traffic incident layer with filtering | Incident display, filtering logic |
-| `src/services/vt511Api.js` | 9KB | VT 511 XML parser | Traffic data parsing |
-| `src/utils/mapStyles.js` | 5KB | Protomaps style configuration | Base map appearance |
-
----
-
-## 🔄 Data Flow & Caching Strategy
-
-### React Query Configuration
-```javascript
-// src/App.jsx
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000,    // 5 minutes
-      refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
-      retry: 2,
-    },
-  },
-});
-```
-
-### Data Sources & Update Frequencies
-
-| Source | Data Type | Cache | Update Frequency | API Endpoint |
-|--------|-----------|-------|------------------|--------------|
-| **NOAA** | Weather alerts, forecasts | 5 min | Real-time | `https://api.weather.gov` |
-| **IEM** | Radar tiles | N/A | Real-time | `https://mesonet.agron.iastate.edu` |
-| **VT 511** | Traffic incidents | 5 min | 2 minutes | `https://511vt.com/map/Cctv/data` |
-| **USGS** | River gauges | 5 min | Real-time | `https://waterservices.usgs.gov` |
-| **Ski Vermont** | Resort conditions | 6 hr | Twice daily | `https://skivermont.com/conditions` |
-| **Protomaps** | Vector map tiles | Browser | Real-time | `https://api.protomaps.com` |
-
-### Backend Caching (NOAA Grid Points)
-```javascript
-// backend/src/services/noaa.js
-// LRU cache with max 100 entries, 1-hour TTL
-const gridPointCache = new Map();
-const gridPointTimeouts = new Map();
-```
-
-**Important:** The cache prevents redundant API calls for the same coordinates. When adding new caching, follow this LRU pattern to avoid memory leaks.
-
----
-
-## 🛠️ Common Development Tasks
-
-### 1. Adding a New Data Source
-
-**Example: Adding Air Quality Index (EPA AirNow)**
-
-```javascript
-// 1. Create service in src/services/airQuality.js
-export async function fetchAirQuality() {
-  const response = await fetch('https://airnowapi.org/...');
-  return response.json();
-}
-
-// 2. Add React Query hook in component
-import { useQuery } from '@tanstack/react-query';
-
-const { data: airQuality } = useQuery({
-  queryKey: ['air-quality'],
-  queryFn: fetchAirQuality,
-  staleTime: 5 * 60 * 1000, // 5 minutes
-});
-
-// 3. Add to map as new layer (see TravelLayer.jsx for pattern)
-```
-
-### 2. Adding a New Map Layer
-
-**Pattern to follow (see `src/components/TravelLayer.jsx`):**
-
-```javascript
-// 1. Add GeoJSON source
-map.current.addSource('my-layer-source', {
-  type: 'geojson',
-  data: {
-    type: 'FeatureCollection',
-    features: []
-  }
-});
-
-// 2. Add layer with styling
-map.current.addLayer({
-  id: 'my-layer',
-  type: 'symbol',
-  source: 'my-layer-source',
-  layout: {
-    'icon-image': 'my-icon',
-    'icon-size': 1.0
-  }
-});
-
-// 3. Update data on change
-useEffect(() => {
-  if (map.current.getSource('my-layer-source')) {
-    map.current.getSource('my-layer-source').setData(newData);
-  }
-}, [newData]);
-```
-
-### 3. Modifying Map Styles
-
-**Base map colors and layers:**
-```javascript
-// src/utils/mapStyles.js - Protomaps style configuration
-export function getProtomapsStyle(isDark, apiKey) {
-  return {
-    // Customize colors, fonts, layer visibility
-  };
-}
-```
-
-### 4. Adding New Environment Variables
-
-```bash
-# 1. Add to .env.example with description
-VITE_MY_NEW_VAR=default_value  # Description here
-
-# 2. Use in code
-const myVar = import.meta.env.VITE_MY_NEW_VAR;
-
-# 3. Update CLAUDE.md environment variables section
-```
-
-### 5. Backend API Changes
-
-**Adding new GraphQL resolver:**
-```javascript
-// 1. Update backend/src/schema.graphql
-type Query {
-  myNewQuery(param: String!): MyNewType
-}
-
-// 2. Add resolver in backend/src/resolvers/index.js
-export const resolvers = {
-  Query: {
-    myNewQuery: async (parent, args, context) => {
-      // Implementation
-    }
-  }
-};
-
-// 3. Use in frontend with graphqlClient
-import { graphqlClient } from './services/graphqlClient';
-
-const data = await graphqlClient.request(gql`
-  query MyNewQuery($param: String!) {
-    myNewQuery(param: $param) {
-      field
-    }
-  }
-`, { param: 'value' });
-```
-
-### 6. Running Production Build
-
-```bash
-# Frontend
+npm ci
+npm run check          # lint + typecheck + format:check + test (run this before handing off)
+npm run lint           # eslint, --max-warnings 0
+npm run typecheck      # tsc --noEmit
+npm test               # vitest run
+npm run test:coverage  # with enforced thresholds (CI runs this)
+npm run format         # prettier --write (explicit paths; markdown is excluded)
 npm run build
-# Output: dist/ folder
-
-# Backend (no build needed, runs directly)
-cd backend
-npm start  # Production mode
 ```
 
-### 7. Ski Conditions Layer
+Frontend only:
+```bash
+npm run dev            # http://localhost:5173
+npm run test:e2e       # Playwright; starts the mocked backend (:4100) and vite preview (:4173)
+npm run test:e2e:update
+```
 
-**Location:** `src/components/SkiLayer.tsx`
-**Backend:** `backend/src/services/skiConditions.ts`
-**Update frequency:** Twice daily via GitHub Actions (6 AM & 2 PM ET)
-**Color coding:** Green (powder + operations), Yellow (decent), Red (limited)
+Backend only:
+```bash
+npm run dev            # tsx watch, reads backend/.env, http://localhost:4000
+npm run e2e:server     # real app with MSW upstreams (what E2E uses)
+npm run db:generate | db:migrate | db:studio   # Drizzle, needs DATABASE_URL
+```
 
-**Architecture:**
-- Backend scrapes skivermont.com with Cheerio
-- 12-hour cache with LRU eviction
-- GraphQL endpoint: `skiResorts`
-- Frontend: MapLibre markers with Mountain icons
-- Popups show: snow depth, lifts, trails, temperature
-
-**Maintenance:**
-- HTML structure changes may break scraper (defensive selectors used)
-- Logo URLs may change (graceful fallback to Mountain icon)
-- GitHub Actions cron: `.github/workflows/ski-conditions-cron.yml`
+E2E needs browsers. On a normal machine, run `npx playwright install chromium webkit`.
+On the NixOS agent box, see `PROJECT.md` → Environment. Visual baselines
+are Linux-only and come from CI (ADR 0002), so never commit locally generated PNGs.
 
 ---
 
-## 📦 Deployment
+## Development workflow
 
-### Frontend (Cloudflare Pages)
+**Never commit directly to `main`.** Work goes Branch → PR → CodeRabbit review → merge.
 
-**Automatic deployment on push to `main`:**
-- Build command: `npm run build`
-- Output directory: `dist`
-- Environment variables set in Cloudflare dashboard
+- **Branches:** human branches are `vtl-XXX-short-description`. Agent branches are `agent/vtl-XXX`, which agent-bridge creates in `.worktrees/VTL-XXX`.
+- **PR body:** include `Closes VTL-XXX`. The template at `.github/pull_request_template.md` pre-fills it.
+- **Rebasing:** rebase on `origin/main` before opening a PR (`git fetch origin main && git rebase origin/main`). Branches more than 5 commits behind must be rebased. Branches older than 7 days should be recreated.
+- **CodeRabbit:** after opening a PR, wait for its review (`gh pr view <n> --comments`).
+  - Always fix security issues, bugs and compatibility breaks.
+  - Fix quick, high-impact wins.
+  - Open a Linear issue for big refactors.
+  - Skip style nits.
+  - It skips PRs over 100 files, so keep PRs small.
+- **Merging:** don't merge without Mike's approval. Mike merges (`gh pr merge <n> --squash --delete-branch`). If a PR's commits are listed in `.git-blame-ignore-revs`, use a merge commit instead so those SHAs stay valid.
+- **Pre-commit hook:** husky runs lint-staged on commit. Fix what it reports; don't bypass it with `--no-verify`.
 
-**GitHub Actions workflow (`.github/workflows/deploy.yml`):**
-1. Checkout code
-2. Install dependencies
-3. Run tests
-4. Build with Vite
-5. Upload source maps to Sentry (production only)
-6. Deploy to Cloudflare Pages
+### Remote agent sessions (agent-bridge)
+- **Linear:** follow the `linear-workflow` skill: `linear show` → post a plan → `linear state "Needs input"` if blocked → handoff comment → `linear state "In Review"`.
+- **Worktree:** work only in your own worktree. Never use bare `git stash`: the stash is shared across worktrees.
+- **Decisions:** record lasting decisions as `docs/decisions/NNNN-title.md` (copy `0000-template.md`).
+- **CLAUDE.md:** don't edit it directly. Propose changes in a separate commit or in the handoff.
+- **Tools on the box:** Node 22, `gh` (via `GH_TOKEN`) and `linear` are available. There's no `.env.local`, so agents don't deploy.
 
-**Linear sync handled separately** by `.github/workflows/linear-sync.yml` (see Development Workflow section).
-
-### Backend Deployment Options
-
-**Option 1: VPS/Cloud Server (Recommended for Production)**
-```bash
-# Install dependencies
-npm install --production
-
-# Run with PM2
-npm install -g pm2
-pm2 start src/server.js --name vt-liveview-backend
-
-# Environment variables
-# Create backend/.env with production values
-```
-
-**Option 2: Docker**
-```dockerfile
-FROM node:20-alpine
-WORKDIR /app
-COPY backend/package*.json ./
-RUN npm install --production
-COPY backend/src ./src
-EXPOSE 4000
-CMD ["node", "src/server.js"]
-```
-
-**Option 3: Railway / Render**
-- Auto-deploy from GitHub
-- Set environment variables in dashboard
-- Port detected automatically from `PORT` env var
-
-**Option 4: Proxmox LXC Container**
-```bash
-# Create Ubuntu LXC
-# Install Node.js 20
-# Clone repo and follow VPS instructions
-```
-
-**Option 5: Fly.io (Current Production)**
-```bash
-# Install Fly CLI
-curl -L https://fly.io/install.sh | sh
-export PATH="$HOME/.fly/bin:$PATH"
-
-# Login (first time only)
-fly auth login
-
-# Deploy from backend directory
-cd backend
-fly deploy
-
-# Set secrets (first time or when updating)
-fly secrets set CONTACT_EMAIL=your-email@example.com
-fly secrets set ALLOWED_ORIGINS=https://vtliveview.pages.dev
-
-# View logs
-fly logs
-
-# SSH into running machine
-fly ssh console
-```
-
-**Fly.io Configuration** (`backend/fly.toml`):
-- App name: `vt-liveview-api`
-- Region: `bos` (Boston)
-- Auto-stop/start machines enabled
-- Health check: `GET /health`
-
-### Production Checklist
-
-- [ ] Set `CONTACT_EMAIL` in backend environment (required by NOAA ToS)
-- [ ] Configure `ALLOWED_ORIGINS` for CORS (frontend domain)
-- [ ] Set `NODE_ENV=production` in backend
-- [ ] Add Sentry DSN for error tracking (optional)
-- [ ] Update `VITE_BACKEND_URL` to production backend URL
-- [ ] Test all data sources are fetching correctly
-- [ ] Verify dark mode toggle works
-- [ ] Check mobile responsiveness
+### Automation
+| Workflow | Trigger | Does |
+|---|---|---|
+| `ci.yml` | push/PR to main | Frontend + backend matrix: lint, typecheck, format:check, test:coverage, build. An `e2e` matrix runs chromium, webkit and mobile. |
+| `deploy-backend.yml` | push to main touching `backend/**` | `flyctl deploy --remote-only` |
+| `ski-conditions-cron.yml` | 11:00 & 19:00 UTC | `POST /api/ski-conditions/refresh` |
+| `linear-sync.yml` | PR opened | Moves the Linear issue to In Review |
+| Cloudflare Pages | push to main | Builds and deploys the frontend (configured in Cloudflare, not in a workflow file) |
 
 ---
 
-## 🐛 Known Issues & Ongoing Work
+## Project layout
 
-### Current Status: Audit 37% Complete (10/27 fixes done)
-
-**Reference:** See `AUDIT_REPORT.md` for comprehensive details.
-
-### High Priority Remaining Fixes
-- [ ] **Remove unused functions** - `getCurrentRadarTileUrl()` in `useRadarAnimation.js:144`
-- [ ] **Remove empty function** - `registerPMTilesProtocol()` in `mapStyles.js:136`
-- [ ] **Fix ESLint warnings** - Incomplete dependency arrays in `WeatherMap.jsx:246`
-
-### Medium Priority Remaining Fixes
-- [ ] **Dark mode popup colors** - Popups have hardcoded light-mode colors in `TravelLayer.jsx:237`
-- [ ] **Font weight normalization** - Inconsistent font weights across light/dark modes
-- [ ] **Error boundaries** - Add try-catch blocks around VT 511 XML parsing
-- [ ] **Accessibility** - Low contrast text in dark mode (`.incident-source` color)
-
-### Low Priority (Deferred)
-- [ ] Refactor `WeatherMap.jsx` (393 lines) into smaller components
-- [ ] Extract marker management to custom hook in `TravelLayer.jsx`
-- [ ] Implement theme context instead of prop drilling
-
-### Recent Fixes (Session 1 - 2026-01-12)
-- ✅ Fixed NOAA contact email (now uses `CONTACT_EMAIL` env var)
-- ✅ Fixed CORS configuration (environment-aware, production-safe)
-- ✅ Wrapped all console.log statements in `DEV` checks (25+ instances)
-- ✅ Fixed memory leak in `gridPointCache` (added LRU eviction + timeout tracking)
-- ✅ Removed unused dependencies (`picomatch`, `react-map-gl`, `@sentry/node`)
-
----
-
-## 📝 Code Patterns & Best Practices
-
-### 1. Console Logging (Always Wrap in DEV Check)
-```javascript
-// ✅ CORRECT
-if (import.meta.env.DEV) {
-  console.log('Debug info', data);
-}
-
-// ❌ WRONG - Will log in production builds
-console.log('Debug info', data);
 ```
-
-### 2. Map Layer Management
-```javascript
-// Always check if source exists before updating
-if (map.current.getSource('my-source')) {
-  map.current.getSource('my-source').setData(newData);
-}
-```
-
-### 3. React Query Keys (Use Descriptive Arrays)
-```javascript
-// ✅ CORRECT - Specific, hierarchical
-queryKey: ['weather', 'alerts', coordinates]
-
-// ❌ WRONG - Too generic
-queryKey: ['data']
-```
-
-### 4. Error Handling in Backend
-```javascript
-// Always include try-catch and meaningful errors
-try {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`API error: ${response.status}`);
-  }
-  return await response.json();
-} catch (error) {
-  if (import.meta.env.DEV) {
-    console.error('Fetch failed:', error);
-  }
-  throw new Error(`Failed to fetch: ${error.message}`);
-}
-```
-
-### 5. CSS Module Scoping
-```css
-/* Use descriptive class names, assume they're scoped */
-.controls-panel { }
-.control-section { }
-.incident-item { }
-
-/* Dark mode with .dark class on parent */
-.controls-panel.dark { }
-```
-
-### 6. Theme Variables (Define in App.css)
-```css
-/* src/App.css */
-:root {
-  --color-primary: #3b82f6;
-  --bg-glass: rgba(255, 255, 255, 0.85);
-}
-
-.dark {
-  --bg-glass: rgba(0, 0, 0, 0.6);
-}
+src/
+  main.tsx, App.tsx            entry, QueryClient, ErrorBoundary
+  WeatherMap.tsx               map shell: init, theme swap, alerts, chips, DetailPanel, "What's here?"
+  config/layers.ts             layer registry: label, icon, colour (shared by chips, markers, search)
+  config/seasonalLayers.ts     month-based layer visibility
+  components/                  *Layer.tsx per layer, DetailPanel + detail-views/, RadarOverlay,
+                               CurrentWeather, SearchBox, ShareMenu, MapUnavailable, ...
+  hooks/                       useMapMarkers (shared marker lifecycle), useLayerData, useRadarAnimation, ...
+  services/                    graphqlClient + *Api.ts per data source (vt511Api parses XML)
+  utils/                       sanitize, mapStyles, mapMarker, urlState, sharePreview, colour/icon maps
+  data/                        static datasets (seasonal roads, dark-sky sites, VT outline/towns)
+  styles/design-system.css     vintage design tokens (see VINTAGE-STYLE-GUIDE.md)
+  test/                        vitest setup, MSW server, maplibre mock
+  __fixtures__/                synthetic upstream fixtures
+functions/index.ts             Cloudflare Pages Function: link-preview <meta> for shared views
+e2e/                           Playwright specs + fixtures.ts (blocks all third-party traffic)
+backend/src/
+  app.ts                       buildServer(): Fastify + Apollo, CORS, rate limit, REST routes
+  server.ts                    listen, scheduler, graceful shutdown
+  schema.graphql, resolvers/   GraphQL API
+  services/                    one module per upstream, each with its own cache
+  collectors/, scheduler/      node-cron jobs that write to Postgres
+  db/                          Drizzle schema, migrations, client
+  types/env.ts                 zod env schema (source of truth for backend env vars)
+  test/                        MSW setup, upstream handlers, e2e-server.ts
+docs/                          architecture.md, decisions/, review/, plans/, design-system.md
 ```
 
 ---
 
-## 🤖 Claude-Specific Tips for Efficiency
+## Environment variables
 
-### When Starting a Session
+**Frontend `.env`** (see `.env.example`; validated in `src/types/env.ts`):
+- `VITE_PROTOMAPS_API_KEY` (required)
+- `VITE_TOMTOM_API_KEY` (traffic flow)
+- `VITE_BACKEND_URL`
+- `VITE_GRAPHQL_ENDPOINT`
 
-**1. Check Recent Commit History**
-```bash
-git log --oneline -5
-```
-This tells you what was recently worked on.
+**Backend `backend/.env`** (validated in `backend/src/types/env.ts`):
+- `PORT`, `HOST`, `NODE_ENV`
+- `ALLOWED_ORIGINS`: production CORS
+- `CONTACT_EMAIL`: NOAA User-Agent, required by NOAA's terms of service
+- `ADMIN_TOKEN`: `/admin/clear-cache` in production
+- `NOAA_CDO_TOKEN`, `AIRNOW_API_KEY`
+- `DATABASE_URL`, `DATABASE_MODE` (`postgres`|`timescale`), `ENABLE_COLLECTOR`
+- `SENTRY_*`
 
-**2. Check Current Branch**
-```bash
-git branch
-```
-Make sure you're on the right branch before making changes.
+**`.env.local`** (gitignored, local machines only): `FLY_API_TOKEN`, `LINEAR_API_KEY`, `NOAA_CDO_TOKEN`. It isn't on the agent server.
 
-**3. Review Open Issues**
-Check `AUDIT_REPORT.md` for known issues before diving into code.
-
-### Finding Things Quickly
-
-**Component locations:**
-- Main map logic: `src/WeatherMap.jsx`
-- Layer management: `src/components/TravelLayer.jsx`, `RadarOverlay.jsx`
-- Data fetching: `src/services/*.js`
-- Backend API: `backend/src/server.js`
-- Styling: Component-specific CSS modules (e.g., `TravelLayer.css`)
-
-**Common file patterns:**
-```bash
-# Find all API service files
-ls src/services/*.js
-
-# Find all components
-ls src/components/*.jsx
-
-# Find CSS modules
-find src -name "*.css"
-
-# Find GraphQL files
-find backend -name "*.graphql"
-```
-
-### Before Making Changes
-
-**1. Always read the file first:**
-```bash
-# NEVER propose changes without reading the file
-# Example: If user asks to modify WeatherMap.jsx
-cat src/WeatherMap.jsx  # Read it first!
-```
-
-**2. Check dependencies:**
-```bash
-# See what's installed
-cat package.json
-cat backend/package.json
-```
-
-**3. Look for existing patterns:**
-```bash
-# If adding a new layer, see how TravelLayer does it
-grep -n "addSource" src/components/TravelLayer.jsx
-```
-
-### Common Pitfalls to Avoid
-
-❌ **Don't assume Express.js** - Backend uses Fastify + Apollo GraphQL
-❌ **Don't assume Redux** - Uses React Query for state management
-❌ **Don't assume CSS-in-JS** - Uses CSS modules with scoped classes
-❌ **Don't assume REST API** - Backend serves GraphQL (with some REST endpoints)
-❌ **Don't assume Mapbox** - Uses MapLibre GL (open-source fork)
-❌ **Don't create console.log without DEV check** - All logs must be wrapped
-❌ **Don't add dependencies without checking existing solutions** - Keep bundle small
-
-### Performance Considerations
-
-- **React Query caches for 5 minutes** - Don't add additional caching unless needed
-- **Map re-renders are expensive** - Avoid unnecessary state changes in `WeatherMap.jsx`
-- **MapLibre layers are stateful** - Always check if layer exists before adding
-- **Backend cache is LRU with max 100 entries** - Follow this pattern for new caches
+When you add an env var, add it to `.env.example` and to the matching `env.ts`, and update this section.
 
 ---
 
-## 📚 External Documentation Links
+## Code patterns
 
-### Core Technologies
-- **React 19:** https://react.dev/
-- **Vite:** https://vitejs.dev/
-- **MapLibre GL JS:** https://maplibre.org/maplibre-gl-js/docs/
-- **React Query:** https://tanstack.com/query/latest/docs/framework/react/overview
-- **Fastify:** https://fastify.dev/
-- **Apollo GraphQL:** https://www.apollographql.com/docs/apollo-server/
+1. **Console logging:** gate it on dev.
+   - Frontend: `if (import.meta.env.DEV)`.
+   - Backend: `isDev()` from `types/env.ts`.
+   - `console.error` for real failures is fine.
+2. **Untrusted strings:** anything from an upstream that ends up in HTML must go through `src/utils/sanitize.ts`. Prefer JSX in the DetailPanel views over building HTML strings.
+3. **MapLibre:**
+   - Check `getSource`/`getLayer` before you add or remove.
+   - Use `hooks/useMapMarkers.ts` for point markers, so they're cleaned up on hide, on data change and on unmount.
+   - Re-add sources and layers after a style swap.
+4. **Layer colours:** take them from `config/layers.ts`. Don't hard-code them. `layerPalette.test.ts` enforces distinctness and contrast.
+5. **React Query keys:** use descriptive hierarchical arrays, e.g. `['weather', 'alerts', coords]`. Defaults are in `App.tsx`.
+6. **Backend caches:** bound them (LRU / max entries) and give them a TTL. Never let a Map grow without a limit. Keep stale-on-error fallbacks working.
+7. **Upstream fetches:** check `response.ok` and throw meaningful errors. Send the NOAA User-Agent with `CONTACT_EMAIL`. Every new upstream needs MSW handlers and fixtures: unit tests in `test/`, E2E in `backend/src/test/upstreamHandlers.ts` and `e2e/fixtures.ts`.
+8. **Styling:** use per-component `.css` files, with dark mode via a `.dark` parent class. New styles should use `styles/design-system.css` tokens, not raw hex (`App.css` tokens are legacy, FINDINGS H14).
+9. **New GraphQL field:** add it to `schema.graphql`, add a resolver in `resolvers/`, then call it from `src/services/*Api.ts` via `graphqlClient`. Add an `inject` test.
+10. **New seasonal layer:** add it to `config/seasonalLayers.ts` and `config/layers.ts`, and follow the `SkiLayer.tsx` pattern.
 
-### Data Source APIs
-- **NOAA Weather API:** https://www.weather.gov/documentation/services-web-api
-- **Iowa Mesonet (IEM):** https://mesonet.agron.iastate.edu/docs/
-- **Vermont 511:** https://511vt.com/ (XML feed, no official docs)
-- **USGS Water Services:** https://waterservices.usgs.gov/docs/
-- **Protomaps:** https://protomaps.com/docs/basemaps
-
-### Tools & Services
-- **Cloudflare Pages:** https://developers.cloudflare.com/pages/
-- **CodeRabbit:** https://docs.coderabbit.ai/ (AI code review)
-- **Sentry:** https://docs.sentry.io/
-
----
-
-## 🎓 Learning Resources for This Codebase
-
-### Understanding the Map
-- Start with: `src/WeatherMap.jsx` - Main map initialization
-- Then read: `src/utils/mapStyles.js` - Style configuration
-- Then explore: `src/components/TravelLayer.jsx` - Layer management pattern
-
-### Understanding Data Flow
-1. `src/App.jsx` - React Query setup
-2. `src/services/graphqlClient.js` - GraphQL client config
-3. `backend/src/server.js` - API endpoints
-4. `backend/src/services/noaa.js` - External API integration example
-
-### Understanding Styling
-1. `src/App.css` - Theme variables and global styles
-2. `src/components/TravelLayer.css` - Component-scoped styles
-3. `index.html` - Font loading (Orbitron from Google Fonts)
+### Pitfalls
+- **Frameworks:** it's Fastify + Apollo, not Express. It's TanStack Query, not Redux. It's MapLibre, not Mapbox.
+- **Dependencies:** don't add one without asking Mike.
+- **Lint and tests:** never weaken a lint rule or a test to get green. Raise the disagreement instead.
+- **Database:** it's optional. Code must work with no `DATABASE_URL` (history features turn off).
+- **Prettier:** a bare `prettier .` touches dotfiles. Use `npm run format`.
+- **Sentry:** `sentry.config.js` is dead code (no Sentry dependency). See PROJECT.md, Phase 5.
 
 ---
 
-## 🚨 Emergency Debugging
-
-### Frontend Not Loading?
-```bash
-# Check Vite dev server
-npm run dev
-
-# Check console for errors (browser DevTools)
-# Common issues:
-# - Missing VITE_PROTOMAPS_API_KEY
-# - Backend not running
-# - CORS errors (check backend CORS config)
-```
-
-### Backend Not Responding?
-```bash
-# Check if backend is running
-cd backend
-npm run dev
-
-# Check port 4000 is available
-lsof -i :4000
-
-# Check backend logs for errors
-# Common issues:
-# - Port already in use
-# - Missing CONTACT_EMAIL (NOAA API will fail)
-# - CORS misconfiguration
-```
-
-### Map Not Displaying?
-```bash
-# 1. Check Protomaps API key in .env
-# 2. Check browser console for MapLibre errors
-# 3. Verify mapStyles.js:49 doesn't throw error
-# 4. Check network tab for tile loading failures
-```
-
-### Data Not Loading?
-```bash
-# Check React Query DevTools (enabled in DEV mode)
-# Look for failed queries
-# Common issues:
-# - Backend endpoint incorrect (check VITE_BACKEND_URL)
-# - External API down (NOAA, VT 511, USGS)
-# - CORS errors (backend ALLOWED_ORIGINS)
-```
-
----
-
-## 📞 Getting Help
-
-### Project Resources
-- **GitHub Issues:** https://github.com/mikemott/VT-Liveview/issues
-- **Audit Report:** See `AUDIT_REPORT.md` for known issues
-- **Session Notes:** See `SESSION_1_SUMMARY.md` for recent work
-
-### When Asking Claude for Help
-Include this context:
-- What you're trying to accomplish
-- What file(s) you're working in
-- Any error messages (full stack trace)
-- What you've already tried
-
-**Example:**
-> "I'm trying to add a new layer for air quality data to the map. I've created `src/services/airQuality.js` to fetch EPA data, but when I try to add the layer in `WeatherMap.jsx`, I get a MapLibre error: 'Layer already exists'. I've checked and there's no existing layer with that ID. Here's the code I added: [code snippet]"
-
----
-
-## ✅ Session Initialization Checklist
-
-When starting a new Claude session on this project:
-
-- [ ] Read this CLAUDE.md file
-- [ ] Check recent commits: `git log --oneline -5`
-- [ ] Review `AUDIT_REPORT.md` for known issues
-- [ ] Verify current branch: `git branch`
-- [ ] Check if backend is running: `curl http://localhost:4000/health`
-- [ ] Check if frontend is running: `curl http://localhost:5173`
-- [ ] Review user's request and ask clarifying questions if needed
-
----
-
-**Last Updated:** 2026-01-15
-**Maintainer:** Mike Mott (mike@mottvt.com)
-**License:** MIT
+**Maintainer:** Mike Mott (mike@mottvt.com) · **License:** MIT
