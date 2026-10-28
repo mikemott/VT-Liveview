@@ -404,19 +404,11 @@
 }
 
 .weather-normal-diff.warm {
-  color: #b45309;
+  color: var(--color-error-hover);
 }
 
 .weather-normal-diff.cold {
-  color: #1d4ed8;
-}
-
-.current-weather.dark .weather-normal-diff.warm {
-  color: #fdba74;
-}
-
-.current-weather.dark .weather-normal-diff.cold {
-  color: #93c5fd;
+  color: var(--color-accent-hover);
 }
 
 .climate-section {

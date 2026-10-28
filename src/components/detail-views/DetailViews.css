@@ -1004,7 +1004,7 @@
 }
 
 .river-hydrograph-flood line {
-  stroke: #ea580c;
+  stroke: var(--color-warning);
   stroke-width: 1;
   stroke-dasharray: 2 2;
 }

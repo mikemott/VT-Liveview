@@ -15,7 +15,8 @@ _Last updated: 2026-10-28 (VTL-46, main @ 38e364b)_
 - **Layers:**
   - radar, NOAA alerts, current weather + forecast, weather stations
   - VT 511 incidents (accidents, construction, closures, floods, hazards), TomTom traffic flow, traffic cameras, road weather stations (in season), seasonal road closures
-  - USGS gauges, air quality (AirNow)
+  - USGS gauges, air quality (AirNow), river and lake levels with NWS flood stages, fire danger (FPR), EV chargers (AFDC)
+  - weather card: today's forecast vs the 1991-2020 normal, plus daily records (ACIS)
   - ski (in season), creemee (in season), camping, camping areas, beaches, stargazing/astronomy
 - **UI:** every layer opens in the shared side DetailPanel. Clicking empty map shows "What's here?". There's a search box, a share menu with per-view link previews (Cloudflare Pages Function in `functions/`), and a fallback when WebGL is unavailable.
 - **Historical:** the root-level reports (`AUDIT_REPORT.md`, `PRODUCTION_REVIEW.md`, `SESSION_1_SUMMARY.md`, `TESTING_REPORT.md`, …) describe the pre-TypeScript code. Don't treat their checklists as current.
