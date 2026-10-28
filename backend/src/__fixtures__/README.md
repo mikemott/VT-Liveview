@@ -40,6 +40,8 @@ relative to this directory.
 | `nwps/gauges.json` | `https://api.water.noaa.gov/nwps/v1/gauges?bbox.xmin=-73.5&bbox.ymin=42.65&bbox.xmax=-71.4&bbox.ymax=45.1&srid=EPSG_4326` (recorded Oct 2026, cut to 7 gauges: one with no current reading, two NH gauges (one on the Connecticut River); ESSV1's values edited to action stage with a minor-flood forecast) |
 | `nwps/gauge-MONV1.json` | `https://api.water.noaa.gov/nwps/v1/gauges/MONV1` (recorded Oct 2026; crests cut to 4 historic / 2 recent, images, datums and inundation emptied) |
 | `nwps/stageflow-MONV1.json` | `https://api.water.noaa.gov/nwps/v1/gauges/MONV1/stageflow` (recorded Oct 2026; observed cut to every 2 h over the last 2 days, forecast to 6 points) |
+| `acis/normals-BTVthr.json` | `POST https://data.rcc-acis.org/StnData` with `{"sid":"BTVthr","sdate":"2026-10-28","edate":"2026-10-28","elems":[{"name":"maxt","normal":"1"},{"name":"mint","normal":"1"}]}` (recorded Oct 2026) |
+| `acis/records-BTVthr.json` | the same with `"sdate":"por"` and max/min `smry` elements grouped by `["year","1028","1028"]` (recorded Oct 2026) |
 
 The recreation and backcountry services reject responses with fewer than 20 or 50
 valid sites. The tests pad these fixtures by cloning the first record

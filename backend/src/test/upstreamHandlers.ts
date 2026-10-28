@@ -100,6 +100,14 @@ export const upstreamHandlers = [
     }),
   ),
 
+  // RCC-ACIS normals and records (VTL-81): a por start date means the records query
+  http.post('https://data.rcc-acis.org/StnData', async ({ request }) => {
+    const body = (await request.json()) as { sdate?: string };
+    return HttpResponse.json(
+      loadJson(body.sdate === 'por' ? 'acis/records-BTVthr.json' : 'acis/normals-BTVthr.json'),
+    );
+  }),
+
   // NOAA Climate Data Online (only called when NOAA_CDO_TOKEN is set)
   http.get('https://www.ncei.noaa.gov/cdo-web/api/v2/data', () =>
     HttpResponse.json(loadJson('ncei-cdo/data-ghcnd.json')),

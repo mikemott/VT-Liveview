@@ -390,3 +390,60 @@
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.02em;
 }
+
+/* Today vs normal (VTL-81): a line under the description, details when expanded */
+.weather-normal {
+  margin-top: calc(-1 * var(--space-2));
+  margin-bottom: var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.weather-normal-diff {
+  font-weight: var(--font-weight-semibold);
+}
+
+.weather-normal-diff.warm {
+  color: #b45309;
+}
+
+.weather-normal-diff.cold {
+  color: #1d4ed8;
+}
+
+.current-weather.dark .weather-normal-diff.warm {
+  color: #fdba74;
+}
+
+.current-weather.dark .weather-normal-diff.cold {
+  color: #93c5fd;
+}
+
+.climate-section {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-vermont-green-subtle);
+}
+
+.climate-rows {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  font-size: var(--font-size-sm);
+}
+
+.climate-rows > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.climate-rows dt {
+  color: var(--color-text-secondary);
+}
+
+.climate-rows dd {
+  margin: 0;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}

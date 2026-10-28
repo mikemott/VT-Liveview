@@ -19,6 +19,7 @@ import { createTrafficCameraService } from './services/trafficCameras.js';
 import { createRoadWeatherService } from './services/roadWeather.js';
 import { createAirQualityService } from './services/airQuality.js';
 import { createRiverService, GAUGE_ID } from './services/rivers.js';
+import { createClimateService } from './services/climate.js';
 import { validateEnv, isProd } from './types/index.js';
 import { getDb, checkDatabaseHealth, isDatabaseEnabled } from './db/index.js';
 import { getCollectorStatus } from './scheduler/index.js';
@@ -376,6 +377,31 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
       return { error: 'River gauge is unavailable' };
     }
   });
+
+  // Today's normals and records for the weather card (VTL-81)
+  const climate = createClimateService();
+
+  fastify.get<{ Querystring: { lat?: string; lon?: string } }>(
+    '/api/climate/today',
+    async (request, reply) => {
+      const lat = Number(request.query.lat);
+      const lon = Number(request.query.lon);
+      // Same bounds the map allows (src/utils/urlState.ts)
+      if (!(lat >= 40.5 && lat <= 47.5 && lon >= -77.5 && lon <= -68.5)) {
+        reply.code(400);
+        return { error: 'lat and lon must be within the Vermont map area' };
+      }
+      try {
+        const day = await climate.getDay(lat, lon);
+        reply.header('Cache-Control', 'public, max-age=3600');
+        return day;
+      } catch (error) {
+        fastify.log.warn({ err: error }, 'Climate normals fetch failed');
+        reply.code(502);
+        return { error: 'Climate normals are unavailable' };
+      }
+    },
+  );
 
   fastify.get('/api/cameras', async (_request: FastifyRequest, reply: FastifyReply) => {
     try {

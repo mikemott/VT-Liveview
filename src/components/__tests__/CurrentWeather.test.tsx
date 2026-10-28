@@ -173,4 +173,42 @@ describe('CurrentWeather', () => {
       expect(document.querySelector('.weather-aqi')).toBeNull();
     });
   });
+
+  describe('today vs normal (VTL-81)', () => {
+    const CLIMATE = {
+      date: '2026-10-16',
+      station: { name: 'Montpelier', distanceMi: 4 },
+      normalHighF: 56,
+      normalLowF: 37,
+      recordHigh: { tempF: 78, year: 1947 },
+      recordLow: { tempF: 18, year: 1972 },
+    };
+
+    it('compares tonight with the normal low and lists normals and records', async () => {
+      server.use(http.get('*/api/climate/today', () => HttpResponse.json(CLIMATE)));
+      // The first period (night, 40.4°) starts Oct 16 in Vermont
+      renderWithClient(<CurrentWeather />);
+      const diff = await screen.findByText('3° above normal');
+      expect(diff).toHaveClass('warm');
+      expect(diff.closest('.weather-normal')).toHaveTextContent('Low tonight 40°, 3° above normal');
+
+      fireEvent.click(screen.getByText('Light Rain'));
+      expect(screen.getByText('Today in Montpelier')).toBeInTheDocument();
+      expect(screen.getByText('56° / 37°')).toBeInTheDocument();
+      expect(screen.getByText('78° (1947)')).toBeInTheDocument();
+      expect(screen.getByText('18° (1972)')).toBeInTheDocument();
+    });
+
+    it('leaves the line out when normals are unavailable or for another day', async () => {
+      server.use(
+        http.get('*/api/climate/today', () =>
+          HttpResponse.json({ ...CLIMATE, date: '2026-10-15' }),
+        ),
+      );
+      renderWithClient(<CurrentWeather />);
+      await screen.findByText('51');
+      await new Promise((r) => setTimeout(r, 50));
+      expect(document.querySelector('.weather-normal')).toBeNull();
+    });
+  });
 });

@@ -597,3 +597,38 @@ describe('river gauges (VTL-81)', () => {
     expect((await app.inject({ method: 'GET', url: '/api/rivers/MONV1' })).statusCode).toBe(502);
   });
 });
+
+describe('climate normals (VTL-81)', () => {
+  const ACIS = 'https://data.rcc-acis.org/StnData';
+  const normalsJson = JSON.parse(loadText('acis/normals-BTVthr.json')) as Record<string, unknown>;
+  const recordsJson = JSON.parse(loadText('acis/records-BTVthr.json')) as Record<string, unknown>;
+
+  it('serves normals and records for the nearest station', async () => {
+    server.use(
+      http.post(ACIS, async ({ request }) => {
+        const body = (await request.json()) as { sdate?: string };
+        return HttpResponse.json(body.sdate === 'por' ? recordsJson : normalsJson);
+      }),
+    );
+    const app = await loadApp();
+    const res = await app.inject({ method: 'GET', url: '/api/climate/today?lat=44.48&lon=-73.21' });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['cache-control']).toBe('public, max-age=3600');
+    expect(res.json()).toMatchObject({
+      station: { name: 'Burlington' },
+      normalHighF: 54,
+      recordHigh: { tempF: 75, year: 1947 },
+    });
+  });
+
+  it('rejects points outside the map area and answers 502 when ACIS is down', async () => {
+    server.use(http.post(ACIS, () => new HttpResponse(null, { status: 503 })));
+    const app = await loadApp();
+    for (const q of ['', '?lat=10&lon=-72']) {
+      const res = await app.inject({ method: 'GET', url: `/api/climate/today${q}` });
+      expect(res.statusCode, q).toBe(400);
+    }
+    const down = await app.inject({ method: 'GET', url: '/api/climate/today?lat=44.3&lon=-72.6' });
+    expect(down.statusCode).toBe(502);
+  });
+});
