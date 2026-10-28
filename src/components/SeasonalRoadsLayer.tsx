@@ -91,51 +91,58 @@ function SeasonalRoadsLayer({
   useEffect(() => {
     if (!map || !visible) return;
 
-    map.addSource(SEASONAL_SOURCE_ID, { type: 'geojson', data: dataRef.current });
-    map.addLayer({
-      id: CASING_ID,
-      type: 'line',
-      source: SEASONAL_SOURCE_ID,
-      layout: { 'line-cap': 'round', 'line-join': 'round' },
-      paint: {
-        'line-color': isDark ? '#0f172a' : '#ffffff',
-        'line-width': ['interpolate', ['linear'], ['zoom'], 7, 3, 12, 8],
-        'line-opacity': ['match', ['get', 'status'], 'open', 0.5, 0.85],
-      },
-    });
-    map.addLayer({
-      id: OPEN_ID,
-      type: 'line',
-      source: SEASONAL_SOURCE_ID,
-      filter: ['==', ['get', 'status'], 'open'],
-      layout: { 'line-join': 'round' },
-      paint: {
-        'line-color': colorExpression,
-        'line-width': ['interpolate', ['linear'], ['zoom'], 7, 1.5, 12, 3],
-        'line-dasharray': [1, 2],
-        'line-opacity': 0.8,
-      },
-    });
-    map.addLayer({
-      id: CLOSED_ID,
-      type: 'line',
-      source: SEASONAL_SOURCE_ID,
-      filter: ['in', ['get', 'status'], ['literal', CLOSED_STATUSES]],
-      layout: { 'line-join': 'round' },
-      paint: {
-        'line-color': colorExpression,
-        'line-width': ['interpolate', ['linear'], ['zoom'], 7, 2.5, 12, 5],
-        // Closing soon: same plum, lighter, so it reads as "not yet"
-        'line-opacity': ['match', ['get', 'status'], 'closingSoon', 0.55, 1],
-        'line-dasharray': [2, 1.5],
-      },
-    });
-    map.addLayer({
-      id: HIT_ID,
-      type: 'line',
-      source: SEASONAL_SOURCE_ID,
-      paint: { 'line-color': '#000000', 'line-width': 16, 'line-opacity': 0 },
-    });
+    const add = (): void => {
+      map.addSource(SEASONAL_SOURCE_ID, { type: 'geojson', data: dataRef.current });
+      map.addLayer({
+        id: CASING_ID,
+        type: 'line',
+        source: SEASONAL_SOURCE_ID,
+        layout: { 'line-cap': 'round', 'line-join': 'round' },
+        paint: {
+          'line-color': isDark ? '#0f172a' : '#ffffff',
+          'line-width': ['interpolate', ['linear'], ['zoom'], 7, 3, 12, 8],
+          'line-opacity': ['match', ['get', 'status'], 'open', 0.5, 0.85],
+        },
+      });
+      map.addLayer({
+        id: OPEN_ID,
+        type: 'line',
+        source: SEASONAL_SOURCE_ID,
+        filter: ['==', ['get', 'status'], 'open'],
+        layout: { 'line-join': 'round' },
+        paint: {
+          'line-color': colorExpression,
+          'line-width': ['interpolate', ['linear'], ['zoom'], 7, 1.5, 12, 3],
+          'line-dasharray': [1, 2],
+          'line-opacity': 0.8,
+        },
+      });
+      map.addLayer({
+        id: CLOSED_ID,
+        type: 'line',
+        source: SEASONAL_SOURCE_ID,
+        filter: ['in', ['get', 'status'], ['literal', CLOSED_STATUSES]],
+        layout: { 'line-join': 'round' },
+        paint: {
+          'line-color': colorExpression,
+          'line-width': ['interpolate', ['linear'], ['zoom'], 7, 2.5, 12, 5],
+          // Closing soon: same plum, lighter, so it reads as "not yet"
+          'line-opacity': ['match', ['get', 'status'], 'closingSoon', 0.55, 1],
+          'line-dasharray': [2, 1.5],
+        },
+      });
+      map.addLayer({
+        id: HIT_ID,
+        type: 'line',
+        source: SEASONAL_SOURCE_ID,
+        paint: { 'line-color': '#000000', 'line-width': 16, 'line-opacity': 0 },
+      });
+    };
+    // After a WebGL context loss or style swap the style may still be loading,
+    // when addSource throws "Style is not done loading": wait for it (VTL-81)
+    const styleReady = map.isStyleLoaded();
+    if (styleReady) add();
+    else void map.once('idle', add);
 
     const onClick = (e: MapLayerMouseEvent): void => {
       const id = e.features?.[0]?.properties?.id as string | undefined;
@@ -154,6 +161,7 @@ function SeasonalRoadsLayer({
     map.on('mouseleave', HIT_ID, onLeave);
 
     return () => {
+      if (!styleReady) map.off('idle', add);
       map.off('click', HIT_ID, onClick);
       map.off('mouseenter', HIT_ID, onEnter);
       map.off('mouseleave', HIT_ID, onLeave);
