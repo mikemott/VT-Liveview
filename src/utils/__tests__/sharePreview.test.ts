@@ -177,6 +177,23 @@ describe('Pages Function', () => {
     fetchMock.mockRestore();
   });
 
+  it('names a shared river gauge from the gauge list (VTL-81)', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(
+        new Response(
+          JSON.stringify({ gauges: [{ id: 'MONV1', name: 'Winooski River at Montpelier' }] }),
+        ),
+      );
+    const lookup = makeLookup('https://api.test');
+    expect(await lookup({ type: 'river', id: 'MONV1' })).toBe('Winooski River at Montpelier');
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('https://api.test/api/rivers');
+    expect(describeSelection({ type: 'river', id: 'MONV1' }, 'Winooski River at Montpelier')).toBe(
+      'River level: Winooski River at Montpelier',
+    );
+    fetchMock.mockRestore();
+  });
+
   it('looks seasonal roads and stargazing sites up locally, with no network', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch');
     const lookup = makeLookup('https://api.test');

@@ -45,6 +45,9 @@ interface TravelLayerProps {
   onToggleRoadWeather?: () => void;
   showAirQuality?: boolean;
   onToggleAirQuality?: () => void;
+  /** River gauges chip (VTL-81) */
+  showRivers?: boolean;
+  onToggleRivers?: () => void;
   /** Called with every successful incident refresh (seasonal-road override). */
   onIncidentsLoaded?: (incidents: TravelIncident[]) => void;
   showSkiResorts: boolean;
@@ -172,6 +175,8 @@ function TravelLayer({
   onToggleRoadWeather,
   showAirQuality = false,
   onToggleAirQuality,
+  showRivers = false,
+  onToggleRivers,
   onIncidentsLoaded,
   showSkiResorts,
   onToggleSkiResorts,
@@ -452,6 +457,14 @@ function TravelLayer({
                   chipType="air"
                   active={showAirQuality}
                   onClick={onToggleAirQuality}
+                />
+              )}
+              {onToggleRivers && (
+                <FilterChip
+                  layer="riverGauges"
+                  chipType="rivers"
+                  active={showRivers}
+                  onClick={onToggleRivers}
                 />
               )}
               {onToggleSeasonalRoads && (

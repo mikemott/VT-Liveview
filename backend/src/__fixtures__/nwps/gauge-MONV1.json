@@ -1,0 +1,182 @@
+{
+  "lid": "MONV1",
+  "usgsId": "04286000",
+  "reachId": "4577918",
+  "name": "Winooski River at Montpelier",
+  "description": "",
+  "rfc": {
+    "abbreviation": "NERFC",
+    "name": "Northeast River Forecast Center"
+  },
+  "wfo": {
+    "abbreviation": "BTV",
+    "name": "South Burlington"
+  },
+  "state": {
+    "abbreviation": "VT",
+    "name": "Vermont"
+  },
+  "county": "Washington",
+  "timeZone": "EST5EDT",
+  "latitude": 44.256666666667,
+  "longitude": -72.593888888889,
+  "pedts": {
+    "observed": "HGIRG",
+    "forecast": "HGIFF"
+  },
+  "status": {
+    "observed": {
+      "primary": 3.12,
+      "primaryUnit": "ft",
+      "secondary": 0.0956,
+      "secondaryUnit": "kcfs",
+      "floodCategory": "no_flooding",
+      "validTime": "2026-10-28T17:45:00Z"
+    },
+    "forecast": {
+      "primary": 3.1,
+      "primaryUnit": "ft",
+      "secondary": 0.092,
+      "secondaryUnit": "kcfs",
+      "floodCategory": "no_flooding",
+      "validTime": "2026-10-29T00:00:00Z"
+    }
+  },
+  "flood": {
+    "stageUnits": "ft",
+    "flowUnits": "cfs",
+    "categories": {
+      "major": {
+        "stage": 17.5,
+        "flow": -9999
+      },
+      "moderate": {
+        "stage": 16,
+        "flow": -9999
+      },
+      "minor": {
+        "stage": 15,
+        "flow": -9999
+      },
+      "action": {
+        "stage": 11,
+        "flow": -9999
+      }
+    },
+    "lro": {
+      "minorCS": "< 0.05",
+      "moderateCS": "< 0.05",
+      "majorCS": "< 0.05",
+      "producedTime": "2026-10-26T11:33:06Z",
+      "interval": "OND"
+    },
+    "crests": {
+      "historic": [
+        {
+          "occurredTime": "1927-11-03T00:00:00Z",
+          "stage": 27.1,
+          "flow": 57000,
+          "preliminary": "R",
+          "olddatum": false
+        },
+        {
+          "occurredTime": "2023-07-11T12:30:00Z",
+          "stage": 21.29,
+          "flow": 23100,
+          "preliminary": "O",
+          "olddatum": false
+        },
+        {
+          "occurredTime": "2011-08-29T02:15:00Z",
+          "stage": 19.05,
+          "flow": 14239,
+          "preliminary": "O",
+          "olddatum": false
+        },
+        {
+          "occurredTime": "2011-05-27T10:15:00Z",
+          "stage": 17.59,
+          "flow": 13072,
+          "preliminary": "O",
+          "olddatum": false
+        }
+      ],
+      "recent": [
+        {
+          "occurredTime": "2024-07-11T02:15:00Z",
+          "stage": 14.45,
+          "flow": 11900,
+          "preliminary": "P",
+          "olddatum": false
+        },
+        {
+          "occurredTime": "2023-12-18T23:30:00Z",
+          "stage": 16.15,
+          "flow": 14206,
+          "preliminary": "O",
+          "olddatum": false
+        }
+      ]
+    },
+    "lowWaters": {
+      "historic": []
+    },
+    "impacts": [
+      {
+        "stage": 27,
+        "statement": "The Montpelier business district will be covered by water 8 to 10 feet deep. Widespread flooding of the Winooski valley will occur."
+      },
+      {
+        "stage": 22,
+        "statement": "Downtown Montpelier will be inundated, and local roads will be covered by water. Route 2 and railroad tracks along the river will be covered with water. There will be widespread field flooding throughout the Winooski River valley. This stage is equivalent to the FEMA 1 Percent Annual Chance Flood."
+      },
+      {
+        "stage": 17.5,
+        "statement": "Water covers the streets in downtown Montpelier. Local roads along the Winooski from Montpelier to Waterbury will be covered in water, and there will be widespread field flooding."
+      },
+      {
+        "stage": 16,
+        "statement": "Route 2 will flood at Bailey Avenue bridge, and the entrance to the Montpelier High School. Parking lots behind state office buildings next to the river will flood between Taylor Street and Bailey Avenue, and the approach to Taylor Street bridge will be inundated. Low lying fields and farmland will be inundated."
+      },
+      {
+        "stage": 15,
+        "statement": "Flooding will begin on State Street at the Bailey Avenue bridge. Flooding may occur along Route 302 between Montpelier and Barre. Downstream from Montpelier to Waterbury, low lying local roads and farmland will flood. Water will approach the State of Vermont office complex in Waterbury."
+      }
+    ]
+  },
+  "images": {},
+  "dataAttribution": [
+    {
+      "abbrev": "US Geological Survey",
+      "text": "USGS--Water Resources of the United States",
+      "title": "US Geological Survey",
+      "url": "https://waterdata.usgs.gov/nwis"
+    },
+    {
+      "abbrev": "USGS",
+      "text": "04286000",
+      "title": "Observations courtesy of U.S. Geological Survey",
+      "url": "https://waterdata.usgs.gov/nwis/inventory/?site_no=04286000"
+    }
+  ],
+  "impactsLowWaters": [],
+  "normalThreshold": {
+    "value": 0,
+    "units": "ft"
+  },
+  "hydronotes": [],
+  "datums": {},
+  "inundation": {},
+  "upstreamLid": "WRTV1",
+  "downstreamLid": "WATV1",
+  "inService": {
+    "enabled": true,
+    "message": ""
+  },
+  "lowThreshold": null,
+  "forecastReliability": "Forecasts are issued routinely year-round.",
+  "TruncateObs": "-1",
+  "TruncateFcst": "3",
+  "ObservedFloodCategory": "no_flooding",
+  "ForecastFloodCategory": "no_flooding"
+}

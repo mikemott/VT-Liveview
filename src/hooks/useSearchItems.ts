@@ -11,6 +11,7 @@ import type { ObservationStation } from '../types';
 import type { TrafficCamera } from '../services/cameraApi';
 import type { RoadWeatherStation } from '../services/roadWeatherApi';
 import type { AirQualityMonitor } from '../services/airQualityApi';
+import type { RiverGauge } from '../services/riverApi';
 import { SEASONAL_ROADS } from '../data/seasonalRoads';
 import { roadBounds, roadCenter } from '../utils/seasonalRoads';
 
@@ -52,6 +53,7 @@ export function useSearchItems(
   cameras: readonly TrafficCamera[] = [],
   roadWeather: readonly RoadWeatherStation[] = [],
   airMonitors: readonly AirQualityMonitor[] = [],
+  riverGauges: readonly RiverGauge[] = [],
 ): { items: SearchItem[]; loading: boolean } {
   const opts = { enabled, staleTime: 10 * 60 * 1000, retry: 1 } as const;
   const [ski, beaches, creemee, recreation, incidents] = useQueries({
@@ -157,6 +159,16 @@ export function useSearchItems(
         lng: m.lng,
       });
     }
+    for (const g of riverGauges) {
+      out.push({
+        id: `river:${g.id}`,
+        kind: 'river',
+        name: g.name,
+        keywords: 'river lake gauge level flood stage flow',
+        lat: g.lat,
+        lng: g.lng,
+      });
+    }
     out.push(...ROAD_ITEMS);
     for (const inc of incidents.data ?? []) {
       const { lat, lng } = inc.location;
@@ -182,6 +194,7 @@ export function useSearchItems(
     cameras,
     roadWeather,
     airMonitors,
+    riverGauges,
   ]);
 
   const loading =

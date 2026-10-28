@@ -12,6 +12,9 @@ import RoadWeatherLayer from './components/RoadWeatherLayer';
 import type { RoadWeatherStation } from './services/roadWeatherApi';
 import AirQualityLayer from './components/AirQualityLayer';
 import type { AirQualityMonitor } from './services/airQualityApi';
+import RiverLayer from './components/RiverLayer';
+import type { RiverGauge } from './services/riverApi';
+import { floodSeverity, worstCategory } from './utils/rivers';
 import { isRoadWeatherSeason } from './utils/roadWeather';
 import SeasonalRoadsLayer from './components/SeasonalRoadsLayer';
 import WhatsHerePin from './components/WhatsHerePin';
@@ -194,6 +197,8 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
   });
   // Unified layer visibility state
   // null = auto (follow season), true = forced on, false = forced off
+  // Any river gauge at (or forecast for) minor flooding or worse (VTL-81)
+  const [riversFlooding, setRiversFlooding] = useState(false);
   const [layerVisibility, setLayerVisibility] = useState<Record<string, boolean | null>>(() => {
     const defaults: Record<string, boolean | null> = {
       weatherStations: true, // Core layer - always on by default
@@ -204,6 +209,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
       trafficCameras: false, // Off by default (VTL-56)
       roadWeather: isRoadWeatherSeason(), // On November–March (VTL-61)
       airQuality: false, // Off by default (VTL-76)
+      riverGauges: null, // Auto: on while any gauge is flooding or forecast to (VTL-81)
       // On while any notch/gap road is closed or about to close (VTL-55)
       seasonalRoads: [...getSeasonalStatuses([]).values()].some((s) => s.status !== 'open'),
     };
@@ -238,6 +244,8 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
       // If user has manually toggled, respect that
       if (manualToggle !== null) return manualToggle;
 
+      if (layerId === 'riverGauges') return riversFlooding;
+
       // Otherwise, check if it's a seasonal layer and if it's in season
       const seasonalConfig = SEASONAL_LAYERS.find((l) => l.id === layerId);
       if (seasonalConfig) {
@@ -247,7 +255,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
       // Non-seasonal layers default to false if not in visibility state
       return false;
     },
-    [layerVisibility, isInSeason],
+    [layerVisibility, isInSeason, riversFlooding],
   );
 
   // Mobile responsiveness
@@ -895,25 +903,31 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
   }, []);
 
   // Toggle layer visibility (unified function)
-  const toggleLayer = useCallback((layerId: string): void => {
-    setLayerVisibility((prev) => {
-      const current = prev[layerId];
+  const toggleLayer = useCallback(
+    (layerId: string): void => {
+      setLayerVisibility((prev) => {
+        const current = prev[layerId];
 
-      // Cycle: null (auto) → true (on) → false (off) → null (auto)
-      // For core layers (always true/false), just toggle between true/false
-      const seasonalConfig = SEASONAL_LAYERS.find((l) => l.id === layerId);
+        // Cycle: null (auto) → true (on) → false (off) → null (auto)
+        // For core layers (always true/false), just toggle between true/false
+        const seasonalConfig = SEASONAL_LAYERS.find((l) => l.id === layerId);
 
-      if (seasonalConfig) {
-        // Seasonal layer: cycle through null → true → false → null
-        if (current === null) return { ...prev, [layerId]: true };
-        if (current === true) return { ...prev, [layerId]: false };
-        return { ...prev, [layerId]: null };
-      } else {
-        // Core layer: simple boolean toggle
-        return { ...prev, [layerId]: !current };
-      }
-    });
-  }, []);
+        if (seasonalConfig) {
+          // Seasonal layer: cycle through null → true → false → null
+          if (current === null) return { ...prev, [layerId]: true };
+          if (current === true) return { ...prev, [layerId]: false };
+          return { ...prev, [layerId]: null };
+        } else if (current === null) {
+          // Auto layer (rivers while flooding): the first tap flips what's shown
+          return { ...prev, [layerId]: !(layerId === 'riverGauges' && riversFlooding) };
+        } else {
+          // Core layer: simple boolean toggle
+          return { ...prev, [layerId]: !current };
+        }
+      });
+    },
+    [riversFlooding],
+  );
 
   // Convenience functions for backward compatibility
   const toggleWeatherStations = useCallback((): void => {
@@ -966,6 +980,8 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         return { type: 'roadwx', id: detailPanelContent.data.id };
       case 'airQuality':
         return { type: 'aq', id: detailPanelContent.data.id };
+      case 'river':
+        return { type: 'river', id: detailPanelContent.data.id };
       case 'ski':
         return { type: 'poi', kind: 'ski', id: detailPanelContent.data.id };
       case 'beach':
@@ -1003,6 +1019,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         'trafficCameras',
         'roadWeather',
         'airQuality',
+        'riverGauges',
         'seasonalRoads',
       ] as const
     )
@@ -1264,6 +1281,21 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
     setDetailPanelContent({ type: 'airQuality', data: monitor });
   }, []);
 
+  // River gauges (VTL-81): latest list for search, and shared-link restore
+  const [riverGauges, setRiverGauges] = useState<RiverGauge[]>([]);
+  const handleRiverGaugesLoaded = useCallback((loaded: RiverGauge[]): void => {
+    setRiverGauges(loaded);
+    setRiversFlooding(loaded.some((g) => floodSeverity(worstCategory(g)) >= 2));
+    const pending = pendingSelection.current;
+    if (pending?.type !== 'river') return;
+    pendingSelection.current = undefined;
+    const gauge = loaded.find((g) => g.id === pending.id);
+    if (gauge) setDetailPanelContent({ type: 'river', data: gauge });
+  }, []);
+  const handleRiverGaugeClick = useCallback((gauge: RiverGauge): void => {
+    setDetailPanelContent({ type: 'river', data: gauge });
+  }, []);
+
   // Opening something else (or closing the panel) drops an unresolved selection
   const closeDetailPanel = useCallback((): void => {
     pendingSelection.current = undefined;
@@ -1348,6 +1380,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
     cameras,
     roadWeather,
     airMonitors,
+    riverGauges,
   );
 
   const handleSearchSelect = useCallback(
@@ -1377,6 +1410,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         camera: 'trafficCameras',
         roadWeather: 'roadWeather',
         airQuality: 'airQuality',
+        river: 'riverGauges',
         road: 'seasonalRoads',
       };
       const layer = layerFor[item.kind];
@@ -1405,10 +1439,14 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         const monitor = airMonitors.find((m) => `aq:${m.id}` === item.id);
         if (monitor) setDetailPanelContent({ type: 'airQuality', data: monitor });
       }
+      if (item.kind === 'river') {
+        const gauge = riverGauges.find((g) => `river:${g.id}` === item.id);
+        if (gauge) setDetailPanelContent({ type: 'river', data: gauge });
+      }
       if (item.kind === 'road') openSeasonalRoad(item.id.slice('road:'.length));
       if (isMobile) setControlsPanelOpen(false);
     },
-    [isMobile, stations, cameras, roadWeather, airMonitors, openSeasonalRoad, openPoi],
+    [isMobile, stations, cameras, roadWeather, airMonitors, riverGauges, openSeasonalRoad, openPoi],
   );
 
   // What the share menu offers (VTL-70): a link whose query carries the view
@@ -1555,6 +1593,8 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
               onToggleRoadWeather={() => toggleLayer('roadWeather')}
               showAirQuality={isLayerVisible('airQuality')}
               onToggleAirQuality={() => toggleLayer('airQuality')}
+              showRivers={isLayerVisible('riverGauges')}
+              onToggleRivers={() => toggleLayer('riverGauges')}
               showSeasonalRoads={isLayerVisible('seasonalRoads')}
               onToggleSeasonalRoads={() => toggleLayer('seasonalRoads')}
               onIncidentsLoaded={handleIncidentsLoaded}
@@ -1663,6 +1703,16 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
               visible={isLayerVisible('airQuality')}
               onMonitorClick={handleAirMonitorClick}
               onMonitorsLoaded={handleAirMonitorsLoaded}
+            />
+          )}
+
+          {/* River and lake gauges (VTL-81) */}
+          {mapLoaded && (
+            <RiverLayer
+              map={map.current}
+              visible={isLayerVisible('riverGauges')}
+              onSelect={handleRiverGaugeClick}
+              onLoaded={handleRiverGaugesLoaded}
             />
           )}
 

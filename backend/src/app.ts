@@ -18,6 +18,7 @@ import { fetchSkiConditions } from './services/skiConditions.js';
 import { createTrafficCameraService } from './services/trafficCameras.js';
 import { createRoadWeatherService } from './services/roadWeather.js';
 import { createAirQualityService } from './services/airQuality.js';
+import { createRiverService, GAUGE_ID } from './services/rivers.js';
 import { validateEnv, isProd } from './types/index.js';
 import { getDb, checkDatabaseHealth, isDatabaseEnabled } from './db/index.js';
 import { getCollectorStatus } from './scheduler/index.js';
@@ -337,6 +338,44 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
       }
     },
   );
+
+  // River and lake levels from NWPS (VTL-81)
+  const rivers = createRiverService(`VT-Liveview/1.0 (${env.CONTACT_EMAIL ?? 'weather-app'})`);
+
+  fastify.get('/api/rivers', async (_request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const gauges = await rivers.getGauges();
+      reply.header('Cache-Control', 'public, max-age=300');
+      return { gauges };
+    } catch (error) {
+      fastify.log.warn({ err: error }, 'River gauges fetch failed');
+      reply.code(502);
+      return { error: 'River gauges are unavailable' };
+    }
+  });
+
+  fastify.get<{ Params: { id: string } }>('/api/rivers/:id', async (request, reply) => {
+    const { id } = request.params;
+    if (!GAUGE_ID.test(id)) {
+      reply.code(400);
+      return { error: 'Not a gauge id' };
+    }
+    try {
+      // Only gauges we list: the detail route is not a general NWPS proxy
+      const known = (await rivers.getGauges()).some((g) => g.id === id);
+      const detail = known ? await rivers.getGauge(id) : null;
+      if (!detail) {
+        reply.code(404);
+        return { error: 'No such gauge' };
+      }
+      reply.header('Cache-Control', 'public, max-age=300');
+      return detail;
+    } catch (error) {
+      fastify.log.warn({ err: error }, 'River gauge fetch failed');
+      reply.code(502);
+      return { error: 'River gauge is unavailable' };
+    }
+  });
 
   fastify.get('/api/cameras', async (_request: FastifyRequest, reply: FastifyReply) => {
     try {

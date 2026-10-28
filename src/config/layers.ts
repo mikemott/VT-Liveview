@@ -17,6 +17,7 @@ import {
   Ban,
   Car,
   Construction,
+  Droplet,
   IceCream,
   Mountain,
   Snowflake,
@@ -36,6 +37,7 @@ export type LayerStyleKey =
   | 'trafficCameras'
   | 'roadWeather'
   | 'airQuality'
+  | 'riverGauges'
   | 'seasonalRoads'
   | IncidentType
   | 'skiResorts'
@@ -83,6 +85,13 @@ export const LAYER_STYLES: Record<LayerStyleKey, LayerStyle> = {
     // Stone grey: markers are tinted by EPA category, this is only the ring (VTL-76)
     color: '#78716c',
     description: 'EPA AirNow air quality monitors (AQI)',
+  },
+  riverGauges: {
+    label: 'Rivers',
+    icon: Droplet,
+    // Periwinkle: the blues are taken (stations, ski, floods); flood stages tint the fill (VTL-81)
+    color: '#8890b8',
+    description: 'River and lake levels from NWS / USGS gauges, with flood stages',
   },
   seasonalRoads: {
     label: 'Seasonal closures',

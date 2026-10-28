@@ -78,6 +78,17 @@ describe('parseUrlState', () => {
     expect(parseUrlState('#sel=aq:<script>').selection).toBeUndefined();
   });
 
+  it('round-trips the rivers layer and a gauge selection (VTL-81)', () => {
+    const hash = buildUrlHash({
+      view: { zoom: 9, lat: 44.26, lng: -72.58 },
+      layers: new Set(['riverGauges']),
+      selection: { type: 'river', id: 'MONV1' },
+    });
+    expect(hash).toBe('#map=9/44.26/-72.58&layers=rivers&sel=river:MONV1');
+    expect(parseUrlState(hash).selection).toEqual({ type: 'river', id: 'MONV1' });
+    expect(parseUrlState(hash).layers).toEqual(new Set(['riverGauges']));
+  });
+
   it('round-trips the seasonal roads layer and a road selection', () => {
     const hash = buildUrlHash({
       view: { zoom: 11, lat: 44.56, lng: -72.79 },

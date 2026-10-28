@@ -70,6 +70,10 @@ export function makeLookup(api: string): NameLookup {
         );
         return findName(monitors, selection.id);
       }
+      case 'river': {
+        const { gauges } = await getJson<{ gauges: Named[] }>(`${api}/api/rivers`);
+        return findName(gauges, selection.id);
+      }
       case 'roadwx': {
         const { stations } = await getJson<{ stations: Named[] }>(`${api}/api/road-weather`);
         return findName(stations, selection.id);

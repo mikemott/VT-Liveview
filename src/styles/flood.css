@@ -1,0 +1,16 @@
+/*
+ * River flood-category badges and banners (VTL-81): the same soft tint,
+ * outline and deep text as the AQI badges (aqi.css). Colors come from
+ * floodToneVars() in src/utils/rivers.ts.
+ */
+.flood-tone {
+  background: color-mix(in srgb, var(--flood-color) 12%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--flood-color) 45%, transparent);
+  color: var(--flood-ink);
+}
+
+.dark .flood-tone {
+  background: color-mix(in srgb, var(--flood-color) 22%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--flood-ink-dark) 40%, transparent);
+  color: var(--flood-ink-dark);
+}

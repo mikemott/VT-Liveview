@@ -878,7 +878,8 @@
   object-fit: contain;
 }
 
-/* What's here: air quality (VTL-75); colors in src/styles/aqi.css */
+/* What's here: air quality (VTL-75); colors in src/styles/aqi.css.
+   The .aq-headline layout is shared with river gauges (VTL-81) */
 .aqi-badge {
   display: inline-block;
   flex-shrink: 0;
@@ -964,4 +965,52 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
+}
+
+/* River gauges (VTL-81); tone colors in src/styles/flood.css */
+.river-forecast-warning {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-lg);
+  font-weight: var(--font-weight-semibold);
+}
+
+.river-hydrograph {
+  margin: var(--space-4) 0;
+}
+
+.river-hydrograph svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.river-hydrograph-obs,
+.river-hydrograph-fcst {
+  fill: none;
+  stroke: var(--color-text-secondary);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.river-hydrograph-fcst {
+  stroke-dasharray: 4 3;
+}
+
+.river-hydrograph-now {
+  stroke: var(--color-border-secondary);
+  stroke-width: 1;
+}
+
+.river-hydrograph-flood line {
+  stroke: #ea580c;
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+}
+
+.river-hydrograph-flood text,
+.river-hydrograph-axis {
+  font-size: 11px;
+  fill: var(--color-text-tertiary);
 }

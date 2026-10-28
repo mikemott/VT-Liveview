@@ -551,3 +551,49 @@ describe('air quality (VTL-75)', () => {
     ).toBe(502);
   });
 });
+
+describe('river gauges (VTL-81)', () => {
+  const NWPS = 'https://api.water.noaa.gov/nwps/v1';
+  const gaugesJson = JSON.parse(loadText('nwps/gauges.json')) as Record<string, unknown>;
+  const gaugeJson = JSON.parse(loadText('nwps/gauge-MONV1.json')) as Record<string, unknown>;
+  const stageflowJson = JSON.parse(loadText('nwps/stageflow-MONV1.json')) as Record<
+    string,
+    unknown
+  >;
+
+  const useNwps = (): void => {
+    server.use(
+      http.get(`${NWPS}/gauges`, () => HttpResponse.json(gaugesJson)),
+      http.get(`${NWPS}/gauges/MONV1`, () => HttpResponse.json(gaugeJson)),
+      http.get(`${NWPS}/gauges/MONV1/stageflow`, () => HttpResponse.json(stageflowJson)),
+    );
+  };
+
+  it('lists gauges and serves one gauge in detail', async () => {
+    useNwps();
+    const app = await loadApp();
+    const list = await app.inject({ method: 'GET', url: '/api/rivers' });
+    expect(list.statusCode).toBe(200);
+    expect(list.headers['cache-control']).toBe('public, max-age=300');
+    expect(list.json<{ gauges: unknown[] }>().gauges).toHaveLength(6);
+
+    const one = await app.inject({ method: 'GET', url: '/api/rivers/MONV1' });
+    expect(one.statusCode).toBe(200);
+    expect(one.json<{ floodStages: { minor: number } }>().floodStages.minor).toBe(15);
+  });
+
+  it('answers 400 for bad ids and 404 for gauges it does not list', async () => {
+    useNwps();
+    const app = await loadApp();
+    expect((await app.inject({ method: 'GET', url: '/api/rivers/a%2Fb' })).statusCode).toBe(400);
+    // In the NWPS response, but not a Vermont gauge
+    expect((await app.inject({ method: 'GET', url: '/api/rivers/ALLN3' })).statusCode).toBe(404);
+  });
+
+  it('answers 502 when NWPS is down', async () => {
+    server.use(http.get(`${NWPS}/gauges`, () => new HttpResponse(null, { status: 503 })));
+    const app = await loadApp();
+    expect((await app.inject({ method: 'GET', url: '/api/rivers' })).statusCode).toBe(502);
+    expect((await app.inject({ method: 'GET', url: '/api/rivers/MONV1' })).statusCode).toBe(502);
+  });
+});

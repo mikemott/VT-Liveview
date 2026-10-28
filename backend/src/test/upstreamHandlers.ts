@@ -85,6 +85,21 @@ export const upstreamHandlers = [
   ),
   http.get(PARK_BOUNDARIES_URL, () => HttpResponse.json(loadJson('anr/park-boundaries.geojson'))),
 
+  // NWS National Water Prediction Service (VTL-81). The gauge list has one
+  // gauge forecast to minor flooding, so the Rivers layer starts on
+  http.get('https://api.water.noaa.gov/nwps/v1/gauges', () =>
+    HttpResponse.json(loadJson('nwps/gauges.json')),
+  ),
+  http.get('https://api.water.noaa.gov/nwps/v1/gauges/:id/stageflow', () =>
+    HttpResponse.json(loadJson('nwps/stageflow-MONV1.json')),
+  ),
+  http.get('https://api.water.noaa.gov/nwps/v1/gauges/:id', ({ params }) =>
+    HttpResponse.json({
+      ...loadJson<Record<string, unknown>>('nwps/gauge-MONV1.json'),
+      lid: params.id,
+    }),
+  ),
+
   // NOAA Climate Data Online (only called when NOAA_CDO_TOKEN is set)
   http.get('https://www.ncei.noaa.gov/cdo-web/api/v2/data', () =>
     HttpResponse.json(loadJson('ncei-cdo/data-ghcnd.json')),
