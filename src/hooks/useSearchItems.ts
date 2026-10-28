@@ -12,6 +12,7 @@ import type { TrafficCamera } from '../services/cameraApi';
 import type { RoadWeatherStation } from '../services/roadWeatherApi';
 import type { AirQualityMonitor } from '../services/airQualityApi';
 import type { RiverGauge } from '../services/riverApi';
+import type { EvCharger } from '../services/evChargerApi';
 import { SEASONAL_ROADS } from '../data/seasonalRoads';
 import { roadBounds, roadCenter } from '../utils/seasonalRoads';
 
@@ -54,6 +55,7 @@ export function useSearchItems(
   roadWeather: readonly RoadWeatherStation[] = [],
   airMonitors: readonly AirQualityMonitor[] = [],
   riverGauges: readonly RiverGauge[] = [],
+  evChargers: readonly EvCharger[] = [],
 ): { items: SearchItem[]; loading: boolean } {
   const opts = { enabled, staleTime: 10 * 60 * 1000, retry: 1 } as const;
   const [ski, beaches, creemee, recreation, incidents] = useQueries({
@@ -169,6 +171,17 @@ export function useSearchItems(
         lng: g.lng,
       });
     }
+    for (const s of evChargers) {
+      out.push({
+        id: `ev:${s.id}`,
+        kind: 'evCharger',
+        name: s.name,
+        ...(s.city ? { detail: s.city } : {}),
+        keywords: `ev electric car charger charging station ${s.dcFastPorts > 0 ? 'dc fast' : 'level 2'} ${s.network ?? ''}`,
+        lat: s.lat,
+        lng: s.lng,
+      });
+    }
     out.push(...ROAD_ITEMS);
     for (const inc of incidents.data ?? []) {
       const { lat, lng } = inc.location;
@@ -195,6 +208,7 @@ export function useSearchItems(
     roadWeather,
     airMonitors,
     riverGauges,
+    evChargers,
   ]);
 
   const loading =

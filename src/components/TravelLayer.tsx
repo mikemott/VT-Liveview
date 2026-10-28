@@ -48,6 +48,9 @@ interface TravelLayerProps {
   /** River gauges chip (VTL-81) */
   showRivers?: boolean;
   onToggleRivers?: () => void;
+  /** EV chargers chip (VTL-81) */
+  showEvChargers?: boolean;
+  onToggleEvChargers?: () => void;
   /** Called with every successful incident refresh (seasonal-road override). */
   onIncidentsLoaded?: (incidents: TravelIncident[]) => void;
   showSkiResorts: boolean;
@@ -177,6 +180,8 @@ function TravelLayer({
   onToggleAirQuality,
   showRivers = false,
   onToggleRivers,
+  showEvChargers = false,
+  onToggleEvChargers,
   onIncidentsLoaded,
   showSkiResorts,
   onToggleSkiResorts,
@@ -465,6 +470,14 @@ function TravelLayer({
                   chipType="rivers"
                   active={showRivers}
                   onClick={onToggleRivers}
+                />
+              )}
+              {onToggleEvChargers && (
+                <FilterChip
+                  layer="evChargers"
+                  chipType="ev"
+                  active={showEvChargers}
+                  onClick={onToggleEvChargers}
                 />
               )}
               {onToggleSeasonalRoads && (

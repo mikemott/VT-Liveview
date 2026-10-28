@@ -108,6 +108,11 @@ export const upstreamHandlers = [
     );
   }),
 
+  // DOE AFDC EV charging stations (VTL-81)
+  http.get('https://developer.nlr.gov/api/alt-fuel-stations/v1.json', () =>
+    HttpResponse.json(loadJson('afdc/stations-vt.json')),
+  ),
+
   // NOAA Climate Data Online (only called when NOAA_CDO_TOKEN is set)
   http.get('https://www.ncei.noaa.gov/cdo-web/api/v2/data', () =>
     HttpResponse.json(loadJson('ncei-cdo/data-ghcnd.json')),

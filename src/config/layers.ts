@@ -26,6 +26,7 @@ import {
   Thermometer,
   ThermometerSnowflake,
   Video,
+  Zap,
   Waves,
   Wind,
 } from 'lucide-react';
@@ -38,6 +39,7 @@ export type LayerStyleKey =
   | 'roadWeather'
   | 'airQuality'
   | 'riverGauges'
+  | 'evChargers'
   | 'seasonalRoads'
   | IncidentType
   | 'skiResorts'
@@ -92,6 +94,14 @@ export const LAYER_STYLES: Record<LayerStyleKey, LayerStyle> = {
     // Periwinkle: the blues are taken (stations, ski, floods); flood stages tint the fill (VTL-81)
     color: '#8890b8',
     description: 'River and lake levels from NWS / USGS gauges, with flood stages',
+  },
+  evChargers: {
+    label: 'EV chargers',
+    icon: Zap,
+    // Pink: the greens and blues are taken (VTL-81)
+    color: '#e86890',
+    ink: '#8a2347',
+    description: 'Public EV charging: DC fast statewide, Level 2 when zoomed in (DOE AFDC)',
   },
   seasonalRoads: {
     label: 'Seasonal closures',

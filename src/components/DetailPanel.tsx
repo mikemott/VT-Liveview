@@ -15,6 +15,7 @@ import SeasonalRoadDetail from './detail-views/SeasonalRoadDetail';
 import RoadWeatherDetail from './detail-views/RoadWeatherDetail';
 import AirQualityDetail from './detail-views/AirQualityDetail';
 import RiverDetail from './detail-views/RiverDetail';
+import EvChargerDetail from './detail-views/EvChargerDetail';
 import SkiDetail from './detail-views/SkiDetail';
 import BeachDetail from './detail-views/BeachDetail';
 import CreemeeDetail from './detail-views/CreemeeDetail';
@@ -90,6 +91,8 @@ export default function DetailPanel({
         return 'Air Quality';
       case 'river':
         return 'River Level';
+      case 'evCharger':
+        return 'EV Charger';
       case 'ski':
         return 'Ski Area';
       case 'beach':
@@ -128,6 +131,8 @@ export default function DetailPanel({
         return <AirQualityDetail monitor={content.data} isDark={isDark} />;
       case 'river':
         return <RiverDetail key={content.data.id} gauge={content.data} isDark={isDark} />;
+      case 'evCharger':
+        return <EvChargerDetail station={content.data} isDark={isDark} />;
       case 'ski':
         return <SkiDetail resort={content.data} isDark={isDark} />;
       case 'beach':

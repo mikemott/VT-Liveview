@@ -632,3 +632,23 @@ describe('climate normals (VTL-81)', () => {
     expect(down.statusCode).toBe(502);
   });
 });
+
+describe('EV chargers (VTL-81)', () => {
+  const AFDC = 'https://developer.nlr.gov/api/alt-fuel-stations/v1.json';
+  const stationsJson = JSON.parse(loadText('afdc/stations-vt.json')) as Record<string, unknown>;
+
+  it('lists stations with an hour of browser cache', async () => {
+    server.use(http.get(AFDC, () => HttpResponse.json(stationsJson)));
+    const app = await loadApp();
+    const res = await app.inject({ method: 'GET', url: '/api/ev-chargers' });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['cache-control']).toBe('public, max-age=3600');
+    expect(res.json<{ stations: unknown[] }>().stations).toHaveLength(4);
+  });
+
+  it('answers 502 when the AFDC is down', async () => {
+    server.use(http.get(AFDC, () => new HttpResponse(null, { status: 503 })));
+    const app = await loadApp();
+    expect((await app.inject({ method: 'GET', url: '/api/ev-chargers' })).statusCode).toBe(502);
+  });
+});

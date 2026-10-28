@@ -1014,3 +1014,10 @@
   font-size: 11px;
   fill: var(--color-text-tertiary);
 }
+
+/* Several links in a row (EV chargers, VTL-81) */
+.detail-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+}

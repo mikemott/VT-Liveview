@@ -13,6 +13,8 @@ import type { RoadWeatherStation } from './services/roadWeatherApi';
 import AirQualityLayer from './components/AirQualityLayer';
 import type { AirQualityMonitor } from './services/airQualityApi';
 import RiverLayer from './components/RiverLayer';
+import EvChargerLayer from './components/EvChargerLayer';
+import type { EvCharger } from './services/evChargerApi';
 import type { RiverGauge } from './services/riverApi';
 import { floodSeverity, worstCategory } from './utils/rivers';
 import { isRoadWeatherSeason } from './utils/roadWeather';
@@ -210,6 +212,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
       roadWeather: isRoadWeatherSeason(), // On November–March (VTL-61)
       airQuality: false, // Off by default (VTL-76)
       riverGauges: null, // Auto: on while any gauge is flooding or forecast to (VTL-81)
+      evChargers: false, // Off by default (VTL-81)
       // On while any notch/gap road is closed or about to close (VTL-55)
       seasonalRoads: [...getSeasonalStatuses([]).values()].some((s) => s.status !== 'open'),
     };
@@ -982,6 +985,8 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         return { type: 'aq', id: detailPanelContent.data.id };
       case 'river':
         return { type: 'river', id: detailPanelContent.data.id };
+      case 'evCharger':
+        return { type: 'ev', id: detailPanelContent.data.id };
       case 'ski':
         return { type: 'poi', kind: 'ski', id: detailPanelContent.data.id };
       case 'beach':
@@ -1020,6 +1025,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         'roadWeather',
         'airQuality',
         'riverGauges',
+        'evChargers',
         'seasonalRoads',
       ] as const
     )
@@ -1296,6 +1302,20 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
     setDetailPanelContent({ type: 'river', data: gauge });
   }, []);
 
+  // EV chargers (VTL-81): latest list for search, and shared-link restore
+  const [evChargers, setEvChargers] = useState<EvCharger[]>([]);
+  const handleEvChargersLoaded = useCallback((loaded: EvCharger[]): void => {
+    setEvChargers(loaded);
+    const pending = pendingSelection.current;
+    if (pending?.type !== 'ev') return;
+    pendingSelection.current = undefined;
+    const station = loaded.find((s) => s.id === pending.id);
+    if (station) setDetailPanelContent({ type: 'evCharger', data: station });
+  }, []);
+  const handleEvChargerClick = useCallback((station: EvCharger): void => {
+    setDetailPanelContent({ type: 'evCharger', data: station });
+  }, []);
+
   // Opening something else (or closing the panel) drops an unresolved selection
   const closeDetailPanel = useCallback((): void => {
     pendingSelection.current = undefined;
@@ -1381,6 +1401,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
     roadWeather,
     airMonitors,
     riverGauges,
+    evChargers,
   );
 
   const handleSearchSelect = useCallback(
@@ -1411,6 +1432,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         roadWeather: 'roadWeather',
         airQuality: 'airQuality',
         river: 'riverGauges',
+        evCharger: 'evChargers',
         road: 'seasonalRoads',
       };
       const layer = layerFor[item.kind];
@@ -1443,10 +1465,24 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         const gauge = riverGauges.find((g) => `river:${g.id}` === item.id);
         if (gauge) setDetailPanelContent({ type: 'river', data: gauge });
       }
+      if (item.kind === 'evCharger') {
+        const station = evChargers.find((s) => `ev:${s.id}` === item.id);
+        if (station) setDetailPanelContent({ type: 'evCharger', data: station });
+      }
       if (item.kind === 'road') openSeasonalRoad(item.id.slice('road:'.length));
       if (isMobile) setControlsPanelOpen(false);
     },
-    [isMobile, stations, cameras, roadWeather, airMonitors, riverGauges, openSeasonalRoad, openPoi],
+    [
+      evChargers,
+      isMobile,
+      stations,
+      cameras,
+      roadWeather,
+      airMonitors,
+      riverGauges,
+      openSeasonalRoad,
+      openPoi,
+    ],
   );
 
   // What the share menu offers (VTL-70): a link whose query carries the view
@@ -1595,6 +1631,8 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
               onToggleAirQuality={() => toggleLayer('airQuality')}
               showRivers={isLayerVisible('riverGauges')}
               onToggleRivers={() => toggleLayer('riverGauges')}
+              showEvChargers={isLayerVisible('evChargers')}
+              onToggleEvChargers={() => toggleLayer('evChargers')}
               showSeasonalRoads={isLayerVisible('seasonalRoads')}
               onToggleSeasonalRoads={() => toggleLayer('seasonalRoads')}
               onIncidentsLoaded={handleIncidentsLoaded}
@@ -1713,6 +1751,16 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
               visible={isLayerVisible('riverGauges')}
               onSelect={handleRiverGaugeClick}
               onLoaded={handleRiverGaugesLoaded}
+            />
+          )}
+
+          {/* EV chargers (VTL-81) */}
+          {mapLoaded && (
+            <EvChargerLayer
+              map={map.current}
+              visible={isLayerVisible('evChargers')}
+              onSelect={handleEvChargerClick}
+              onLoaded={handleEvChargersLoaded}
             />
           )}
 

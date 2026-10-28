@@ -28,6 +28,10 @@ const envSchema = z.object({
   // EPA AirNow (air quality, VTL-75). Without it the air quality routes answer 503.
   AIRNOW_API_KEY: z.string().optional(),
 
+  // DOE AFDC station locator (EV chargers, VTL-81); an api.data.gov key.
+  // Without it the EV charger route uses DEMO_KEY (30 requests/hour per IP).
+  AFDC_API_KEY: z.string().optional(),
+
   // Database configuration
   DATABASE_URL: z.string().url().optional(), // PostgreSQL connection string (Neon/Supabase)
   DATABASE_MODE: z.enum(['postgres', 'timescale']).default('postgres'),

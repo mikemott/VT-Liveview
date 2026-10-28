@@ -20,6 +20,7 @@ import { createRoadWeatherService } from './services/roadWeather.js';
 import { createAirQualityService } from './services/airQuality.js';
 import { createRiverService, GAUGE_ID } from './services/rivers.js';
 import { createClimateService } from './services/climate.js';
+import { createEvChargerService } from './services/evChargers.js';
 import { validateEnv, isProd } from './types/index.js';
 import { getDb, checkDatabaseHealth, isDatabaseEnabled } from './db/index.js';
 import { getCollectorStatus } from './scheduler/index.js';
@@ -402,6 +403,21 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
       }
     },
   );
+
+  // Public EV charging stations from the DOE AFDC (VTL-81)
+  const evChargers = createEvChargerService(env.AFDC_API_KEY);
+
+  fastify.get('/api/ev-chargers', async (_request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const stations = await evChargers.getStations();
+      reply.header('Cache-Control', 'public, max-age=3600');
+      return { stations };
+    } catch (error) {
+      fastify.log.warn({ err: error }, 'EV charger fetch failed');
+      reply.code(502);
+      return { error: 'EV chargers are unavailable' };
+    }
+  });
 
   fastify.get('/api/cameras', async (_request: FastifyRequest, reply: FastifyReply) => {
     try {

@@ -42,6 +42,7 @@ relative to this directory.
 | `nwps/stageflow-MONV1.json` | `https://api.water.noaa.gov/nwps/v1/gauges/MONV1/stageflow` (recorded Oct 2026; observed cut to every 2 h over the last 2 days, forecast to 6 points) |
 | `acis/normals-BTVthr.json` | `POST https://data.rcc-acis.org/StnData` with `{"sid":"BTVthr","sdate":"2026-10-28","edate":"2026-10-28","elems":[{"name":"maxt","normal":"1"},{"name":"mint","normal":"1"}]}` (recorded Oct 2026) |
 | `acis/records-BTVthr.json` | the same with `"sdate":"por"` and max/min `smry` elements grouped by `["year","1028","1028"]` (recorded Oct 2026) |
+| `afdc/stations-vt.json` | `https://developer.nlr.gov/api/alt-fuel-stations/v1.json?api_key=…&state=VT&fuel_type=ELEC&status=E&access=public&limit=all` (recorded Oct 2026, cut to 4 stations: Tesla Supercharger, a CCS fast charger, a ChargePoint and a non-networked Level 2; plus a copy with null latitude) |
 
 The recreation and backcountry services reject responses with fewer than 20 or 50
 valid sites. The tests pad these fixtures by cloning the first record

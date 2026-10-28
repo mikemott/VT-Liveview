@@ -194,6 +194,21 @@ describe('Pages Function', () => {
     fetchMock.mockRestore();
   });
 
+  it('names a shared EV charger from the station list (VTL-81)', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(
+        new Response(JSON.stringify({ stations: [{ id: '102480', name: 'Berlin Supercharger' }] })),
+      );
+    const lookup = makeLookup('https://api.test');
+    expect(await lookup({ type: 'ev', id: '102480' })).toBe('Berlin Supercharger');
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('https://api.test/api/ev-chargers');
+    expect(describeSelection({ type: 'ev', id: '102480' }, 'Berlin Supercharger')).toBe(
+      'EV charger: Berlin Supercharger',
+    );
+    fetchMock.mockRestore();
+  });
+
   it('looks seasonal roads and stargazing sites up locally, with no network', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch');
     const lookup = makeLookup('https://api.test');
