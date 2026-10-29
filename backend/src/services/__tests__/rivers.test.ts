@@ -125,6 +125,13 @@ describe('createRiverService', () => {
     fail = true;
     expect((await svc.getGauge('MONV1'))?.floodStages.minor).toBe(15);
     expect(calls).toBe(2);
+    // While NWPS is down, the stale copy is served without asking again for 30 s
+    t += 10_000;
+    await svc.getGauge('MONV1');
+    expect(calls).toBe(2);
+    t += 25_000;
+    await svc.getGauge('MONV1');
+    expect(calls).toBe(3);
     expect(await svc.getGauge('../x')).toBeNull();
   });
 });

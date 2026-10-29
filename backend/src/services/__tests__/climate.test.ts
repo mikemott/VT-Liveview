@@ -80,6 +80,33 @@ describe('createClimateService', () => {
     expect(bodies).toHaveLength(2);
   });
 
+  it('serves the stale day and waits 30 s before retrying after a failure', async () => {
+    let calls = 0;
+    let fail = false;
+    server.use(
+      http.post(ACIS, async ({ request }) => {
+        calls++;
+        if (fail) return new HttpResponse(null, { status: 503 });
+        const body = (await request.json()) as { sdate?: string };
+        return HttpResponse.json(body.sdate === 'por' ? recordsJson : normalsJson);
+      }),
+    );
+    let t = NOW;
+    const svc = createClimateService(() => t);
+    await svc.getDay(44.48, -73.21);
+    expect(calls).toBe(2);
+    t += 7 * 3600_000; // past the 6-hour TTL, same Vermont day
+    fail = true;
+    expect((await svc.getDay(44.48, -73.21)).normalHighF).toBe(54);
+    const afterFailure = calls;
+    t += 10_000;
+    await svc.getDay(44.48, -73.21);
+    expect(calls).toBe(afterFailure);
+    t += 25_000;
+    await svc.getDay(44.48, -73.21);
+    expect(calls).toBeGreaterThan(afterFailure);
+  });
+
   it('fails when ACIS reports an error', async () => {
     server.use(http.post(ACIS, () => HttpResponse.json({ error: 'no data available' })));
     await expect(createClimateService(() => NOW).getDay(44.48, -73.21)).rejects.toThrow(

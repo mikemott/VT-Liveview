@@ -199,6 +199,18 @@ describe('CurrentWeather', () => {
       expect(screen.getByText('18° (1972)')).toBeInTheDocument();
     });
 
+    it('shows a low-only normal and record (VTL-81)', async () => {
+      server.use(
+        http.get('*/api/climate/today', () =>
+          HttpResponse.json({ ...CLIMATE, normalHighF: null, recordHigh: null }),
+        ),
+      );
+      renderWithClient(<CurrentWeather />);
+      fireEvent.click(await screen.findByText('Light Rain'));
+      expect(await screen.findByText('Low 37°')).toBeInTheDocument();
+      expect(screen.getByText('18° (1972)')).toBeInTheDocument();
+    });
+
     it('leaves the line out when normals are unavailable or for another day', async () => {
       server.use(
         http.get('*/api/climate/today', () =>

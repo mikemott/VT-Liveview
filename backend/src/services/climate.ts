@@ -16,6 +16,8 @@ import { distanceMi } from './airQuality.js';
 const ACIS = 'https://data.rcc-acis.org/StnData';
 const TTL_MS = 6 * 3600_000;
 const CACHE_MAX = 50;
+/** After a failed refresh, serve the stale copy this long before trying again */
+const RETRY_AFTER_ERROR_MS = 30_000;
 const REQUEST_TIMEOUT_MS = 10_000;
 const TIME_ZONE = 'America/New_York';
 
@@ -188,7 +190,9 @@ export function createClimateService(now: () => number = Date.now) {
           value = await pending;
         } catch (error) {
           if (!hit) throw error;
-          value = hit.value; // stale (same day) beats nothing
+          // Stale (same day) beats nothing; don't retry on every request while ACIS is down
+          cache.set(key, { value: hit.value, at: now() - TTL_MS + RETRY_AFTER_ERROR_MS });
+          value = hit.value;
         }
       }
       return {

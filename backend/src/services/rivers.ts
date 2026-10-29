@@ -19,6 +19,8 @@ const BBOX = { xmin: '-73.5', ymin: '42.65', xmax: '-71.4', ymax: '45.1' };
 const GAUGES_TTL_MS = 10 * 60 * 1000;
 const DETAIL_TTL_MS = 10 * 60 * 1000;
 const DETAIL_CACHE_MAX = 100;
+/** After a failed refresh, serve the stale copy this long before trying again */
+const RETRY_AFTER_ERROR_MS = 30_000;
 const REQUEST_TIMEOUT_MS = 10_000;
 /** Hydrograph shown in the panel: the last week, one point an hour */
 const HISTORY_MS = 7 * 24 * 3600_000;
@@ -323,8 +325,10 @@ export function createRiverService(userAgent: string, now: () => number = Date.n
     try {
       return await pending;
     } catch (error) {
-      if (hit) return hit.value; // stale beats nothing
-      throw error;
+      if (!hit) throw error;
+      // Stale beats nothing; don't retry on every request while NWPS is down
+      details.set(id, { value: hit.value, at: now() - DETAIL_TTL_MS + RETRY_AFTER_ERROR_MS });
+      return hit.value;
     }
   }
 

@@ -88,7 +88,22 @@ export default function CurrentWeather({
   // 3-day forecast = 6 periods (day/night). Omitted entirely if unavailable.
   const forecast = forecastData?.slice(0, 6) ?? [];
   const vsNormal = compareWithNormal(forecast[0], climate);
-  const hasNormals = climate && (climate.normalHighF !== null || climate.recordHigh !== null);
+  const hasNormals =
+    climate &&
+    (climate.normalHighF !== null ||
+      climate.normalLowF !== null ||
+      climate.recordHigh !== null ||
+      climate.recordLow !== null);
+  // "54° / 38°", or whichever half the station has
+  const normalText = !climate
+    ? null
+    : climate.normalHighF !== null && climate.normalLowF !== null
+      ? `${climate.normalHighF}° / ${climate.normalLowF}°`
+      : climate.normalHighF !== null
+        ? `High ${climate.normalHighF}°`
+        : climate.normalLowF !== null
+          ? `Low ${climate.normalLowF}°`
+          : null;
 
   // Mobile collapsed: ultra-minimal view (just temp + icon)
   const showMinimalView = isMobile && !isExpanded;
@@ -191,12 +206,10 @@ export default function CurrentWeather({
             <div className="climate-section">
               <div className="forecast-title">Today in {climate.station.name}</div>
               <dl className="climate-rows">
-                {climate.normalHighF !== null && climate.normalLowF !== null && (
+                {normalText && (
                   <div>
                     <dt>Normal</dt>
-                    <dd>
-                      {climate.normalHighF}° / {climate.normalLowF}°
-                    </dd>
+                    <dd>{normalText}</dd>
                   </div>
                 )}
                 {climate.recordHigh && (
