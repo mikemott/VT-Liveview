@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { FERRIES, type Ferry } from '../../data/ferries';
-import { boatPosition, DWELL_MS, getFerryStatus, isRunning, pointAlong } from '../ferries';
+import {
+  boatPosition,
+  DWELL_MS,
+  getFerryStatus,
+  isRunning,
+  pointAlong,
+  seasonDay,
+} from '../ferries';
 
 const ferry = (id: string): Ferry => FERRIES.find((f) => f.id === id)!;
 // Noon in Vermont
@@ -40,6 +47,24 @@ describe('ferry status (VTL-81)', () => {
     expect(getFerryStatus(ferry('bike-ferry'), new Date('2026-09-08T03:30:00Z')).state).toBe(
       'season',
     );
+  });
+
+  it('works out Memorial Day weekend and Labor Day each year', () => {
+    expect(seasonDay('memorialDayWeekend', 2026)).toBe('05-23');
+    expect(seasonDay('laborDay', 2026)).toBe('09-07');
+    expect(seasonDay('memorialDayWeekend', 2027)).toBe('05-29');
+    expect(seasonDay('laborDay', 2027)).toBe('09-06');
+    expect(seasonDay('06-15', 2027)).toBe('06-15');
+  });
+
+  it('moves holiday seasons with the calendar', () => {
+    const runner = ferry('island-runner');
+    const noon = (date: string): Date => new Date(`${date}T16:00:00Z`);
+    // 2027: Memorial Day is May 31, Labor Day Sept 6
+    expect(getFerryStatus(runner, noon('2027-05-24')).state).toBe('closed');
+    expect(getFerryStatus(runner, noon('2027-05-29')).state).toBe('season');
+    expect(getFerryStatus(runner, noon('2027-09-06')).state).toBe('season');
+    expect(getFerryStatus(runner, noon('2027-09-07')).state).toBe('closed');
   });
 
   it('starts every route at a Vermont landing', () => {

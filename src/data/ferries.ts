@@ -10,13 +10,16 @@
 
 export type FerryKind = 'car' | 'passenger' | 'bike';
 
-/** Published season: which days of the year it runs (month-day, inclusive) */
+/** "MM-DD", or a holiday that moves each year (worked out in utils/ferries.ts) */
+export type SeasonDate = `${number}-${number}` | 'memorialDayWeekend' | 'laborDay';
+
+/** Published season: which days of the year it runs (inclusive) */
 export interface FerrySeason {
-  /** "MM-DD"; omit both for year-round */
-  from?: string;
-  to?: string;
+  /** Omit both for year-round */
+  from?: SeasonDate;
+  to?: SeasonDate;
   /** Run on some days after `to` until this date (e.g. autumn weekends) */
-  shoulderTo?: string;
+  shoulderTo?: SeasonDate;
   /** Months (1-12) when ice often stops it */
   iceMonths?: number[];
 }
@@ -142,7 +145,7 @@ export const FERRIES: Ferry[] = [
       'Bikes and people on foot only. It links the Island Line Trail to the Champlain Islands.',
       'High wind or thunderstorms pause it; waits can be long on summer weekends.',
     ],
-    season: { from: '05-23', to: '09-07', shoulderTo: '10-15' },
+    season: { from: 'memorialDayWeekend', to: 'laborDay', shoulderTo: '10-15' },
     route: [
       [-73.31187, 44.59232],
       [-73.31145, 44.59225],
@@ -179,7 +182,7 @@ export const FERRIES: Ferry[] = [
       'Passengers and their gear only; Burton Island is car-free.',
       'Back in service in August 2026 after more than a year out.',
     ],
-    season: { from: '05-23', to: '09-07' },
+    season: { from: 'memorialDayWeekend', to: 'laborDay' },
     route: [
       [-73.18166, 44.7783],
       [-73.18095, 44.77828],

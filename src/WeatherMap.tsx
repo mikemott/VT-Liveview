@@ -167,6 +167,8 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
   const initialView = initialUrlState.view ?? VERMONT_CENTER;
   // A selection from the link waits here until its data has loaded
   const pendingSelection = useRef<Selection | undefined>(initialUrlState.selection);
+  // EV chargers fetch only when shown or searched, or to open a linked station
+  const [evLinked, setEvLinked] = useState(initialUrlState.selection?.type === 'ev');
   const [currentZoom, setCurrentZoom] = useState(initialView.zoom);
   const [isDark, setIsDark] = useState(() => isDarkMode());
   const [manualThemeOverride, setManualThemeOverride] = useState(false);
@@ -1431,7 +1433,9 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         setShowTrafficFlow(layers.has('trafficFlow'));
         setShowStargazing(layers.has('stargazing'));
       }
-      // Roads are static data, so open now; others wait for their data
+      // Roads and ferries are static data, so open now; others wait for their data.
+      // Drop any older pending selection so its data can't replace this one.
+      if (next.selection) pendingSelection.current = undefined;
       if (next.selection?.type === 'road') openSeasonalRoad(next.selection.id);
       else if (next.selection?.type === 'ferry') openFerry(next.selection.id);
       else if (next.selection?.type === 'poi') openPoi(next.selection.kind, next.selection.id);
@@ -1441,7 +1445,10 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         const monitor = airMonitorsRef.current.find((m) => m.id === id);
         if (monitor) setDetailPanelContent({ type: 'airQuality', data: monitor });
         else pendingSelection.current = next.selection;
-      } else if (next.selection) pendingSelection.current = next.selection;
+      } else if (next.selection) {
+        pendingSelection.current = next.selection;
+        if (next.selection.type === 'ev') setEvLinked(true);
+      }
     };
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
@@ -1853,7 +1860,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
             <EvChargerLayer
               map={map.current}
               visible={isLayerVisible('evChargers')}
-              load={searchActive || initialUrlState.selection?.type === 'ev'}
+              load={searchActive || evLinked}
               onSelect={handleEvChargerClick}
               onLoaded={handleEvChargersLoaded}
             />

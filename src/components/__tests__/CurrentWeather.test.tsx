@@ -183,6 +183,12 @@ describe('CurrentWeather', () => {
       recordHigh: { tempF: 78, year: 1947 },
       recordLow: { tempF: 18, year: 1972 },
     };
+    // The card asks for the Vermont date of the fixtures; fake only Date so MSW and waits still run
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date('2026-10-16T16:00:00Z'));
+    });
+    afterEach(() => vi.useRealTimers());
 
     it('compares tonight with the normal low and lists normals and records', async () => {
       server.use(http.get('*/api/climate/today', () => HttpResponse.json(CLIMATE)));
@@ -209,6 +215,19 @@ describe('CurrentWeather', () => {
       fireEvent.click(await screen.findByText('Light Rain'));
       expect(await screen.findByText('Low 37°')).toBeInTheDocument();
       expect(screen.getByText('18° (1972)')).toBeInTheDocument();
+    });
+
+    it('asks for the Vermont date, so each day has its own URL', async () => {
+      let requested: string | null = null;
+      server.use(
+        http.get('*/api/climate/today', ({ request }) => {
+          requested = new URL(request.url).searchParams.get('date');
+          return HttpResponse.json(CLIMATE);
+        }),
+      );
+      renderWithClient(<CurrentWeather />);
+      await screen.findByText('3° above normal');
+      expect(requested).toBe('2026-10-16');
     });
 
     it('leaves the line out when normals are unavailable or for another day', async () => {
