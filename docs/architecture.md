@@ -29,6 +29,7 @@ shared links. The backend deploys to Fly via `deploy-backend.yml` on pushes to
 |---|---|---|
 | Entry | `main.tsx`, `App.tsx` | QueryClient (5 min `staleTime`), ErrorBoundary |
 | Map shell | `WeatherMap.tsx` (~1,800 lines) | Map init, theme/style swap, alert zone fills, layer toggles and filter chips, DetailPanel, "What's here?", URL state |
+| Weather alerts | `components/AlertPopup.tsx`, `utils/alerts.ts` | NWS alerts in a popup on the map, refreshed every 5 min. Only Severe/Extreme alerts shade their area without a click; choosing an alert in the popup shades and zooms to it, "Details" opens the side panel (VTL-85) |
 | Layer registry | `config/layers.ts` | One label, icon and colour per layer, shared by chips, markers and search. `layerPalette.test.ts` enforces that the colours stay distinct and keep their contrast. |
 | Seasonal | `config/seasonalLayers.ts`, `hooks/useSeasonalLayers.ts`, `utils/roadWeather.ts` | Ski, creemee and road weather show by month |
 | Layers | `components/*Layer.tsx` | Travel (VT 511 incidents/closures/construction + USGS gauges), WeatherStations, TrafficFlow (TomTom raster), Camera, RoadWeather, AirQuality, River (NWPS gauges), EvCharger, FireDanger (FPR rating areas), Ferry (static, animated boats), SeasonalRoads, Ski, Creemee, Camping, CampingAreas, Beach, Stargazing. Rivers and fire danger show themselves while flooding / at High or worse (`autoShown` in `WeatherMap.tsx`) until the user toggles them |
