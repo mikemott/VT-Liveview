@@ -18,13 +18,18 @@ const envSchema = z.object({
   // CORS configuration (production only)
   ALLOWED_ORIGINS: z.string().optional(),
 
-  // REST rate limit per IP per minute (GraphQL and /health are exempt). The
-  // E2E server raises it: parallel test browsers share one IP (VTL-81).
+  // REST rate limit per client IP per minute (GraphQL and /health are exempt).
+  // A page load makes ~9 REST calls. The E2E server raises it: parallel test
+  // browsers share one IP (VTL-81).
   RATE_LIMIT_MAX: z
     .string()
-    .default('100')
+    .default('300')
     .transform((val) => parseInt(val, 10))
     .pipe(z.number().int().min(1)),
+
+  // Set by Fly.io on its machines. There, the socket IP is Fly's proxy, so the
+  // rate limit keys on the Fly-Client-IP header the proxy adds (FINDINGS H3).
+  FLY_APP_NAME: z.string().optional(),
 
   // Admin authentication
   ADMIN_TOKEN: z.string().optional(),

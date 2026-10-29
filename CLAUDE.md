@@ -144,12 +144,15 @@ docs/                          architecture.md, decisions/, review/, plans/, des
 - `CONTACT_EMAIL`: NOAA User-Agent, required by NOAA's terms of service
 - `ADMIN_TOKEN`: `/admin/clear-cache` in production
 - `NOAA_CDO_TOKEN`, `AIRNOW_API_KEY`
+- `AFDC_API_KEY`: EV chargers (api.data.gov key). Optional: falls back to `DEMO_KEY`, which is enough for one request per 12-hour cache
+- `RATE_LIMIT_MAX`: REST requests per client IP per minute (default 300; the E2E server sets 2000). GraphQL and `/health` are exempt
+- `FLY_APP_NAME`: set by Fly itself. When present, the rate limit keys on the `Fly-Client-IP` header instead of the proxy's socket IP
 - `DATABASE_URL`, `DATABASE_MODE` (`postgres`|`timescale`), `ENABLE_COLLECTOR`
 - `SENTRY_*`
 
 **`.env.local`** (gitignored, local machines only): `FLY_API_TOKEN`, `LINEAR_API_KEY`, `NOAA_CDO_TOKEN`. It isn't on the agent server.
 
-When you add an env var, add it to `.env.example` and to the matching `env.ts`, and update this section.
+When you add an env var, add it to `.env.example` (frontend) or `backend/.env.example`, to the matching `env.ts`, and update this section.
 
 ---
 

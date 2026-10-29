@@ -212,11 +212,11 @@ describe('CORS', () => {
 });
 
 describe('rate limiting', () => {
-  it('returns 429 on /api/vt511/* after 100 requests per minute', async () => {
+  it('returns 429 on /api/vt511/* after 300 requests per minute by default', async () => {
     server.use(http.get(VT511, () => HttpResponse.text('<ok/>')));
-    const app = await loadApp();
+    const app = await loadApp({ RATE_LIMIT_MAX: undefined });
 
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 300; i++) {
       const res = await app.inject({ method: 'GET', url: '/api/vt511/incidents' });
       expect(res.statusCode).toBe(200);
     }
@@ -247,7 +247,26 @@ describe('rate limiting', () => {
   });
 
   it.todo('rate-limits POST /graphql with its own bucket (FINDINGS H3)');
-  it.todo('keys the rate limit on fly-client-ip behind the Fly proxy (FINDINGS H3)');
+  it('keys the rate limit on fly-client-ip behind the Fly proxy (FINDINGS H3)', async () => {
+    server.use(http.get(VT511, () => HttpResponse.text('<ok/>')));
+    const app = await loadApp({ RATE_LIMIT_MAX: '2', FLY_APP_NAME: 'vt-liveview-api' });
+    const get = (ip: string) =>
+      app.inject({ method: 'GET', url: '/api/vt511/incidents', headers: { 'fly-client-ip': ip } });
+    expect((await get('203.0.113.1')).statusCode).toBe(200);
+    expect((await get('203.0.113.1')).statusCode).toBe(200);
+    expect((await get('203.0.113.1')).statusCode).toBe(429);
+    // Another visitor through the same proxy has their own bucket
+    expect((await get('203.0.113.2')).statusCode).toBe(200);
+  });
+
+  it('ignores fly-client-ip when not running on Fly', async () => {
+    server.use(http.get(VT511, () => HttpResponse.text('<ok/>')));
+    const app = await loadApp({ RATE_LIMIT_MAX: '1', FLY_APP_NAME: undefined });
+    const get = (ip: string) =>
+      app.inject({ method: 'GET', url: '/api/vt511/incidents', headers: { 'fly-client-ip': ip } });
+    expect((await get('203.0.113.1')).statusCode).toBe(200);
+    expect((await get('203.0.113.2')).statusCode).toBe(429);
+  });
 });
 
 describe('POST /admin/clear-cache', () => {

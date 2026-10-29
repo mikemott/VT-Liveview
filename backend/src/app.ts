@@ -138,10 +138,19 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
     maxAge: 86400, // Cache preflight responses for 24 hours
   });
 
-  // Rate limiting for proxy endpoints (RATE_LIMIT_MAX per minute, default 100)
+  // Rate limiting for proxy endpoints (RATE_LIMIT_MAX per minute, default 300)
   await fastify.register(rateLimit, {
     max: env.RATE_LIMIT_MAX,
     timeWindow: '1 minute',
+    // Behind Fly every request comes from the proxy, so request.ip would put all
+    // visitors in one bucket. Fly's proxy sets Fly-Client-IP to the real client
+    // (FINDINGS H3). Off Fly the header isn't trusted: anyone could send it.
+    keyGenerator: (request) => {
+      const flyClientIp = request.headers['fly-client-ip'];
+      return env.FLY_APP_NAME && typeof flyClientIp === 'string' && flyClientIp
+        ? flyClientIp
+        : request.ip;
+    },
     // Only apply to API routes, not GraphQL or health
     allowList: (request) => {
       const url = request.url;
