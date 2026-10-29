@@ -1,0 +1,195 @@
+/* Weather alerts popup (VTL-85). The cards reuse .alert-card from WeatherMap.css. */
+
+/* Sits in the gap between the controls panel and the weather card */
+.alert-popup-anchor {
+  position: absolute;
+  top: var(--space-7);
+  left: 400px;
+  right: 310px;
+  display: flex;
+  justify-content: center;
+  /* Under the weather card when it expands */
+  z-index: var(--z-sticky);
+  pointer-events: none;
+}
+
+.alert-popup,
+.alert-popup-pill {
+  pointer-events: auto;
+  font-family: var(--font-family);
+  background: var(--gradient-panel);
+  border: 1px solid var(--color-vermont-green-subtle);
+  box-shadow: var(--shadow-lg);
+}
+
+.alert-popup {
+  width: 100%;
+  max-width: 400px;
+  padding: var(--space-3);
+  border-radius: var(--radius-xl);
+}
+
+.alert-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-1) var(--space-2) var(--space-2);
+}
+
+.alert-popup-header h2 {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.alert-popup-minimize,
+.alert-popup-more {
+  display: flex;
+  align-items: center;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+.alert-popup-minimize {
+  padding: 4px;
+}
+
+.alert-popup-more {
+  gap: var(--space-1);
+  margin: var(--space-2) auto 0;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.alert-popup-minimize:hover,
+.alert-popup-more:hover {
+  background: var(--color-vermont-green-faint);
+  color: var(--color-text-primary);
+}
+
+.alert-popup .alerts-list {
+  max-height: min(50vh, 360px);
+  overflow-y: auto;
+}
+
+/* The alert whose area is shaded: a border in its severity colour */
+.alert-popup .alert-card.severity-extreme {
+  --alert-tone: #dc2626;
+}
+
+.alert-popup .alert-card.severity-severe {
+  --alert-tone: #ea580c;
+}
+
+.alert-popup .alert-card.severity-moderate {
+  --alert-tone: #d97706;
+}
+
+.alert-popup .alert-card.severity-minor {
+  --alert-tone: #2563eb;
+}
+
+.alert-popup .alert-card.selected {
+  border-color: var(--alert-tone, var(--color-text-muted));
+  box-shadow: inset 0 0 0 1px var(--alert-tone, var(--color-text-muted));
+}
+
+/* Minimized */
+.alert-popup-pill {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: 100%;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+
+.alert-popup-pill span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.alert-popup-pill.severity-extreme svg {
+  color: #dc2626;
+}
+
+.alert-popup-pill.severity-severe svg {
+  color: #ea580c;
+}
+
+.alert-popup-pill.severity-moderate svg {
+  color: #d97706;
+}
+
+.alert-popup-pill.severity-minor svg {
+  color: #2563eb;
+}
+
+/* Too narrow for the gap: under the weather card, on the right */
+@media (min-width: 769px) and (max-width: 1150px) {
+  .alert-popup-anchor {
+    top: 170px;
+    right: var(--space-5);
+    justify-content: flex-end;
+  }
+}
+
+/* Phones: full width, below the weather card and the theme/share buttons */
+@media (max-width: 768px) {
+  .alert-popup-anchor {
+    top: 96px;
+    left: 16px;
+    right: 16px;
+  }
+
+  .alert-popup .alerts-list {
+    max-height: 40vh;
+  }
+}
+
+/* Compact cards: one line each for the event and its end time and area.
+   Scoped to the card so the detail panel's own .alert-event/.alert-headline
+   (DetailViews.css, loaded with the panel) can't restyle them. */
+.alert-popup .alert-card {
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+}
+
+.alert-popup .alert-select {
+  align-items: center;
+}
+
+.alert-popup .alert-card .alert-event {
+  margin: 0 0 2px;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+}
+
+.alert-popup .alert-card .alert-headline {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+}
+
+.alert-popup .alert-card .alert-event,
+.alert-popup .alert-card .alert-headline {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

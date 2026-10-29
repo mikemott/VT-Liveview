@@ -31,13 +31,13 @@ test.describe('app shell', () => {
 });
 
 test.describe('alerts', () => {
-  test('lists merged NOAA alerts and supports keyboard activation', async ({ page, isMobile }) => {
+  // The alerts popup sits on the map, on phones too (VTL-85)
+  test('lists merged NOAA alerts and supports keyboard activation', async ({ page }) => {
     await openApp(page);
-    if (isMobile) await page.getByRole('button', { name: 'Open menu' }).click();
 
     await expect(page.getByRole('heading', { name: /Active Alerts \(\d+\)/ })).toBeVisible();
     const card = page.getByRole('button', {
-      name: 'Zoom to Winter Weather Advisory affected area',
+      name: /^Show the area of Winter Weather Advisory/,
     });
     await expect(card).toBeVisible();
 
@@ -48,9 +48,21 @@ test.describe('alerts', () => {
     await expect(page.locator('.maplibregl-canvas')).toBeVisible();
   });
 
-  test('dismissing an alert removes it from the list', async ({ page, isMobile }) => {
+  test('shows the rest of the alerts on request', async ({ page }) => {
     await openApp(page);
-    if (isMobile) await page.getByRole('button', { name: 'Open menu' }).click();
+    const statement = page.getByRole('button', {
+      name: /^Show the area of Special Weather Statement/,
+    });
+    // The most severe alert shows first; the statement is one click away
+    await expect(statement).toHaveCount(0);
+    await page.getByRole('button', { name: '1 more alert' }).click();
+    await statement.click();
+    await expect(statement).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('.maplibregl-canvas')).toBeVisible();
+  });
+
+  test('dismissing an alert removes it from the list', async ({ page }) => {
+    await openApp(page);
 
     const heading = page.getByRole('heading', { name: /Active Alerts \(\d+\)/ });
     await expect(heading).toBeVisible();
@@ -58,7 +70,7 @@ test.describe('alerts', () => {
 
     await page.getByRole('button', { name: 'Dismiss Winter Weather Advisory alert' }).click();
     await expect(
-      page.getByRole('button', { name: 'Zoom to Winter Weather Advisory affected area' }),
+      page.getByRole('button', { name: /^Show the area of Winter Weather Advisory/ }),
     ).toHaveCount(0);
     if (count > 1) {
       await expect(

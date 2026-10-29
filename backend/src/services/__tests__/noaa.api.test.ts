@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { server } from '../../test/msw.js';
 import { loadJson } from '../../__fixtures__/load.js';
-import type { NOAAAlertsResponse } from '../../types/index.js';
+import type { MergedAlert, NOAAAlertsResponse } from '../../types/index.js';
 
 const NOAA = 'https://api.weather.gov';
 const POINTS = `${NOAA}/points/:coords`;
@@ -483,6 +483,25 @@ describe('getMergedAlerts', () => {
     );
   });
 
+  it('caches for a minute, then refetches (VTL-85)', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    let calls = 0;
+    server.use(
+      http.get(ALERTS, () => {
+        calls++;
+        return HttpResponse.json({ features: [] });
+      }),
+    );
+    const { getMergedAlerts } = await loadNoaa();
+
+    await getMergedAlerts('VT');
+    await getMergedAlerts('vt');
+    expect(calls).toBe(1);
+    vi.setSystemTime(Date.now() + 61_000);
+    await getMergedAlerts('VT');
+    expect(calls).toBe(2);
+  });
+
   it('returns [] when there are no active alerts', async () => {
     server.use(http.get(ALERTS, () => HttpResponse.json({ features: [] })));
     const { getMergedAlerts } = await loadNoaa();
@@ -528,13 +547,14 @@ describe('getMergedAlerts', () => {
     let features = [a1, a2];
     server.use(http.get(ALERTS, () => HttpResponse.json({ features })));
     useZoneHandlers();
-    const { getMergedAlerts } = await loadNoaa();
+    // A fresh module per call: results are cached for a minute (VTL-85)
+    const merge = async (): Promise<MergedAlert[]> => (await loadNoaa()).getMergedAlerts('VT');
 
-    const forward = await getMergedAlerts('VT');
+    const forward = await merge();
     features = [a2, a1];
-    const reversed = await getMergedAlerts('VT');
+    const reversed = await merge();
     features = [a1];
-    const subset = await getMergedAlerts('VT');
+    const subset = await merge();
 
     expect(forward[0]?.id).toBe(reversed[0]?.id);
     expect(subset[0]?.id).not.toBe(forward[0]?.id);

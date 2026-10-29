@@ -21,6 +21,7 @@ import type {
 import { createHash } from 'node:crypto';
 import { getEnv } from '../types/index.js';
 import { fetchZoneBoundaries, filterVermontZones, extractZoneId } from './zones.js';
+import { cachedLoader } from './c2c.js';
 
 const NOAA_BASE = 'https://api.weather.gov';
 
@@ -317,14 +318,37 @@ function zonesToMultiPolygon(zones: ZoneBoundary[]): number[][][][] {
   return coordinates;
 }
 
+// Every open page refreshes alerts every 5 minutes (VTL-85): one NWS call a
+// minute per state is plenty, and stale-on-error keeps them up if NWS blips
+const MERGED_ALERTS_TTL_MS = 60_000;
+const MAX_ALERT_STATES = 5;
+const mergedAlertLoaders = new Map<string, ReturnType<typeof cachedLoader<MergedAlert[]>>>();
+
 /**
- * Get merged weather alerts for a state.
+ * Get merged weather alerts for a state, cached for a minute.
+ */
+export async function getMergedAlerts(state: string): Promise<MergedAlert[]> {
+  const code = normalizeStateCode(state);
+  let loader = mergedAlertLoaders.get(code);
+  if (!loader) {
+    if (mergedAlertLoaders.size >= MAX_ALERT_STATES) {
+      const oldest = mergedAlertLoaders.keys().next().value;
+      if (oldest !== undefined) mergedAlertLoaders.delete(oldest);
+    }
+    loader = cachedLoader(MERGED_ALERTS_TTL_MS, () => fetchMergedAlerts(code));
+    mergedAlertLoaders.set(code, loader);
+  }
+  return loader.get();
+}
+
+/**
+ * Fetch merged weather alerts for a state (a normalized state code).
  * Alerts are grouped by event type and merged into single visual boundaries.
  * Only Vermont zones are included in the geometry.
  * Uses existing alert geometry when available, falls back to zone boundaries.
  */
-export async function getMergedAlerts(state: string): Promise<MergedAlert[]> {
-  const area = encodeURIComponent(normalizeStateCode(state));
+async function fetchMergedAlerts(state: string): Promise<MergedAlert[]> {
+  const area = encodeURIComponent(state);
   let data: NOAAAlertsResponse;
 
   try {
