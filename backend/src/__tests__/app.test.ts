@@ -212,11 +212,11 @@ describe('CORS', () => {
 });
 
 describe('rate limiting', () => {
-  it('returns 429 on /api/vt511/* after 100 requests per minute', async () => {
+  it('returns 429 on /api/vt511/* after 300 requests per minute by default', async () => {
     server.use(http.get(VT511, () => HttpResponse.text('<ok/>')));
-    const app = await loadApp();
+    const app = await loadApp({ RATE_LIMIT_MAX: undefined });
 
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 300; i++) {
       const res = await app.inject({ method: 'GET', url: '/api/vt511/incidents' });
       expect(res.statusCode).toBe(200);
     }
@@ -224,6 +224,17 @@ describe('rate limiting', () => {
 
     expect(limited.statusCode).toBe(429);
     expect(limited.headers['retry-after']).toBeDefined();
+  });
+
+  it('takes its limit from RATE_LIMIT_MAX (VTL-81)', async () => {
+    server.use(http.get(VT511, () => HttpResponse.text('<ok/>')));
+    const app = await loadApp({ RATE_LIMIT_MAX: '3' });
+    for (let i = 0; i < 3; i++) {
+      expect((await app.inject({ method: 'GET', url: '/api/vt511/incidents' })).statusCode).toBe(
+        200,
+      );
+    }
+    expect((await app.inject({ method: 'GET', url: '/api/vt511/incidents' })).statusCode).toBe(429);
   });
 
   it('exempts /health', async () => {
@@ -236,7 +247,26 @@ describe('rate limiting', () => {
   });
 
   it.todo('rate-limits POST /graphql with its own bucket (FINDINGS H3)');
-  it.todo('keys the rate limit on fly-client-ip behind the Fly proxy (FINDINGS H3)');
+  it('keys the rate limit on fly-client-ip behind the Fly proxy (FINDINGS H3)', async () => {
+    server.use(http.get(VT511, () => HttpResponse.text('<ok/>')));
+    const app = await loadApp({ RATE_LIMIT_MAX: '2', FLY_APP_NAME: 'vt-liveview-api' });
+    const get = (ip: string) =>
+      app.inject({ method: 'GET', url: '/api/vt511/incidents', headers: { 'fly-client-ip': ip } });
+    expect((await get('203.0.113.1')).statusCode).toBe(200);
+    expect((await get('203.0.113.1')).statusCode).toBe(200);
+    expect((await get('203.0.113.1')).statusCode).toBe(429);
+    // Another visitor through the same proxy has their own bucket
+    expect((await get('203.0.113.2')).statusCode).toBe(200);
+  });
+
+  it('ignores fly-client-ip when not running on Fly', async () => {
+    server.use(http.get(VT511, () => HttpResponse.text('<ok/>')));
+    const app = await loadApp({ RATE_LIMIT_MAX: '1', FLY_APP_NAME: undefined });
+    const get = (ip: string) =>
+      app.inject({ method: 'GET', url: '/api/vt511/incidents', headers: { 'fly-client-ip': ip } });
+    expect((await get('203.0.113.1')).statusCode).toBe(200);
+    expect((await get('203.0.113.2')).statusCode).toBe(429);
+  });
 });
 
 describe('POST /admin/clear-cache', () => {
@@ -549,5 +579,127 @@ describe('air quality (VTL-75)', () => {
     expect(
       (await app.inject({ method: 'GET', url: '/api/air-quality?lat=44.3&lon=-72.6' })).statusCode,
     ).toBe(502);
+  });
+});
+
+describe('river gauges (VTL-81)', () => {
+  const NWPS = 'https://api.water.noaa.gov/nwps/v1';
+  const gaugesJson = JSON.parse(loadText('nwps/gauges.json')) as Record<string, unknown>;
+  const gaugeJson = JSON.parse(loadText('nwps/gauge-MONV1.json')) as Record<string, unknown>;
+  const stageflowJson = JSON.parse(loadText('nwps/stageflow-MONV1.json')) as Record<
+    string,
+    unknown
+  >;
+
+  const useNwps = (): void => {
+    server.use(
+      http.get(`${NWPS}/gauges`, () => HttpResponse.json(gaugesJson)),
+      http.get(`${NWPS}/gauges/MONV1`, () => HttpResponse.json(gaugeJson)),
+      http.get(`${NWPS}/gauges/MONV1/stageflow`, () => HttpResponse.json(stageflowJson)),
+    );
+  };
+
+  it('lists gauges and serves one gauge in detail', async () => {
+    useNwps();
+    const app = await loadApp();
+    const list = await app.inject({ method: 'GET', url: '/api/rivers' });
+    expect(list.statusCode).toBe(200);
+    expect(list.headers['cache-control']).toBe('public, max-age=300');
+    expect(list.json<{ gauges: unknown[] }>().gauges).toHaveLength(6);
+
+    const one = await app.inject({ method: 'GET', url: '/api/rivers/MONV1' });
+    expect(one.statusCode).toBe(200);
+    expect(one.json<{ floodStages: { minor: number } }>().floodStages.minor).toBe(15);
+  });
+
+  it('answers 400 for bad ids and 404 for gauges it does not list', async () => {
+    useNwps();
+    const app = await loadApp();
+    expect((await app.inject({ method: 'GET', url: '/api/rivers/a%2Fb' })).statusCode).toBe(400);
+    // In the NWPS response, but not a Vermont gauge
+    expect((await app.inject({ method: 'GET', url: '/api/rivers/ALLN3' })).statusCode).toBe(404);
+  });
+
+  it('answers 502 when NWPS is down', async () => {
+    server.use(http.get(`${NWPS}/gauges`, () => new HttpResponse(null, { status: 503 })));
+    const app = await loadApp();
+    expect((await app.inject({ method: 'GET', url: '/api/rivers' })).statusCode).toBe(502);
+    expect((await app.inject({ method: 'GET', url: '/api/rivers/MONV1' })).statusCode).toBe(502);
+  });
+});
+
+describe('climate normals (VTL-81)', () => {
+  const ACIS = 'https://data.rcc-acis.org/StnData';
+  const normalsJson = JSON.parse(loadText('acis/normals-BTVthr.json')) as Record<string, unknown>;
+  const recordsJson = JSON.parse(loadText('acis/records-BTVthr.json')) as Record<string, unknown>;
+
+  it('serves normals and records for the nearest station', async () => {
+    server.use(
+      http.post(ACIS, async ({ request }) => {
+        const body = (await request.json()) as { sdate?: string };
+        return HttpResponse.json(body.sdate === 'por' ? recordsJson : normalsJson);
+      }),
+    );
+    const app = await loadApp();
+    const res = await app.inject({ method: 'GET', url: '/api/climate/today?lat=44.48&lon=-73.21' });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['cache-control']).toBe('public, max-age=3600');
+    expect(res.json()).toMatchObject({
+      station: { name: 'Burlington' },
+      normalHighF: 54,
+      recordHigh: { tempF: 75, year: 1947 },
+    });
+  });
+
+  it('rejects points outside the map area and answers 502 when ACIS is down', async () => {
+    server.use(http.post(ACIS, () => new HttpResponse(null, { status: 503 })));
+    const app = await loadApp();
+    for (const q of ['', '?lat=10&lon=-72']) {
+      const res = await app.inject({ method: 'GET', url: `/api/climate/today${q}` });
+      expect(res.statusCode, q).toBe(400);
+    }
+    const down = await app.inject({ method: 'GET', url: '/api/climate/today?lat=44.3&lon=-72.6' });
+    expect(down.statusCode).toBe(502);
+  });
+});
+
+describe('EV chargers (VTL-81)', () => {
+  const AFDC = 'https://developer.nlr.gov/api/alt-fuel-stations/v1.json';
+  const stationsJson = JSON.parse(loadText('afdc/stations-vt.json')) as Record<string, unknown>;
+
+  it('lists stations with an hour of browser cache', async () => {
+    server.use(http.get(AFDC, () => HttpResponse.json(stationsJson)));
+    const app = await loadApp();
+    const res = await app.inject({ method: 'GET', url: '/api/ev-chargers' });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['cache-control']).toBe('public, max-age=3600');
+    expect(res.json<{ stations: unknown[] }>().stations).toHaveLength(4);
+  });
+
+  it('answers 502 when the AFDC is down', async () => {
+    server.use(http.get(AFDC, () => new HttpResponse(null, { status: 503 })));
+    const app = await loadApp();
+    expect((await app.inject({ method: 'GET', url: '/api/ev-chargers' })).statusCode).toBe(502);
+  });
+});
+
+describe('fire danger (VTL-81)', () => {
+  const SERVICE =
+    'https://services5.arcgis.com/Uzks6LSde6r23wwG/arcgis/rest/services/Vermont_Fire_Danger_-_Public/FeatureServer/1/query';
+  const dangerJson = JSON.parse(loadText('anr/fire-danger.geojson')) as Record<string, unknown>;
+
+  it('serves the rating areas', async () => {
+    server.use(http.get(SERVICE, () => HttpResponse.json(dangerJson)));
+    const app = await loadApp();
+    const res = await app.inject({ method: 'GET', url: '/api/fire-danger' });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['cache-control']).toBe('public, max-age=900');
+    expect(res.json<{ areas: unknown[] }>().areas).toHaveLength(5);
+  });
+
+  it('answers 502 when the service is down', async () => {
+    server.use(http.get(SERVICE, () => new HttpResponse(null, { status: 503 })));
+    const app = await loadApp();
+    expect((await app.inject({ method: 'GET', url: '/api/fire-danger' })).statusCode).toBe(502);
   });
 });

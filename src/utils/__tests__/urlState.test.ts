@@ -78,6 +78,48 @@ describe('parseUrlState', () => {
     expect(parseUrlState('#sel=aq:<script>').selection).toBeUndefined();
   });
 
+  it('round-trips the rivers layer and a gauge selection (VTL-81)', () => {
+    const hash = buildUrlHash({
+      view: { zoom: 9, lat: 44.26, lng: -72.58 },
+      layers: new Set(['riverGauges']),
+      selection: { type: 'river', id: 'MONV1' },
+    });
+    expect(hash).toBe('#map=9/44.26/-72.58&layers=rivers&sel=river:MONV1');
+    expect(parseUrlState(hash).selection).toEqual({ type: 'river', id: 'MONV1' });
+    expect(parseUrlState(hash).layers).toEqual(new Set(['riverGauges']));
+  });
+
+  it('round-trips the EV chargers layer and a station selection (VTL-81)', () => {
+    const hash = buildUrlHash({
+      view: { zoom: 12, lat: 44.21, lng: -72.58 },
+      layers: new Set(['evChargers']),
+      selection: { type: 'ev', id: '102480' },
+    });
+    expect(hash).toBe('#map=12/44.21/-72.58&layers=ev&sel=ev:102480');
+    expect(parseUrlState(hash).selection).toEqual({ type: 'ev', id: '102480' });
+    expect(parseUrlState(hash).layers).toEqual(new Set(['evChargers']));
+  });
+
+  it('round-trips the fire danger layer and an area selection (VTL-81)', () => {
+    const hash = buildUrlHash({
+      view: { zoom: 7, lat: 44, lng: -72.7 },
+      layers: new Set(['fireDanger']),
+      selection: { type: 'fire', id: '3' },
+    });
+    expect(hash).toBe('#map=7/44/-72.7&layers=fire&sel=fire:3');
+    expect(parseUrlState(hash).selection).toEqual({ type: 'fire', id: '3' });
+  });
+
+  it('round-trips the ferries layer and a crossing (VTL-81)', () => {
+    const hash = buildUrlHash({
+      view: { zoom: 10, lat: 44.3, lng: -73.32 },
+      layers: new Set(['ferries']),
+      selection: { type: 'ferry', id: 'charlotte' },
+    });
+    expect(hash).toBe('#map=10/44.3/-73.32&layers=ferries&sel=ferry:charlotte');
+    expect(parseUrlState(hash).selection).toEqual({ type: 'ferry', id: 'charlotte' });
+  });
+
   it('round-trips the seasonal roads layer and a road selection', () => {
     const hash = buildUrlHash({
       view: { zoom: 11, lat: 44.56, lng: -72.79 },

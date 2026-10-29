@@ -14,6 +14,10 @@ import CameraDetail from './detail-views/CameraDetail';
 import SeasonalRoadDetail from './detail-views/SeasonalRoadDetail';
 import RoadWeatherDetail from './detail-views/RoadWeatherDetail';
 import AirQualityDetail from './detail-views/AirQualityDetail';
+import RiverDetail from './detail-views/RiverDetail';
+import EvChargerDetail from './detail-views/EvChargerDetail';
+import FireDangerDetail from './detail-views/FireDangerDetail';
+import FerryDetail from './detail-views/FerryDetail';
 import SkiDetail from './detail-views/SkiDetail';
 import BeachDetail from './detail-views/BeachDetail';
 import CreemeeDetail from './detail-views/CreemeeDetail';
@@ -87,6 +91,14 @@ export default function DetailPanel({
         return 'Road Weather';
       case 'airQuality':
         return 'Air Quality';
+      case 'river':
+        return 'River Level';
+      case 'evCharger':
+        return 'EV Charger';
+      case 'fireDanger':
+        return 'Fire Danger';
+      case 'ferry':
+        return 'Ferry';
       case 'ski':
         return 'Ski Area';
       case 'beach':
@@ -123,6 +135,14 @@ export default function DetailPanel({
         return <RoadWeatherDetail station={content.data} isDark={isDark} />;
       case 'airQuality':
         return <AirQualityDetail monitor={content.data} isDark={isDark} />;
+      case 'river':
+        return <RiverDetail key={content.data.id} gauge={content.data} isDark={isDark} />;
+      case 'evCharger':
+        return <EvChargerDetail station={content.data} isDark={isDark} />;
+      case 'fireDanger':
+        return <FireDangerDetail area={content.data} isDark={isDark} />;
+      case 'ferry':
+        return <FerryDetail ferry={content.data} status={content.status} isDark={isDark} />;
       case 'ski':
         return <SkiDetail resort={content.data} isDark={isDark} />;
       case 'beach':

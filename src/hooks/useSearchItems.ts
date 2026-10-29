@@ -11,7 +11,11 @@ import type { ObservationStation } from '../types';
 import type { TrafficCamera } from '../services/cameraApi';
 import type { RoadWeatherStation } from '../services/roadWeatherApi';
 import type { AirQualityMonitor } from '../services/airQualityApi';
+import type { RiverGauge } from '../services/riverApi';
+import type { EvCharger } from '../services/evChargerApi';
+import type { FireDangerArea } from '../services/fireDangerApi';
 import { SEASONAL_ROADS } from '../data/seasonalRoads';
+import { FERRIES } from '../data/ferries';
 import { roadBounds, roadCenter } from '../utils/seasonalRoads';
 
 /** Towns never change at runtime; build once. */
@@ -41,6 +45,22 @@ const ROAD_ITEMS: SearchItem[] = SEASONAL_ROADS.map((road) => {
     bounds: roadBounds(road),
   };
 });
+// Ferries are static too (VTL-81)
+const FERRY_ITEMS: SearchItem[] = FERRIES.map((ferry) => {
+  const lngs = ferry.route.map((p) => p[0]);
+  const lats = ferry.route.map((p) => p[1]);
+  const [lng, lat] = ferry.route[0]!;
+  return {
+    id: `ferry:${ferry.id}`,
+    kind: 'ferry',
+    name: ferry.name,
+    detail: ferry.between,
+    keywords: 'ferry boat crossing lake champlain',
+    lat,
+    lng,
+    bounds: [Math.min(...lngs), Math.min(...lats), Math.max(...lngs), Math.max(...lats)],
+  };
+});
 /**
  * Everything the search box can find. Towns are always available; the rest
  * are fetched only once `enabled` (first focus of the search box), and a
@@ -52,6 +72,9 @@ export function useSearchItems(
   cameras: readonly TrafficCamera[] = [],
   roadWeather: readonly RoadWeatherStation[] = [],
   airMonitors: readonly AirQualityMonitor[] = [],
+  riverGauges: readonly RiverGauge[] = [],
+  evChargers: readonly EvCharger[] = [],
+  fireAreas: readonly FireDangerArea[] = [],
 ): { items: SearchItem[]; loading: boolean } {
   const opts = { enabled, staleTime: 10 * 60 * 1000, retry: 1 } as const;
   const [ski, beaches, creemee, recreation, incidents] = useQueries({
@@ -157,7 +180,39 @@ export function useSearchItems(
         lng: m.lng,
       });
     }
-    out.push(...ROAD_ITEMS);
+    for (const g of riverGauges) {
+      out.push({
+        id: `river:${g.id}`,
+        kind: 'river',
+        name: g.name,
+        keywords: 'river lake gauge level flood stage flow',
+        lat: g.lat,
+        lng: g.lng,
+      });
+    }
+    for (const s of evChargers) {
+      out.push({
+        id: `ev:${s.id}`,
+        kind: 'evCharger',
+        name: s.name,
+        ...(s.city ? { detail: s.city } : {}),
+        keywords: `ev electric car charger charging station ${s.dcFastPorts > 0 ? 'dc fast' : 'level 2'} ${s.network ?? ''}`,
+        lat: s.lat,
+        lng: s.lng,
+      });
+    }
+    for (const a of fireAreas) {
+      out.push({
+        id: `fire:${a.id}`,
+        kind: 'fireDanger',
+        name: `Fire danger: ${a.name}`,
+        detail: a.description,
+        keywords: 'fire danger burn permit wildfire',
+        lat: a.labelLat,
+        lng: a.labelLng,
+      });
+    }
+    out.push(...ROAD_ITEMS, ...FERRY_ITEMS);
     for (const inc of incidents.data ?? []) {
       const { lat, lng } = inc.location;
       if (!isNum(lat) || !isNum(lng) || (lat === 0 && lng === 0)) continue;
@@ -182,6 +237,9 @@ export function useSearchItems(
     cameras,
     roadWeather,
     airMonitors,
+    riverGauges,
+    evChargers,
+    fireAreas,
   ]);
 
   const loading =

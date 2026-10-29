@@ -48,6 +48,28 @@ describe('SeasonalRoadsLayer', () => {
     expect(fake.listeners.filter((l) => l.layerId)).toHaveLength(0);
   });
 
+  it('waits for the style after a context loss or style swap (VTL-81)', () => {
+    const fake = new FakeMap();
+    fake.styleLoaded = false;
+    const { rerender } = render(
+      <SeasonalRoadsLayer {...baseProps} map={fake.asMap()} visible now={WINTER} />,
+    );
+    expect(fake.sources.size).toBe(0);
+    fake.styleLoaded = true;
+    fake.fire('idle');
+    expect(fake.errors).toEqual([]);
+    expect(fake.getSource(SEASONAL_SOURCE_ID)).toBeTruthy();
+
+    // Hidden before the style settles: nothing is added later
+    fake.styleLoaded = false;
+    rerender(<SeasonalRoadsLayer {...baseProps} map={fake.asMap()} visible={false} now={WINTER} />);
+    rerender(<SeasonalRoadsLayer {...baseProps} map={fake.asMap()} visible now={WINTER} />);
+    rerender(<SeasonalRoadsLayer {...baseProps} map={fake.asMap()} visible={false} now={WINTER} />);
+    fake.styleLoaded = true;
+    fake.fire('idle');
+    expect(fake.sources.size).toBe(0);
+  });
+
   it('a 511 closure overrides an open road', () => {
     const fake = new FakeMap();
     const lincoln = SEASONAL_ROADS.find((r) => r.id === 'lincoln-gap')!;

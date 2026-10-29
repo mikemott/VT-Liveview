@@ -12,6 +12,8 @@ import { getWeatherIconName, getWeatherIconFromNOAAUrl } from '../utils/weatherI
 import { isCurrentlyDaytime } from '../utils/time';
 import { useAirQuality } from '../hooks/useAirQuality';
 import { aqiShortName, aqiToneVars, pollutantLabel } from '../utils/aqi';
+import { useClimateToday } from '../hooks/useClimateToday';
+import { compareWithNormal } from '../utils/climate';
 import '../styles/aqi.css';
 import './CurrentWeather.css';
 
@@ -57,6 +59,9 @@ export default function CurrentWeather({
   const { data: air } = useAirQuality(lat, lon);
   const aqNow = air?.current ?? null;
 
+  // Normals and records (VTL-81): also a bonus, hidden if unavailable
+  const { data: climate } = useClimateToday(lat, lon);
+
   if (isLoading) {
     return (
       <div className={`current-weather loading ${isDark ? 'dark' : ''}`}>
@@ -82,6 +87,23 @@ export default function CurrentWeather({
 
   // 3-day forecast = 6 periods (day/night). Omitted entirely if unavailable.
   const forecast = forecastData?.slice(0, 6) ?? [];
+  const vsNormal = compareWithNormal(forecast[0], climate);
+  const hasNormals =
+    climate &&
+    (climate.normalHighF !== null ||
+      climate.normalLowF !== null ||
+      climate.recordHigh !== null ||
+      climate.recordLow !== null);
+  // "54° / 38°", or whichever half the station has
+  const normalText = !climate
+    ? null
+    : climate.normalHighF !== null && climate.normalLowF !== null
+      ? `${climate.normalHighF}° / ${climate.normalLowF}°`
+      : climate.normalHighF !== null
+        ? `High ${climate.normalHighF}°`
+        : climate.normalLowF !== null
+          ? `Low ${climate.normalLowF}°`
+          : null;
 
   // Mobile collapsed: ultra-minimal view (just temp + icon)
   const showMinimalView = isMobile && !isExpanded;
@@ -143,6 +165,23 @@ export default function CurrentWeather({
         </div>
       )}
 
+      {/* Today's forecast high (or tonight's low) against the normal (VTL-81) */}
+      {!showMinimalView && vsNormal && (
+        <div
+          className="weather-normal"
+          title={`Normal ${vsNormal.kind} for today: ${vsNormal.normalF}° (${climate?.station.name}, 1991–2020)`}
+        >
+          {vsNormal.kind === 'high' ? 'High' : 'Low tonight'} {vsNormal.forecastF}°,{' '}
+          <span
+            className={`weather-normal-diff ${
+              vsNormal.text === 'near normal' ? '' : vsNormal.diffF > 0 ? 'warm' : 'cold'
+            }`}
+          >
+            {vsNormal.text}
+          </span>
+        </div>
+      )}
+
       {isExpanded && (
         <>
           {/* 3-Day Forecast */}
@@ -160,6 +199,36 @@ export default function CurrentWeather({
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {hasNormals && (
+            <div className="climate-section">
+              <div className="forecast-title">Today in {climate.station.name}</div>
+              <dl className="climate-rows">
+                {normalText && (
+                  <div>
+                    <dt>Normal</dt>
+                    <dd>{normalText}</dd>
+                  </div>
+                )}
+                {climate.recordHigh && (
+                  <div>
+                    <dt>Record high</dt>
+                    <dd>
+                      {climate.recordHigh.tempF}° ({climate.recordHigh.year})
+                    </dd>
+                  </div>
+                )}
+                {climate.recordLow && (
+                  <div>
+                    <dt>Record low</dt>
+                    <dd>
+                      {climate.recordLow.tempF}° ({climate.recordLow.year})
+                    </dd>
+                  </div>
+                )}
+              </dl>
             </div>
           )}
 

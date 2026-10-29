@@ -45,6 +45,18 @@ interface TravelLayerProps {
   onToggleRoadWeather?: () => void;
   showAirQuality?: boolean;
   onToggleAirQuality?: () => void;
+  /** River gauges chip (VTL-81) */
+  showRivers?: boolean;
+  onToggleRivers?: () => void;
+  /** EV chargers chip (VTL-81) */
+  showEvChargers?: boolean;
+  onToggleEvChargers?: () => void;
+  /** Fire danger chip (VTL-81) */
+  showFireDanger?: boolean;
+  onToggleFireDanger?: () => void;
+  /** Ferries chip (VTL-81) */
+  showFerries?: boolean;
+  onToggleFerries?: () => void;
   /** Called with every successful incident refresh (seasonal-road override). */
   onIncidentsLoaded?: (incidents: TravelIncident[]) => void;
   showSkiResorts: boolean;
@@ -172,6 +184,14 @@ function TravelLayer({
   onToggleRoadWeather,
   showAirQuality = false,
   onToggleAirQuality,
+  showRivers = false,
+  onToggleRivers,
+  showEvChargers = false,
+  onToggleEvChargers,
+  showFireDanger = false,
+  onToggleFireDanger,
+  showFerries = false,
+  onToggleFerries,
   onIncidentsLoaded,
   showSkiResorts,
   onToggleSkiResorts,
@@ -452,6 +472,38 @@ function TravelLayer({
                   chipType="air"
                   active={showAirQuality}
                   onClick={onToggleAirQuality}
+                />
+              )}
+              {onToggleRivers && (
+                <FilterChip
+                  layer="riverGauges"
+                  chipType="rivers"
+                  active={showRivers}
+                  onClick={onToggleRivers}
+                />
+              )}
+              {onToggleFireDanger && (
+                <FilterChip
+                  layer="fireDanger"
+                  chipType="fire"
+                  active={showFireDanger}
+                  onClick={onToggleFireDanger}
+                />
+              )}
+              {onToggleFerries && (
+                <FilterChip
+                  layer="ferries"
+                  chipType="ferries"
+                  active={showFerries}
+                  onClick={onToggleFerries}
+                />
+              )}
+              {onToggleEvChargers && (
+                <FilterChip
+                  layer="evChargers"
+                  chipType="ev"
+                  active={showEvChargers}
+                  onClick={onToggleEvChargers}
                 />
               )}
               {onToggleSeasonalRoads && (

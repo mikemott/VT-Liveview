@@ -15,6 +15,10 @@ export type SearchKind =
   | 'camera'
   | 'roadWeather'
   | 'airQuality'
+  | 'river'
+  | 'evCharger'
+  | 'fireDanger'
+  | 'ferry'
   | 'road'
   | 'incident';
 
@@ -56,11 +60,15 @@ const KIND_ORDER: Record<SearchKind, number> = {
   camera: 3,
   roadWeather: 4,
   airQuality: 5,
-  road: 6,
-  campground: 7,
-  beach: 8,
-  creemee: 9,
-  incident: 10,
+  river: 6,
+  road: 7,
+  evCharger: 8,
+  fireDanger: 9,
+  ferry: 10,
+  campground: 11,
+  beach: 12,
+  creemee: 13,
+  incident: 14,
 };
 
 function scoreText(text: string, query: string, tokens: string[]): number {

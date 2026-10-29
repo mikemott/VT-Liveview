@@ -1,0 +1,284 @@
+{
+  "gauges": [
+    {
+      "lid": "ARLV1",
+      "name": "Battenkill at Arlington",
+      "rfc": {
+        "abbreviation": "NERFC",
+        "name": "Northeast River Forecast Center"
+      },
+      "wfo": {
+        "abbreviation": "ALY",
+        "name": "Albany"
+      },
+      "state": {
+        "abbreviation": "VT",
+        "name": "Vermont"
+      },
+      "latitude": 43.077222222222,
+      "longitude": -73.157222222222,
+      "pedts": {
+        "observed": "HGIRZ",
+        "forecast": "HGIFF"
+      },
+      "status": {
+        "observed": {
+          "primary": -999,
+          "primaryUnit": "",
+          "secondary": -999,
+          "secondaryUnit": "",
+          "floodCategory": "obs_not_current",
+          "validTime": "0001-01-01T00:00:00Z"
+        },
+        "forecast": {
+          "primary": -999,
+          "primaryUnit": "",
+          "secondary": -999,
+          "secondaryUnit": "",
+          "floodCategory": "fcst_not_current",
+          "validTime": "0001-01-01T00:00:00Z"
+        }
+      }
+    },
+    {
+      "lid": "BMFV1",
+      "name": "Bingham Falls near Stowe",
+      "rfc": {
+        "abbreviation": "NERFC",
+        "name": "Northeast River Forecast Center"
+      },
+      "wfo": {
+        "abbreviation": "BTV",
+        "name": "South Burlington"
+      },
+      "state": {
+        "abbreviation": "VT",
+        "name": "Vermont"
+      },
+      "latitude": 44.5233855562742,
+      "longitude": -72.7717885324146,
+      "pedts": {
+        "observed": "HGIRG",
+        "forecast": ""
+      },
+      "status": {
+        "observed": {
+          "primary": 0.83,
+          "primaryUnit": "ft",
+          "secondary": -999,
+          "secondaryUnit": "kcfs",
+          "floodCategory": "not_defined",
+          "validTime": "2026-10-28T17:35:00Z"
+        },
+        "forecast": {
+          "primary": -999,
+          "primaryUnit": "",
+          "secondary": -999,
+          "secondaryUnit": "",
+          "floodCategory": "fcst_not_current",
+          "validTime": "0001-01-01T00:00:00Z"
+        }
+      }
+    },
+    {
+      "lid": "BURV1",
+      "name": "Lake Champlain at Burlington",
+      "rfc": {
+        "abbreviation": "NERFC",
+        "name": "Northeast River Forecast Center"
+      },
+      "wfo": {
+        "abbreviation": "BTV",
+        "name": "South Burlington"
+      },
+      "state": {
+        "abbreviation": "VT",
+        "name": "Vermont"
+      },
+      "latitude": 44.476111111111,
+      "longitude": -73.221944444444,
+      "pedts": {
+        "observed": "HGIRG",
+        "forecast": "HGIFE"
+      },
+      "status": {
+        "observed": {
+          "primary": 93.49,
+          "primaryUnit": "ft",
+          "secondary": -999,
+          "secondaryUnit": "kcfs",
+          "floodCategory": "no_flooding",
+          "validTime": "2026-10-28T18:00:00Z"
+        },
+        "forecast": {
+          "primary": 93.47,
+          "primaryUnit": "ft",
+          "secondary": -999,
+          "secondaryUnit": "kcfs",
+          "floodCategory": "fcst_not_current",
+          "validTime": "2026-10-31T05:00:00Z"
+        }
+      }
+    },
+    {
+      "lid": "ESSV1",
+      "name": "Winooski River at Essex Junction",
+      "rfc": {
+        "abbreviation": "NERFC",
+        "name": "Northeast River Forecast Center"
+      },
+      "wfo": {
+        "abbreviation": "BTV",
+        "name": "South Burlington"
+      },
+      "state": {
+        "abbreviation": "VT",
+        "name": "Vermont"
+      },
+      "latitude": 44.478888888889,
+      "longitude": -73.139166666667,
+      "pedts": {
+        "observed": "HGIRG",
+        "forecast": "HGIFF"
+      },
+      "status": {
+        "observed": {
+          "primary": 12.4,
+          "primaryUnit": "ft",
+          "secondary": 0.317,
+          "secondaryUnit": "kcfs",
+          "floodCategory": "action",
+          "validTime": "2026-10-28T17:30:00Z"
+        },
+        "forecast": {
+          "primary": 14.8,
+          "primaryUnit": "ft",
+          "secondary": 0.308,
+          "secondaryUnit": "kcfs",
+          "floodCategory": "minor",
+          "validTime": "2026-10-29T00:00:00Z"
+        }
+      }
+    },
+    {
+      "lid": "MONV1",
+      "name": "Winooski River at Montpelier",
+      "rfc": {
+        "abbreviation": "NERFC",
+        "name": "Northeast River Forecast Center"
+      },
+      "wfo": {
+        "abbreviation": "BTV",
+        "name": "South Burlington"
+      },
+      "state": {
+        "abbreviation": "VT",
+        "name": "Vermont"
+      },
+      "latitude": 44.256666666667,
+      "longitude": -72.593888888889,
+      "pedts": {
+        "observed": "HGIRG",
+        "forecast": "HGIFF"
+      },
+      "status": {
+        "observed": {
+          "primary": 3.12,
+          "primaryUnit": "ft",
+          "secondary": 0.0956,
+          "secondaryUnit": "kcfs",
+          "floodCategory": "no_flooding",
+          "validTime": "2026-10-28T17:45:00Z"
+        },
+        "forecast": {
+          "primary": 3.1,
+          "primaryUnit": "ft",
+          "secondary": 0.092,
+          "secondaryUnit": "kcfs",
+          "floodCategory": "no_flooding",
+          "validTime": "2026-10-29T00:00:00Z"
+        }
+      }
+    },
+    {
+      "lid": "DLTN3",
+      "name": "Connecticut River at Dalton",
+      "rfc": {
+        "abbreviation": "NERFC",
+        "name": "Northeast River Forecast Center"
+      },
+      "wfo": {
+        "abbreviation": "GYX",
+        "name": "Gray"
+      },
+      "state": {
+        "abbreviation": "NH",
+        "name": "New Hampshire"
+      },
+      "latitude": 44.4101,
+      "longitude": -71.7206,
+      "pedts": {
+        "observed": "HGIRG",
+        "forecast": "HGIFF"
+      },
+      "status": {
+        "observed": {
+          "primary": 7.49,
+          "primaryUnit": "ft",
+          "secondary": 0.763,
+          "secondaryUnit": "kcfs",
+          "floodCategory": "no_flooding",
+          "validTime": "2026-10-28T18:15:00Z"
+        },
+        "forecast": {
+          "primary": 7.5,
+          "primaryUnit": "ft",
+          "secondary": 0.77,
+          "secondaryUnit": "kcfs",
+          "floodCategory": "no_flooding",
+          "validTime": "2026-10-29T00:00:00Z"
+        }
+      }
+    },
+    {
+      "lid": "ALLN3",
+      "name": "Suncook River near Allenstown",
+      "rfc": {
+        "abbreviation": "NERFC",
+        "name": "Northeast River Forecast Center"
+      },
+      "wfo": {
+        "abbreviation": "GYX",
+        "name": "Gray"
+      },
+      "state": {
+        "abbreviation": "NH",
+        "name": "New Hampshire"
+      },
+      "latitude": 43.159722222222,
+      "longitude": -71.406388888889,
+      "pedts": {
+        "observed": "",
+        "forecast": ""
+      },
+      "status": {
+        "observed": {
+          "primary": -999,
+          "primaryUnit": "",
+          "secondary": -999,
+          "secondaryUnit": "",
+          "floodCategory": "obs_not_current",
+          "validTime": "0001-01-01T00:00:00Z"
+        },
+        "forecast": {
+          "primary": -999,
+          "primaryUnit": "",
+          "secondary": -999,
+          "secondaryUnit": "",
+          "floodCategory": "fcst_not_current",
+          "validTime": "0001-01-01T00:00:00Z"
+        }
+      }
+    }
+  ]
+}

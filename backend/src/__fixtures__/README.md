@@ -35,8 +35,15 @@ relative to this directory.
 | `anr/recreation-sites.json` | `https://anrmaps.vermont.gov/arcgis/rest/services/Open_Data/OPENDATA_ANR_TOURISM_SP_NOCACHE_v2/MapServer/166/query?where=F_CAMP%3D'Y'+OR+…&outFields=*&f=json&returnGeometry=true` |
 | `anr/backcountry-campsites.json` | `https://anrmaps.vermont.gov/arcgis/rest/services/Open_Data/OPENDATA_ANR_TOURISM_SP_NOCACHE_v2/MapServer/175/query?where=Type+IN+(1,2,3,4,5,6)&outFields=…&f=json&returnGeometry=true` |
 | `anr/park-boundaries.geojson` | `https://anrmaps.vermont.gov/arcgis/rest/services/Open_Data/OPENDATA_ANR_CADASTRAL_SP_NOCACHE_v2/MapServer/38/query?where=ANRDept%3D'FPR'&outFields=…&f=geojson&returnGeometry=true` |
+| `anr/fire-danger.geojson` | `https://services5.arcgis.com/Uzks6LSde6r23wwG/arcgis/rest/services/Vermont_Fire_Danger_-_Public/FeatureServer/1/query?where=1%3D1&outFields=…&outSR=4326&maxAllowableOffset=0.003&geometryPrecision=4&f=geojson` (recorded Oct 28 2026; area 3 edited from High to Very High) |
 | `airnow/monitors.json` | `https://www.airnowapi.org/aq/data/?parameters=OZONE,PM25&BBOX=-73.9,42.4,-71.0,45.4&dataType=A&verbose=1&monitorType=2&format=application/json` (shape from a recorded Sept 2026 response; values invented, one -999 row) |
 | `airnow/forecast.json` | `https://www.airnowapi.org/aq/forecast/current/?latitude=…&longitude=…&format=application/json` (shape from a recorded Sept 2026 response; values invented, includes category-only aqi -1) |
+| `nwps/gauges.json` | `https://api.water.noaa.gov/nwps/v1/gauges?bbox.xmin=-73.5&bbox.ymin=42.65&bbox.xmax=-71.4&bbox.ymax=45.1&srid=EPSG_4326` (recorded Oct 2026, cut to 7 gauges: one with no current reading, two NH gauges (one on the Connecticut River); ESSV1's values edited to action stage with a minor-flood forecast) |
+| `nwps/gauge-MONV1.json` | `https://api.water.noaa.gov/nwps/v1/gauges/MONV1` (recorded Oct 2026; crests cut to 4 historic / 2 recent, images, datums and inundation emptied) |
+| `nwps/stageflow-MONV1.json` | `https://api.water.noaa.gov/nwps/v1/gauges/MONV1/stageflow` (recorded Oct 2026; observed cut to every 2 h over the last 2 days, forecast to 6 points) |
+| `acis/normals-BTVthr.json` | `POST https://data.rcc-acis.org/StnData` with `{"sid":"BTVthr","sdate":"2026-10-28","edate":"2026-10-28","elems":[{"name":"maxt","normal":"1"},{"name":"mint","normal":"1"}]}` (recorded Oct 2026) |
+| `acis/records-BTVthr.json` | the same with `"sdate":"por"` and max/min `smry` elements grouped by `["year","1028","1028"]` (recorded Oct 2026) |
+| `afdc/stations-vt.json` | `https://developer.nlr.gov/api/alt-fuel-stations/v1.json?api_key=…&state=VT&fuel_type=ELEC&status=E&access=public&limit=all` (recorded Oct 2026, cut to 4 stations: Tesla Supercharger, a CCS fast charger, a ChargePoint and a non-networked Level 2; plus a copy with null latitude) |
 
 The recreation and backcountry services reject responses with fewer than 20 or 50
 valid sites. The tests pad these fixtures by cloning the first record

@@ -17,14 +17,18 @@ import {
   Ban,
   Car,
   Construction,
+  Droplet,
+  Flame,
   IceCream,
   Mountain,
+  Ship,
   Snowflake,
   Star,
   Tent,
   Thermometer,
   ThermometerSnowflake,
   Video,
+  Zap,
   Waves,
   Wind,
 } from 'lucide-react';
@@ -36,6 +40,10 @@ export type LayerStyleKey =
   | 'trafficCameras'
   | 'roadWeather'
   | 'airQuality'
+  | 'riverGauges'
+  | 'evChargers'
+  | 'fireDanger'
+  | 'ferries'
   | 'seasonalRoads'
   | IncidentType
   | 'skiResorts'
@@ -83,6 +91,37 @@ export const LAYER_STYLES: Record<LayerStyleKey, LayerStyle> = {
     // Stone grey: markers are tinted by EPA category, this is only the ring (VTL-76)
     color: '#78716c',
     description: 'EPA AirNow air quality monitors (AQI)',
+  },
+  riverGauges: {
+    label: 'Rivers',
+    icon: Droplet,
+    // Periwinkle: the blues are taken (stations, ski, floods); flood stages tint the fill (VTL-81)
+    color: '#8890b8',
+    description: 'River and lake levels from NWS / USGS gauges, with flood stages',
+  },
+  evChargers: {
+    label: 'EV chargers',
+    icon: Zap,
+    // Pink: the greens and blues are taken (VTL-81)
+    color: '#e86890',
+    ink: '#8a2347',
+    description: 'Public EV charging: DC fast statewide, Level 2 when zoomed in (DOE AFDC)',
+  },
+  fireDanger: {
+    label: 'Fire danger',
+    icon: Flame,
+    // Charred brown; the areas and markers take the NFDRS rating colors (VTL-81)
+    color: '#482800',
+    colorDark: '#d6a46b',
+    description: 'Daily fire danger for Vermont’s five rating areas (Forests, Parks & Recreation)',
+  },
+  ferries: {
+    label: 'Ferries',
+    icon: Ship,
+    // Deep navy; light periwinkle on dark backgrounds (VTL-81)
+    color: '#100038',
+    colorDark: '#a5b4fc',
+    description: 'Lake Champlain ferry crossings and their seasons',
   },
   seasonalRoads: {
     label: 'Seasonal closures',

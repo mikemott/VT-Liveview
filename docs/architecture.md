@@ -14,7 +14,8 @@ Backend (Fastify 4 + Apollo Server 4, TypeScript, Node 22)  ── Fly.io "vt-li
   ▼
 Upstreams: NOAA api.weather.gov · NOAA CDO/NCEI · IEM + RainViewer radar ·
            NE Compass C2C (VT 511 incidents, cameras, road weather) · USGS NWIS ·
-           AirNow · skivermont.com (scraped) · ANR / Burlington ArcGIS
+           AirNow · NWS NWPS (river gauges) · RCC-ACIS (normals) ·
+           DOE AFDC (EV chargers) · skivermont.com (scraped) · ANR / Burlington ArcGIS
 ```
 
 The frontend is built and deployed by Cloudflare Pages itself (no workflow
@@ -30,12 +31,12 @@ shared links. The backend deploys to Fly via `deploy-backend.yml` on pushes to
 | Map shell | `WeatherMap.tsx` (~1,800 lines) | Map init, theme/style swap, alert zone fills, layer toggles and filter chips, DetailPanel, "What's here?", URL state |
 | Layer registry | `config/layers.ts` | One label, icon and colour per layer, shared by chips, markers and search. `layerPalette.test.ts` enforces that the colours stay distinct and keep their contrast. |
 | Seasonal | `config/seasonalLayers.ts`, `hooks/useSeasonalLayers.ts`, `utils/roadWeather.ts` | Ski, creemee and road weather show by month |
-| Layers | `components/*Layer.tsx` | Travel (VT 511 incidents/closures/construction + USGS gauges), WeatherStations, TrafficFlow (TomTom raster), Camera, RoadWeather, AirQuality, SeasonalRoads, Ski, Creemee, Camping, CampingAreas, Beach, Stargazing |
+| Layers | `components/*Layer.tsx` | Travel (VT 511 incidents/closures/construction + USGS gauges), WeatherStations, TrafficFlow (TomTom raster), Camera, RoadWeather, AirQuality, River (NWPS gauges), EvCharger, FireDanger (FPR rating areas), Ferry (static, animated boats), SeasonalRoads, Ski, Creemee, Camping, CampingAreas, Beach, Stargazing. Rivers and fire danger show themselves while flooding / at High or worse (`autoShown` in `WeatherMap.tsx`) until the user toggles them |
 | Markers | `hooks/useMapMarkers.ts`, `utils/mapMarker.ts` | Shared DOM-marker lifecycle: markers and listeners are removed on hide, on data change and on unmount |
 | Details | `DetailPanel.tsx` + `detail-views/*Detail.tsx` | Every layer opens in the side panel. `LocationDetail` is "What's here?" (`utils/locationContext.ts`) |
 | Widgets | `RadarOverlay`, `CurrentWeather`, `AstronomyEvents`, `SearchBox`, `ShareMenu`, `ThemeToggle`, `MapUnavailable` (no WebGL) | |
 | Data | `services/*Api.ts`, `services/graphqlClient.ts` | Mostly GraphQL. VT 511 data comes as XML from the backend REST proxy and is parsed in `vt511Api.ts`. USGS gauges are fetched straight from the browser. |
-| Static data | `data/` | Seasonal roads, dark-sky sites, meteor showers, light pollution, VT outline and towns (the `scripts/build-*.mjs` scripts generate some of these) |
+| Static data | `data/` | Seasonal roads, ferries (VTL-81, re-check each spring), dark-sky sites, meteor showers, light pollution, VT outline and towns (the `scripts/build-*.mjs` scripts generate some of these) |
 | Utils | `utils/` | `sanitize.ts`, `mapStyles.ts` (Protomaps), `urlState.ts` / `sharePreview.ts`, `astronomy.ts`, `aqi.ts`, colour/icon maps |
 | Styles | `styles/design-system.css` (vintage tokens), `App.css` (older tokens), one `.css` per component | Two token systems coexist (FINDINGS H14) |
 
@@ -47,9 +48,9 @@ Env (`src/types/env.ts`, zod): `VITE_PROTOMAPS_API_KEY` (required),
 | Area | Files | Notes |
 |---|---|---|
 | App | `app.ts` (`buildServer()`), `server.ts` (listen + scheduler + shutdown) | CORS (env-aware), `@fastify/rate-limit` (exempts `/health` and `/graphql`, FINDINGS H3), Apollo at `/graphql` |
-| REST | `app.ts` | `GET /health`, `POST /admin/clear-cache` (`x-admin-token` in prod), `GET /api/vt511/{incidents,closures,traffic-conditions,network}`, `/api/road-weather`, `/api/air-quality`, `/api/air-quality/monitors`, `/api/cameras`, `/api/cameras/:id/snapshot.jpg`, `POST /api/ski-conditions/refresh` |
+| REST | `app.ts` | `GET /health`, `POST /admin/clear-cache` (`x-admin-token` in prod), `GET /api/vt511/{incidents,closures,traffic-conditions,network}`, `/api/road-weather`, `/api/air-quality`, `/api/air-quality/monitors`, `/api/rivers`, `/api/rivers/:id`, `/api/climate/today`, `/api/ev-chargers`, `/api/fire-danger`, `/api/cameras`, `/api/cameras/:id/snapshot.jpg`, `POST /api/ski-conditions/refresh` |
 | GraphQL | `schema.graphql`, `resolvers/{index,beach,historical}.ts` | currentWeather, forecast, alerts, mergedAlerts, radarInfo, observationStations, historicalData, weather/alert/incident/gaugeHistory, dailyWeatherStats, skiResorts, creemee*, beaches, recreationSites, backcountrySites, campingAreas |
-| Services | `services/*.ts` | One module per upstream, each with its own cache: noaa, noaaCDO, radar, zones, c2c (shared NE Compass XML helper), trafficCameras, roadWeather, airQuality, skiConditions (cheerio), beachWaterQuality, campingAreas, recreationSites, backcountrySites, parkBoundaries, creemee |
+| Services | `services/*.ts` | One module per upstream, each with its own cache: noaa, noaaCDO, radar, zones, c2c (shared NE Compass XML helper), trafficCameras, roadWeather, airQuality, rivers (NWPS), climate (ACIS normals/records), evChargers (AFDC), fireDanger (ANR feature service), skiConditions (cheerio), beachWaterQuality, campingAreas, recreationSites, backcountrySites, parkBoundaries, creemee |
 | Static data | `data/` | `creemeeStands.json`, `vtBeaches.json`, `resortData.ts`. `scripts/buildCreemeeData.ts` regenerates the creemee data. |
 | Collectors | `collectors/`, `scheduler/index.ts` | node-cron: weather */5, alerts */2, traffic */3, gauges */10 min, wrapped in `withRetry`. Only runs with `DATABASE_URL` set and `ENABLE_COLLECTOR` on. |
 | DB | `db/{index,schema,migrate}.ts`, `db/migrations/` | Drizzle + postgres-js. Tables: weatherObservations, weatherAlerts, trafficIncidents, riverGauges. Optional: with no DB, the history features are off. |

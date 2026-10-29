@@ -13,6 +13,7 @@
 import { applyPreview, previewForQuery, type NameLookup } from '../src/utils/sharePreview';
 import { SEASONAL_ROADS } from '../src/data/seasonalRoads';
 import { DARK_SKY_SITES } from '../src/data/darkSkySites';
+import { FERRIES } from '../src/data/ferries';
 
 interface Env {
   /** Backend base URL (defaults to production) */
@@ -60,6 +61,8 @@ export function makeLookup(api: string): NameLookup {
     switch (selection.type) {
       case 'road':
         return SEASONAL_ROADS.find((r) => r.id === selection.id)?.name ?? null;
+      case 'ferry':
+        return FERRIES.find((f) => f.id === selection.id)?.name ?? null;
       case 'camera': {
         const { cameras } = await getJson<{ cameras: Named[] }>(`${api}/api/cameras`);
         return findName(cameras, selection.id);
@@ -69,6 +72,18 @@ export function makeLookup(api: string): NameLookup {
           `${api}/api/air-quality/monitors`,
         );
         return findName(monitors, selection.id);
+      }
+      case 'river': {
+        const { gauges } = await getJson<{ gauges: Named[] }>(`${api}/api/rivers`);
+        return findName(gauges, selection.id);
+      }
+      case 'ev': {
+        const { stations } = await getJson<{ stations: Named[] }>(`${api}/api/ev-chargers`);
+        return findName(stations, selection.id);
+      }
+      case 'fire': {
+        const { areas } = await getJson<{ areas: Named[] }>(`${api}/api/fire-danger`);
+        return findName(areas, selection.id);
       }
       case 'roadwx': {
         const { stations } = await getJson<{ stations: Named[] }>(`${api}/api/road-weather`);

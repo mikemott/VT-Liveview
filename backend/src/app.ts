@@ -18,6 +18,10 @@ import { fetchSkiConditions } from './services/skiConditions.js';
 import { createTrafficCameraService } from './services/trafficCameras.js';
 import { createRoadWeatherService } from './services/roadWeather.js';
 import { createAirQualityService } from './services/airQuality.js';
+import { createRiverService, GAUGE_ID } from './services/rivers.js';
+import { createClimateService } from './services/climate.js';
+import { createEvChargerService } from './services/evChargers.js';
+import { createFireDangerService } from './services/fireDanger.js';
 import { validateEnv, isProd } from './types/index.js';
 import { getDb, checkDatabaseHealth, isDatabaseEnabled } from './db/index.js';
 import { getCollectorStatus } from './scheduler/index.js';
@@ -134,10 +138,19 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
     maxAge: 86400, // Cache preflight responses for 24 hours
   });
 
-  // Rate limiting for proxy endpoints (100 requests per minute)
+  // Rate limiting for proxy endpoints (RATE_LIMIT_MAX per minute, default 300)
   await fastify.register(rateLimit, {
-    max: 100,
+    max: env.RATE_LIMIT_MAX,
     timeWindow: '1 minute',
+    // Behind Fly every request comes from the proxy, so request.ip would put all
+    // visitors in one bucket. Fly's proxy sets Fly-Client-IP to the real client
+    // (FINDINGS H3). Off Fly the header isn't trusted: anyone could send it.
+    keyGenerator: (request) => {
+      const flyClientIp = request.headers['fly-client-ip'];
+      return env.FLY_APP_NAME && typeof flyClientIp === 'string' && flyClientIp
+        ? flyClientIp
+        : request.ip;
+    },
     // Only apply to API routes, not GraphQL or health
     allowList: (request) => {
       const url = request.url;
@@ -337,6 +350,99 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
       }
     },
   );
+
+  // River and lake levels from NWPS (VTL-81)
+  const rivers = createRiverService(`VT-Liveview/1.0 (${env.CONTACT_EMAIL ?? 'weather-app'})`);
+
+  fastify.get('/api/rivers', async (_request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const gauges = await rivers.getGauges();
+      reply.header('Cache-Control', 'public, max-age=300');
+      return { gauges };
+    } catch (error) {
+      fastify.log.warn({ err: error }, 'River gauges fetch failed');
+      reply.code(502);
+      return { error: 'River gauges are unavailable' };
+    }
+  });
+
+  fastify.get<{ Params: { id: string } }>('/api/rivers/:id', async (request, reply) => {
+    const { id } = request.params;
+    if (!GAUGE_ID.test(id)) {
+      reply.code(400);
+      return { error: 'Not a gauge id' };
+    }
+    try {
+      // Only gauges we list: the detail route is not a general NWPS proxy
+      const known = (await rivers.getGauges()).some((g) => g.id === id);
+      const detail = known ? await rivers.getGauge(id) : null;
+      if (!detail) {
+        reply.code(404);
+        return { error: 'No such gauge' };
+      }
+      reply.header('Cache-Control', 'public, max-age=300');
+      return detail;
+    } catch (error) {
+      fastify.log.warn({ err: error }, 'River gauge fetch failed');
+      reply.code(502);
+      return { error: 'River gauge is unavailable' };
+    }
+  });
+
+  // Today's normals and records for the weather card (VTL-81)
+  const climate = createClimateService();
+
+  fastify.get<{ Querystring: { lat?: string; lon?: string } }>(
+    '/api/climate/today',
+    async (request, reply) => {
+      const lat = Number(request.query.lat);
+      const lon = Number(request.query.lon);
+      // Same bounds the map allows (src/utils/urlState.ts)
+      if (!(lat >= 40.5 && lat <= 47.5 && lon >= -77.5 && lon <= -68.5)) {
+        reply.code(400);
+        return { error: 'lat and lon must be within the Vermont map area' };
+      }
+      try {
+        const day = await climate.getDay(lat, lon);
+        reply.header('Cache-Control', 'public, max-age=3600');
+        return day;
+      } catch (error) {
+        fastify.log.warn({ err: error }, 'Climate normals fetch failed');
+        reply.code(502);
+        return { error: 'Climate normals are unavailable' };
+      }
+    },
+  );
+
+  // Public EV charging stations from the DOE AFDC (VTL-81)
+  const evChargers = createEvChargerService(env.AFDC_API_KEY);
+
+  fastify.get('/api/ev-chargers', async (_request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const stations = await evChargers.getStations();
+      reply.header('Cache-Control', 'public, max-age=3600');
+      return { stations };
+    } catch (error) {
+      fastify.log.warn({ err: error }, 'EV charger fetch failed');
+      reply.code(502);
+      return { error: 'EV chargers are unavailable' };
+    }
+  });
+
+  // Fire danger ratings from Vermont FPR (VTL-81)
+  const fireDanger = createFireDangerService();
+
+  fastify.get('/api/fire-danger', async (_request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const danger = await fireDanger.get();
+      reply.header('Cache-Control', 'public, max-age=900');
+      return danger;
+    } catch (error) {
+      fastify.log.warn({ err: error }, 'Fire danger fetch failed');
+      reply.code(502);
+      return { error: 'Fire danger ratings are unavailable' };
+    }
+  });
 
   fastify.get('/api/cameras', async (_request: FastifyRequest, reply: FastifyReply) => {
     try {

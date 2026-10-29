@@ -61,6 +61,14 @@ export function selectionLabel(selection: Selection): string {
       return 'Road temperature';
     case 'aq':
       return 'Air quality';
+    case 'river':
+      return 'River level';
+    case 'ev':
+      return 'EV charger';
+    case 'fire':
+      return 'Fire danger';
+    case 'ferry':
+      return 'Ferry';
     case 'location':
       return "What's here";
     case 'poi':
@@ -110,6 +118,10 @@ const DESCRIPTIONS: Record<Selection['type'], string> = {
   road: 'Seasonal road status, plus closures, radar and alerts across Vermont.',
   roadwx: 'Live pavement temperature and surface, plus radar and road closures.',
   aq: 'Current air quality (AQI) from EPA AirNow, plus radar, roads and alerts across Vermont.',
+  river: 'Live river level and flood stage from NWS gauges, plus radar, roads and alerts.',
+  ev: 'Public EV charging station, plus radar, road closures and alerts across Vermont.',
+  fire: 'Today’s fire danger rating from Vermont Forests, Parks & Recreation, on a live map.',
+  ferry: 'Lake Champlain ferry crossing and its season, plus radar, roads and alerts.',
   location: 'Forecast, alerts and what’s nearby on a live map of Vermont.',
   poi: 'On a live map of Vermont roads, weather, alerts and outdoor spots.',
 };

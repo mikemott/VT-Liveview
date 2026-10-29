@@ -878,7 +878,8 @@
   object-fit: contain;
 }
 
-/* What's here: air quality (VTL-75); colors in src/styles/aqi.css */
+/* What's here: air quality (VTL-75); colors in src/styles/aqi.css.
+   The .aq-headline layout is shared with river gauges (VTL-81) */
 .aqi-badge {
   display: inline-block;
   flex-shrink: 0;
@@ -964,4 +965,77 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
+}
+
+/* River gauges (VTL-81); tone colors in src/styles/tone.css */
+.river-forecast-warning {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-lg);
+  font-weight: var(--font-weight-semibold);
+}
+
+.river-hydrograph {
+  margin: var(--space-4) 0;
+}
+
+.river-hydrograph svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.river-hydrograph-obs,
+.river-hydrograph-fcst {
+  fill: none;
+  stroke: var(--color-text-secondary);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.river-hydrograph-fcst {
+  stroke-dasharray: 4 3;
+}
+
+.river-hydrograph-now {
+  stroke: var(--color-border-secondary);
+  stroke-width: 1;
+}
+
+.river-hydrograph-flood line {
+  stroke: var(--color-warning);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+}
+
+.river-hydrograph-flood text,
+.river-hydrograph-axis {
+  font-size: 11px;
+  fill: var(--color-text-tertiary);
+}
+
+/* Several links in a row (EV chargers, VTL-81) */
+.detail-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+}
+
+/* Fire danger (VTL-81); tone colors in src/styles/tone.css */
+.fire-danger-level {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}
+
+/* Ferries (VTL-81) */
+.ferry-notes {
+  margin: var(--space-3) 0;
+  padding-left: var(--space-6);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.ferry-notes li + li {
+  margin-top: var(--space-2);
 }

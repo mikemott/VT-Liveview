@@ -85,6 +85,40 @@ export const upstreamHandlers = [
   ),
   http.get(PARK_BOUNDARIES_URL, () => HttpResponse.json(loadJson('anr/park-boundaries.geojson'))),
 
+  // NWS National Water Prediction Service (VTL-81). The gauge list has one
+  // gauge forecast to minor flooding, so the Rivers layer starts on
+  http.get('https://api.water.noaa.gov/nwps/v1/gauges', () =>
+    HttpResponse.json(loadJson('nwps/gauges.json')),
+  ),
+  http.get('https://api.water.noaa.gov/nwps/v1/gauges/:id/stageflow', () =>
+    HttpResponse.json(loadJson('nwps/stageflow-MONV1.json')),
+  ),
+  http.get('https://api.water.noaa.gov/nwps/v1/gauges/:id', ({ params }) =>
+    HttpResponse.json({
+      ...loadJson<Record<string, unknown>>('nwps/gauge-MONV1.json'),
+      lid: params.id,
+    }),
+  ),
+
+  // RCC-ACIS normals and records (VTL-81): a por start date means the records query
+  http.post('https://data.rcc-acis.org/StnData', async ({ request }) => {
+    const body = (await request.json()) as { sdate?: string };
+    return HttpResponse.json(
+      loadJson(body.sdate === 'por' ? 'acis/records-BTVthr.json' : 'acis/normals-BTVthr.json'),
+    );
+  }),
+
+  // DOE AFDC EV charging stations (VTL-81)
+  http.get('https://developer.nlr.gov/api/alt-fuel-stations/v1.json', () =>
+    HttpResponse.json(loadJson('afdc/stations-vt.json')),
+  ),
+
+  // Vermont FPR fire danger ratings (VTL-81)
+  http.get(
+    'https://services5.arcgis.com/Uzks6LSde6r23wwG/arcgis/rest/services/Vermont_Fire_Danger_-_Public/FeatureServer/1/query',
+    () => HttpResponse.json(loadJson('anr/fire-danger.geojson')),
+  ),
+
   // NOAA Climate Data Online (only called when NOAA_CDO_TOKEN is set)
   http.get('https://www.ncei.noaa.gov/cdo-web/api/v2/data', () =>
     HttpResponse.json(loadJson('ncei-cdo/data-ghcnd.json')),
