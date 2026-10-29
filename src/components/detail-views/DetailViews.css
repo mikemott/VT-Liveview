@@ -1027,3 +1027,15 @@
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-bold);
 }
+
+/* Ferries (VTL-81) */
+.ferry-notes {
+  margin: var(--space-3) 0;
+  padding-left: var(--space-6);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.ferry-notes li + li {
+  margin-top: var(--space-2);
+}

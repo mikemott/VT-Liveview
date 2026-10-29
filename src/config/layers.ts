@@ -21,6 +21,7 @@ import {
   Flame,
   IceCream,
   Mountain,
+  Ship,
   Snowflake,
   Star,
   Tent,
@@ -42,6 +43,7 @@ export type LayerStyleKey =
   | 'riverGauges'
   | 'evChargers'
   | 'fireDanger'
+  | 'ferries'
   | 'seasonalRoads'
   | IncidentType
   | 'skiResorts'
@@ -112,6 +114,14 @@ export const LAYER_STYLES: Record<LayerStyleKey, LayerStyle> = {
     color: '#482800',
     colorDark: '#d6a46b',
     description: 'Daily fire danger for Vermont’s five rating areas (Forests, Parks & Recreation)',
+  },
+  ferries: {
+    label: 'Ferries',
+    icon: Ship,
+    // Deep navy; light periwinkle on dark backgrounds (VTL-81)
+    color: '#100038',
+    colorDark: '#a5b4fc',
+    description: 'Lake Champlain ferry crossings and their seasons',
   },
   seasonalRoads: {
     label: 'Seasonal closures',

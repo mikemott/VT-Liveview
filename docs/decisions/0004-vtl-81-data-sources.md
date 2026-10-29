@@ -1,4 +1,4 @@
-# 0004: Data sources for rivers, normals, EV chargers and fire danger
+# 0004: Data sources for rivers, normals, EV chargers, fire danger and ferries
 
 - **Date:** 2026-10-28
 - **Issue:** VTL-81
@@ -18,6 +18,11 @@
 - **Fire danger: ANR's public "Vermont Fire Danger - Public" feature service.** This is the data
   behind FPR's daily map. The five rating areas are numbered only, so we named them from FPR's
   town list.
+- **Ferries: static data** (`src/data/ferries.ts`). Routes come from OpenStreetMap
+  `route=ferry` ways. Seasons, hours and notes come from what the operators publish (checked
+  Oct 2026). Status is worked out from the published season for the date, never "running now",
+  and every panel links to the operator for live service changes. Boats animate only on
+  in-season crossings, and not when the user prefers reduced motion.
 - **Auto-show layers:** Rivers (minor flooding or worse, observed or forecast) and Fire danger
   (High or worse, and current) turn themselves on until the user toggles them. This is
   `autoShown` in `WeatherMap.tsx`.
@@ -37,9 +42,10 @@
   token. It belongs to FPR's internal editor app.
 - **Fire danger from the daily JPEG, or computed from FEMS / WFAS:** the JPEG is an image, not
   data, and WFAS publishes only images. FEMS outputs aren't the state's rating.
-- **Ferry status (Lake Champlain Transportation):** ferries.com blocks automated requests
-  (HTTP 406 from mod_security). We don't work around bot blocking. Ferries are left for Mike
-  to decide (static routes with seasons, or ask LCT for a feed).
+- **Live ferry status from Lake Champlain Transportation:** ferries.com blocks automated
+  requests (HTTP 406 from mod_security), and we don't work around bot blocking. Mike chose
+  static crossings instead. **Re-check the seasons and notes in `src/data/ferries.ts` each
+  spring.**
 - **Clustering 550 EV markers in a MapLibre symbol layer:** it would break the shared-marker
   pattern (keyboard access, side panel). Gating Level 2 by zoom keeps the DOM marker count
   near 110.

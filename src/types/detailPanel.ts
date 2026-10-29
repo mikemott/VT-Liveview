@@ -11,6 +11,8 @@ import type { AirQualityMonitor } from '../services/airQualityApi';
 import type { RiverGauge } from '../services/riverApi';
 import type { EvCharger } from '../services/evChargerApi';
 import type { FireDangerAreaView } from '../services/fireDangerApi';
+import type { Ferry } from '../data/ferries';
+import type { FerryStatus } from '../utils/ferries';
 import type { SkiResort } from '../services/skiApi';
 import type { Beach } from '../services/beachApi';
 import type { CreemeeStand } from '../services/creemeeApi';
@@ -79,6 +81,7 @@ export type DetailPanelContent =
   | { type: 'river'; data: RiverGauge }
   | { type: 'evCharger'; data: EvCharger }
   | { type: 'fireDanger'; data: FireDangerAreaView }
+  | { type: 'ferry'; data: Ferry; status: FerryStatus }
   | { type: 'ski'; data: SkiResort }
   | { type: 'beach'; data: Beach }
   | { type: 'creemee'; data: CreemeeStand }

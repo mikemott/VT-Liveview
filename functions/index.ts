@@ -13,6 +13,7 @@
 import { applyPreview, previewForQuery, type NameLookup } from '../src/utils/sharePreview';
 import { SEASONAL_ROADS } from '../src/data/seasonalRoads';
 import { DARK_SKY_SITES } from '../src/data/darkSkySites';
+import { FERRIES } from '../src/data/ferries';
 
 interface Env {
   /** Backend base URL (defaults to production) */
@@ -60,6 +61,8 @@ export function makeLookup(api: string): NameLookup {
     switch (selection.type) {
       case 'road':
         return SEASONAL_ROADS.find((r) => r.id === selection.id)?.name ?? null;
+      case 'ferry':
+        return FERRIES.find((f) => f.id === selection.id)?.name ?? null;
       case 'camera': {
         const { cameras } = await getJson<{ cameras: Named[] }>(`${api}/api/cameras`);
         return findName(cameras, selection.id);

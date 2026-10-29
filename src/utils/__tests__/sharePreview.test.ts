@@ -228,6 +228,7 @@ describe('Pages Function', () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch');
     const lookup = makeLookup('https://api.test');
     expect(await lookup({ type: 'road', id: 'nope' })).toBeNull();
+    expect(await lookup({ type: 'ferry', id: 'charlotte' })).toBe('Charlotte ferry');
     expect(await lookup({ type: 'poi', kind: 'darksky', id: 'victory-state-forest' })).toBe(
       'Victory State Forest',
     );

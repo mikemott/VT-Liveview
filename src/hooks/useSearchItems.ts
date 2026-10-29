@@ -15,6 +15,7 @@ import type { RiverGauge } from '../services/riverApi';
 import type { EvCharger } from '../services/evChargerApi';
 import type { FireDangerArea } from '../services/fireDangerApi';
 import { SEASONAL_ROADS } from '../data/seasonalRoads';
+import { FERRIES } from '../data/ferries';
 import { roadBounds, roadCenter } from '../utils/seasonalRoads';
 
 /** Towns never change at runtime; build once. */
@@ -42,6 +43,22 @@ const ROAD_ITEMS: SearchItem[] = SEASONAL_ROADS.map((road) => {
     lat,
     lng,
     bounds: roadBounds(road),
+  };
+});
+// Ferries are static too (VTL-81)
+const FERRY_ITEMS: SearchItem[] = FERRIES.map((ferry) => {
+  const lngs = ferry.route.map((p) => p[0]);
+  const lats = ferry.route.map((p) => p[1]);
+  const [lng, lat] = ferry.route[0]!;
+  return {
+    id: `ferry:${ferry.id}`,
+    kind: 'ferry',
+    name: ferry.name,
+    detail: ferry.between,
+    keywords: 'ferry boat crossing lake champlain',
+    lat,
+    lng,
+    bounds: [Math.min(...lngs), Math.min(...lats), Math.max(...lngs), Math.max(...lats)],
   };
 });
 /**
@@ -195,7 +212,7 @@ export function useSearchItems(
         lng: a.labelLng,
       });
     }
-    out.push(...ROAD_ITEMS);
+    out.push(...ROAD_ITEMS, ...FERRY_ITEMS);
     for (const inc of incidents.data ?? []) {
       const { lat, lng } = inc.location;
       if (!isNum(lat) || !isNum(lng) || (lat === 0 && lng === 0)) continue;

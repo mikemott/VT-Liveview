@@ -15,6 +15,9 @@ import type { AirQualityMonitor } from './services/airQualityApi';
 import RiverLayer from './components/RiverLayer';
 import EvChargerLayer from './components/EvChargerLayer';
 import FireDangerLayer from './components/FireDangerLayer';
+import FerryLayer from './components/FerryLayer';
+import { FERRIES, type Ferry } from './data/ferries';
+import { getFerryStatus, type FerryStatus } from './utils/ferries';
 import { areaView, type FireDanger, type FireDangerArea } from './services/fireDangerApi';
 import { isFireDangerStale } from './utils/fireDanger';
 import type { EvCharger } from './services/evChargerApi';
@@ -221,6 +224,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
       riverGauges: null, // Auto: on while any gauge is flooding or forecast to (VTL-81)
       evChargers: false, // Off by default (VTL-81)
       fireDanger: null, // Auto: on while any area is High or worse (VTL-81)
+      ferries: false, // Off by default (VTL-81)
       // On while any notch/gap road is closed or about to close (VTL-55)
       seasonalRoads: [...getSeasonalStatuses([]).values()].some((s) => s.status !== 'open'),
     };
@@ -1011,6 +1015,8 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         return { type: 'poi', kind: 'darksky', id: detailPanelContent.data.id };
       case 'seasonalRoad':
         return { type: 'road', id: detailPanelContent.data.id };
+      case 'ferry':
+        return { type: 'ferry', id: detailPanelContent.data.id };
       case 'alert':
         return detailPanelContent.data.properties.id
           ? { type: 'alert', id: detailPanelContent.data.properties.id }
@@ -1037,6 +1043,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         'riverGauges',
         'evChargers',
         'fireDanger',
+        'ferries',
         'seasonalRoads',
       ] as const
     )
@@ -1091,6 +1098,15 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
     return status ? { ...detailPanelContent, status } : detailPanelContent;
   }, [detailPanelContent, closures]);
   /** Open a road's panel with its current status (search, shared links). */
+  // Ferries are static data (VTL-81): open from links and search right away
+  const openFerry = useCallback((id: string): void => {
+    const ferry = FERRIES.find((f) => f.id === id);
+    if (ferry) setDetailPanelContent({ type: 'ferry', data: ferry, status: getFerryStatus(ferry) });
+  }, []);
+  const handleFerryClick = useCallback((ferry: Ferry, status: FerryStatus): void => {
+    setDetailPanelContent({ type: 'ferry', data: ferry, status });
+  }, []);
+
   const openSeasonalRoad = useCallback((id: string): void => {
     const road = SEASONAL_ROADS.find((r) => r.id === id);
     const status = road && getSeasonalStatuses(closuresRef.current).get(road.id);
@@ -1227,6 +1243,9 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
     } else if (pending.type === 'road') {
       pendingSelection.current = undefined;
       openSeasonalRoad(pending.id);
+    } else if (pending.type === 'ferry') {
+      pendingSelection.current = undefined;
+      openFerry(pending.id);
     } else if (pending.type === 'poi') {
       // Opens now if loaded (dark sky sites are static); otherwise stays pending
       openPoi(pending.kind, pending.id);
@@ -1236,7 +1255,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
       // An expired alert is simply not opened
       if (alert) handleAlertClick(alert);
     }
-  }, [mapLoaded, alertsLoaded, alerts, handleAlertClick, openSeasonalRoad, openPoi]);
+  }, [mapLoaded, alertsLoaded, alerts, handleAlertClick, openSeasonalRoad, openFerry, openPoi]);
 
   // Restore a station selection once stations have loaded
   // Latest stations, for search (VTL-53)
@@ -1414,6 +1433,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
       }
       // Roads are static data, so open now; others wait for their data
       if (next.selection?.type === 'road') openSeasonalRoad(next.selection.id);
+      else if (next.selection?.type === 'ferry') openFerry(next.selection.id);
       else if (next.selection?.type === 'poi') openPoi(next.selection.kind, next.selection.id);
       else if (next.selection?.type === 'aq') {
         // Monitors refresh only every 20 minutes: open from the loaded list if we can
@@ -1425,7 +1445,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
     };
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
-  }, [openSeasonalRoad, openPoi]);
+  }, [openSeasonalRoad, openFerry, openPoi]);
 
   // ===========================================================================
   // Search (VTL-53)
@@ -1473,6 +1493,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         river: 'riverGauges',
         evCharger: 'evChargers',
         fireDanger: 'fireDanger',
+        ferry: 'ferries',
         road: 'seasonalRoads',
       };
       const layer = layerFor[item.kind];
@@ -1514,6 +1535,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         if (station) setDetailPanelContent({ type: 'evCharger', data: station });
       }
       if (item.kind === 'road') openSeasonalRoad(item.id.slice('road:'.length));
+      if (item.kind === 'ferry') openFerry(item.id.slice('ferry:'.length));
       if (isMobile) setControlsPanelOpen(false);
     },
     [
@@ -1526,6 +1548,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
       airMonitors,
       riverGauges,
       openSeasonalRoad,
+      openFerry,
       openPoi,
     ],
   );
@@ -1680,6 +1703,8 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
               onToggleEvChargers={() => toggleLayer('evChargers')}
               showFireDanger={isLayerVisible('fireDanger')}
               onToggleFireDanger={() => toggleLayer('fireDanger')}
+              showFerries={isLayerVisible('ferries')}
+              onToggleFerries={() => toggleLayer('ferries')}
               showSeasonalRoads={isLayerVisible('seasonalRoads')}
               onToggleSeasonalRoads={() => toggleLayer('seasonalRoads')}
               onIncidentsLoaded={handleIncidentsLoaded}
@@ -1798,6 +1823,17 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
               visible={isLayerVisible('riverGauges')}
               onSelect={handleRiverGaugeClick}
               onLoaded={handleRiverGaugesLoaded}
+            />
+          )}
+
+          {/* Lake Champlain ferries (VTL-81) */}
+          {mapLoaded && (
+            <FerryLayer
+              map={map.current}
+              visible={isLayerVisible('ferries')}
+              isDark={isDark}
+              mapStyleVersion={mapStyleVersion}
+              onSelect={handleFerryClick}
             />
           )}
 

@@ -18,6 +18,7 @@ const KIND_LAYER: Partial<Record<SearchKind, LayerStyleKey>> = {
   river: 'riverGauges',
   evCharger: 'evChargers',
   fireDanger: 'fireDanger',
+  ferry: 'ferries',
 };
 
 /** The result's map layer: its own (incident type) or the one its kind implies */
@@ -45,6 +46,7 @@ const KIND_LABEL: Record<SearchKind, string> = {
   river: 'River gauge',
   evCharger: 'EV charger',
   fireDanger: 'Fire danger area',
+  ferry: 'Ferry',
   incident: 'Travel incident',
 };
 

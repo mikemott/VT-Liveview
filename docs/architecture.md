@@ -31,12 +31,12 @@ shared links. The backend deploys to Fly via `deploy-backend.yml` on pushes to
 | Map shell | `WeatherMap.tsx` (~1,800 lines) | Map init, theme/style swap, alert zone fills, layer toggles and filter chips, DetailPanel, "What's here?", URL state |
 | Layer registry | `config/layers.ts` | One label, icon and colour per layer, shared by chips, markers and search. `layerPalette.test.ts` enforces that the colours stay distinct and keep their contrast. |
 | Seasonal | `config/seasonalLayers.ts`, `hooks/useSeasonalLayers.ts`, `utils/roadWeather.ts` | Ski, creemee and road weather show by month |
-| Layers | `components/*Layer.tsx` | Travel (VT 511 incidents/closures/construction + USGS gauges), WeatherStations, TrafficFlow (TomTom raster), Camera, RoadWeather, AirQuality, River (NWPS gauges), EvCharger, FireDanger (FPR rating areas), SeasonalRoads, Ski, Creemee, Camping, CampingAreas, Beach, Stargazing. Rivers and fire danger show themselves while flooding / at High or worse (`autoShown` in `WeatherMap.tsx`) until the user toggles them |
+| Layers | `components/*Layer.tsx` | Travel (VT 511 incidents/closures/construction + USGS gauges), WeatherStations, TrafficFlow (TomTom raster), Camera, RoadWeather, AirQuality, River (NWPS gauges), EvCharger, FireDanger (FPR rating areas), Ferry (static, animated boats), SeasonalRoads, Ski, Creemee, Camping, CampingAreas, Beach, Stargazing. Rivers and fire danger show themselves while flooding / at High or worse (`autoShown` in `WeatherMap.tsx`) until the user toggles them |
 | Markers | `hooks/useMapMarkers.ts`, `utils/mapMarker.ts` | Shared DOM-marker lifecycle: markers and listeners are removed on hide, on data change and on unmount |
 | Details | `DetailPanel.tsx` + `detail-views/*Detail.tsx` | Every layer opens in the side panel. `LocationDetail` is "What's here?" (`utils/locationContext.ts`) |
 | Widgets | `RadarOverlay`, `CurrentWeather`, `AstronomyEvents`, `SearchBox`, `ShareMenu`, `ThemeToggle`, `MapUnavailable` (no WebGL) | |
 | Data | `services/*Api.ts`, `services/graphqlClient.ts` | Mostly GraphQL. VT 511 data comes as XML from the backend REST proxy and is parsed in `vt511Api.ts`. USGS gauges are fetched straight from the browser. |
-| Static data | `data/` | Seasonal roads, dark-sky sites, meteor showers, light pollution, VT outline and towns (the `scripts/build-*.mjs` scripts generate some of these) |
+| Static data | `data/` | Seasonal roads, ferries (VTL-81, re-check each spring), dark-sky sites, meteor showers, light pollution, VT outline and towns (the `scripts/build-*.mjs` scripts generate some of these) |
 | Utils | `utils/` | `sanitize.ts`, `mapStyles.ts` (Protomaps), `urlState.ts` / `sharePreview.ts`, `astronomy.ts`, `aqi.ts`, colour/icon maps |
 | Styles | `styles/design-system.css` (vintage tokens), `App.css` (older tokens), one `.css` per component | Two token systems coexist (FINDINGS H14) |
 

@@ -110,6 +110,16 @@ describe('parseUrlState', () => {
     expect(parseUrlState(hash).selection).toEqual({ type: 'fire', id: '3' });
   });
 
+  it('round-trips the ferries layer and a crossing (VTL-81)', () => {
+    const hash = buildUrlHash({
+      view: { zoom: 10, lat: 44.3, lng: -73.32 },
+      layers: new Set(['ferries']),
+      selection: { type: 'ferry', id: 'charlotte' },
+    });
+    expect(hash).toBe('#map=10/44.3/-73.32&layers=ferries&sel=ferry:charlotte');
+    expect(parseUrlState(hash).selection).toEqual({ type: 'ferry', id: 'charlotte' });
+  });
+
   it('round-trips the seasonal roads layer and a road selection', () => {
     const hash = buildUrlHash({
       view: { zoom: 11, lat: 44.56, lng: -72.79 },
