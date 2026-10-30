@@ -114,6 +114,21 @@
   height: 13px;
 }
 
+/* In a pill the icon sits beside the text ("⚡ 150 kW"): stacked, it overflowed
+   the 22px height */
+.map-marker--stacked.map-marker--pill .map-marker-body {
+  flex-direction: row;
+  gap: 3px;
+  padding: 0 6px 0 5px;
+  white-space: nowrap;
+}
+
+.map-marker--stacked.map-marker--pill .map-marker-body svg {
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+}
+
 /* Status fill: the layer color moves to an outer ring */
 .map-marker--status .map-marker-body {
   box-shadow:
