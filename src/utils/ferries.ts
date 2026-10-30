@@ -5,13 +5,13 @@
 import type { Ferry, SeasonDate } from '../data/ferries';
 import { vermontDateKey } from './seasonalRoads';
 
-export type FerryState = 'season' | 'ice' | 'check' | 'closed' | 'suspended';
+export type FerryState = 'season' | 'ice' | 'check' | 'closed';
 
 export interface FerryStatus {
   state: FerryState;
   /** Short, for markers and the panel banner */
   label: string;
-  tone: 'good' | 'warn' | 'bad' | 'neutral';
+  tone: 'good' | 'warn' | 'neutral';
 }
 
 const pad = (n: number): string => String(n).padStart(2, '0');
@@ -43,7 +43,6 @@ const vermontYear = (now: Date): number =>
   );
 
 export function getFerryStatus(ferry: Ferry, now: Date = new Date()): FerryStatus {
-  if (ferry.suspended) return { state: 'suspended', label: ferry.suspended, tone: 'bad' };
   const md = vermontDateKey(now);
   const month = Number(md.slice(0, 2));
   const year = vermontYear(now);

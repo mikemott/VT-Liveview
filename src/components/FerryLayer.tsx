@@ -27,7 +27,7 @@ interface FerryLayerProps {
 
 const ROUTES = 'ferry-routes';
 const ROUTE_LINE = 'ferry-routes-line';
-/** Off-season and suspended crossings */
+/** Off-season crossings */
 const MUTED = '#94a3b8';
 /** ~20 fps is plenty for a dot crossing a lake */
 const FRAME_MS = 50;

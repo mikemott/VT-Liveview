@@ -31,9 +31,6 @@ describe('FerryLayer (VTL-81)', () => {
     );
     grandIsle.click();
     expect(onSelect).toHaveBeenCalledWith(FERRIES[0], getFerryStatus(FERRIES[0]!, JULY));
-    // Burlington is suspended: dimmed
-    const burlington = landings()[FERRIES.findIndex((f) => f.id === 'burlington')]!.getElement();
-    expect(burlington.className).toContain('map-marker--dimmed');
   });
 
   it('sails a small boat icon only on crossings in season', () => {
@@ -43,8 +40,11 @@ describe('FerryLayer (VTL-81)', () => {
       <FerryLayer map={fake.asMap()} visible isDark={false} onSelect={vi.fn()} now={JANUARY} />,
     );
     expect(raf).toHaveBeenCalled();
-    // January: Grand Isle runs; Charlotte (ice), Fort Ti, the bike ferry, Island Runner and Burlington don't
+    // January: Grand Isle runs; Charlotte (ice), Fort Ti, the bike ferry and Island Runner don't
     expect(boats()).toHaveLength(1);
+    // Closed for the season: dimmed
+    const bikeFerry = landings()[FERRIES.findIndex((f) => f.id === 'bike-ferry')]!.getElement();
+    expect(bikeFerry.className).toContain('map-marker--dimmed');
     const boat = boats()[0]!;
     expect(boat.getLngLat()).toEqual(expect.objectContaining({ lng: FERRIES[0]!.route[0]![0] }));
     const el = boat.getElement();

@@ -34,12 +34,9 @@ describe('ferry status (VTL-81)', () => {
     expect(getFerryStatus(fortTi, on('07-04')).state).toBe('season');
     expect(getFerryStatus(fortTi, on('10-28')).state).toBe('check');
     expect(getFerryStatus(fortTi, on('11-05')).state).toBe('closed');
-  });
-
-  it('shows Burlington as suspended', () => {
-    const s = getFerryStatus(ferry('burlington'), on('07-04'));
-    expect(s).toEqual({ state: 'suspended', label: 'Not running since 2019', tone: 'bad' });
-    expect(isRunning(s)).toBe(false);
+    // Boats cross until the end-of-season window closes
+    expect(isRunning(getFerryStatus(fortTi, on('10-28')))).toBe(true);
+    expect(isRunning(getFerryStatus(fortTi, on('11-05')))).toBe(false);
   });
 
   it('uses the Vermont date', () => {
