@@ -23,7 +23,6 @@ import { isFireDangerStale } from './utils/fireDanger';
 import type { EvCharger } from './services/evChargerApi';
 import type { RiverGauge } from './services/riverApi';
 import { floodSeverity, worstCategory } from './utils/rivers';
-import { isRoadWeatherSeason } from './utils/roadWeather';
 import SeasonalRoadsLayer from './components/SeasonalRoadsLayer';
 import WhatsHerePin from './components/WhatsHerePin';
 import { buildLocationContext } from './utils/locationContext';
@@ -234,14 +233,13 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
       campingSites: false, // Off by default - user can enable manually
       beachSites: false, // Off by default - user can enable manually
       trafficCameras: false, // Off by default (VTL-56)
-      roadWeather: isRoadWeatherSeason(), // On November–March (VTL-61)
+      roadWeather: false, // Off by default: stations, traffic and accidents only
       airQuality: false, // Off by default (VTL-76)
       riverGauges: null, // Auto: on while any gauge is flooding or forecast to (VTL-81)
       evChargers: false, // Off by default (VTL-81)
       fireDanger: null, // Auto: on while any area is High or worse (VTL-81)
       ferries: false, // Off by default (VTL-81)
-      // On while any notch/gap road is closed or about to close (VTL-55)
-      seasonalRoads: [...getSeasonalStatuses([]).values()].some((s) => s.status !== 'open'),
+      seasonalRoads: false, // Off by default: stations, traffic and accidents only
     };
     const fromUrl = initialUrlState.layers;
     if (!fromUrl) return defaults;

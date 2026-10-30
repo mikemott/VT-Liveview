@@ -103,8 +103,9 @@ describe('shouldShowIncident', () => {
       expect(shouldShowIncident({ type: 'CLOSURE' }, lowZoom)).toBe(false);
     });
 
-    it('should hide ACCIDENT (MAJOR) incidents', () => {
-      expect(shouldShowIncident({ type: 'ACCIDENT' }, lowZoom)).toBe(false);
+    it('should show ACCIDENT incidents at every zoom, like weather stations', () => {
+      expect(shouldShowIncident({ type: 'ACCIDENT' }, lowZoom)).toBe(true);
+      expect(shouldShowIncident({ type: 'ACCIDENT' }, 6.5)).toBe(true);
     });
 
     it('should hide FLOODING (MAJOR) incidents', () => {

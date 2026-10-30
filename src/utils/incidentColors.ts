@@ -80,6 +80,11 @@ export function shouldShowIncident(incident: Pick<Incident, 'type'>, zoom: numbe
     return zoom >= 9;
   }
 
+  // Accidents show at every zoom, like weather stations
+  if (incident.type === 'ACCIDENT') {
+    return true;
+  }
+
   const severity = getIncidentSeverity(incident);
 
   if (zoom < 8) {

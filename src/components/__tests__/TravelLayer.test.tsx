@@ -213,11 +213,18 @@ describe('TravelLayer', () => {
     expect(screen.getByText('Paving')).toBeInTheDocument();
   });
 
-  it('hides lower-severity incidents when zoomed out and shows a zoom hint', async () => {
+  it('keeps accidents but hides lower-severity incidents when zoomed out', async () => {
     render(<TravelLayer {...props} currentZoom={7} />);
-    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
-    expect(await screen.findByText('Zoom in to see more incidents')).toBeInTheDocument();
-    expect(liveMarkers()).toHaveLength(0);
+    await waitFor(() => expect(liveMarkers()).toHaveLength(2));
+    expect(screen.getByText('Zoom in to see more incidents')).toBeInTheDocument();
+    // Construction switched on: still hidden at this zoom
+    fireEvent.click(screen.getByRole('button', { name: /Construction/ }));
+    expect(screen.getByRole('button', { name: /Construction/ })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(liveMarkers()).toHaveLength(2);
+    expect(screen.queryByText('Paving')).not.toBeInTheDocument();
   });
 
   it('highlights a route incident and toggles the highlight off again', async () => {
