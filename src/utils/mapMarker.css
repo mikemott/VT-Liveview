@@ -137,3 +137,22 @@
 .map-marker--dimmed:focus-visible .map-marker-body {
   opacity: 0.9;
 }
+
+/* Ferry boats crossing the lake (VTL-81): a small, non-interactive copy of
+   the ferry marker */
+.map-marker.ferry-boat {
+  cursor: default;
+  pointer-events: none;
+}
+
+.ferry-boat .map-marker-body {
+  width: 22px;
+  height: 22px;
+  border-width: 1.5px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.ferry-boat .map-marker-body svg {
+  width: 12px;
+  height: 12px;
+}

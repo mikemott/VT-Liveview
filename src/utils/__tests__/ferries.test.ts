@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { FERRIES, type Ferry } from '../../data/ferries';
-import { getFerryStatus, isRunning, seasonDay } from '../ferries';
+import {
+  boatPosition,
+  DWELL_MS,
+  getFerryStatus,
+  isRunning,
+  pointAlong,
+  seasonDay,
+} from '../ferries';
 
 const ferry = (id: string): Ferry => FERRIES.find((f) => f.id === id)!;
 // Noon in Vermont
@@ -27,7 +34,7 @@ describe('ferry status (VTL-81)', () => {
     expect(getFerryStatus(fortTi, on('07-04')).state).toBe('season');
     expect(getFerryStatus(fortTi, on('10-28')).state).toBe('check');
     expect(getFerryStatus(fortTi, on('11-05')).state).toBe('closed');
-    // Shown as running until the end-of-season window closes
+    // Boats cross until the end-of-season window closes
     expect(isRunning(getFerryStatus(fortTi, on('10-28')))).toBe(true);
     expect(isRunning(getFerryStatus(fortTi, on('11-05')))).toBe(false);
   });
@@ -63,5 +70,31 @@ describe('ferry status (VTL-81)', () => {
       // Lake Champlain's NY shore is west: the first point is the eastern end
       if (f.id !== 'bike-ferry') expect(f.route[0]![0], f.id).toBeGreaterThan(f.route.at(-1)![0]);
     }
+  });
+});
+
+describe('boat animation', () => {
+  const line: [number, number][] = [
+    [0, 0],
+    [0.01, 0],
+    [0.01, 0.01],
+  ];
+
+  it('finds points along a line by distance', () => {
+    expect(pointAlong(line, 0)).toEqual([0, 0]);
+    expect(pointAlong(line, 1)).toEqual([0.01, 0.01]);
+    const [x, y] = pointAlong(line, 0.25);
+    expect(x).toBeCloseTo(0.005, 3);
+    expect(y).toBe(0);
+  });
+
+  it('crosses, waits, crosses back', () => {
+    const f = { ...ferry('charlotte'), crossingMinutes: 10, route: line };
+    const cross = 10 * 500;
+    expect(boatPosition(f, 0)).toEqual([0, 0]);
+    expect(boatPosition(f, cross + 10)).toEqual([0.01, 0.01]);
+    expect(boatPosition(f, cross + DWELL_MS + cross + 10)).toEqual([0, 0]);
+    // One full loop later it starts over
+    expect(boatPosition(f, 2 * (cross + DWELL_MS))).toEqual([0, 0]);
   });
 });

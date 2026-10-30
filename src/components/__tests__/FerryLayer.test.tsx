@@ -13,7 +13,9 @@ const JANUARY = new Date('2026-01-15T16:00:00Z');
 
 beforeEach(() => resetMaplibreMock());
 
-const landings = liveMarkers;
+const landings = () =>
+  liveMarkers().filter((m) => !m.getElement().classList.contains('ferry-boat'));
+const boats = () => liveMarkers().filter((m) => m.getElement().classList.contains('ferry-boat'));
 afterEach(() => vi.restoreAllMocks());
 
 describe('FerryLayer (VTL-81)', () => {
@@ -31,21 +33,37 @@ describe('FerryLayer (VTL-81)', () => {
     expect(onSelect).toHaveBeenCalledWith(FERRIES[0], getFerryStatus(FERRIES[0]!, JULY));
   });
 
-  it('dims crossings that are closed for the season', () => {
+  it('sails a small boat icon only on crossings in season', () => {
     const fake = new FakeMap();
+    const raf = vi.spyOn(window, 'requestAnimationFrame').mockReturnValue(1);
     render(
       <FerryLayer map={fake.asMap()} visible isDark={false} onSelect={vi.fn()} now={JANUARY} />,
     );
-    expect(landings()).toHaveLength(FERRIES.length);
-    const marker = (id: string) => landings()[FERRIES.findIndex((f) => f.id === id)]!.getElement();
-    expect(marker('bike-ferry').className).toContain('map-marker--dimmed');
-    // Ice season isn't closed: Charlotte often runs
-    expect(marker('charlotte').className).not.toContain('map-marker--dimmed');
-    expect(marker('grand-isle').className).not.toContain('map-marker--dimmed');
+    expect(raf).toHaveBeenCalled();
+    // January: Grand Isle runs; Charlotte (ice), Fort Ti, the bike ferry and Island Runner don't
+    expect(boats()).toHaveLength(1);
+    // Closed for the season: dimmed
+    const bikeFerry = landings()[FERRIES.findIndex((f) => f.id === 'bike-ferry')]!.getElement();
+    expect(bikeFerry.className).toContain('map-marker--dimmed');
+    const boat = boats()[0]!;
+    expect(boat.getLngLat()).toEqual(expect.objectContaining({ lng: FERRIES[0]!.route[0]![0] }));
+    const el = boat.getElement();
+    expect(el.getAttribute('aria-hidden')).toBe('true');
+    expect(el.hasAttribute('tabindex')).toBe(false);
+    expect(el.querySelector('svg')).not.toBeNull();
+  });
+
+  it('leaves the boats out for people who prefer reduced motion', () => {
+    vi.spyOn(window, 'matchMedia').mockReturnValue({ matches: true } as MediaQueryList);
+    const fake = new FakeMap();
+    render(<FerryLayer map={fake.asMap()} visible isDark={false} onSelect={vi.fn()} now={JULY} />);
+    expect(fake.layers.has('ferry-routes-line')).toBe(true);
+    expect(boats()).toHaveLength(0);
   });
 
   it('cleans up when hidden', () => {
     const fake = new FakeMap();
+    const cancel = vi.spyOn(window, 'cancelAnimationFrame');
     const { rerender } = render(
       <FerryLayer map={fake.asMap()} visible isDark={false} onSelect={vi.fn()} now={JULY} />,
     );
@@ -61,6 +79,7 @@ describe('FerryLayer (VTL-81)', () => {
     expect(fake.layers.size).toBe(0);
     expect(fake.sources.size).toBe(0);
     expect(liveMarkers()).toHaveLength(0);
+    expect(cancel).toHaveBeenCalled();
   });
 });
 
