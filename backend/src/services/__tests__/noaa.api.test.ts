@@ -12,6 +12,7 @@ const NOAA = 'https://api.weather.gov';
 const POINTS = `${NOAA}/points/:coords`;
 const STATIONS = `${NOAA}/gridpoints/BTV/89,56/stations`;
 const FORECAST = `${NOAA}/gridpoints/BTV/89,56/forecast`;
+const HOURLY = `${NOAA}/gridpoints/BTV/89,56/forecast/hourly`;
 const OBS = `${NOAA}/stations/:id/observations/latest`;
 const ALERTS = `${NOAA}/alerts/active`;
 const ZONE = `${NOAA}/zones/forecast/:zoneId`;
@@ -240,6 +241,35 @@ describe('getForecast', () => {
     const { getForecast } = await loadNoaa();
 
     await expect(getForecast(44.4759, -73.2121)).rejects.toThrow();
+  });
+
+  it("maps hourly periods from the grid point's hourly URL", async () => {
+    useGridHandlers();
+    server.use(http.get(HOURLY, () => HttpResponse.json(loadJson('noaa/forecast-hourly.json'))));
+    const { getHourlyForecast } = await loadNoaa();
+
+    const hours = await getHourlyForecast(44.4759, -73.2121);
+
+    expect(hours).toHaveLength(24);
+    expect(hours[0]).toMatchObject({
+      name: '',
+      temperature: 18,
+      startTime: '2026-01-15T09:00:00-05:00',
+      endTime: '2026-01-15T10:00:00-05:00',
+      isDaytime: true,
+      precipChance: 40,
+      shortForecast: 'Chance Light Snow',
+    });
+  });
+
+  it('throws on a non-OK hourly response', async () => {
+    useGridHandlers();
+    server.use(http.get(HOURLY, () => new HttpResponse(null, { status: 503 })));
+    const { getHourlyForecast } = await loadNoaa();
+
+    await expect(getHourlyForecast(44.4759, -73.2121)).rejects.toThrow(
+      'Failed to get hourly forecast: 503',
+    );
   });
 
   it('caches grid points per rounded coordinate for 1 hour', async () => {

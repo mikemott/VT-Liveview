@@ -38,6 +38,18 @@ export interface ForecastPeriodData {
   windDirection: string;
 }
 
+/** One hour of the NOAA hourly forecast */
+export interface HourlyPeriodData {
+  startTime: string;
+  endTime: string;
+  isDaytime: boolean;
+  temperature: number;
+  shortForecast: string;
+  icon: string | null;
+  /** Chance of precipitation, 0–100 */
+  precipChance: number | null;
+}
+
 /** Alert geometry for map display */
 export interface AlertGeometry {
   type: 'Polygon' | 'MultiPolygon';
@@ -106,6 +118,10 @@ interface ForecastResponse {
   forecast: ForecastPeriodData[];
 }
 
+interface HourlyForecastResponse {
+  hourlyForecast: HourlyPeriodData[];
+}
+
 interface AlertsResponse {
   alerts: AlertData[];
 }
@@ -162,6 +178,20 @@ export const FORECAST_QUERY = `
       icon
       windSpeed
       windDirection
+    }
+  }
+`;
+
+export const HOURLY_FORECAST_QUERY = `
+  query HourlyForecast($lat: Float!, $lon: Float!) {
+    hourlyForecast(lat: $lat, lon: $lon) {
+      startTime
+      endTime
+      isDaytime
+      temperature
+      shortForecast
+      icon
+      precipChance
     }
   }
 `;
@@ -264,6 +294,20 @@ export async function fetchForecast(lat: number, lon: number): Promise<ForecastP
     lon,
   } satisfies WeatherCoordinates);
   return data.forecast;
+}
+
+/**
+ * Fetch the hourly forecast for a location (about a week, starting this hour)
+ * @param lat - Latitude
+ * @param lon - Longitude
+ * @returns Array of one-hour periods
+ */
+export async function fetchHourlyForecast(lat: number, lon: number): Promise<HourlyPeriodData[]> {
+  const data = await graphqlClient.request<HourlyForecastResponse>(HOURLY_FORECAST_QUERY, {
+    lat,
+    lon,
+  } satisfies WeatherCoordinates);
+  return data.hourlyForecast;
 }
 
 /**

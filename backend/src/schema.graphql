@@ -1,6 +1,8 @@
 type Query {
   currentWeather(lat: Float!, lon: Float!): WeatherConditions
   forecast(lat: Float!, lon: Float!): [ForecastPeriod!]!
+  "About a week of one-hour periods (name and detailedForecast are empty)"
+  hourlyForecast(lat: Float!, lon: Float!): [ForecastPeriod!]!
   alerts(state: String!): [Alert!]!
   mergedAlerts(state: String!): [MergedAlert!]!
   radarInfo: RadarInfo!

@@ -62,7 +62,7 @@ describe('E2E upstream handlers', () => {
     expect((result as unknown[]).length).toBeGreaterThan(0);
   });
 
-  it('currentWeather and forecast return data for Burlington', async () => {
+  it('currentWeather, forecast and hourlyForecast return data for Burlington', async () => {
     const current = await gql(
       'query($lat: Float!, $lon: Float!) { currentWeather(lat: $lat, lon: $lon) { temperature } }',
       BURLINGTON,
@@ -74,6 +74,12 @@ describe('E2E upstream handlers', () => {
       BURLINGTON,
     );
     expect((forecast as unknown[]).length).toBeGreaterThan(0);
+
+    const hourly = await gql(
+      'query($lat: Float!, $lon: Float!) { hourlyForecast(lat: $lat, lon: $lon) { startTime temperature } }',
+      BURLINGTON,
+    );
+    expect((hourly as unknown[]).length).toBe(24);
   });
 
   it('radarInfo returns a tile pattern', async () => {
