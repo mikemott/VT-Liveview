@@ -14,6 +14,7 @@ import type {
   NOAAStationsResponse,
   NOAAObservationResponse,
   NOAAForecastResponse,
+  NOAAForecastPeriod,
   NOAAAlertsResponse,
   MergedAlert,
   ZoneBoundary,
@@ -180,22 +181,8 @@ export async function getCurrentWeather(lat: number, lon: number): Promise<Weath
   throw new Error('No valid observations available from nearby stations');
 }
 
-/**
- * Get weather forecast for coordinates.
- */
-export async function getForecast(lat: number, lon: number): Promise<ForecastPeriod[]> {
-  const gridPoint = await getGridPoint(lat, lon);
-
-  const forecastResponse = await fetch(gridPoint.forecast, getFetchOptions());
-
-  if (!forecastResponse.ok) {
-    throw new Error(`Failed to get forecast: ${forecastResponse.status}`);
-  }
-
-  const forecastData = (await forecastResponse.json()) as NOAAForecastResponse;
-  const periods = forecastData.properties.periods;
-
-  return periods.map((period) => ({
+function toForecastPeriod(period: NOAAForecastPeriod): ForecastPeriod {
+  return {
     name: period.name,
     temperature: period.temperature,
     temperatureUnit: period.temperatureUnit,
@@ -208,7 +195,35 @@ export async function getForecast(lat: number, lon: number): Promise<ForecastPer
     precipChance: period.probabilityOfPrecipitation?.value ?? null,
     windSpeed: period.windSpeed,
     windDirection: period.windDirection,
-  }));
+  };
+}
+
+async function fetchPeriods(url: string, what: string): Promise<ForecastPeriod[]> {
+  const response = await fetch(url, getFetchOptions());
+
+  if (!response.ok) {
+    throw new Error(`Failed to get ${what}: ${response.status}`);
+  }
+
+  const data = (await response.json()) as NOAAForecastResponse;
+  return data.properties.periods.map(toForecastPeriod);
+}
+
+/**
+ * Get weather forecast for coordinates.
+ */
+export async function getForecast(lat: number, lon: number): Promise<ForecastPeriod[]> {
+  const gridPoint = await getGridPoint(lat, lon);
+  return fetchPeriods(gridPoint.forecast, 'forecast');
+}
+
+/**
+ * Get the hourly forecast for coordinates: about a week of one-hour periods,
+ * each with an empty name and detailedForecast.
+ */
+export async function getHourlyForecast(lat: number, lon: number): Promise<ForecastPeriod[]> {
+  const gridPoint = await getGridPoint(lat, lon);
+  return fetchPeriods(gridPoint.forecastHourly, 'hourly forecast');
 }
 
 /**

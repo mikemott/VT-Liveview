@@ -23,6 +23,7 @@ import type { HistoricalWeatherData } from '../../services/noaaCDO.js';
 const m = vi.hoisted(() => ({
   getCurrentWeather: vi.fn(),
   getForecast: vi.fn(),
+  getHourlyForecast: vi.fn(),
   getAlerts: vi.fn(),
   getMergedAlerts: vi.fn(),
   getObservationStations: vi.fn(),
@@ -43,6 +44,7 @@ const m = vi.hoisted(() => ({
 vi.mock('../../services/noaa.js', () => ({
   getCurrentWeather: m.getCurrentWeather,
   getForecast: m.getForecast,
+  getHourlyForecast: m.getHourlyForecast,
   getAlerts: m.getAlerts,
   getMergedAlerts: m.getMergedAlerts,
   getObservationStations: m.getObservationStations,
@@ -331,6 +333,19 @@ describe('happy paths', () => {
     expect(m.getForecast).toHaveBeenCalledWith(44, -72.5);
   });
 
+  it('hourlyForecast', async () => {
+    const hour = { ...forecastPeriod, name: '', detailedForecast: '' };
+    m.getHourlyForecast.mockResolvedValue([hour]);
+    const { body } = await gql(
+      `query($lat: Float!, $lon: Float!) { hourlyForecast(lat: $lat, lon: $lon) {
+          name temperature temperatureUnit shortForecast detailedForecast startTime endTime
+          isDaytime icon precipChance windSpeed windDirection } }`,
+      { lat: 44, lon: -72.5 },
+    );
+    expect(body).toEqual({ data: { hourlyForecast: [hour] } });
+    expect(m.getHourlyForecast).toHaveBeenCalledWith(44, -72.5);
+  });
+
   it('alerts', async () => {
     m.getAlerts.mockResolvedValue([alert]);
     const { body } = await gql(
@@ -568,6 +583,12 @@ const errorCases: ErrorCase[] = [
     field: 'forecast',
     query: '{ forecast(lat: 1, lon: 2) { name } }',
     fn: m.getForecast,
+    nullable: false,
+  },
+  {
+    field: 'hourlyForecast',
+    query: '{ hourlyForecast(lat: 1, lon: 2) { startTime } }',
+    fn: m.getHourlyForecast,
     nullable: false,
   },
   { field: 'alerts', query: '{ alerts(state: "VT") { id } }', fn: m.getAlerts, nullable: false },

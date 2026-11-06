@@ -8,17 +8,21 @@ import CurrentWeather from '../CurrentWeather';
 import {
   fetchCurrentWeather,
   fetchForecast,
+  fetchHourlyForecast,
   type CurrentWeatherData,
   type ForecastPeriodData,
+  type HourlyPeriodData,
 } from '../../services/graphqlClient';
 
 vi.mock('../../services/graphqlClient', () => ({
   fetchCurrentWeather: vi.fn(),
   fetchForecast: vi.fn(),
+  fetchHourlyForecast: vi.fn(),
 }));
 
 const weatherMock = vi.mocked(fetchCurrentWeather);
 const forecastMock = vi.mocked(fetchForecast);
+const hourlyMock = vi.mocked(fetchHourlyForecast);
 
 const WEATHER: CurrentWeatherData = {
   temperature: 51,
@@ -32,15 +36,17 @@ const WEATHER: CurrentWeatherData = {
   icon: null,
 };
 
-function period(name: string, temperature: number): ForecastPeriodData {
+/** Twelve-hour periods back to back from 2 PM Oct 16 in Vermont */
+function period(name: string, temperature: number, index = 0): ForecastPeriodData {
+  const start = Date.parse('2026-10-16T18:00:00Z') + index * 12 * 3_600_000;
   return {
     name,
     temperature,
     temperatureUnit: 'F',
     shortForecast: 'Rain',
     detailedForecast: 'Rain likely',
-    startTime: '2026-10-16T18:00:00Z',
-    endTime: '2026-10-17T06:00:00Z',
+    startTime: new Date(start).toISOString(),
+    endTime: new Date(start + 12 * 3_600_000).toISOString(),
     isDaytime: false,
     icon: 'https://api.weather.gov/icons/land/night/rain?size=medium',
     windSpeed: '5 mph',
@@ -58,7 +64,7 @@ describe('CurrentWeather', () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {});
     weatherMock.mockResolvedValue(WEATHER);
     forecastMock.mockResolvedValue(
-      Array.from({ length: 8 }, (_, i) => period(`Period ${i + 1}`, 40 + i + 0.4)),
+      Array.from({ length: 8 }, (_, i) => period(`Period ${i + 1}`, 40 + i + 0.4, i)),
     );
   });
 
@@ -94,6 +100,67 @@ describe('CurrentWeather', () => {
     expect(screen.getByText('40°')).toBeInTheDocument();
     expect(screen.getByText('Montpelier Airport')).toBeInTheDocument();
     expect(forecastMock).toHaveBeenCalledWith(44.5, -73.2);
+  });
+
+  describe('hour by hour', () => {
+    // 30 hours from the start of Period 1 (2 PM): 12 in Period 1, the rest after it
+    const HOURS: HourlyPeriodData[] = Array.from({ length: 30 }, (_, i) => {
+      const start = Date.parse('2026-10-16T18:00:00Z') + i * 3_600_000;
+      return {
+        startTime: new Date(start).toISOString(),
+        endTime: new Date(start + 3_600_000).toISOString(),
+        isDaytime: true,
+        temperature: 30 + i + 0.4,
+        shortForecast: 'Rain',
+        icon: null,
+        precipChance: i === 0 ? 70 : 5,
+      };
+    });
+
+    it("opens a period's hours from its card and goes back", async () => {
+      hourlyMock.mockResolvedValue(HOURS);
+      renderWithClient(<CurrentWeather lat={44.5} lon={-73.2} />);
+      fireEvent.click(await screen.findByText('Light Rain'));
+      expect(hourlyMock).not.toHaveBeenCalled();
+
+      fireEvent.click(screen.getByRole('button', { name: /^Period 1: 40°, Rain/ }));
+      expect(await screen.findByText('Period 1, hour by hour')).toBeInTheDocument();
+      expect(hourlyMock).toHaveBeenCalledWith(44.5, -73.2);
+      const hours = await screen.findAllByRole('listitem');
+      expect(hours).toHaveLength(12);
+      expect(hours[0]).toHaveTextContent('2 PM30°70%');
+      expect(hours[11]).toHaveTextContent('1 AM41°');
+      // A small chance gets no number
+      expect(hours[11]).not.toHaveTextContent('%');
+      expect(screen.queryByText('Next 3 Days')).toBeNull();
+
+      // Still expanded: clicks inside the hourly view don't collapse the card
+      fireEvent.click(hours[0]!);
+      fireEvent.click(screen.getByRole('button', { name: 'Back to the 3-day forecast' }));
+      expect(screen.getByText('Next 3 Days')).toBeInTheDocument();
+      expect(document.querySelector('.current-weather.expanded')).not.toBeNull();
+    });
+
+    it('starts from the day cards again after collapsing', async () => {
+      hourlyMock.mockResolvedValue(HOURS);
+      renderWithClient(<CurrentWeather />);
+      fireEvent.click(await screen.findByText('Light Rain'));
+      fireEvent.click(screen.getByRole('button', { name: /^Period 2:/ }));
+      expect(await screen.findByText('Period 2, hour by hour')).toBeInTheDocument();
+      fireEvent.click(screen.getByText('Light Rain'));
+      fireEvent.click(screen.getByText('Light Rain'));
+      expect(screen.getByText('Next 3 Days')).toBeInTheDocument();
+    });
+
+    it('says so when the hourly forecast is unavailable', async () => {
+      hourlyMock.mockRejectedValue(new Error('backend down'));
+      renderWithClient(<CurrentWeather />);
+      fireEvent.click(await screen.findByText('Light Rain'));
+      fireEvent.click(screen.getByRole('button', { name: /^Period 1:/ }));
+      expect(
+        await screen.findByText('Hourly forecast unavailable right now', {}, { timeout: 4000 }),
+      ).toBeInTheDocument();
+    });
   });
 
   it('omits wind and humidity when they are missing', async () => {

@@ -3,10 +3,12 @@ import { useQuery } from '@tanstack/react-query';
 import {
   fetchCurrentWeather,
   fetchForecast,
+  fetchHourlyForecast,
   type CurrentWeatherData,
   type ForecastPeriodData,
+  type HourlyPeriodData,
 } from '../services/graphqlClient';
-import { Wind, Droplets, ChevronDown } from 'lucide-react';
+import { Wind, Droplets, ChevronDown, ChevronLeft } from 'lucide-react';
 import WeatherIcon from './WeatherIcon';
 import { getWeatherIconName, getWeatherIconFromNOAAUrl } from '../utils/weatherIconMapping';
 import { isCurrentlyDaytime } from '../utils/time';
@@ -14,6 +16,7 @@ import { useAirQuality } from '../hooks/useAirQuality';
 import { aqiShortName, aqiToneVars, pollutantLabel } from '../utils/aqi';
 import { useClimateToday } from '../hooks/useClimateToday';
 import { compareWithNormal } from '../utils/climate';
+import { hourLabel, hoursInPeriod } from '../utils/hourlyForecast';
 import '../styles/aqi.css';
 import './CurrentWeather.css';
 
@@ -36,6 +39,8 @@ export default function CurrentWeather({
 }: CurrentWeatherProps) {
   // Default to collapsed for better map visibility
   const [isExpanded, setIsExpanded] = useState(false);
+  // The forecast card showing its hours, by start time: the periods shift as the forecast refreshes
+  const [hourlyStart, setHourlyStart] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery<CurrentWeatherData | null>({
     queryKey: ['currentWeather', lat, lon],
@@ -53,6 +58,15 @@ export default function CurrentWeather({
     refetchInterval: 15 * 60 * 1000,
     retry: 2,
     placeholderData: (previousData) => previousData, // Keep previous data during refetch
+  });
+
+  // Fetched the first time a forecast card is opened
+  const hourlyQuery = useQuery<HourlyPeriodData[]>({
+    queryKey: ['forecast', 'hourly', lat, lon],
+    queryFn: () => fetchHourlyForecast(lat, lon),
+    enabled: isExpanded && hourlyStart !== null,
+    staleTime: 15 * 60 * 1000,
+    retry: 1,
   });
 
   // Air quality is a bonus line: if it fails or isn't configured, it just doesn't show
@@ -88,6 +102,8 @@ export default function CurrentWeather({
   // 3-day forecast = 6 periods (day/night). Omitted entirely if unavailable.
   const forecast = forecastData?.slice(0, 6) ?? [];
   const vsNormal = compareWithNormal(forecast[0], climate);
+  const hourlyPeriod = forecast.find((p) => p.startTime === hourlyStart) ?? null;
+  const hours = hourlyPeriod ? hoursInPeriod(hourlyQuery.data ?? [], hourlyPeriod) : [];
   const hasNormals =
     climate &&
     (climate.normalHighF !== null ||
@@ -113,7 +129,10 @@ export default function CurrentWeather({
     // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
     <div
       className={`current-weather ${isDark ? 'dark' : ''} ${isExpanded ? 'expanded' : 'collapsed'} ${isMobile ? 'mobile' : ''}`}
-      onClick={() => setIsExpanded(!isExpanded)}
+      onClick={() => {
+        if (isExpanded) setHourlyStart(null);
+        setIsExpanded(!isExpanded);
+      }}
     >
       <div className="weather-main">
         <div className="weather-icon">
@@ -184,19 +203,74 @@ export default function CurrentWeather({
 
       {isExpanded && (
         <>
-          {/* 3-Day Forecast */}
-          {forecast.length > 0 && (
+          {/* One period's hours, opened from its card */}
+          {hourlyPeriod && (
+            // Clicks here mustn't collapse the card
+            // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
+            <div className="forecast-section" onClick={(e) => e.stopPropagation()}>
+              <div className="forecast-hourly-header">
+                <button
+                  type="button"
+                  className="forecast-back"
+                  onClick={() => setHourlyStart(null)}
+                  aria-label="Back to the 3-day forecast"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <div className="forecast-title">{hourlyPeriod.name}, hour by hour</div>
+              </div>
+              {hourlyQuery.isPending ? (
+                <p className="forecast-note">Loading the hourly forecast…</p>
+              ) : hours.length === 0 ? (
+                <p className="forecast-note">Hourly forecast unavailable right now</p>
+              ) : (
+                <ol className="forecast-hours">
+                  {hours.map((hour) => (
+                    <li key={hour.startTime} className="forecast-card" title={hour.shortForecast}>
+                      <div className="forecast-period-label">{hourLabel(hour.startTime)}</div>
+                      <div className="forecast-icon">
+                        <WeatherIcon name={getWeatherIconFromNOAAUrl(hour.icon)} size={28} />
+                      </div>
+                      <div className="forecast-temperature">{Math.round(hour.temperature)}°</div>
+                      {/* NOAA rounds small chances to 0–5%: not worth a number */}
+                      {hour.precipChance !== null && hour.precipChance >= 10 && (
+                        <div
+                          className="forecast-precip"
+                          aria-label={`${hour.precipChance}% chance of precipitation`}
+                        >
+                          <Droplets size={10} aria-hidden />
+                          {hour.precipChance}%
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </div>
+          )}
+
+          {/* 3-Day Forecast: each card opens its hours */}
+          {!hourlyPeriod && forecast.length > 0 && (
             <div className="forecast-section">
               <div className="forecast-title">Next 3 Days</div>
               <div className="forecast-cards">
-                {forecast.map((period, index) => (
-                  <div key={index} className="forecast-card">
-                    <div className="forecast-period-label">{period.name}</div>
-                    <div className="forecast-icon">
+                {forecast.map((period) => (
+                  <button
+                    type="button"
+                    key={period.startTime}
+                    className="forecast-card"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setHourlyStart(period.startTime);
+                    }}
+                    aria-label={`${period.name}: ${Math.round(period.temperature)}°, ${period.shortForecast}. Show hour by hour`}
+                  >
+                    <span className="forecast-period-label">{period.name}</span>
+                    <span className="forecast-icon">
                       <WeatherIcon name={getWeatherIconFromNOAAUrl(period.icon)} size={48} />
-                    </div>
-                    <div className="forecast-temperature">{Math.round(period.temperature)}°</div>
-                  </div>
+                    </span>
+                    <span className="forecast-temperature">{Math.round(period.temperature)}°</span>
+                  </button>
                 ))}
               </div>
             </div>

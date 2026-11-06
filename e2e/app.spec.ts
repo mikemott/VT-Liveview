@@ -30,6 +30,24 @@ test.describe('app shell', () => {
   });
 });
 
+test.describe('forecast', () => {
+  test('a day card opens that day hour by hour', async ({ page }) => {
+    await openApp(page);
+    await expect(page.locator('.current-weather.loading')).toHaveCount(0, { timeout: 15_000 });
+    await page.locator('.current-weather .temp-value').click();
+
+    // The hourly fixture covers the daily fixture's "Today", 9 AM to 6 PM
+    await page.getByRole('button', { name: /^Today: 25°, Snow Likely/ }).click();
+    await expect(page.getByText('Today, hour by hour')).toBeVisible();
+    const hours = page.locator('.forecast-hours li');
+    await expect(hours).toHaveCount(9);
+    await expect(hours.first()).toContainText('9 AM');
+
+    await page.getByRole('button', { name: 'Back to the 3-day forecast' }).click();
+    await expect(page.getByText('Next 3 Days')).toBeVisible();
+  });
+});
+
 test.describe('alerts', () => {
   // The alerts popup sits on the map, on phones too (VTL-85)
   test('lists merged NOAA alerts and supports keyboard activation', async ({ page }) => {

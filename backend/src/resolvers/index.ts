@@ -6,6 +6,7 @@
 import {
   getCurrentWeather,
   getForecast,
+  getHourlyForecast,
   getAlerts,
   getMergedAlerts,
   getObservationStations,
@@ -69,6 +70,13 @@ export const resolvers = {
 
     forecast: async (_parent: unknown, { lat, lon }: ForecastArgs): Promise<ForecastPeriod[]> => {
       return await getForecast(lat, lon);
+    },
+
+    hourlyForecast: async (
+      _parent: unknown,
+      { lat, lon }: ForecastArgs,
+    ): Promise<ForecastPeriod[]> => {
+      return await getHourlyForecast(lat, lon);
     },
 
     alerts: async (_parent: unknown, { state }: AlertsArgs): Promise<Alert[]> => {

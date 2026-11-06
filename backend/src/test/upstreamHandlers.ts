@@ -41,6 +41,9 @@ export const upstreamHandlers = [
   http.get(`${NOAA}/gridpoints/:office/:xy/forecast`, () =>
     HttpResponse.json(loadJson('noaa/forecast.json')),
   ),
+  http.get(`${NOAA}/gridpoints/:office/:xy/forecast/hourly`, () =>
+    HttpResponse.json(loadJson('noaa/forecast-hourly.json')),
+  ),
   http.get(`${NOAA}/stations/:id/observations/latest`, () =>
     HttpResponse.json(loadJson('noaa/observation-latest.json')),
   ),

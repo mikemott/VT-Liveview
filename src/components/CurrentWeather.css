@@ -203,7 +203,8 @@
   background: var(--color-vermont-green-faint);
 }
 
-.forecast-card:hover {
+/* Only the day cards are clickable */
+button.forecast-card:hover {
   transform: translateY(-1px);
   background: var(--color-vermont-green-subtle);
   border-color: var(--color-vermont-green-lighter);
@@ -241,6 +242,83 @@
   font-weight: var(--font-weight-bold);
   color: var(--color-vermont-green);
   font-family: 'Space Mono', monospace;
+}
+
+/* Day cards are buttons that open the hourly view */
+button.forecast-card {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+button.forecast-card:focus-visible,
+.forecast-back:focus-visible {
+  outline: 2px solid var(--color-vermont-green);
+  outline-offset: 2px;
+}
+
+/* Hourly view: the same width as the six day cards, two rows for 12 hours */
+.forecast-hourly-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.forecast-hourly-header .forecast-title {
+  margin-bottom: 0;
+}
+
+.forecast-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--color-vermont-green-subtle);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-vermont-green);
+  cursor: pointer;
+}
+
+.forecast-back:hover {
+  background: var(--color-vermont-green-subtle);
+}
+
+.forecast-hours {
+  display: grid;
+  grid-template-columns: repeat(6, 70px);
+  gap: var(--space-2) var(--space-3);
+  justify-content: center;
+  margin: 0;
+  padding: 2px;
+  list-style: none;
+}
+
+.forecast-hours .forecast-card {
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-1);
+}
+
+.forecast-hours .forecast-temperature {
+  font-size: var(--font-size-xl);
+}
+
+.forecast-precip {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-accent-hover);
+}
+
+.forecast-note {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
 }
 
 /* Scoped: an unscoped .station-name leaked into every side-panel title */
@@ -327,6 +405,11 @@
   .weather-metrics svg {
     width: 12px;
     height: 12px;
+  }
+
+  .forecast-hours {
+    grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+    gap: var(--space-2);
   }
 }
 
