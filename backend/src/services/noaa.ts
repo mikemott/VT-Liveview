@@ -116,11 +116,38 @@ async function getGridPoint(lat: number, lon: number): Promise<NOAAGridPointProp
 // Weather Data Functions
 // ============================================================================
 
+// Current conditions, cached per point (VTL-86). Stations report about hourly,
+// so 5 minutes saves NOAA two or three calls per page load without hiding a new reading for long.
+const CURRENT_WEATHER_TTL_MS = 5 * 60_000;
+const MAX_CURRENT_WEATHER_POINTS = 200;
+const currentWeatherLoaders = new Map<string, ReturnType<typeof cachedLoader<WeatherConditions>>>();
+
 /**
- * Get current weather conditions for coordinates.
- * Tries multiple nearby observation stations until valid data is found.
+ * Get current weather conditions for coordinates, cached for 5 minutes per
+ * point (three decimals, about 100 m). A failed refresh serves the last reading.
  */
 export async function getCurrentWeather(lat: number, lon: number): Promise<WeatherConditions> {
+  const key = `${lat.toFixed(3)},${lon.toFixed(3)}`;
+  let loader = currentWeatherLoaders.get(key);
+  if (loader) {
+    // Re-insert so the Map's order is least recently used first
+    currentWeatherLoaders.delete(key);
+  } else {
+    if (currentWeatherLoaders.size >= MAX_CURRENT_WEATHER_POINTS) {
+      const oldest = currentWeatherLoaders.keys().next().value;
+      if (oldest !== undefined) currentWeatherLoaders.delete(oldest);
+    }
+    loader = cachedLoader(CURRENT_WEATHER_TTL_MS, () => fetchCurrentWeather(lat, lon));
+  }
+  currentWeatherLoaders.set(key, loader);
+  return loader.get();
+}
+
+/**
+ * Fetch current weather conditions for coordinates.
+ * Tries multiple nearby observation stations until valid data is found.
+ */
+async function fetchCurrentWeather(lat: number, lon: number): Promise<WeatherConditions> {
   const gridPoint = await getGridPoint(lat, lon);
 
   // Get observation stations

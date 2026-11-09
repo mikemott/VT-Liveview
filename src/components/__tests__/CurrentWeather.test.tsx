@@ -13,6 +13,7 @@ import {
   type ForecastPeriodData,
   type HourlyPeriodData,
 } from '../../services/graphqlClient';
+import { loadLastWeather, saveLastWeather } from '../../utils/lastWeather';
 
 vi.mock('../../services/graphqlClient', () => ({
   fetchCurrentWeather: vi.fn(),
@@ -61,6 +62,7 @@ function renderWithClient(ui: ReactElement) {
 
 describe('CurrentWeather', () => {
   beforeEach(() => {
+    localStorage.clear();
     vi.spyOn(console, 'warn').mockImplementation(() => {});
     weatherMock.mockResolvedValue(WEATHER);
     forecastMock.mockResolvedValue(
@@ -79,6 +81,29 @@ describe('CurrentWeather', () => {
     expect(container.querySelector('.current-weather.loading .weather-skeleton')).not.toBeNull();
   });
 
+  it('shows the last saved reading for this spot at once, then refreshes it (VTL-86)', async () => {
+    saveLastWeather(44.26, -72.58, { ...WEATHER, temperature: 47 }, Date.now() - 10 * 60_000);
+    weatherMock.mockReturnValue(new Promise(() => {}));
+    const { container } = renderWithClient(<CurrentWeather />);
+    expect(container.querySelector('.current-weather.loading')).toBeNull();
+    expect(screen.getByText('47')).toBeInTheDocument();
+    // Older than the 5-minute stale time, so the live request still runs
+    await waitFor(() => expect(weatherMock).toHaveBeenCalledWith(44.26, -72.58));
+  });
+
+  it('saves a fresh reading for next time (VTL-86)', async () => {
+    renderWithClient(<CurrentWeather />);
+    expect(await screen.findByText('51')).toBeInTheDocument();
+    expect(loadLastWeather(44.26, -72.58)?.data.temperature).toBe(51);
+  });
+
+  it("doesn't show a saved reading from somewhere else (VTL-86)", () => {
+    saveLastWeather(44.48, -73.21, { ...WEATHER, temperature: 47 });
+    weatherMock.mockReturnValue(new Promise(() => {}));
+    const { container } = renderWithClient(<CurrentWeather />);
+    expect(container.querySelector('.current-weather.loading')).not.toBeNull();
+  });
+
   it('renders current conditions for the default location', async () => {
     renderWithClient(<CurrentWeather isDark />);
     expect(await screen.findByText('51')).toBeInTheDocument();
@@ -86,7 +111,8 @@ describe('CurrentWeather', () => {
     expect(screen.getByText('12 mph SW')).toBeInTheDocument();
     expect(screen.getByText('88%')).toBeInTheDocument();
     expect(screen.getByText('Light Rain')).toBeInTheDocument();
-    expect(weatherMock).toHaveBeenCalledWith(44.2601, -72.5754);
+    // Rounded to about 1 km so pans and the backend cache share entries (VTL-86)
+    expect(weatherMock).toHaveBeenCalledWith(44.26, -72.58);
     expect(document.querySelector('.current-weather.dark.collapsed')).not.toBeNull();
   });
 

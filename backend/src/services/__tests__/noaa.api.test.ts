@@ -105,6 +105,47 @@ describe('getCurrentWeather', () => {
     });
   });
 
+  it('caches each point for 5 minutes, then refetches (VTL-86)', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    useGridHandlers();
+    let obsCalls = 0;
+    server.use(
+      http.get(OBS, () => {
+        obsCalls++;
+        return HttpResponse.json(observation());
+      }),
+    );
+    const { getCurrentWeather } = await loadNoaa();
+
+    await getCurrentWeather(44.4759, -73.2121);
+    await getCurrentWeather(44.4759, -73.2121);
+    expect(obsCalls).toBe(1);
+
+    await getCurrentWeather(44.26, -72.58); // another point has its own entry
+    expect(obsCalls).toBe(2);
+
+    vi.setSystemTime(Date.now() + 5 * 60_000 + 1_000);
+    await getCurrentWeather(44.4759, -73.2121);
+    expect(obsCalls).toBe(3);
+  });
+
+  it('serves the last reading when a refresh fails (VTL-86)', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    useGridHandlers();
+    let fail = false;
+    server.use(
+      http.get(OBS, () =>
+        fail ? new HttpResponse(null, { status: 503 }) : HttpResponse.json(observation()),
+      ),
+    );
+    const { getCurrentWeather } = await loadNoaa();
+
+    const first = await getCurrentWeather(44.4759, -73.2121);
+    fail = true;
+    vi.setSystemTime(Date.now() + 5 * 60_000 + 1_000);
+    await expect(getCurrentWeather(44.4759, -73.2121)).resolves.toEqual(first);
+  });
+
   it('skips stations that error, lack temperature, or throw, and uses the next one', async () => {
     useGridHandlers();
     server.use(
