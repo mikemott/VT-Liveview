@@ -22,6 +22,9 @@ test.describe('visual', () => {
   test.beforeEach(async ({ page }) => {
     await openApp(page);
     await expect(page.locator('.current-weather.loading')).toHaveCount(0, { timeout: 15_000 });
+    // The weather card no longer waits for the map (VTL-86), so its loading is no longer
+    // a stand-in for "the page has settled": wait for the other requests too
+    await page.waitForLoadState('networkidle');
     // Wait for web fonts/images so text metrics are stable.
     await page.evaluate(() => document.fonts.ready.then(() => undefined));
   });

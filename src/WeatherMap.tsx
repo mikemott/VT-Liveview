@@ -1556,15 +1556,9 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         </div>
       )}
 
-      {/* Current Weather Display */}
-      {mapLoaded && (
-        <CurrentWeather
-          lat={mapCenter.lat}
-          lon={mapCenter.lng}
-          isDark={isDark}
-          isMobile={isMobile}
-        />
-      )}
+      {/* Current Weather Display: mounted without waiting for the map's load
+          event, so its request runs while the map loads (VTL-86) */}
+      <CurrentWeather lat={mapCenter.lat} lon={mapCenter.lng} isDark={isDark} isMobile={isMobile} />
 
       {/* Mobile Menu Toggle Button */}
       {isMobile && (

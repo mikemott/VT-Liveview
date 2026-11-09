@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   fetchCurrentWeather,
@@ -17,6 +17,7 @@ import { aqiShortName, aqiToneVars, pollutantLabel } from '../utils/aqi';
 import { useClimateToday } from '../hooks/useClimateToday';
 import { compareWithNormal } from '../utils/climate';
 import { hourLabel, hoursInPeriod } from '../utils/hourlyForecast';
+import { loadLastWeather, roundWeatherCoord, saveLastWeather } from '../utils/lastWeather';
 import '../styles/aqi.css';
 import './CurrentWeather.css';
 
@@ -42,9 +43,21 @@ export default function CurrentWeather({
   // The forecast card showing its hours, by start time: the periods shift as the forecast refreshes
   const [hourlyStart, setHourlyStart] = useState<string | null>(null);
 
+  // About 1 km: a small pan doesn't refetch, and the backend's per-point cache gets hits (VTL-86)
+  const qLat = roundWeatherCoord(lat);
+  const qLon = roundWeatherCoord(lon);
+  // Last good reading for this spot, shown at once on a refresh while the live one loads
+  const savedHere = useMemo(() => loadLastWeather(qLat, qLon), [qLat, qLon]);
+
   const { data, isLoading } = useQuery<CurrentWeatherData | null>({
-    queryKey: ['currentWeather', lat, lon],
-    queryFn: () => fetchCurrentWeather(lat, lon),
+    queryKey: ['currentWeather', qLat, qLon],
+    queryFn: async () => {
+      const reading = await fetchCurrentWeather(qLat, qLon);
+      if (reading) saveLastWeather(qLat, qLon, reading);
+      return reading;
+    },
+    initialData: () => savedHere?.data,
+    initialDataUpdatedAt: () => savedHere?.savedAt,
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
     retry: 2,
@@ -52,8 +65,8 @@ export default function CurrentWeather({
   });
 
   const { data: forecastData } = useQuery<ForecastPeriodData[] | null>({
-    queryKey: ['forecast', lat, lon],
-    queryFn: () => fetchForecast(lat, lon),
+    queryKey: ['forecast', qLat, qLon],
+    queryFn: () => fetchForecast(qLat, qLon),
     staleTime: 15 * 60 * 1000, // 15 minutes (forecast changes less often)
     refetchInterval: 15 * 60 * 1000,
     retry: 2,
@@ -62,19 +75,19 @@ export default function CurrentWeather({
 
   // Fetched the first time a forecast card is opened
   const hourlyQuery = useQuery<HourlyPeriodData[]>({
-    queryKey: ['forecast', 'hourly', lat, lon],
-    queryFn: () => fetchHourlyForecast(lat, lon),
+    queryKey: ['forecast', 'hourly', qLat, qLon],
+    queryFn: () => fetchHourlyForecast(qLat, qLon),
     enabled: isExpanded && hourlyStart !== null,
     staleTime: 15 * 60 * 1000,
     retry: 1,
   });
 
   // Air quality is a bonus line: if it fails or isn't configured, it just doesn't show
-  const { data: air } = useAirQuality(lat, lon);
+  const { data: air } = useAirQuality(qLat, qLon);
   const aqNow = air?.current ?? null;
 
   // Normals and records (VTL-81): also a bonus, hidden if unavailable
-  const { data: climate } = useClimateToday(lat, lon);
+  const { data: climate } = useClimateToday(qLat, qLon);
 
   if (isLoading) {
     return (
