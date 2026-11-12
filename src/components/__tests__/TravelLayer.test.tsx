@@ -254,24 +254,25 @@ describe('TravelLayer', () => {
     expect(fake.layerIds()).toEqual([]);
   });
 
-  it('clears the highlight when the panel closes or shows something else (VTL-77)', async () => {
-    const { rerender } = render(<TravelLayer {...props} openIncidentId={null} />);
+  it('keeps the highlight when the panel closes or shows something else (VTL-79)', async () => {
+    const { rerender } = render(<TravelLayer {...props} />);
     await waitFor(() => expect(liveMarkers()).toHaveLength(2));
     const route = liveMarkers().find((m) =>
       m.getElement().getAttribute('aria-label')?.includes('US-7'),
     )!;
-    const id = (props.onIncidentClick as ReturnType<typeof vi.fn>).mock.calls.length;
     click(route.getElement());
-    const incident = (props.onIncidentClick as ReturnType<typeof vi.fn>).mock.calls[id]![0] as {
-      id: string;
-    };
-    // The panel opens on it: the highlight stays
-    rerender(<TravelLayer {...props} openIncidentId={incident.id} />);
     expect(fake.sourceIds()).toEqual(['incident-highlight']);
 
-    // The panel closes: the highlight goes
-    rerender(<TravelLayer {...props} openIncidentId={null} />);
+    // The side panel closes or moves on: WeatherMap re-renders the layer, and
+    // the highlight stays
+    rerender(<TravelLayer {...props} onIncidentClick={vi.fn()} />);
+    expect(fake.sourceIds()).toEqual(['incident-highlight']);
+    expect(fake.layerIds()).not.toEqual([]);
+
+    // Only turning its chip off clears it
+    fireEvent.click(screen.getByRole('button', { name: /Accidents/ }));
     expect(fake.sourceIds()).toEqual([]);
+    expect(fake.layerIds()).toEqual([]);
   });
 
   it('flies to point incidents and replaces a previous highlight', async () => {

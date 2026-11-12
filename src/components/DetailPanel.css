@@ -8,8 +8,9 @@
   left: 0;
   right: 0;
   bottom: 0;
+  /* Tint only, no blur: the map (and any highlighted road) stays sharp
+     while the panel is open (VTL-79) */
   background: var(--color-bg-overlay);
-  backdrop-filter: blur(2px);
   z-index: var(--z-modal);
   opacity: 0;
   pointer-events: none;
