@@ -77,14 +77,16 @@ describe('SkiDetail', () => {
     );
     expect(screen.getByRole('status')).toHaveTextContent('Not reporting conditions yet');
     expect(container.querySelector('.detail-rows')).toBeNull();
-    expect(container.querySelector('img')).toBeNull();
+    // No logo without a logoUrl (Stowe's base camera image is expected, VTL-87)
+    expect(container.querySelector('img.ski-detail-logo')).toBeNull();
   });
 
   it('renders hostile strings as text', () => {
     const { container } = render(
       <SkiDetail resort={makeSkiResort({ name: XSS_PAYLOAD })} isDark={false} />,
     );
-    expectNoInjectedMarkup(container);
+    // The resort's own camera preview is allowed; the payload sits in its alt text as text
+    expectNoInjectedMarkup(container, { allowedImgSelector: 'img.ski-cam-image' });
     expectPayloadAsText(container);
   });
 });

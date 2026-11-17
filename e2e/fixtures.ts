@@ -71,6 +71,11 @@ const THIRD_PARTY: [prefix: string, respond: Responder][] = [
     (route) => route.fulfill({ status: 200, contentType: 'application/x-protobuf', body: '' }),
   ],
   ['https://api.weather.gov/icons/', png],
+  // Ski resort cameras (VTL-87): previews only; players load on tap
+  ['https://i.ytimg.com/vi/', png],
+  ['https://player.brownrice.com/snapshot/', png],
+  ['https://b10.hdrelay.com/camera/', png],
+  ['https://b14.hdrelay.com/camera/', png],
   ['https://fonts.googleapis.com/', text('', 'text/css')],
   ['https://fonts.gstatic.com/', (route) => route.fulfill({ status: 404 })],
 ];
