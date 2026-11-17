@@ -1,11 +1,13 @@
 /**
- * SkiDetail - a ski area's conditions from skivermont.com (VTL-64)
+ * SkiDetail - a ski area's conditions from skivermont.com (VTL-64), with its
+ * base-area camera (VTL-87)
  */
 import type { SkiResort } from '../../services/skiApi';
 import LayerBadge from './LayerBadge';
 import { formatDateTime } from '../../utils/formatDateTime';
 import { DetailHeader, DetailRows, DetailSource, DetailStatus } from './DetailParts';
 import { isSkiReporting } from '../../utils/skiStatus';
+import SkiWebcam from './SkiWebcam';
 import './DetailViews.css';
 
 interface SkiDetailProps {
@@ -27,6 +29,7 @@ export default function SkiDetail({ resort, isDark }: SkiDetailProps) {
         <img className="ski-detail-logo" src={resort.logoUrl} alt="" loading="lazy" />
       )}
       <DetailHeader name={resort.name} />
+      <SkiWebcam resortId={resort.id} resortName={resort.name} />
 
       {reporting ? (
         <>

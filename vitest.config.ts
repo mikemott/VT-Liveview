@@ -14,6 +14,8 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'happy-dom',
+    // Never fetch iframe pages (e.g. embedded webcam players, VTL-87) during tests
+    environmentOptions: { happyDOM: { settings: { disableIframePageLoading: true } } },
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
     coverage: {

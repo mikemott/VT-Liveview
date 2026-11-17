@@ -878,6 +878,115 @@
   object-fit: contain;
 }
 
+/* Ski resort base camera (VTL-87) */
+.ski-cam {
+  margin: var(--space-5) 0 var(--space-6);
+}
+
+.ski-cam-frame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-glass-subtle);
+  box-shadow: inset 0 0 0 1px var(--color-border-subtle);
+}
+
+.ski-cam-image,
+.ski-cam-player {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  object-fit: cover;
+}
+
+.ski-cam-play {
+  all: unset;
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.ski-cam-play:focus-visible {
+  outline: 2px solid var(--color-vermont-green);
+  outline-offset: -2px;
+  border-radius: var(--radius-lg);
+}
+
+.ski-cam-play-icon {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  transform: translate(-50%, -50%);
+  border-radius: var(--radius-full);
+  background: rgba(20, 28, 22, 0.62);
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  transition: transform 0.15s ease;
+}
+
+.ski-cam-play:hover .ski-cam-play-icon {
+  transform: translate(-50%, -50%) scale(1.08);
+}
+
+.ski-cam-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 100%;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* Behind a play button the label sits under the button, not under its icon */
+.ski-cam-play .ski-cam-placeholder {
+  padding-top: 84px;
+}
+
+.ski-cam-play .ski-cam-placeholder svg {
+  display: none;
+}
+
+.ski-cam-caption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-4);
+  margin-top: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.ski-cam-caption a,
+.ski-cam-link a {
+  color: var(--color-accent-hover);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.ski-cam-caption a:hover,
+.ski-cam-link a:hover {
+  text-decoration: underline;
+}
+
+.dark .ski-cam-caption a,
+.dark .ski-cam-link a {
+  color: var(--color-accent-primary);
+}
+
+.ski-cam-link {
+  margin: var(--space-3) 0 var(--space-5);
+  font-size: var(--font-size-sm);
+}
+
 /* What's here: air quality (VTL-75); colors in src/styles/aqi.css.
    The .aq-headline layout is shared with river gauges (VTL-81) */
 .aqi-badge {
