@@ -102,14 +102,20 @@ describe('createSkiWebcamService', () => {
       page: 'https://jay.example/cams',
       camera: {
         name: 'Tramside',
-        source: { provider: 'hdrelay', snapshot: 'https://b10.hdrelay.com/camera/x/snapshot' },
+        source: {
+          provider: 'hdrelay',
+          snapshots: [
+            'https://b9.hdrelay.com/camera/x/snapshot',
+            'https://b10.hdrelay.com/camera/x/snapshot',
+          ],
+        },
       },
     },
     blocked: {
       page: 'https://pico.example/cams',
       camera: {
         name: 'Base',
-        source: { provider: 'hdrelay', snapshot: 'https://b14.hdrelay.com/camera/y/snapshot' },
+        source: { provider: 'hdrelay', snapshots: ['https://b14.hdrelay.com/camera/y/snapshot'] },
       },
     },
     br: {
@@ -128,6 +134,8 @@ describe('createSkiWebcamService', () => {
 
   const network = {
     'https://www.youtube.com/oembed': () => json({ title: 'Base cam' }),
+    // Moved off b9: the next server answers
+    'https://b9.hdrelay.com/': () => new Response('gone', { status: 404 }),
     'https://b10.hdrelay.com/': image,
     'https://b14.hdrelay.com/': () => new Response('Forbidden', { status: 403 }),
     'https://player.brownrice.com/snapshot/': image,
