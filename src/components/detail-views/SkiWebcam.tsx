@@ -1,18 +1,16 @@
 /**
- * SkiWebcam - a resort's base-area camera in the ski panel (VTL-87)
+ * SkiWebcam - a resort's base-area camera in the ski panel (VTL-87/88)
  *
- * Live players (YouTube, Brown Rice, Roundshot) show a preview and load only
- * when tapped; HDRelay shows its latest still. Credited and linked to the
- * resort. Nothing here copies the resort's images.
+ * The backend checks each camera; only working ones are shown. Live players
+ * (YouTube, CamStreamer, Brown Rice, Roundshot) show a preview and load only
+ * when tapped; stills show the latest frame. A camera that's off or broken
+ * becomes a link to the resort's webcam page. Credited and linked to the
+ * resort; nothing here copies the resort's images.
  */
 import { useState } from 'react';
 import { Play, Video } from 'lucide-react';
-import {
-  SKI_WEBCAMS,
-  webcamEmbed,
-  webcamPreview,
-  type SkiWebcam as Camera,
-} from '../../data/skiWebcams';
+import { useSkiWebcams } from '../../hooks/useSkiWebcams';
+import { previewUrl, type ResolvedWebcam } from '../../services/skiWebcamsApi';
 import './DetailViews.css';
 
 interface SkiWebcamProps {
@@ -20,18 +18,24 @@ interface SkiWebcamProps {
   resortName: string;
 }
 
-const YT_FALLBACK = /hqdefault_live\.jpg$/;
+const YT_LIVE = /hqdefault_live\.jpg$/;
 
-function CameraTile({ camera, resortName }: { camera: Camera; resortName: string }) {
+function CameraTile({
+  camera,
+  page,
+  resortName,
+}: {
+  camera: ResolvedWebcam;
+  page: string;
+  resortName: string;
+}) {
   const [playing, setPlaying] = useState(false);
-  const [preview, setPreview] = useState<string | null>(() => webcamPreview(camera));
-  const embed = webcamEmbed(camera);
-  const live = embed !== null;
+  const [preview, setPreview] = useState<string | null>(() => previewUrl(camera));
+  const live = camera.embed !== null;
 
   const onImageError = (): void => {
-    // A YouTube stream that isn't live has no _live thumbnail: try the plain one
-    if (preview && YT_FALLBACK.test(preview))
-      setPreview(preview.replace(YT_FALLBACK, 'hqdefault.jpg'));
+    // A stream that isn't live has no _live thumbnail: try the plain one
+    if (preview && YT_LIVE.test(preview)) setPreview(preview.replace(YT_LIVE, 'hqdefault.jpg'));
     else setPreview(null);
   };
 
@@ -47,17 +51,17 @@ function CameraTile({ camera, resortName }: { camera: Camera; resortName: string
   ) : (
     <span className="ski-cam-placeholder">
       <Video size={22} aria-hidden="true" />
-      <span>{camera.provider === 'roundshot' ? '360° panorama' : 'Camera image unavailable'}</span>
+      <span>{camera.kind === 'panorama' ? '360° panorama' : 'Camera image unavailable'}</span>
     </span>
   );
 
   return (
     <figure className="ski-cam">
       <div className="ski-cam-frame">
-        {playing && embed ? (
+        {playing && camera.embed ? (
           <iframe
             className="ski-cam-player"
-            src={embed}
+            src={camera.embed}
             title={`${resortName} — ${camera.name} (live)`}
             allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
             allowFullScreen
@@ -83,7 +87,7 @@ function CameraTile({ camera, resortName }: { camera: Camera; resortName: string
         <span>
           {live ? 'Live' : 'Latest still'} · {camera.name}
         </span>
-        <a href={camera.page} target="_blank" rel="noopener noreferrer">
+        <a href={page} target="_blank" rel="noopener noreferrer">
           {live ? `${resortName} cams` : `Live view at ${resortName}`} ↗
         </a>
       </figcaption>
@@ -92,11 +96,13 @@ function CameraTile({ camera, resortName }: { camera: Camera; resortName: string
 }
 
 export default function SkiWebcam({ resortId, resortName }: SkiWebcamProps) {
-  const entry = SKI_WEBCAMS[resortId];
+  const { data } = useSkiWebcams();
+  const entry = data?.resorts[resortId];
   if (!entry) return null;
   if (!entry.camera) {
     return (
       <p className="ski-cam-link">
+        {entry.status === 'offline' && <span>Base camera is off right now · </span>}
         <a href={entry.page} target="_blank" rel="noopener noreferrer">
           Webcams at {resortName} ↗
         </a>
@@ -104,5 +110,7 @@ export default function SkiWebcam({ resortId, resortName }: SkiWebcamProps) {
     );
   }
   // key: a different resort starts fresh (not playing, new preview)
-  return <CameraTile key={resortId} camera={entry.camera} resortName={resortName} />;
+  return (
+    <CameraTile key={resortId} camera={entry.camera} page={entry.page} resortName={resortName} />
+  );
 }

@@ -1,56 +1,125 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import SkiWebcam from '../SkiWebcam';
 import SkiDetail from '../SkiDetail';
-import { SKI_WEBCAMS, snapshotStamp, webcamEmbed, webcamPreview } from '../../../data/skiWebcams';
+import { useSkiWebcams } from '../../../hooks/useSkiWebcams';
+import { previewUrl, snapshotStamp, type SkiWebcams } from '../../../services/skiWebcamsApi';
 import { makeSkiResort } from '../../../__fixtures__/components/data';
 
-describe('SkiWebcam (VTL-87)', () => {
-  it('shows a YouTube preview and loads the privacy-mode player only when tapped', () => {
+vi.mock('../../../hooks/useSkiWebcams', () => ({ useSkiWebcams: vi.fn() }));
+const useSkiWebcamsMock = vi.mocked(useSkiWebcams);
+
+const yt = (id: string) => ({
+  preview: `https://i.ytimg.com/vi/${id}/hqdefault_live.jpg`,
+  embed: `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=1&playsinline=1&rel=0`,
+});
+
+const DATA: SkiWebcams = {
+  checkedAt: '2026-11-18T01:00:00Z',
+  youtubeLookup: true,
+  resorts: {
+    sugarbush: {
+      page: 'https://www.sugarbush.com/mountain/webcams/',
+      status: 'ok',
+      camera: { name: 'Gate House Plaza', kind: 'live', refreshPreview: false, ...yt('newLive') },
+    },
+    stowe: {
+      page: 'https://www.stowe.com/explore/webcams/',
+      status: 'ok',
+      camera: {
+        name: 'Spruce Peak village',
+        kind: 'live',
+        preview: 'https://player.brownrice.com/snapshot/stowevillage2',
+        refreshPreview: true,
+        embed: 'https://player.brownrice.com/embed/stowevillage2',
+      },
+    },
+    'jay-peak': {
+      page: 'https://jaypeakresort.com/resort/photo-day',
+      status: 'ok',
+      camera: {
+        name: 'Tramside',
+        kind: 'still',
+        preview: 'https://b10.hdrelay.com/camera/abc/snapshot',
+        refreshPreview: true,
+        embed: null,
+      },
+    },
+    killington: {
+      page: 'https://www.killington.com/the-mountain/conditions-weather/webcam/',
+      status: 'ok',
+      camera: {
+        name: 'K-1 Lodge panorama',
+        kind: 'panorama',
+        preview: null,
+        refreshPreview: false,
+        embed: 'https://killington.roundshot.com/baselodge/',
+      },
+    },
+    'smugglers-notch': {
+      page: 'https://smuggs.com/conditions-stats/web-cams',
+      status: 'offline',
+      camera: null,
+      reason: 'not live',
+    },
+    'pico-mountain': {
+      page: 'https://www.picomountain.com/the-mountain/conditions-weather/webcams/',
+      status: 'unavailable',
+      camera: null,
+      reason: 'image HTTP 403',
+    },
+  },
+};
+
+beforeEach(() => {
+  useSkiWebcamsMock.mockReturnValue({ data: DATA } as unknown as ReturnType<typeof useSkiWebcams>);
+});
+
+describe('SkiWebcam (VTL-87/88)', () => {
+  it('shows the resolved live stream and loads the player only when tapped', () => {
     const { container } = render(<SkiWebcam resortId="sugarbush" resortName="Sugarbush" />);
     expect(container.querySelector('iframe')).toBeNull();
     expect(screen.getByAltText('Sugarbush base camera')).toHaveAttribute(
       'src',
-      'https://i.ytimg.com/vi/jhCh3dsEv-M/hqdefault_live.jpg',
+      'https://i.ytimg.com/vi/newLive/hqdefault_live.jpg',
     );
     expect(screen.getByText(/Live · Gate House Plaza/)).toBeInTheDocument();
-
     fireEvent.click(screen.getByRole('button', { name: 'Play Sugarbush live camera' }));
-    const player = screen.getByTitle('Sugarbush — Gate House Plaza (live)');
-    expect(player.getAttribute('src')).toMatch(
-      /^https:\/\/www\.youtube-nocookie\.com\/embed\/jhCh3dsEv-M\?autoplay=1&mute=1/,
+    expect(screen.getByTitle('Sugarbush — Gate House Plaza (live)').getAttribute('src')).toMatch(
+      /^https:\/\/www\.youtube-nocookie\.com\/embed\/newLive\?autoplay=1&mute=1/,
     );
   });
 
   it('falls back to the plain thumbnail, then a neutral tile, when images fail', () => {
-    render(<SkiWebcam resortId="stratton" resortName="Stratton" />);
-    const img = screen.getByAltText('Stratton base camera');
-    fireEvent.error(img);
-    expect(screen.getByAltText('Stratton base camera')).toHaveAttribute(
+    render(<SkiWebcam resortId="sugarbush" resortName="Sugarbush" />);
+    fireEvent.error(screen.getByAltText('Sugarbush base camera'));
+    expect(screen.getByAltText('Sugarbush base camera')).toHaveAttribute(
       'src',
-      'https://i.ytimg.com/vi/H-_sGi4Sbtk/hqdefault.jpg',
+      'https://i.ytimg.com/vi/newLive/hqdefault.jpg',
     );
-    fireEvent.error(screen.getByAltText('Stratton base camera'));
-    expect(screen.queryByAltText('Stratton base camera')).toBeNull();
+    fireEvent.error(screen.getByAltText('Sugarbush base camera'));
     expect(screen.getByText('Camera image unavailable')).toBeInTheDocument();
-    // Still playable without a preview
-    expect(screen.getByRole('button', { name: 'Play Stratton live camera' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Play Sugarbush live camera' })).toBeInTheDocument();
   });
 
-  it('shows the latest HDRelay still with a link to the live view, never a player', () => {
+  it('stamps snapshot previews so an open panel refreshes', () => {
+    render(<SkiWebcam resortId="stowe" resortName="Stowe" />);
+    expect(screen.getByAltText('Stowe base camera').getAttribute('src')).toMatch(
+      /^https:\/\/player\.brownrice\.com\/snapshot\/stowevillage2\?t=\d+$/,
+    );
+  });
+
+  it('shows a still with a link to the live view, never a player', () => {
     const { container } = render(<SkiWebcam resortId="jay-peak" resortName="Jay Peak" />);
     expect(screen.queryByRole('button')).toBeNull();
     expect(container.querySelector('iframe')).toBeNull();
-    expect(screen.getByAltText('Jay Peak base camera').getAttribute('src')).toMatch(
-      /^https:\/\/b10\.hdrelay\.com\/camera\/[\w-]+\/snapshot\?t=\d+$/,
-    );
     expect(screen.getByText(/Latest still · Tramside/)).toBeInTheDocument();
     const link = screen.getByRole('link', { name: 'Live view at Jay Peak ↗' });
     expect(link).toHaveAttribute('href', 'https://jaypeakresort.com/resort/photo-day');
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
-  it('shows the Killington panorama as a tile that opens the Roundshot viewer', () => {
+  it('opens the Killington panorama on tap', () => {
     render(<SkiWebcam resortId="killington" resortName="Killington" />);
     expect(screen.getByText('360° panorama')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Play Killington live camera' }));
@@ -60,45 +129,49 @@ describe('SkiWebcam (VTL-87)', () => {
     );
   });
 
-  it('links to the resort when there is no embeddable camera, and is empty for unknown resorts', () => {
-    render(<SkiWebcam resortId="burke-mountain" resortName="Burke Mountain" />);
-    expect(screen.getByRole('link', { name: 'Webcams at Burke Mountain ↗' })).toHaveAttribute(
+  it('turns an off-season or broken camera into the resort link', () => {
+    render(<SkiWebcam resortId="smugglers-notch" resortName="Smugglers Notch" />);
+    expect(screen.getByText(/Base camera is off right now/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Webcams at Smugglers Notch ↗' })).toHaveAttribute(
       'href',
-      'https://skiburke.com/the-mountain/webcams',
+      'https://smuggs.com/conditions-stats/web-cams',
     );
-    const { container } = render(<SkiWebcam resortId="cochrans-ski-area" resortName="Cochran's" />);
+    render(<SkiWebcam resortId="pico-mountain" resortName="Pico Mountain" />);
+    expect(screen.getByRole('link', { name: 'Webcams at Pico Mountain ↗' })).toBeInTheDocument();
+    expect(screen.queryAllByText(/off right now/)).toHaveLength(1); // Pico isn't "off", just not embeddable
+  });
+
+  it('shows nothing for unknown resorts or before the check loads', () => {
+    const { container } = render(<SkiWebcam resortId="saskadena-six" resortName="Saskadena Six" />);
     expect(container).toBeEmptyDOMElement();
+    useSkiWebcamsMock.mockReturnValue({ data: undefined } as unknown as ReturnType<
+      typeof useSkiWebcams
+    >);
+    const { container: loading } = render(
+      <SkiWebcam resortId="sugarbush" resortName="Sugarbush" />,
+    );
+    expect(loading).toBeEmptyDOMElement();
   });
 
   it('sits in the ski panel', () => {
-    render(<SkiDetail resort={makeSkiResort({ id: 'stowe', name: 'Stowe' })} isDark={false} />);
-    expect(screen.getByRole('button', { name: 'Play Stowe live camera' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Stowe cams ↗' })).toHaveAttribute(
-      'href',
-      'https://www.stowe.com/explore/webcams/',
+    render(
+      <SkiDetail resort={makeSkiResort({ id: 'sugarbush', name: 'Sugarbush' })} isDark={false} />,
     );
+    expect(screen.getByRole('button', { name: 'Play Sugarbush live camera' })).toBeInTheDocument();
   });
 });
 
-describe('ski webcam sources', () => {
-  it('builds each provider’s preview and player URLs', () => {
+describe('previewUrl', () => {
+  it('stamps snapshots in ten-minute windows and leaves others alone', () => {
     const now = Date.UTC(2026, 10, 17, 15, 7);
-    const stowe = SKI_WEBCAMS.stowe!.camera!;
-    expect(webcamPreview(stowe, now)).toBe(
+    const stowe = DATA.resorts.stowe!.camera!;
+    expect(previewUrl(stowe, now)).toBe(
       `https://player.brownrice.com/snapshot/stowevillage2?t=${snapshotStamp(now)}`,
     );
-    expect(webcamEmbed(stowe)).toBe('https://player.brownrice.com/embed/stowevillage2');
-    expect(webcamEmbed(SKI_WEBCAMS['pico-mountain']!.camera!)).toBeNull();
-    expect(snapshotStamp(now)).toBe(snapshotStamp(now + 60_000)); // same 10-minute window
-  });
-
-  it('only uses the resorts’ own sources and https links', () => {
-    for (const [id, { page, camera }] of Object.entries(SKI_WEBCAMS)) {
-      expect(page, id).toMatch(/^https:\/\//);
-      if (!camera) continue;
-      expect(camera.page, id).toMatch(/^https:\/\//);
-      const urls = [webcamPreview(camera), webcamEmbed(camera)].filter(Boolean).join(' ');
-      expect(urls, id).not.toMatch(/snowstash|onthesnow|ots-webcams|opensnow/);
-    }
+    expect(snapshotStamp(now)).toBe(snapshotStamp(now + 60_000));
+    expect(previewUrl(DATA.resorts.sugarbush!.camera!, now)).toBe(
+      'https://i.ytimg.com/vi/newLive/hqdefault_live.jpg',
+    );
+    expect(previewUrl(DATA.resorts.killington!.camera!, now)).toBeNull();
   });
 });

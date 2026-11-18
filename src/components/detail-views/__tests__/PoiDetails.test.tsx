@@ -28,6 +28,9 @@ import {
   expectPayloadAsText,
 } from '../../../__fixtures__/components/xss';
 
+// Camera data comes from the backend check (VTL-88); covered in SkiWebcam.test.tsx
+vi.mock('../../../hooks/useSkiWebcams', () => ({ useSkiWebcams: () => ({ data: undefined }) }));
+
 function badge(container: HTMLElement): HTMLElement {
   return container.querySelector('.layer-badge') as HTMLElement;
 }
@@ -77,7 +80,7 @@ describe('SkiDetail', () => {
     );
     expect(screen.getByRole('status')).toHaveTextContent('Not reporting conditions yet');
     expect(container.querySelector('.detail-rows')).toBeNull();
-    // No logo without a logoUrl (Stowe's base camera image is expected, VTL-87)
+    // No logo without a logoUrl (a resort camera image may sit in the panel, VTL-87)
     expect(container.querySelector('img.ski-detail-logo')).toBeNull();
   });
 
@@ -85,7 +88,7 @@ describe('SkiDetail', () => {
     const { container } = render(
       <SkiDetail resort={makeSkiResort({ name: XSS_PAYLOAD })} isDark={false} />,
     );
-    // The resort's own camera preview is allowed; the payload sits in its alt text as text
+    // A resort camera preview is allowed; any payload in its alt text stays text
     expectNoInjectedMarkup(container, { allowedImgSelector: 'img.ski-cam-image' });
     expectPayloadAsText(container);
   });

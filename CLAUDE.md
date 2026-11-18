@@ -144,6 +144,7 @@ docs/                          architecture.md, decisions/, review/, plans/, des
 - `CONTACT_EMAIL`: NOAA User-Agent, required by NOAA's terms of service
 - `ADMIN_TOKEN`: `/admin/clear-cache` in production
 - `NOAA_CDO_TOKEN`, `AIRNOW_API_KEY`
+- `YOUTUBE_API_KEY`: YouTube Data API v3, optional. The ski camera check uses it to find a resort's current live stream after a restart (VTL-88)
 - `AFDC_API_KEY`: EV chargers (api.data.gov key). Optional: falls back to `DEMO_KEY`, which is enough for one request per 12-hour cache
 - `RATE_LIMIT_MAX`: REST requests per client IP per minute (default 300; the E2E server sets 2000). GraphQL and `/health` are exempt
 - `FLY_APP_NAME`: set by Fly itself. When present, the rate limit keys on the `Fly-Client-IP` header instead of the proxy's socket IP
