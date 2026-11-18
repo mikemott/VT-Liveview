@@ -17,6 +17,9 @@ export const defaultHandlers = [
     HttpResponse.json({ configured: false, current: null, forecast: [] }),
   ),
   http.get('*/api/climate/today', () => new HttpResponse(null, { status: 502 })),
+  http.get('*/api/ski-webcams', () =>
+    HttpResponse.json({ checkedAt: '2026-11-18T00:00:00Z', youtubeLookup: false, resorts: {} }),
+  ),
 ];
 
 export const server = setupServer(...defaultHandlers);

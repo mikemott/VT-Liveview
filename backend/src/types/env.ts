@@ -40,6 +40,10 @@ const envSchema = z.object({
 
   // EPA AirNow (air quality, VTL-75). Without it the air quality routes answer 503.
   AIRNOW_API_KEY: z.string().optional(),
+  // YouTube Data API v3 key (ski resort cameras, VTL-88): finds a resort's
+  // current live stream after it restarts. Optional; without it the check only
+  // confirms the configured video still exists.
+  YOUTUBE_API_KEY: z.string().optional(),
 
   // DOE AFDC station locator (EV chargers, VTL-81); an api.data.gov key.
   // Without it the EV charger route uses DEMO_KEY (30 requests/hour per IP).

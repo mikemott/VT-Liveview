@@ -32,7 +32,25 @@ function vt511Xml(dataTypes: string | null): string {
   return '<?xml version="1.0" encoding="UTF-8"?><root/>';
 }
 
+/**
+ * Ski resort camera hosts (VTL-88): every camera checks out, so E2E and route
+ * tests see the "camera shown" path. YouTube stays keyless (oEmbed only).
+ */
+const JPEG = { 'content-type': 'image/jpeg' };
+export const skiWebcamHandlers = [
+  http.get('https://www.youtube.com/oembed', () => HttpResponse.json({ title: 'Base cam' })),
+  http.get('https://camstreamer.com/embed/*', () => HttpResponse.html('<html></html>')),
+  http.get(
+    'https://player.brownrice.com/snapshot/*',
+    () => new HttpResponse('jpeg', { headers: JPEG }),
+  ),
+  http.get('https://player.brownrice.com/embed/*', () => HttpResponse.html('<html></html>')),
+  http.get('https://killington.roundshot.com/*', () => HttpResponse.html('<html></html>')),
+  http.get('https://:sub.hdrelay.com/camera/*', () => new HttpResponse('jpeg', { headers: JPEG })),
+];
+
 export const upstreamHandlers = [
+  ...skiWebcamHandlers,
   // NOAA
   http.get(`${NOAA}/points/:coords`, () => HttpResponse.json(loadJson('noaa/points.json'))),
   http.get(`${NOAA}/gridpoints/:office/:xy/stations`, () =>

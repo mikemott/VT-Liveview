@@ -6,6 +6,7 @@ import type { FastifyInstance } from 'fastify';
 import { http, HttpResponse } from 'msw';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { server } from '../test/msw.js';
+import { skiWebcamHandlers } from '../test/upstreamHandlers.js';
 import { loadText } from '../__fixtures__/load.js';
 
 const mocks = vi.hoisted(() => ({
@@ -701,5 +702,36 @@ describe('fire danger (VTL-81)', () => {
     server.use(http.get(SERVICE, () => new HttpResponse(null, { status: 503 })));
     const app = await loadApp();
     expect((await app.inject({ method: 'GET', url: '/api/fire-danger' })).statusCode).toBe(502);
+  });
+});
+
+describe('ski webcams (VTL-88)', () => {
+  it("serves each resort's checked camera, or its link", async () => {
+    server.use(...skiWebcamHandlers);
+    const app = await loadApp({ YOUTUBE_API_KEY: undefined });
+    const res = await app.inject({ method: 'GET', url: '/api/ski-webcams' });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['cache-control']).toBe('public, max-age=600');
+    const body = res.json<{
+      youtubeLookup: boolean;
+      resorts: Record<string, { status: string; camera: { kind: string } | null; page: string }>;
+    }>();
+    expect(body.youtubeLookup).toBe(false);
+    expect(body.resorts.sugarbush).toMatchObject({ status: 'ok', camera: { kind: 'live' } });
+    expect(body.resorts['jay-peak']).toMatchObject({ status: 'ok', camera: { kind: 'still' } });
+    expect(body.resorts.killington).toMatchObject({ camera: { kind: 'panorama' } });
+    expect(body.resorts['burke-mountain']).toMatchObject({ camera: null });
+  });
+
+  it('falls back to the link when a still is refused', async () => {
+    server.use(
+      http.get('https://:sub.hdrelay.com/camera/*', () => new HttpResponse('no', { status: 403 })),
+      ...skiWebcamHandlers,
+    );
+    const app = await loadApp();
+    const body = (await app.inject({ method: 'GET', url: '/api/ski-webcams' })).json<{
+      resorts: Record<string, { camera: unknown; reason?: string }>;
+    }>();
+    expect(body.resorts['pico-mountain']).toMatchObject({ camera: null, reason: 'image HTTP 403' });
   });
 });

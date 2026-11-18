@@ -18,6 +18,7 @@ import { fetchSkiConditions } from './services/skiConditions.js';
 import { createTrafficCameraService } from './services/trafficCameras.js';
 import { createRoadWeatherService } from './services/roadWeather.js';
 import { createAirQualityService } from './services/airQuality.js';
+import { createSkiWebcamService } from './services/skiWebcams.js';
 import { createRiverService, GAUGE_ID } from './services/rivers.js';
 import { createClimateService } from './services/climate.js';
 import { createEvChargerService } from './services/evChargers.js';
@@ -350,6 +351,21 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
       }
     },
   );
+
+  // Ski resort base cameras, checked and resolved (VTL-87/88)
+  const skiWebcams = createSkiWebcamService(env.YOUTUBE_API_KEY);
+
+  fastify.get('/api/ski-webcams', async (_request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const result = await skiWebcams.get();
+      reply.header('Cache-Control', 'public, max-age=600');
+      return result;
+    } catch (error) {
+      fastify.log.warn({ err: error }, 'Ski webcam check failed');
+      reply.code(502);
+      return { error: 'Ski webcams are unavailable' };
+    }
+  });
 
   // River and lake levels from NWPS (VTL-81)
   const rivers = createRiverService(`VT-Liveview/1.0 (${env.CONTACT_EMAIL ?? 'weather-app'})`);
