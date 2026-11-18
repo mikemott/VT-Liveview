@@ -19,14 +19,22 @@ export type WebcamSource =
   | { provider: 'camstreamer'; embed: string; previewVideoId?: string }
   | { provider: 'brownrice'; stream: string }
   | { provider: 'roundshot'; url: string }
-  /** HDRelay player links are signed and expire; only the snapshot is public */
-  | { provider: 'hdrelay'; snapshot: string };
+  /**
+   * HDRelay player links are signed and expire; only the snapshot is public.
+   * HDRelay moves cameras between servers (b9, b10, b14…), so list the known
+   * URLs: the first that returns an image is used.
+   */
+  | { provider: 'hdrelay'; snapshots: string[] };
 
 export interface ResortWebcamConfig {
   /** The resort's own webcam page: credit and fallback link */
   page: string;
   camera?: { name: string; source: WebcamSource };
 }
+
+/** A camera's snapshot on each HDRelay server it has been seen on */
+const hdrelayHosts = (cameraId: string): string[] =>
+  ['b9', 'b10', 'b14'].map((host) => `https://${host}.hdrelay.com/camera/${cameraId}/snapshot`);
 
 export const SKI_WEBCAM_SOURCES: Record<string, ResortWebcamConfig> = {
   stowe: {
@@ -56,7 +64,7 @@ export const SKI_WEBCAM_SOURCES: Record<string, ResortWebcamConfig> = {
       name: 'Base',
       source: {
         provider: 'hdrelay',
-        snapshot: 'https://b14.hdrelay.com/camera/84943abb-01cd-4907-8cc2-a9a7680d7529/snapshot',
+        snapshots: hdrelayHosts('84943abb-01cd-4907-8cc2-a9a7680d7529'),
       },
     },
   },
@@ -85,7 +93,11 @@ export const SKI_WEBCAM_SOURCES: Record<string, ResortWebcamConfig> = {
       name: 'Tramside',
       source: {
         provider: 'hdrelay',
-        snapshot: 'https://b10.hdrelay.com/camera/6526fd5a071b19b5189bb07b/snapshot',
+        // Stateside (also at the base) as the backup
+        snapshots: [
+          ...hdrelayHosts('6526fd5a071b19b5189bb07b'),
+          ...hdrelayHosts('6526ffaa1c3bd6b512d2585d'),
+        ],
       },
     },
   },

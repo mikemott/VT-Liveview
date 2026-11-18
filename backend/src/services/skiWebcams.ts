@@ -281,19 +281,19 @@ async function resolveCamera(
       };
     }
     case 'hdrelay': {
-      const check = await imageLoads(fetchImpl, source.snapshot);
-      if (!check.ok) return fail('unavailable', check.reason!);
-      return {
-        page,
-        status: 'ok',
-        camera: {
-          name,
-          kind: 'still',
-          preview: source.snapshot,
-          refreshPreview: true,
-          embed: null,
-        },
-      };
+      // First URL that returns an image, in order
+      const reasons: string[] = [];
+      for (const snapshot of source.snapshots) {
+        const check = await imageLoads(fetchImpl, snapshot);
+        if (check.ok)
+          return {
+            page,
+            status: 'ok',
+            camera: { name, kind: 'still', preview: snapshot, refreshPreview: true, embed: null },
+          };
+        reasons.push(check.reason!);
+      }
+      return fail('unavailable', [...new Set(reasons)].join('; '));
     }
   }
 }
