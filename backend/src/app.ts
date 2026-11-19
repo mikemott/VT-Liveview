@@ -23,6 +23,7 @@ import { createRiverService, GAUGE_ID } from './services/rivers.js';
 import { createClimateService } from './services/climate.js';
 import { createEvChargerService } from './services/evChargers.js';
 import { createFireDangerService } from './services/fireDanger.js';
+import { cachedLoader } from './services/c2c.js';
 import { validateEnv, isProd } from './types/index.js';
 import { getDb, checkDatabaseHealth, isDatabaseEnabled } from './db/index.js';
 import { getCollectorStatus } from './scheduler/index.js';
@@ -260,20 +261,31 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
   };
 
   // Relay upstream XML; a non-2xx upstream is reported as 502 instead of a 200 XML body.
+  // Each feed is cached for a minute (every open page polls every 2 minutes) and
+  // a failed refresh serves the last copy (VTL-89).
+  const VT511_TTL_MS = 60_000;
+  const VT511_TIMEOUT_MS = 10_000;
+  class Vt511UpstreamError extends Error {}
   const proxyVt511 = (path: string, dataType: string, label: string): void => {
+    const feed = cachedLoader(VT511_TTL_MS, async (): Promise<string> => {
+      const response = await fetch(`${VT_511_BASE}?networks=Vermont&dataTypes=${dataType}`, {
+        ...vt511FetchOptions,
+        signal: AbortSignal.timeout(VT511_TIMEOUT_MS),
+      });
+      if (!response.ok) {
+        throw new Vt511UpstreamError(`VT 511 upstream returned ${response.status}`);
+      }
+      return response.text();
+    });
     fastify.get(path, async (_request: FastifyRequest, reply: FastifyReply): Promise<void> => {
       try {
-        const response = await fetch(
-          `${VT_511_BASE}?networks=Vermont&dataTypes=${dataType}`,
-          vt511FetchOptions,
-        );
-        if (!response.ok) {
-          reply.code(502).send({ error: `VT 511 upstream returned ${response.status}` });
+        const xml = await feed.get();
+        reply.type('text/xml').send(xml);
+      } catch (error) {
+        if (error instanceof Vt511UpstreamError) {
+          reply.code(502).send({ error: error.message });
           return;
         }
-        const xmlText = await response.text();
-        reply.type('text/xml').send(xmlText);
-      } catch {
         reply.code(500).send({ error: `Failed to fetch VT 511 ${label} data` });
       }
     });

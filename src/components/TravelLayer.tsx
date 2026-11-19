@@ -230,6 +230,10 @@ function TravelLayer({
     onIncidentsLoadedRef.current = onIncidentsLoaded;
   }, [onIncidentsLoaded]);
 
+  // Each source's last incidents, so a fast source can show before a slow one
+  // returns, and a refresh doesn't drop the slow source's markers meanwhile (VTL-89)
+  const bySourceRef = useRef(new Map<string, TravelIncident[]>());
+
   // Fetch incidents function (accessible to retry button)
   const fetchIncidentsData = useCallback(async (): Promise<void> => {
     if (!map) return;
@@ -237,7 +241,15 @@ function TravelLayer({
     setLoading(true);
     try {
       setError(null); // Clear previous errors
-      const { incidents: data, unavailableSources: failed } = await fetchAllIncidentsWithStatus();
+      const { incidents: data, unavailableSources: failed } = await fetchAllIncidentsWithStatus(
+        (label, list) => {
+          bySourceRef.current.set(label, list);
+          const soFar = [...bySourceRef.current.values()].flat();
+          setIncidents(soFar);
+          onIncidentsLoadedRef.current?.(soFar);
+        },
+      );
+      for (const label of failed) bySourceRef.current.delete(label);
       setIncidents(data);
       onIncidentsLoadedRef.current?.(data);
       setUnavailableSources(failed);
@@ -581,8 +593,8 @@ function TravelLayer({
           {/* Incidents content - hidden when stargazing or camping is active */}
           {!showStargazing && !showCampingSites && (
             <>
-              {/* Loading state with skeleton */}
-              {loading && (
+              {/* Loading state with skeleton, until the first source shows something */}
+              {loading && totalCount === 0 && (
                 <div className="incidents-skeleton" aria-live="polite" aria-busy="true">
                   <div className="skeleton-item" />
                   <div className="skeleton-item" />
@@ -646,7 +658,7 @@ function TravelLayer({
                 </div>
               )}
 
-              {!loading && totalCount > 0 && (
+              {totalCount > 0 && (
                 <div className="incidents-list">
                   {(Object.keys(incidentsByType) as IncidentType[]).sort().map((type) => (
                     <div key={type} className="incident-group">

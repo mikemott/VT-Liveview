@@ -30,6 +30,8 @@ const NOAA_BASE = 'https://api.weather.gov';
  * Build User-Agent string for NOAA API requests.
  * Uses CONTACT_EMAIL env var per NOAA API Terms of Service.
  */
+const NOAA_TIMEOUT_MS = 10_000;
+
 function getUserAgent(): string {
   const env = getEnv();
   const contactEmail = env.CONTACT_EMAIL ?? 'weather-app@localhost';
@@ -45,6 +47,8 @@ function getFetchOptions(): RequestInit {
       'User-Agent': getUserAgent(),
       Accept: 'application/geo+json',
     },
+    // A hung NWS call must not hold a visitor's request open (VTL-89)
+    signal: AbortSignal.timeout(NOAA_TIMEOUT_MS),
   };
 }
 
@@ -116,31 +120,48 @@ async function getGridPoint(lat: number, lon: number): Promise<NOAAGridPointProp
 // Weather Data Functions
 // ============================================================================
 
+type Loader<T> = ReturnType<typeof cachedLoader<T>>;
+
+/**
+ * A bounded set of cached loaders, one per key, least recently used evicted
+ * first. Each entry has its own TTL and stale-on-error fallback.
+ */
+function keyedCache<T>(ttlMs: number, maxEntries: number) {
+  const loaders = new Map<string, Loader<T>>();
+  return (key: string, load: () => Promise<T>): Promise<T> => {
+    let loader = loaders.get(key);
+    if (loader) {
+      // Re-insert so the Map's order is least recently used first
+      loaders.delete(key);
+    } else {
+      if (loaders.size >= maxEntries) {
+        const oldest = loaders.keys().next().value;
+        if (oldest !== undefined) loaders.delete(oldest);
+      }
+      loader = cachedLoader(ttlMs, load);
+    }
+    loaders.set(key, loader);
+    return loader.get();
+  };
+}
+
 // Current conditions, cached per point (VTL-86). Stations report about hourly,
 // so 5 minutes saves NOAA two or three calls per page load without hiding a new reading for long.
-const CURRENT_WEATHER_TTL_MS = 5 * 60_000;
-const MAX_CURRENT_WEATHER_POINTS = 200;
-const currentWeatherLoaders = new Map<string, ReturnType<typeof cachedLoader<WeatherConditions>>>();
+const currentWeatherCache = keyedCache<WeatherConditions>(5 * 60_000, 200);
+
+// Forecasts, cached per NWS forecast URL (one per 2.5 km grid cell, so nearby
+// points share an entry). NWS updates them about hourly (VTL-89).
+const FORECAST_TTL_MS = 10 * 60_000;
+const forecastCache = keyedCache<ForecastPeriod[]>(FORECAST_TTL_MS, 200);
 
 /**
  * Get current weather conditions for coordinates, cached for 5 minutes per
  * point (three decimals, about 100 m). A failed refresh serves the last reading.
  */
 export async function getCurrentWeather(lat: number, lon: number): Promise<WeatherConditions> {
-  const key = `${lat.toFixed(3)},${lon.toFixed(3)}`;
-  let loader = currentWeatherLoaders.get(key);
-  if (loader) {
-    // Re-insert so the Map's order is least recently used first
-    currentWeatherLoaders.delete(key);
-  } else {
-    if (currentWeatherLoaders.size >= MAX_CURRENT_WEATHER_POINTS) {
-      const oldest = currentWeatherLoaders.keys().next().value;
-      if (oldest !== undefined) currentWeatherLoaders.delete(oldest);
-    }
-    loader = cachedLoader(CURRENT_WEATHER_TTL_MS, () => fetchCurrentWeather(lat, lon));
-  }
-  currentWeatherLoaders.set(key, loader);
-  return loader.get();
+  return currentWeatherCache(`${lat.toFixed(3)},${lon.toFixed(3)}`, () =>
+    fetchCurrentWeather(lat, lon),
+  );
 }
 
 /**
@@ -225,7 +246,12 @@ function toForecastPeriod(period: NOAAForecastPeriod): ForecastPeriod {
   };
 }
 
-async function fetchPeriods(url: string, what: string): Promise<ForecastPeriod[]> {
+/** A forecast's periods, cached for 10 minutes per URL */
+function fetchPeriods(url: string, what: string): Promise<ForecastPeriod[]> {
+  return forecastCache(url, () => loadPeriods(url, what));
+}
+
+async function loadPeriods(url: string, what: string): Promise<ForecastPeriod[]> {
   const response = await fetch(url, getFetchOptions());
 
   if (!response.ok) {
@@ -737,7 +763,7 @@ async function fetchLakeChamplainSensor(): Promise<ObservationStation | null> {
 
   try {
     const url = `https://waterservices.usgs.gov/nwis/iv/?format=json&sites=${USGS_SITE_ID}&parameterCd=${USGS_PARAM}&siteStatus=active`;
-    const response = await fetch(url);
+    const response = await fetch(url, { signal: AbortSignal.timeout(NOAA_TIMEOUT_MS) });
 
     if (!response.ok) {
       logStationDebug('USGS Lake Champlain fetch failed', { status: response.status });

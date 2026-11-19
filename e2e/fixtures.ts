@@ -4,7 +4,7 @@
  * Every test gets a page that:
  *   - has its clock pinned (theme and seasonal layers depend on the date/time),
  *   - never reaches the real internet: the browser's direct third-party requests
- *     (USGS, RainViewer, radar/basemap tiles, fonts, NOAA icons) are answered
+ *     (RainViewer, radar/basemap tiles, fonts, NOAA icons) are answered
  *     from fixtures, and anything unexpected is answered 404 and fails the test,
  *   - collects console errors and uncaught exceptions for assertions.
  *
@@ -49,10 +49,6 @@ const png: Responder = (route) =>
 
 /** Third-party hosts the frontend calls directly, matched by URL prefix. */
 const THIRD_PARTY: [prefix: string, respond: Responder][] = [
-  [
-    'https://waterservices.usgs.gov/nwis/iv/',
-    text(fixture('usgs/iv-vt-gage-height.json'), 'application/json'),
-  ],
   [
     'https://api.rainviewer.com/public/weather-maps.json',
     text(fixture('rainviewer/weather-maps.json'), 'application/json'),
