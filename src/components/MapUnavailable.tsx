@@ -47,7 +47,7 @@ export default function MapUnavailable({ reason }: MapUnavailableProps) {
 
   const incidentsQuery = useQuery<IncidentFetchResult>({
     queryKey: ['fallback', 'incidents'],
-    queryFn: fetchAllIncidentsWithStatus,
+    queryFn: () => fetchAllIncidentsWithStatus(),
     refetchInterval: INTERVALS.INCIDENTS_REFRESH,
   });
 

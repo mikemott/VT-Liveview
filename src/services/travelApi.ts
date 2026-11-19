@@ -2,9 +2,10 @@
  * Travel API Service
  * Fetches incident data from multiple sources:
  * - VT 511 (Vermont incidents, construction, lane closures)
- * - USGS Water Services (flood gauges)
+ * - NWS river gauges at minor flood stage or above, via the backend (VTL-89)
  */
 
+import { fetchRiverGauges, type FloodCategory, type RiverGauge } from './riverApi';
 import { fetchVT511Incidents, fetchVT511LaneClosures, type VT511ParsedIncident } from './vt511Api';
 
 // =============================================================================
@@ -17,7 +18,7 @@ interface Location {
   lng: number;
 }
 
-/** USGS flood gauge parsed data */
+/** A river gauge that is flooding */
 export interface FloodIncident {
   id: string;
   type: 'FLOODING';
@@ -27,7 +28,7 @@ export interface FloodIncident {
   geometry: null;
   severity: 'MAJOR';
   startTime: string;
-  source: 'USGS Water Services';
+  source: 'NWS river gauges';
   roadName: string;
 }
 
@@ -35,189 +36,43 @@ export interface FloodIncident {
 export type TravelIncident = VT511ParsedIncident | FloodIncident;
 
 // =============================================================================
-// USGS API Types
+// Flooding (NWS river gauges)
 // =============================================================================
 
-/** USGS site code entry */
-interface USGSSiteCode {
-  value: string;
-  network: string;
-  agencyCode: string;
-}
+/** Observed flood categories that count as flooding, with their labels */
+const FLOODING: Partial<Record<FloodCategory, string>> = {
+  minor: 'Minor flooding',
+  moderate: 'Moderate flooding',
+  major: 'Major flooding',
+};
 
-/** USGS geographic location */
-interface USGSGeoLocation {
-  geogLocation: {
-    srs: string;
-    latitude: number;
-    longitude: number;
+function toFloodIncident(gauge: RiverGauge): FloodIncident | null {
+  const label = FLOODING[gauge.category];
+  if (!label || !gauge.observedAt) return null;
+  const stage = gauge.stageFt === null ? '' : ` · ${gauge.stageFt.toFixed(1)} ft`;
+  return {
+    id: `flood-${gauge.id}`,
+    type: 'FLOODING',
+    title: `${label} at ${gauge.name}`,
+    description: `${label}${stage}`,
+    location: { lat: gauge.lat, lng: gauge.lng },
+    geometry: null,
+    severity: 'MAJOR',
+    startTime: gauge.observedAt,
+    source: 'NWS river gauges',
+    roadName: gauge.name,
   };
-  localSiteXY?: Array<{
-    x: number;
-    y: number;
-  }>;
 }
-
-/** USGS site info from API */
-interface USGSSiteInfo {
-  siteName: string;
-  siteCode: USGSSiteCode[];
-  timeZoneInfo: {
-    defaultTimeZone: {
-      zoneOffset: string;
-      zoneAbbreviation: string;
-    };
-  };
-  geoLocation: USGSGeoLocation;
-  note?: Array<{
-    value: string;
-    title: string;
-  }>;
-  siteType?: Array<{
-    value: string;
-  }>;
-  siteProperty?: Array<{
-    value: string;
-    name: string;
-  }>;
-}
-
-/** USGS time series value entry */
-interface USGSValue {
-  value: string;
-  qualifiers: string[];
-  dateTime: string;
-}
-
-/** USGS time series data */
-interface USGSTimeSeries {
-  sourceInfo: USGSSiteInfo;
-  variable: {
-    variableCode: Array<{
-      value: string;
-      network: string;
-      vocabulary: string;
-      variableID: number;
-    }>;
-    variableName: string;
-    variableDescription: string;
-    valueType: string;
-    unit: {
-      unitCode: string;
-    };
-    noDataValue: number;
-  };
-  values: Array<{
-    value: USGSValue[];
-    qualifier?: Array<{
-      qualifierCode: string;
-      qualifierDescription: string;
-      qualifierID: number;
-      network: string;
-      vocabulary: string;
-    }>;
-    method?: Array<{
-      methodDescription: string;
-      methodID: number;
-    }>;
-  }>;
-  name: string;
-}
-
-/** USGS API response */
-interface USGSResponse {
-  name: string;
-  declaredType: string;
-  scope: string;
-  value: {
-    queryInfo: {
-      queryURL: string;
-      criteria: {
-        locationParam: string;
-        variableParam: string;
-        parameter: Array<{ name: string; value: string }>;
-      };
-      note: Array<{ value: string; title: string }>;
-    };
-    timeSeries: USGSTimeSeries[];
-  };
-  nil: boolean;
-  globalScope: boolean;
-  typeSubstituted: boolean;
-}
-
-// =============================================================================
-// USGS Flood Data
-// =============================================================================
-
-/** USGS Water Services API URL */
-const USGS_API_URL =
-  'https://waterservices.usgs.gov/nwis/iv/?format=json&stateCd=VT&parameterCd=00065&siteStatus=active';
 
 /**
- * Fetch flood gauge data from USGS
+ * Gauges at minor flood stage or above, using the NWS flood categories. The
+ * backend caches the gauge list (one NWPS call per 10 minutes for everyone);
+ * it replaced the browser's direct USGS call, which took 7-10 s and is being
+ * retired (VTL-89).
  */
 export async function fetchFloodGauges(): Promise<FloodIncident[]> {
-  try {
-    const response = await fetch(USGS_API_URL);
-
-    if (!response.ok) {
-      throw new Error(`USGS API error: ${response.status}`);
-    }
-
-    const data = (await response.json()) as USGSResponse;
-    const floods: FloodIncident[] = [];
-
-    // Parse USGS data and identify flooding conditions
-    if (data.value?.timeSeries) {
-      for (const series of data.value.timeSeries) {
-        const siteInfo = series.sourceInfo;
-        const values = series.values?.[0]?.value;
-
-        if (!values || values.length === 0) continue;
-
-        const latestValue = values[values.length - 1];
-        if (!latestValue) continue;
-
-        const gageHeight = parseFloat(latestValue.value);
-        const latestTime = new Date(latestValue.dateTime);
-        const now = new Date();
-        const hoursSinceReading = (now.getTime() - latestTime.getTime()) / (1000 * 60 * 60);
-
-        // Only show if data is recent (within last 3 hours) and height is significant
-        // TODO: Improve with actual flood stage data from USGS flood categories
-        const isRecentData = hoursSinceReading < 3;
-        const isFlooding = gageHeight > 15; // Higher threshold to reduce false positives
-
-        if (isFlooding && isRecentData) {
-          const siteCode = siteInfo.siteCode[0]?.value ?? 'unknown';
-
-          floods.push({
-            id: `usgs-${siteCode}`,
-            type: 'FLOODING',
-            title: `Flooding at ${siteInfo.siteName}`,
-            description: `Gage height: ${gageHeight.toFixed(2)} ft`,
-            location: {
-              lat: siteInfo.geoLocation.geogLocation.latitude,
-              lng: siteInfo.geoLocation.geogLocation.longitude,
-            },
-            geometry: null,
-            severity: 'MAJOR',
-            startTime: latestValue.dateTime,
-            source: 'USGS Water Services',
-            roadName: siteInfo.siteName,
-          });
-        }
-      }
-    }
-
-    return floods;
-  } catch (error) {
-    if (import.meta.env.DEV) {
-      console.error('Error fetching USGS flood data:', error);
-    }
-    throw error;
-  }
+  const gauges = await fetchRiverGauges();
+  return gauges.map(toFloodIncident).filter((f): f is FloodIncident => f !== null);
 }
 
 // =============================================================================
@@ -234,16 +89,26 @@ export interface IncidentFetchResult {
 const INCIDENT_SOURCES: { label: string; fetch: () => Promise<TravelIncident[]> }[] = [
   { label: 'VT 511 incidents', fetch: fetchVT511Incidents },
   { label: 'VT 511 lane closures', fetch: fetchVT511LaneClosures },
-  { label: 'USGS river gauges', fetch: fetchFloodGauges },
+  { label: 'River gauges', fetch: fetchFloodGauges },
 ];
 
 /**
  * Fetch travel incidents from every source and report which ones failed.
  * An outage in one source must not hide the others' incidents, but it also
  * must not look like "no incidents". Rejects only when every source fails.
+ * `onSource` lets a caller show fast sources before the slowest one returns.
  */
-export async function fetchAllIncidentsWithStatus(): Promise<IncidentFetchResult> {
-  const results = await Promise.allSettled(INCIDENT_SOURCES.map((source) => source.fetch()));
+export async function fetchAllIncidentsWithStatus(
+  /** Called with each source's incidents as soon as that source loads */
+  onSource?: (label: string, incidents: TravelIncident[]) => void,
+): Promise<IncidentFetchResult> {
+  const results = await Promise.allSettled(
+    INCIDENT_SOURCES.map(async (source) => {
+      const incidents = await source.fetch();
+      onSource?.(source.label, incidents);
+      return incidents;
+    }),
+  );
 
   const incidents: TravelIncident[] = [];
   const unavailableSources: string[] = [];

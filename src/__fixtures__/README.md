@@ -10,7 +10,6 @@ and the parser together.
 |---|---|---|
 | `vt511/incidents.xml` | `GET {VITE_BACKEND_URL}/api/vt511/incidents` (backend proxy of the New England Compass XML portal, `https://nec-por.ne-compass.com/NEC.XmlDataPortal/`) | `src/services/vt511Api.ts` |
 | `vt511/closures.xml` | `GET {VITE_BACKEND_URL}/api/vt511/closures` (same portal, lane closures feed) | `src/services/vt511Api.ts` |
-| `usgs/iv-vt-gage-height.json` | `https://waterservices.usgs.gov/nwis/iv/?format=json&stateCd=VT&parameterCd=00065&siteStatus=active` | `src/services/travelApi.ts` |
 | `rainviewer/weather-maps.json` | `https://api.rainviewer.com/public/weather-maps.json` | `src/hooks/useRadarAnimation.ts` |
 | `graphql/forecast.json` | Backend GraphQL `query Forecast` (`{VITE_GRAPHQL_ENDPOINT}`, default `http://localhost:4000/graphql`), which proxies `https://api.weather.gov/gridpoints/...` | `src/hooks/useForecast.ts`, `src/services/graphqlClient.ts` |
 | `graphql/mergedAlerts.json` | Backend GraphQL `query MergedAlerts`, which proxies `https://api.weather.gov/alerts/active?area=VT` | `src/services/graphqlClient.ts` |

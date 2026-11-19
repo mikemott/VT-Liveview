@@ -140,6 +140,39 @@ describe('TravelLayer', () => {
     expect(screen.getByText(/^Updated/)).toBeInTheDocument();
   });
 
+  it('shows fast sources before the slowest one loads, and keeps the list during a refresh (VTL-89)', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+    const onIncidentsLoaded = vi.fn();
+    const pending: (() => void)[] = [];
+    statusMock.mockImplementation(async (onSource) => {
+      onSource?.('VT 511 incidents', [makeVT511Incident()]);
+      // The river gauges are still loading
+      await new Promise<void>((r) => pending.push(r));
+      return { incidents: [makeVT511Incident()], unavailableSources: [] };
+    });
+    const { container } = render(<TravelLayer {...props} onIncidentsLoaded={onIncidentsLoaded} />);
+
+    await waitFor(() => expect(screen.getByText('Crash on I-89')).toBeInTheDocument());
+    expect(container.querySelector('.incidents-skeleton')).toBeNull();
+    expect(onIncidentsLoaded).toHaveBeenCalledWith([expect.objectContaining({ id: 'vt511-1' })]);
+    await act(async () => {
+      pending.shift()?.();
+      await Promise.resolve();
+    });
+
+    // A refresh: the list stays up instead of flashing back to the skeleton
+    act(() => {
+      vi.advanceTimersByTime(INTERVALS.INCIDENTS_REFRESH);
+    });
+    await waitFor(() => expect(statusMock).toHaveBeenCalledTimes(2));
+    expect(container.querySelector('.incidents-skeleton')).toBeNull();
+    expect(screen.getByText('Crash on I-89')).toBeInTheDocument();
+    await act(async () => {
+      pending.shift()?.();
+      await Promise.resolve();
+    });
+  });
+
   it('shows the empty state when nothing matches', async () => {
     fetchMock.mockResolvedValue([]);
     render(<TravelLayer {...props} />);

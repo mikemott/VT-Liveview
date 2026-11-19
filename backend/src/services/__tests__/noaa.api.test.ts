@@ -858,5 +858,67 @@ describe('getObservationStations', () => {
   it.todo(
     'exposes Lake Champlain water temperature separately from air temperature (FINDINGS Low, noaa.ts:692-711)',
   );
-  it.todo('aborts hung upstream requests with a timeout (FINDINGS H5)');
+  it('aborts hung upstream requests with a timeout (FINDINGS H5)', async () => {
+    const timeout = vi
+      .spyOn(AbortSignal, 'timeout')
+      .mockImplementation(() => AbortSignal.abort(new DOMException('timed out', 'TimeoutError')));
+    useGridHandlers();
+    const { getForecast } = await loadNoaa();
+
+    await expect(getForecast(44.4759, -73.2121)).rejects.toThrow();
+    const delays = timeout.mock.calls.map(([ms]) => ms);
+    timeout.mockRestore();
+    expect(delays).toContain(10_000);
+  });
+});
+
+describe('forecast cache (VTL-89)', () => {
+  it('serves nearby points from one NWS call for 10 minutes, then refreshes', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
+    useGridHandlers();
+    let forecastCalls = 0;
+    let hourlyCalls = 0;
+    server.use(
+      http.get(FORECAST, () => {
+        forecastCalls++;
+        return HttpResponse.json(loadJson('noaa/forecast.json'));
+      }),
+      http.get(HOURLY, () => {
+        hourlyCalls++;
+        return HttpResponse.json(loadJson('noaa/forecast.json'));
+      }),
+    );
+    const { getForecast, getHourlyForecast } = await loadNoaa();
+
+    // Different points in the same NWS grid cell share the forecast URL
+    await getForecast(44.4759, -73.2121);
+    await getForecast(44.4801, -73.2101);
+    await getHourlyForecast(44.4759, -73.2121);
+    await getHourlyForecast(44.4759, -73.2121);
+    expect(forecastCalls).toBe(1);
+    expect(hourlyCalls).toBe(1);
+
+    vi.advanceTimersByTime(10 * 60_000 + 1);
+    await getForecast(44.4759, -73.2121);
+    expect(forecastCalls).toBe(2);
+  });
+
+  it('serves the last forecast when a refresh fails', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
+    useGridHandlers();
+    let fail = false;
+    server.use(
+      http.get(FORECAST, () =>
+        fail
+          ? HttpResponse.text('down', { status: 503 })
+          : HttpResponse.json(loadJson('noaa/forecast.json')),
+      ),
+    );
+    const { getForecast } = await loadNoaa();
+
+    const first = await getForecast(44.4759, -73.2121);
+    vi.advanceTimersByTime(10 * 60_000 + 1);
+    fail = true;
+    expect(await getForecast(44.4759, -73.2121)).toEqual(first);
+  });
 });

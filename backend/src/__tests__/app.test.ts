@@ -384,7 +384,49 @@ describe('VT 511 proxy routes', () => {
     expect(res.json()).toEqual({ error: `Failed to fetch VT 511 ${label} data` });
   });
 
-  it.todo('aborts the upstream fetch after a timeout (FINDINGS H5)');
+  it('caches each feed for a minute and serves the last copy when a refresh fails (VTL-89)', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    let calls = 0;
+    let fail = false;
+    server.use(
+      http.get(VT511, () => {
+        calls++;
+        return fail
+          ? HttpResponse.text('down', { status: 503 })
+          : HttpResponse.text(`<data n="${calls}"/>`);
+      }),
+    );
+    const app = await loadApp();
+    const get = async () => app.inject({ method: 'GET', url: '/api/vt511/incidents' });
+
+    expect((await get()).body).toBe('<data n="1"/>');
+    expect((await get()).body).toBe('<data n="1"/>');
+    expect(calls).toBe(1);
+
+    vi.advanceTimersByTime(60_001);
+    fail = true;
+    const stale = await get();
+    expect(calls).toBe(2);
+    expect(stale.statusCode).toBe(200);
+    expect(stale.body).toBe('<data n="1"/>');
+    vi.useRealTimers();
+  });
+
+  it('aborts the upstream fetch after a timeout (FINDINGS H5)', async () => {
+    const timeout = vi
+      .spyOn(AbortSignal, 'timeout')
+      .mockImplementation(() => AbortSignal.abort(new DOMException('timed out', 'TimeoutError')));
+    server.use(http.get(VT511, () => HttpResponse.text('<data/>')));
+    const app = await loadApp();
+
+    const res = await app.inject({ method: 'GET', url: '/api/vt511/incidents' });
+
+    const delays = timeout.mock.calls.map(([ms]) => ms);
+    timeout.mockRestore();
+    expect(delays).toContain(10_000);
+    expect(res.statusCode).toBe(500);
+    expect(res.json()).toEqual({ error: 'Failed to fetch VT 511 incident data' });
+  });
 });
 
 describe('POST /api/ski-conditions/refresh', () => {
