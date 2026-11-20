@@ -19,7 +19,6 @@ import FerryLayer from './components/FerryLayer';
 import { FERRIES, type Ferry } from './data/ferries';
 import { getFerryStatus, type FerryStatus } from './utils/ferries';
 import { areaView, type FireDanger, type FireDangerArea } from './services/fireDangerApi';
-import { isFireDangerStale } from './utils/fireDanger';
 import type { EvCharger } from './services/evChargerApi';
 import type { RiverGauge } from './services/riverApi';
 import { floodSeverity, worstCategory } from './utils/rivers';
@@ -220,7 +219,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
   // Unified layer visibility state
   // null = auto (follow season), true = forced on, false = forced off
   // Layers that show themselves while something is happening, until the user
-  // toggles them (VTL-81): rivers while flooding, fire danger while High or worse
+  // toggles them (VTL-81): rivers while flooding
   const [autoShown, setAutoShown] = useState<Record<string, boolean>>({});
   const setAutoShow = useCallback((layerId: string, on: boolean): void => {
     setAutoShown((prev) => (prev[layerId] === on ? prev : { ...prev, [layerId]: on }));
@@ -237,7 +236,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
       airQuality: false, // Off by default (VTL-76)
       riverGauges: null, // Auto: on while any gauge is flooding or forecast to (VTL-81)
       evChargers: false, // Off by default (VTL-81)
-      fireDanger: null, // Auto: on while any area is High or worse (VTL-81)
+      fireDanger: false, // Off by default: fall ratings sit at High for weeks, so auto-show kept it on
       ferries: false, // Off by default (VTL-81)
       seasonalRoads: false, // Off by default: stations, traffic and accidents only
     };
@@ -1287,23 +1286,16 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
     setDetailPanelContent({ type: 'river', data: gauge });
   }, []);
 
-  // Fire danger (VTL-81): auto-show, search, and shared-link restore
+  // Fire danger (VTL-81): search and shared-link restore
   const [fireDanger, setFireDanger] = useState<FireDanger | null>(null);
-  const handleFireDangerLoaded = useCallback(
-    (loaded: FireDanger): void => {
-      setFireDanger(loaded);
-      setAutoShow(
-        'fireDanger',
-        !isFireDangerStale(loaded.updatedAt) && loaded.areas.some((a) => (a.rating ?? 0) >= 3),
-      );
-      const pending = pendingSelection.current;
-      if (pending?.type !== 'fire') return;
-      pendingSelection.current = undefined;
-      const area = loaded.areas.find((a) => a.id === pending.id);
-      if (area) setDetailPanelContent({ type: 'fireDanger', data: areaView(area, loaded) });
-    },
-    [setAutoShow],
-  );
+  const handleFireDangerLoaded = useCallback((loaded: FireDanger): void => {
+    setFireDanger(loaded);
+    const pending = pendingSelection.current;
+    if (pending?.type !== 'fire') return;
+    pendingSelection.current = undefined;
+    const area = loaded.areas.find((a) => a.id === pending.id);
+    if (area) setDetailPanelContent({ type: 'fireDanger', data: areaView(area, loaded) });
+  }, []);
   const handleFireDangerClick = useCallback((area: FireDangerArea, danger: FireDanger): void => {
     setDetailPanelContent({ type: 'fireDanger', data: areaView(area, danger) });
   }, []);
