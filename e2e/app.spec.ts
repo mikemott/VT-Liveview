@@ -123,7 +123,7 @@ test.describe('radar controls', () => {
 });
 
 test.describe('map features', () => {
-  test('a fresh load turns on only weather stations, traffic and accidents', async ({
+  test('a fresh load turns on weather stations, traffic and accidents, not fire danger', async ({
     page,
     isMobile,
   }) => {
@@ -140,7 +140,8 @@ test.describe('map features', () => {
     const on = await page
       .locator('button.filter-chip[aria-pressed="true"]')
       .evaluateAll((els) => els.map((el) => el.getAttribute('data-chip-type')).sort());
-    expect(on).toEqual(['accident', 'traffic', 'weather']);
+    // Rivers auto-show while a gauge floods, and the NWPS fixture has one flooding
+    expect(on).toEqual(['accident', 'rivers', 'traffic', 'weather']);
   });
 
   test('weather station toggle adds and removes markers', async ({ page, isMobile }) => {
