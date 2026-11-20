@@ -23,9 +23,11 @@
   Oct 2026). Status is worked out from the published season for the date, never "running now",
   and every panel links to the operator for live service changes. Boats animate only on
   in-season crossings, and not when the user prefers reduced motion.
-- **Auto-show layers:** Rivers (minor flooding or worse, observed or forecast) and Fire danger
-  (High or worse, and current) turn themselves on until the user toggles them. This is
-  `autoShown` in `WeatherMap.tsx`.
+- **Auto-show layers:** Rivers (minor flooding or worse, observed or forecast) turn themselves
+  on until the user toggles them. This is `autoShown` in `WeatherMap.tsx`.
+  - *Amended Nov 2026:* Fire danger no longer auto-shows. Vermont's fall ratings sit at High
+    for weeks, so the layer was on for nearly every fresh load. A fresh load shows weather
+    stations, traffic and accidents only.
 
 ## Why
 - **NWPS:** it already tells us whether a river is flooding. With USGS alone we'd have to

@@ -123,6 +123,26 @@ test.describe('radar controls', () => {
 });
 
 test.describe('map features', () => {
+  test('a fresh load turns on only weather stations, traffic and accidents', async ({
+    page,
+    isMobile,
+  }) => {
+    await openApp(page);
+    if (isMobile) await page.getByRole('button', { name: 'Open menu' }).click();
+
+    const chips = page.locator('button.filter-chip');
+    await expect(chips.first()).toBeVisible();
+    // Fire danger stayed on through High-rated fall weeks before it lost auto-show
+    await expect(page.locator('button.filter-chip[data-chip-type="fire"]')).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+    const on = await page
+      .locator('button.filter-chip[aria-pressed="true"]')
+      .evaluateAll((els) => els.map((el) => el.getAttribute('data-chip-type')).sort());
+    expect(on).toEqual(['accident', 'traffic', 'weather']);
+  });
+
   test('weather station toggle adds and removes markers', async ({ page, isMobile }) => {
     await openApp(page);
     if (isMobile) await page.getByRole('button', { name: 'Open menu' }).click();
