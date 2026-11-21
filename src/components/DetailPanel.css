@@ -134,3 +134,8 @@
   margin-left: auto;
   margin-right: var(--space-3);
 }
+
+/* Held space while the panel's views load on first open (VTL-95) */
+.detail-panel-loading {
+  min-height: 6rem;
+}

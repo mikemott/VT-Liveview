@@ -28,7 +28,8 @@ primary_region = "bos"
   soft_limit = 200
 
 [[vm]]
-  memory = "256mb"
+  # 512 MB gives headroom for traffic spikes and the ~9 MB camera snapshot feed (VTL-95)
+  memory = "512mb"
   cpu_kind = "shared"
   cpus = 1
 

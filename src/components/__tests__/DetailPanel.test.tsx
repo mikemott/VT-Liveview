@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import DetailPanel from '../DetailPanel';
 import type { DetailPanelContent } from '../../types';
 import {
@@ -31,11 +31,24 @@ describe('DetailPanel', () => {
     ['incident', { type: 'incident', data: makeVT511Incident() }, 'Traffic Incident'],
     ['station', { type: 'station', data: makeStation() }, 'Weather Station'],
     ['location', { type: 'location', coordinates: { lat: 44.26, lng: -72.58 } }, "What's Here"],
-  ])('renders the %s view with its title', (_type, content, title) => {
+  ])('renders the %s view with its title', async (_type, content, title) => {
     const { container } = render(<DetailPanel content={content} onClose={vi.fn()} isDark />);
     expect(screen.getByRole('heading', { name: title })).toBeInTheDocument();
     expect(container.querySelector('.detail-panel')).toHaveClass('open', 'dark');
-    expect(container.querySelector('.detail-view')).not.toBeNull();
+    // The views load lazily, as their own chunk (VTL-95)
+    await waitFor(() => expect(container.querySelector('.detail-view')).not.toBeNull());
+    expect(container.querySelector('.detail-panel-loading')).toBeNull();
+  });
+
+  it('holds space while the views load, then shows them (VTL-95)', async () => {
+    const { container } = render(
+      <DetailPanel content={{ type: 'station', data: makeStation() }} onClose={vi.fn()} isDark />,
+    );
+    // Either the placeholder or (if the chunk is already loaded) the view, never an empty panel
+    expect(
+      container.querySelector('.detail-panel-loading') ?? container.querySelector('.detail-view'),
+    ).not.toBeNull();
+    await waitFor(() => expect(container.querySelector('.detail-view')).not.toBeNull());
   });
 
   it('offers a share menu for stations but not incidents (VTL-52, VTL-70)', () => {
