@@ -258,7 +258,8 @@ describe('CampgroundDetail', () => {
       />,
     );
     expect(screen.getByText('Private')).toBeInTheDocument();
-    expect(screen.queryByRole('link')).toBeNull();
+    // Only the source link
+    expect(screen.getAllByRole('link').map((a) => a.textContent)).toEqual(['Vermont ANR']);
     expect(screen.queryByText('Tent sites')).toBeNull();
   });
 
@@ -294,7 +295,8 @@ describe('CampingAreaDetail', () => {
     expect(screen.getByText('State forest')).toBeInTheDocument();
     expect(screen.getByText('3')).toBeInTheDocument();
     expect(screen.getByText('Lean-to')).toBeInTheDocument();
-    expect(screen.queryByRole('link')).toBeNull();
+    // Only the source link
+    expect(screen.getAllByRole('link').map((a) => a.textContent)).toEqual(['Vermont ANR']);
   });
 
   it('links state parks to vtstateparks.com', () => {

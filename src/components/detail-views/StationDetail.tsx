@@ -5,7 +5,9 @@
 import { MapPin, Thermometer, Wind, Droplets, Gauge } from 'lucide-react';
 import type { ObservationStation } from '../../types';
 import { getObservationAge } from '../../utils/observationAge';
+import { stationSource } from '../../utils/sourceLinks';
 import LayerBadge from './LayerBadge';
+import { DetailSource } from './DetailParts';
 import './DetailViews.css';
 
 interface StationDetailProps {
@@ -135,7 +137,9 @@ export default function StationDetail({ station, isDark }: StationDetailProps) {
       <div className="station-description">{weather.description}</div>
 
       {/* Last updated */}
-      <div className="station-updated">Last updated: {formatTimestamp(weather.timestamp)}</div>
+      <DetailSource sources={[stationSource(station.id)]}>
+        updated {formatTimestamp(weather.timestamp)}
+      </DetailSource>
     </div>
   );
 }

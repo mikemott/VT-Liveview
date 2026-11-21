@@ -8,6 +8,8 @@ import { formatDateTime } from '../../utils/formatDateTime';
 import { DetailHeader, DetailRows, DetailSource, DetailStatus } from './DetailParts';
 import { isSkiReporting } from '../../utils/skiStatus';
 import SkiWebcam from './SkiWebcam';
+import { useSkiWebcams } from '../../hooks/useSkiWebcams';
+import { safeHttpsUrl, SOURCES } from '../../utils/sourceLinks';
 import './DetailViews.css';
 
 interface SkiDetailProps {
@@ -21,6 +23,9 @@ export default function SkiDetail({ resort, isDark }: SkiDetailProps) {
   const reporting = isSkiReporting(resort);
   const tone = resort.color === 'green' ? 'good' : resort.color === 'yellow' ? 'warn' : 'bad';
   const updated = formatDateTime(resort.lastUpdated);
+  // Shared query with SkiWebcam: credit the resort's camera page when there is one
+  const { data: webcams } = useSkiWebcams();
+  const camPage = safeHttpsUrl(webcams?.resorts[resort.id]?.page);
 
   return (
     <div className={`detail-view ski-detail ${isDark ? 'dark' : ''}`}>
@@ -68,7 +73,14 @@ export default function SkiDetail({ resort, isDark }: SkiDetailProps) {
         </DetailStatus>
       )}
 
-      <DetailSource>Source: Ski Vermont{updated ? ` · updated ${updated}` : ''}</DetailSource>
+      <DetailSource
+        sources={[
+          SOURCES.skiVermont,
+          ...(camPage ? [{ name: `${resort.name} webcams`, href: camPage }] : []),
+        ]}
+      >
+        {updated ? `updated ${updated}` : null}
+      </DetailSource>
     </div>
   );
 }

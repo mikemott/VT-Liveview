@@ -17,6 +17,8 @@ import {
 import type { AlertFeature } from '../types';
 import { alertKey } from '../utils/alerts';
 import { formatDateTime } from '../utils/formatDateTime';
+import { nwsAlertSource } from '../utils/sourceLinks';
+import { DetailSource } from './detail-views/DetailParts';
 import './AlertPopup.css';
 
 interface AlertPopupProps {
@@ -156,6 +158,10 @@ function AlertPopup({
             {expanded ? 'Show fewer' : `${count - 1} more alert${count > 2 ? 's' : ''}`}
           </button>
         )}
+        {/* Links the shown alert's zone when one is shown, else weather.gov (VTL-96) */}
+        <DetailSource
+          sources={[nwsAlertSource(shown.length === 1 ? shown[0]! : { properties: {} })]}
+        />
       </section>
     </div>
   );

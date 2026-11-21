@@ -130,7 +130,10 @@ describe('IncidentDetail', () => {
     expect(screen.getByText('All lanes closed')).toBeInTheDocument();
     expect(screen.getByText('72,000 lbs')).toBeInTheDocument();
     expect(screen.queryByText('Width limit')).toBeNull();
-    expect(screen.getByText('Source: VT 511')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'New England 511' })).toHaveAttribute(
+      'href',
+      'https://newengland511.org/',
+    );
   });
 
   it('skips a description that only repeats the title', () => {
@@ -372,7 +375,7 @@ describe('LocationDetail air quality (VTL-75)', () => {
         .getAllByRole('listitem')
         .map((li) => li.textContent),
     ).toEqual([expect.stringMatching(/^TodayAQI 105.*action day$/), 'TomorrowModerate']);
-    expect(screen.getByText(/Air quality: EPA AirNow/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'EPA AirNow' })).toBeInTheDocument();
   });
 
   it('shows no air quality section when there is none', () => {

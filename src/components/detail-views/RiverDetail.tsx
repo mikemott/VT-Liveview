@@ -14,6 +14,7 @@ import {
   impactAt,
   isRiverReadingStale,
 } from '../../utils/rivers';
+import { nwpsGaugeUrl, usgsSiteUrl } from '../../utils/sourceLinks';
 import LayerBadge from './LayerBadge';
 import { DetailHeader, DetailRows, DetailSource } from './DetailParts';
 import '../../styles/tone.css';
@@ -222,17 +223,16 @@ export default function RiverDetail({ gauge, isDark }: RiverDetailProps) {
         </div>
       )}
 
-      {stageList && <div className="station-updated">NWS flood stages (ft): {stageList}</div>}
-      <DetailSource>
-        Source: NWS National Water Prediction Service
-        {detail?.usgsId ? ` and USGS gauge ${detail.usgsId}` : ''}.{' '}
-        <a
-          href={`https://water.noaa.gov/gauges/${encodeURIComponent(gauge.id)}`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Full forecast
-        </a>
+      {stageList && <p className="detail-note">NWS flood stages (ft): {stageList}</p>}
+      <DetailSource
+        sources={[
+          { name: 'National Weather Service', href: nwpsGaugeUrl(gauge.id) },
+          ...(detail?.usgsId
+            ? [{ name: 'U.S. Geological Survey', href: usgsSiteUrl(detail.usgsId) }]
+            : []),
+        ]}
+      >
+        forecast from the National Water Prediction Service
       </DetailSource>
     </div>
   );

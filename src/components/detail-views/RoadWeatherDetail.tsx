@@ -5,7 +5,9 @@ import { MapPin } from 'lucide-react';
 import type { RoadWeatherStation } from '../../services/roadWeatherApi';
 import { getObservationAge } from '../../utils/observationAge';
 import { cToF, describeFriction, getRoadRisk, ROAD_RISK_LABELS } from '../../utils/roadWeather';
+import { SOURCES } from '../../utils/sourceLinks';
 import LayerBadge from './LayerBadge';
+import { DetailSource } from './DetailParts';
 import './DetailViews.css';
 
 interface RoadWeatherDetailProps {
@@ -70,10 +72,13 @@ export default function RoadWeatherDetail({ station, isDark }: RoadWeatherDetail
         </div>
       )}
 
-      <div className="station-updated">
-        Source: VTrans road weather information system (RWIS). Pavement temperature is measured at
-        this spot only; bridges and shaded curves can be colder.
-      </div>
+      <p className="detail-note">
+        Pavement temperature is measured at this spot only; bridges and shaded curves can be colder.
+      </p>
+
+      <DetailSource sources={[SOURCES.vtrans, SOURCES.newEngland511]}>
+        road weather information system (RWIS)
+      </DetailSource>
     </div>
   );
 }
