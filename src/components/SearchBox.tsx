@@ -60,6 +60,8 @@ interface SearchBoxProps {
   isDark: boolean;
   /** Shorter placeholder for narrow screens, where the full one is clipped */
   compact?: boolean;
+  /** Floating bar at the bottom center of the map (mobile, VTL-93); results open upward. */
+  floating?: boolean;
 }
 
 /**
@@ -73,6 +75,7 @@ export default function SearchBox({
   loadingMore = false,
   isDark,
   compact = false,
+  floating = false,
 }: SearchBoxProps) {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
@@ -138,14 +141,20 @@ export default function SearchBox({
   const activeId = showList && results[active] ? `${listId}-opt-${active}` : undefined;
 
   return (
-    <div className={`search-box ${isDark ? 'dark' : ''}`}>
+    <div className={`search-box ${floating ? 'floating' : ''} ${isDark ? 'dark' : ''}`}>
       <div className="search-input-wrap">
-        <Search size={16} className="search-icon" aria-hidden="true" />
+        <Search size={floating ? 20 : 16} className="search-icon" aria-hidden="true" />
         <input
           ref={inputRef}
           type="search"
           className="search-input"
-          placeholder={compact ? 'Search towns, roads…' : 'Search towns, ski areas, roads…'}
+          placeholder={
+            floating
+              ? 'Search places…'
+              : compact
+                ? 'Search towns, roads…'
+                : 'Search towns, ski areas, roads…'
+          }
           value={query}
           role="combobox"
           aria-label="Search places"

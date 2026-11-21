@@ -133,4 +133,10 @@ describe('SearchBox', () => {
     expect(document.activeElement).toBe(input);
     other.remove();
   });
+
+  it('floating variant gets its own class and a short placeholder', () => {
+    const { input } = setup({ floating: true });
+    expect(input.closest('.search-box')).toHaveClass('floating');
+    expect(input).toHaveAttribute('placeholder', 'Search places…');
+  });
 });

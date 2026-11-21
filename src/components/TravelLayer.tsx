@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo, ReactNode, memo } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronDown, ChevronRight, ZoomIn } from 'lucide-react';
 import maplibregl from 'maplibre-gl';
 import { fetchAllIncidentsWithStatus, type TravelIncident } from '../services/travelApi';
@@ -30,6 +31,8 @@ interface ActiveFilters {
 interface TravelLayerProps {
   map: MapLibreMap | null;
   visible: boolean;
+  /** Mobile: also render the layer chips as a one-row strip here (VTL-93). */
+  chipStripContainer?: HTMLElement | null;
   currentZoom: number;
   isDark: boolean;
   showWeatherStations: boolean;
@@ -160,6 +163,29 @@ function FilterChip({ layer, chipType, active, onClick, count = 0 }: FilterChipP
   );
 }
 
+/**
+ * Mobile: every layer chip in one row that scrolls sideways (VTL-93). Layers
+ * that were on when the strip appeared come first; the order then stays put,
+ * so a chip doesn't jump away from the finger that just toggled it.
+ */
+function ChipStrip({ chips, isDark }: { chips: FilterChipProps[]; isDark: boolean }) {
+  const [order] = useState(() =>
+    [...chips].sort((a, b) => Number(b.active) - Number(a.active)).map((c) => c.chipType),
+  );
+  const byType = new Map(chips.map((c) => [c.chipType, c]));
+  const ordered = [
+    ...order.flatMap((type) => byType.get(type) ?? []),
+    ...chips.filter((c) => !order.includes(c.chipType)),
+  ];
+  return (
+    <div className={`chip-strip ${isDark ? 'dark' : ''}`} role="toolbar" aria-label="Map layers">
+      {ordered.map((chip) => (
+        <FilterChip key={chip.chipType} {...chip} />
+      ))}
+    </div>
+  );
+}
+
 // =============================================================================
 // Component
 // =============================================================================
@@ -167,6 +193,7 @@ function FilterChip({ layer, chipType, active, onClick, count = 0 }: FilterChipP
 function TravelLayer({
   map,
   visible,
+  chipStripContainer = null,
   currentZoom,
   isDark,
   showWeatherStations,
@@ -415,10 +442,125 @@ function TravelLayer({
 
   const totalCount = visibleIncidents.length;
 
+  const travelChips: FilterChipProps[] = [
+    {
+      layer: 'weatherStations',
+      chipType: 'weather',
+      active: showWeatherStations,
+      onClick: onToggleWeatherStations,
+    },
+    {
+      layer: 'trafficFlow',
+      chipType: 'traffic',
+      active: showTrafficFlow,
+      onClick: onToggleTrafficFlow,
+    },
+  ];
+  if (onToggleCameras) {
+    travelChips.push({
+      layer: 'trafficCameras',
+      chipType: 'cameras',
+      active: showCameras,
+      onClick: onToggleCameras,
+    });
+  }
+  if (onToggleRoadWeather) {
+    travelChips.push({
+      layer: 'roadWeather',
+      chipType: 'roadwx',
+      active: showRoadWeather,
+      onClick: onToggleRoadWeather,
+    });
+  }
+  if (onToggleAirQuality) {
+    travelChips.push({
+      layer: 'airQuality',
+      chipType: 'air',
+      active: showAirQuality,
+      onClick: onToggleAirQuality,
+    });
+  }
+  if (onToggleRivers) {
+    travelChips.push({
+      layer: 'riverGauges',
+      chipType: 'rivers',
+      active: showRivers,
+      onClick: onToggleRivers,
+    });
+  }
+  if (onToggleFireDanger) {
+    travelChips.push({
+      layer: 'fireDanger',
+      chipType: 'fire',
+      active: showFireDanger,
+      onClick: onToggleFireDanger,
+    });
+  }
+  if (onToggleFerries) {
+    travelChips.push({
+      layer: 'ferries',
+      chipType: 'ferries',
+      active: showFerries,
+      onClick: onToggleFerries,
+    });
+  }
+  if (onToggleEvChargers) {
+    travelChips.push({
+      layer: 'evChargers',
+      chipType: 'ev',
+      active: showEvChargers,
+      onClick: onToggleEvChargers,
+    });
+  }
+  if (onToggleSeasonalRoads) {
+    travelChips.push({
+      layer: 'seasonalRoads',
+      chipType: 'seasonal',
+      active: showSeasonalRoads,
+      onClick: onToggleSeasonalRoads,
+    });
+  }
+  for (const type of Object.keys(activeFilters) as IncidentType[]) {
+    travelChips.push({
+      layer: type,
+      chipType: type.toLowerCase(),
+      active: activeFilters[type],
+      onClick: () => toggleFilter(type),
+      count: incidentsByType[type]?.length ?? 0,
+    });
+  }
+
+  const poiChips: FilterChipProps[] = [
+    { layer: 'skiResorts', chipType: 'ski', active: showSkiResorts, onClick: onToggleSkiResorts },
+    {
+      layer: 'stargazing',
+      chipType: 'stargazing',
+      active: showStargazing,
+      onClick: onToggleStargazing,
+    },
+    {
+      layer: 'creemeeStands',
+      chipType: 'creemee',
+      active: showCreemeeStands,
+      onClick: onToggleCreemeeStands,
+    },
+    {
+      layer: 'campingSites',
+      chipType: 'camping',
+      active: showCampingSites,
+      onClick: onToggleCampingSites,
+    },
+    { layer: 'beachSites', chipType: 'beach', active: showBeachSites, onClick: onToggleBeachSites },
+  ];
+
+  const allChips = [...travelChips, ...poiChips];
+
   if (!visible) return null;
 
   return (
     <div className="travel-section">
+      {chipStripContainer &&
+        createPortal(<ChipStrip chips={allChips} isDark={isDark} />, chipStripContainer)}
       {/* TODO(VTL-45 Phase 4): make the header a <button> (see docs/review/FINDINGS.md, Low/a11y) */}
       {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
       <div className="section-header" onClick={() => setExpanded(!expanded)}>
@@ -442,91 +584,8 @@ function TravelLayer({
           <div className="filter-group">
             <h4 className="filter-group-label">Weather & Travel</h4>
             <div className="filter-chips">
-              <FilterChip
-                layer="weatherStations"
-                chipType="weather"
-                active={showWeatherStations}
-                onClick={onToggleWeatherStations}
-              />
-              <FilterChip
-                layer="trafficFlow"
-                chipType="traffic"
-                active={showTrafficFlow}
-                onClick={onToggleTrafficFlow}
-              />
-              {onToggleCameras && (
-                <FilterChip
-                  layer="trafficCameras"
-                  chipType="cameras"
-                  active={showCameras}
-                  onClick={onToggleCameras}
-                />
-              )}
-              {onToggleRoadWeather && (
-                <FilterChip
-                  layer="roadWeather"
-                  chipType="roadwx"
-                  active={showRoadWeather}
-                  onClick={onToggleRoadWeather}
-                />
-              )}
-              {onToggleAirQuality && (
-                <FilterChip
-                  layer="airQuality"
-                  chipType="air"
-                  active={showAirQuality}
-                  onClick={onToggleAirQuality}
-                />
-              )}
-              {onToggleRivers && (
-                <FilterChip
-                  layer="riverGauges"
-                  chipType="rivers"
-                  active={showRivers}
-                  onClick={onToggleRivers}
-                />
-              )}
-              {onToggleFireDanger && (
-                <FilterChip
-                  layer="fireDanger"
-                  chipType="fire"
-                  active={showFireDanger}
-                  onClick={onToggleFireDanger}
-                />
-              )}
-              {onToggleFerries && (
-                <FilterChip
-                  layer="ferries"
-                  chipType="ferries"
-                  active={showFerries}
-                  onClick={onToggleFerries}
-                />
-              )}
-              {onToggleEvChargers && (
-                <FilterChip
-                  layer="evChargers"
-                  chipType="ev"
-                  active={showEvChargers}
-                  onClick={onToggleEvChargers}
-                />
-              )}
-              {onToggleSeasonalRoads && (
-                <FilterChip
-                  layer="seasonalRoads"
-                  chipType="seasonal"
-                  active={showSeasonalRoads}
-                  onClick={onToggleSeasonalRoads}
-                />
-              )}
-              {(Object.keys(activeFilters) as IncidentType[]).map((type) => (
-                <FilterChip
-                  key={type}
-                  layer={type}
-                  chipType={type.toLowerCase()}
-                  active={activeFilters[type]}
-                  onClick={() => toggleFilter(type)}
-                  count={incidentsByType[type]?.length ?? 0}
-                />
+              {travelChips.map((chip) => (
+                <FilterChip key={chip.chipType} {...chip} />
               ))}
             </div>
           </div>
@@ -535,36 +594,9 @@ function TravelLayer({
           <div className="filter-group">
             <h4 className="filter-group-label">Points of Interest</h4>
             <div className="filter-chips">
-              <FilterChip
-                layer="skiResorts"
-                chipType="ski"
-                active={showSkiResorts}
-                onClick={onToggleSkiResorts}
-              />
-              <FilterChip
-                layer="stargazing"
-                chipType="stargazing"
-                active={showStargazing}
-                onClick={onToggleStargazing}
-              />
-              <FilterChip
-                layer="creemeeStands"
-                chipType="creemee"
-                active={showCreemeeStands}
-                onClick={onToggleCreemeeStands}
-              />
-              <FilterChip
-                layer="campingSites"
-                chipType="camping"
-                active={showCampingSites}
-                onClick={onToggleCampingSites}
-              />
-              <FilterChip
-                layer="beachSites"
-                chipType="beach"
-                active={showBeachSites}
-                onClick={onToggleBeachSites}
-              />
+              {poiChips.map((chip) => (
+                <FilterChip key={chip.chipType} {...chip} />
+              ))}
             </div>
           </div>
 

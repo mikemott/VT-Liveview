@@ -130,15 +130,14 @@ test.describe('map features', () => {
     await openApp(page);
     if (isMobile) await page.getByRole('button', { name: 'Open menu' }).click();
 
-    const chips = page.locator('button.filter-chip');
+    const chips = page.locator('.controls-panel button.filter-chip');
     await expect(chips.first()).toBeVisible();
     // Fire danger stayed on through High-rated fall weeks before it lost auto-show
-    await expect(page.locator('button.filter-chip[data-chip-type="fire"]')).toHaveAttribute(
-      'aria-pressed',
-      'false',
-    );
+    await expect(
+      page.locator('.controls-panel button.filter-chip[data-chip-type="fire"]'),
+    ).toHaveAttribute('aria-pressed', 'false');
     const on = await page
-      .locator('button.filter-chip[aria-pressed="true"]')
+      .locator('.controls-panel button.filter-chip[aria-pressed="true"]')
       .evaluateAll((els) => els.map((el) => el.getAttribute('data-chip-type')).sort());
     // Rivers auto-show while a gauge floods, and the NWPS fixture has one flooding
     expect(on).toEqual(['accident', 'rivers', 'traffic', 'weather']);
@@ -148,7 +147,7 @@ test.describe('map features', () => {
     await openApp(page);
     if (isMobile) await page.getByRole('button', { name: 'Open menu' }).click();
 
-    const chip = page.locator('button.filter-chip[data-chip-type="weather"]');
+    const chip = page.locator('.controls-panel button.filter-chip[data-chip-type="weather"]');
     const markers = page.locator('.weather-station-marker');
     const initiallyOn = (await chip.getAttribute('aria-pressed')) === 'true';
     if (!initiallyOn) await chip.click();
@@ -165,7 +164,7 @@ test.describe('map features', () => {
     await openApp(page);
     if (isMobile) await page.getByRole('button', { name: 'Open menu' }).click();
 
-    const chip = page.locator('button.filter-chip[data-chip-type="weather"]');
+    const chip = page.locator('.controls-panel button.filter-chip[data-chip-type="weather"]');
     if ((await chip.getAttribute('aria-pressed')) !== 'true') await chip.click();
     if (isMobile) await page.getByRole('button', { name: 'Close panel' }).click();
 
