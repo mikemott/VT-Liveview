@@ -721,7 +721,8 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: var(--z-fixed);
+  /* Above the open menu and its backdrop, so it always works as the toggle */
+  z-index: calc(var(--z-modal-backdrop) + 1);
   transition: var(--transition-slow);
   color: var(--color-vermont-green);
 }
@@ -741,19 +742,20 @@
   border-color: var(--color-vermont-green-light);
 }
 
-/* Mobile Controls Panel */
+/* Mobile Controls Panel: a floating card that fits the screen and ends above
+   the bottom row (menu button + search bar) (VTL-93). Inset top/bottom instead
+   of 100vh, which on mobile includes the browser toolbar. */
 .controls-panel.mobile {
+  --mobile-bottom-row: calc(var(--space-9) + 52px + var(--space-5));
   position: fixed;
-  top: 0;
-  left: 0;
+  top: var(--space-3);
+  left: var(--space-3);
   right: auto;
-  bottom: 0;
-  width: 85vw;
-  max-width: 360px;
-  max-height: 100vh;
-  /* iOS: 100vh includes the area behind Safari's toolbar (VTL-91) */
-  max-height: 100dvh;
-  border-radius: 0 var(--panel-border-radius) var(--panel-border-radius) 0;
+  bottom: var(--mobile-bottom-row);
+  width: min(85vw, 340px);
+  max-width: none;
+  max-height: none;
+  border-radius: var(--panel-border-radius);
   transform: translateX(0);
   transition:
     transform var(--transition-bounce),
@@ -763,15 +765,15 @@
 }
 
 .controls-panel.mobile.hidden {
-  transform: translateX(-100%);
+  transform: translateX(calc(-100% - var(--space-3)));
   pointer-events: none;
   opacity: 0;
 }
 
 .controls-panel.mobile .controls-panel-scroll {
-  max-height: calc(100vh - 100px);
-  max-height: calc(100dvh - 100px);
-  padding-bottom: var(--space-11);
+  max-height: none;
+  min-height: 0;
+  padding-bottom: var(--space-9);
 }
 
 /* Close button inside panel */
@@ -955,12 +957,36 @@
   left: var(--space-5);
 }
 
-/* Mobile: sit above the round menu button in the bottom-left corner */
+/* Mobile: sit above the menu button, search bar and chip strip (VTL-93) */
 @media (max-width: 768px) {
   .maplibregl-ctrl-bottom-left {
-    bottom: calc(var(--space-9) + 52px + var(--space-4));
-    left: var(--space-7);
+    bottom: calc(var(--mobile-chip-strip-bottom) + var(--chip-strip-height) + var(--space-3));
+    left: var(--space-5);
   }
+
+  .map-notice {
+    bottom: calc(var(--mobile-chip-strip-bottom) + var(--chip-strip-height) + var(--space-11));
+  }
+}
+
+/* Mobile layer chips (VTL-93): one row above the search bar that scrolls
+   sideways, stopping short of the map controls in the bottom-right corner */
+.weather-map-container {
+  --mobile-chip-strip-bottom: calc(var(--space-9) + 52px + var(--space-3));
+  --chip-strip-height: 36px;
+}
+
+.mobile-chip-strip {
+  position: absolute;
+  left: 0;
+  /* map control buttons are 29px wide plus a 1px border each side */
+  right: calc(var(--space-5) + 31px + var(--space-2));
+  bottom: var(--mobile-chip-strip-bottom);
+  z-index: var(--z-fixed);
+}
+
+.mobile-chip-strip.hidden {
+  display: none;
 }
 
 /* Desktop: the controls panel occupies the left edge; keep the scale clear of it */

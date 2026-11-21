@@ -703,3 +703,47 @@
     padding: var(--space-3);
   }
 }
+
+/* =================================================================
+   Mobile chip strip (VTL-93): every layer chip in one row over the map,
+   scrolling sideways. Portaled into .mobile-chip-strip by TravelLayer.
+   ================================================================= */
+
+.chip-strip {
+  display: flex;
+  gap: var(--space-2);
+  height: var(--chip-strip-height, 36px);
+  align-items: center;
+  padding: 0 var(--space-5);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  /* Fade the scrolling edges so a cut-off chip reads as "more this way" */
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0,
+    #000 var(--space-5),
+    #000 calc(100% - var(--space-5)),
+    transparent 100%
+  );
+}
+
+.chip-strip::-webkit-scrollbar {
+  display: none;
+}
+
+/* Opaque over the map: the panel's chip tints are see-through */
+.chip-strip .filter-chip {
+  flex: none;
+  height: 32px;
+  padding: 0 var(--space-4);
+  scroll-snap-align: start;
+  background: var(--color-bg-secondary);
+  box-shadow: var(--shadow-md);
+}
+
+.chip-strip .filter-chip.active {
+  background: color-mix(in srgb, var(--chip-accent) 16%, var(--color-bg-secondary));
+  box-shadow: var(--shadow-md);
+}

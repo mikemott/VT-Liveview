@@ -192,3 +192,53 @@
 .dark .search-kind[style*='--layer-color'] {
   color: var(--layer-color-dark, color-mix(in srgb, var(--layer-color) 48%, white));
 }
+
+/* Mobile: a floating bar at the bottom center of the map (VTL-93). It sits
+   between the round menu button (bottom-left, 52px) and the map controls
+   (bottom-right), with the same inset on both sides so it stays centered. */
+.search-box.floating {
+  --search-side-inset: calc(var(--space-7) + 52px + var(--space-4));
+  position: absolute;
+  left: var(--search-side-inset);
+  right: var(--search-side-inset);
+  bottom: var(--space-9);
+  /* Above the open mobile menu and its backdrop */
+  z-index: calc(var(--z-modal-backdrop) + 1);
+  padding: 0;
+}
+
+.search-box.floating .search-input {
+  height: 52px;
+  padding-left: 42px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--color-vermont-green-light);
+  background: var(--gradient-panel);
+  box-shadow: var(--shadow-lg);
+  /* 16px: below this, mobile browsers zoom the page when the input is focused */
+  font-size: 16px;
+}
+
+.search-box.floating .search-input:focus {
+  border-color: var(--color-vermont-green);
+  box-shadow:
+    var(--shadow-xl),
+    0 0 0 3px var(--color-vermont-green-subtle);
+}
+
+.search-box.floating .search-icon {
+  left: var(--space-6);
+  color: var(--color-vermont-green);
+}
+
+.search-box.floating .search-clear {
+  right: var(--space-5);
+}
+
+/* Results open upward, above the bar and clear of the on-screen keyboard */
+.search-box.floating .search-results {
+  left: 0;
+  right: 0;
+  top: auto;
+  bottom: calc(100% + 6px);
+  max-height: min(320px, 50vh);
+}

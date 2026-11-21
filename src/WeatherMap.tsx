@@ -288,6 +288,8 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
   // Mobile responsiveness
   const isMobile = useIsMobile();
   const [controlsPanelOpen, setControlsPanelOpen] = useState(false); // Collapsed by default on mobile
+  // Mobile layer-chip strip above the search bar; TravelLayer portals into it (VTL-93)
+  const [chipStripEl, setChipStripEl] = useState<HTMLDivElement | null>(null);
 
   // DetailPanel state
   const [detailPanelContent, setDetailPanelContent] = useState<DetailPanelContent>(null);
@@ -1537,6 +1539,17 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
   const pinPoint =
     detailPanelContent?.type === 'location' ? detailPanelContent.coordinates : droppedPin;
 
+  const searchBox = (
+    <SearchBox
+      items={searchItems}
+      onSelect={handleSearchSelect}
+      onActivate={() => setSearchActive(true)}
+      loadingMore={searchLoading}
+      isDark={isDark}
+      floating={isMobile}
+    />
+  );
+
   return (
     <div className={`weather-map-container ${isDark ? 'dark' : ''}`}>
       <div ref={mapContainer} className="map-container" />
@@ -1563,6 +1576,16 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
           {controlsPanelOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       )}
+
+      {/* Mobile: layer chips and search float at the bottom; inside the closed menu
+          nobody found them (VTL-93) */}
+      {isMobile && (
+        <div
+          ref={setChipStripEl}
+          className={`mobile-chip-strip ${isDark ? 'dark' : ''} ${controlsPanelOpen ? 'hidden' : ''}`}
+        />
+      )}
+      {isMobile && searchBox}
 
       {/* Mobile Backdrop Overlay - clickable to close panel */}
       {isMobile && controlsPanelOpen && (
@@ -1601,14 +1624,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
           )}
         </div>
 
-        <SearchBox
-          items={searchItems}
-          onSelect={handleSearchSelect}
-          onActivate={() => setSearchActive(true)}
-          loadingMore={searchLoading}
-          isDark={isDark}
-          compact={isMobile}
-        />
+        {!isMobile && searchBox}
 
         <div className="controls-panel-scroll">
           {/* Radar Controls */}
@@ -1628,6 +1644,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
             <TravelLayer
               map={map.current}
               visible={true}
+              chipStripContainer={isMobile ? chipStripEl : null}
               currentZoom={currentZoom}
               isDark={isDark}
               showWeatherStations={isLayerVisible('weatherStations')}
