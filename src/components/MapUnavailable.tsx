@@ -12,7 +12,7 @@ import { INTERVALS } from '../utils/constants';
 import './MapUnavailable.css';
 
 const INCIDENT_LABELS: Record<TravelIncident['type'], string> = {
-  ACCIDENT: 'Accidents',
+  ACCIDENT: 'Collisions',
   CLOSURE: 'Road closures',
   CONSTRUCTION: 'Construction',
   FLOODING: 'Flooding',

@@ -127,7 +127,7 @@ const DESCRIPTIONS: Record<Selection['type'], string> = {
 };
 
 export const DEFAULT_DESCRIPTION =
-  'Live map of Vermont road closures, accidents, weather radar and NWS alerts, plus ski, camping and outdoor info.';
+  'Live map of Vermont road closures, collisions, weather radar and NWS alerts, plus ski, camping and outdoor info.';
 
 export interface Preview {
   title: string;

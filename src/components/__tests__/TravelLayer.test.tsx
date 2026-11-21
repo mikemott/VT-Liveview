@@ -190,7 +190,7 @@ describe('TravelLayer', () => {
   });
 
   it('does not claim "no incidents" when loaded incidents are only hidden by filters', async () => {
-    // Default filters show accidents only; this feed has only construction
+    // Default filters show collisions only; this feed has only construction
     fetchMock.mockResolvedValue([makeVT511Incident({ type: 'CONSTRUCTION', title: 'Paving' })]);
     render(<TravelLayer {...props} />);
     expect(
@@ -246,7 +246,7 @@ describe('TravelLayer', () => {
     expect(screen.getByText('Paving')).toBeInTheDocument();
   });
 
-  it('keeps accidents but hides lower-severity incidents when zoomed out', async () => {
+  it('keeps collisions but hides lower-severity incidents when zoomed out', async () => {
     render(<TravelLayer {...props} currentZoom={7} />);
     await waitFor(() => expect(liveMarkers()).toHaveLength(2));
     expect(screen.getByText('Zoom in to see more incidents')).toBeInTheDocument();
@@ -282,7 +282,7 @@ describe('TravelLayer', () => {
     fireEvent.click(screen.getByText('Crash on US-7'));
     expect(fake.sourceIds()).toEqual(['incident-highlight']);
 
-    fireEvent.click(screen.getByRole('button', { name: /Accidents/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Collisions/ }));
     expect(fake.sourceIds()).toEqual([]);
     expect(fake.layerIds()).toEqual([]);
   });
@@ -303,7 +303,7 @@ describe('TravelLayer', () => {
     expect(fake.layerIds()).not.toEqual([]);
 
     // Only turning its chip off clears it
-    fireEvent.click(screen.getByRole('button', { name: /Accidents/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Collisions/ }));
     expect(fake.sourceIds()).toEqual([]);
     expect(fake.layerIds()).toEqual([]);
   });
@@ -340,7 +340,7 @@ describe('TravelLayer', () => {
     const el = liveMarkers()[0]!.getElement();
     expect(el.getAttribute('role')).toBe('button');
     expect(el.tabIndex).toBe(0);
-    expect(el.getAttribute('aria-label')).toMatch(/^Accident: Crash on/);
+    expect(el.getAttribute('aria-label')).toMatch(/^Collision: Crash on/);
     expect(el.style.getPropertyValue('--layer-color')).toBe('#5b21b6');
   });
 

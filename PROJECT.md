@@ -14,7 +14,7 @@ _Last updated: 2026-10-28 (VTL-46, main @ 38e364b)_
 - **Code:** all TypeScript. `npm run check` (lint, typecheck, Prettier, unit tests) is green in both packages, and CI also runs coverage thresholds, build and a Playwright E2E matrix.
 - **Layers:**
   - radar, NOAA alerts, current weather + forecast, weather stations
-  - VT 511 incidents (accidents, construction, closures, floods, hazards), TomTom traffic flow, traffic cameras, road weather stations (in season), seasonal road closures
+  - VT 511 incidents (collisions, construction, closures, floods, hazards), TomTom traffic flow, traffic cameras, road weather stations (in season), seasonal road closures
   - USGS gauges, air quality (AirNow), river and lake levels with NWS flood stages, fire danger (FPR), EV chargers (AFDC), Lake Champlain ferries (static; re-check seasons each spring)
   - weather card: today's forecast vs the 1991-2020 normal, plus daily records (ACIS)
   - ski (in season), creemee (in season), camping, camping areas, beaches, stargazing/astronomy

@@ -77,7 +77,7 @@ describe('buildLocationContext', () => {
     expect(ctx.nearby[0]!.distanceMi).toBeCloseTo(0.69, 1);
   });
 
-  it('includes nearby accidents and full closures, nearest first, but not lane closures', () => {
+  it('includes nearby collisions and full closures, nearest first, but not lane closures', () => {
     const ctx = buildLocationContext(AT.lat, AT.lng, {
       alerts: [],
       roadWeather: [],
