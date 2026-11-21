@@ -106,7 +106,7 @@ issue (ADR 0003). As of 2026-10-28:
   export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
   npx playwright test --project=chromium --project=mobile
   ```
-  - Chromium and mobile pass. WebKit crashes on launch here, so rely on CI for it.
+  - Chromium-based projects (`chromium`, `mobile`, `android-small`) pass. WebKit (`webkit`, `iphone-se`, `iphone`) crashes on launch here, so rely on CI for it. `e2e/layout.spec.ts` also checks the smallest iPhone size in Chromium. See `docs/mobile-testing.md`.
   - Keep the nixpkgs version in step with `@playwright/test`, or the browser revisions won't match.
 - **GitHub:** `gh` is authenticated via `GH_TOKEN`, so agents can push branches and open PRs. Agents can't merge (auto mode blocks it); Mike merges.
 - **Linear:** use the `linear` CLI (`linear show`, `linear comment`, `linear state`). It can read any issue but only write the session's own.

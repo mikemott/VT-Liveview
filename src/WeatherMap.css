@@ -53,7 +53,7 @@
 }
 
 /* CurrentWeather takes the top-right corner on mobile and would cover the toggle */
-@media (max-width: 768px) {
+@media (max-width: 768px), (max-height: 500px) {
   .standalone-theme-toggle {
     top: var(--space-3);
     right: auto;
@@ -107,6 +107,7 @@
   box-shadow: var(--shadow-lg);
   max-width: 360px;
   max-height: calc(100vh - 40px);
+  max-height: calc(100dvh - 40px);
   overflow: visible;
   z-index: var(--z-dropdown);
   border: 1px solid var(--color-vermont-green-subtle);
@@ -118,6 +119,7 @@
 /* Scrollable content area */
 .controls-panel-scroll {
   max-height: calc(100vh - 180px);
+  max-height: calc(100dvh - 180px);
   overflow-y: auto;
   overflow-x: hidden;
   padding: var(--space-9);
@@ -698,6 +700,7 @@
     right: var(--space-4);
     max-width: none;
     max-height: 50vh;
+    max-height: 50dvh;
   }
 
   .controls-panel h2 {
@@ -961,7 +964,7 @@
 }
 
 /* Mobile: sit above the menu button, search bar and chip strip (VTL-93) */
-@media (max-width: 768px) {
+@media (max-width: 768px), (max-height: 500px) {
   .maplibregl-ctrl-bottom-left {
     bottom: calc(var(--mobile-chip-strip-bottom) + var(--chip-strip-height) + var(--space-3));
     left: var(--space-5);
@@ -993,7 +996,7 @@
 }
 
 /* Desktop: the controls panel occupies the left edge; keep the scale clear of it */
-@media (min-width: 769px) {
+@media (min-width: 769px) and (min-height: 501px) {
   .maplibregl-ctrl-bottom-left {
     left: calc(360px + 2 * var(--space-8));
   }

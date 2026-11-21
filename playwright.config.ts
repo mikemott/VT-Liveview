@@ -35,6 +35,11 @@ export default defineConfig({
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
     { name: 'webkit', use: { ...devices['Desktop Safari'] } },
     { name: 'mobile', use: { ...devices['Pixel 7'] } },
+    // More phones (VTL-93): the smallest iPhone, a current iPhone on WebKit and a
+    // small Android. Functional tests only; visual baselines stay on the three above.
+    { name: 'iphone-se', use: { ...devices['iPhone SE'] }, testIgnore: /visual\.spec/ },
+    { name: 'iphone', use: { ...devices['iPhone 15'] }, testIgnore: /visual\.spec/ },
+    { name: 'android-small', use: { ...devices['Galaxy S8'] }, testIgnore: /visual\.spec/ },
   ],
   webServer: [
     {
