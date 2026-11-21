@@ -1607,6 +1607,7 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
           onActivate={() => setSearchActive(true)}
           loadingMore={searchLoading}
           isDark={isDark}
+          compact={isMobile}
         />
 
         <div className="controls-panel-scroll">

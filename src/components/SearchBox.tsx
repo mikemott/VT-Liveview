@@ -58,6 +58,8 @@ interface SearchBoxProps {
   /** True while extra (non-town) results are still loading. */
   loadingMore?: boolean;
   isDark: boolean;
+  /** Shorter placeholder for narrow screens, where the full one is clipped */
+  compact?: boolean;
 }
 
 /**
@@ -70,6 +72,7 @@ export default function SearchBox({
   onActivate,
   loadingMore = false,
   isDark,
+  compact = false,
 }: SearchBoxProps) {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
@@ -142,7 +145,7 @@ export default function SearchBox({
           ref={inputRef}
           type="search"
           className="search-input"
-          placeholder="Search towns, ski areas, roads…"
+          placeholder={compact ? 'Search towns, roads…' : 'Search towns, ski areas, roads…'}
           value={query}
           role="combobox"
           aria-label="Search places"

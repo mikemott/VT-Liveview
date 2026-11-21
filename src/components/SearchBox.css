@@ -86,6 +86,28 @@
   .search-shortcut {
     display: none;
   }
+
+  /* iOS Safari zooms the page into any input under 16px, which pushed the
+     search box and drawer off screen (VTL-91) */
+  .search-input {
+    font-size: 16px;
+  }
+}
+
+/* The mobile drawer is 85vw: use its gutters, not the desktop ones */
+.controls-panel.mobile .search-box {
+  padding-left: var(--space-7);
+  padding-right: var(--space-7);
+}
+
+.controls-panel.mobile .search-input:placeholder-shown {
+  /* The clear button only appears once there's text */
+  padding-right: var(--space-4);
+}
+
+.controls-panel.mobile .search-results {
+  left: var(--space-7);
+  right: var(--space-7);
 }
 
 .search-results {
