@@ -102,7 +102,7 @@ function getIcon(type: IncidentType, size: number = 16): ReactNode {
 
 function getTypeLabel(type: IncidentType, short: boolean = false): string {
   const labels: Record<IncidentType, string> = {
-    ACCIDENT: 'Accidents',
+    ACCIDENT: 'Collisions',
     CONSTRUCTION: 'Construction',
     CLOSURE: short ? 'Closures' : 'Road Closures',
     FLOODING: short ? 'Floods' : 'Flooding',
@@ -113,7 +113,7 @@ function getTypeLabel(type: IncidentType, short: boolean = false): string {
 
 /** Singular names for marker labels */
 const INCIDENT_NAME: Record<IncidentType, string> = {
-  ACCIDENT: 'Accident',
+  ACCIDENT: 'Collision',
   CONSTRUCTION: 'Construction',
   CLOSURE: 'Road closure',
   FLOODING: 'Flooding',

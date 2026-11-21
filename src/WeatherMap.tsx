@@ -232,13 +232,13 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
       campingSites: false, // Off by default - user can enable manually
       beachSites: false, // Off by default - user can enable manually
       trafficCameras: false, // Off by default (VTL-56)
-      roadWeather: false, // Off by default: stations, traffic and accidents only
+      roadWeather: false, // Off by default: stations, traffic and collisions only
       airQuality: false, // Off by default (VTL-76)
       riverGauges: null, // Auto: on while any gauge is flooding or forecast to (VTL-81)
       evChargers: false, // Off by default (VTL-81)
       fireDanger: false, // Off by default: fall ratings sit at High for weeks, so auto-show kept it on
       ferries: false, // Off by default (VTL-81)
-      seasonalRoads: false, // Off by default: stations, traffic and accidents only
+      seasonalRoads: false, // Off by default: stations, traffic and collisions only
     };
     const fromUrl = initialUrlState.layers;
     if (!fromUrl) return defaults;

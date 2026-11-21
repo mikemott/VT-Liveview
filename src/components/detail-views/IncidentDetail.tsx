@@ -16,7 +16,7 @@ interface IncidentDetailProps {
 
 /** Singular names for the badge */
 const TYPE_LABEL: Record<IncidentType, string> = {
-  ACCIDENT: 'Accident',
+  ACCIDENT: 'Collision',
   CONSTRUCTION: 'Construction',
   CLOSURE: 'Road closure',
   FLOODING: 'Flooding',

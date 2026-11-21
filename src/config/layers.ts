@@ -130,7 +130,7 @@ export const LAYER_STYLES: Record<LayerStyleKey, LayerStyle> = {
     color: '#b91c1c',
     description: 'Notch, gap and toll roads that close for winter',
   },
-  ACCIDENT: { label: 'Accidents', icon: AlertTriangle, color: '#5b21b6' },
+  ACCIDENT: { label: 'Collisions', icon: AlertTriangle, color: '#5b21b6' },
   CONSTRUCTION: { label: 'Construction', icon: Construction, color: '#ea580c' },
   CLOSURE: { label: 'Closures', icon: Ban, color: '#b91c1c' },
   FLOODING: { label: 'Floods', icon: Waves, color: '#0d9488' },

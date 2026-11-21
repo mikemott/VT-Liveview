@@ -123,7 +123,7 @@ test.describe('radar controls', () => {
 });
 
 test.describe('map features', () => {
-  test('a fresh load turns on weather stations, traffic and accidents, not fire danger', async ({
+  test('a fresh load turns on weather stations, traffic and collisions, not fire danger', async ({
     page,
     isMobile,
   }) => {

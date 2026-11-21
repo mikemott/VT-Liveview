@@ -12,7 +12,7 @@ A hyper-local, real-time information map for Vermont. Beautiful, privacy-first, 
 VT-Liveview provides Vermonters with real-time access to:
 - 🌦️ Live weather radar
 - ⚠️ NOAA weather alerts
-- 🚗 Traffic incidents (accidents, road closures, construction)
+- 🚗 Traffic incidents (collisions, road closures, construction)
 - 🌊 Flood monitoring via USGS river gauges
 - 🚧 VTrans construction projects
 - ⛷️ Live ski resort conditions with color-coded markers
@@ -27,7 +27,7 @@ All in one beautiful, easy-to-use map interface.
 - **Updates**: Automatic refresh every 5 minutes
 
 ### Travel Incidents Layer
-- **Real-time Traffic**: Accidents, hazards, and congestion from Vermont 511 (VT 511)
+- **Real-time Traffic**: Collisions, hazards, and congestion from Vermont 511 (VT 511)
 - **Road Closures**: Full and partial closures with visual indicators
 - **Construction Zones**: VTrans construction projects and roadwork
 - **Flood Monitoring**: USGS river gauge data for flood-affected roads
@@ -102,7 +102,7 @@ All in one beautiful, easy-to-use map interface.
 
 ### Filter Incidents
 Click checkboxes to show/hide specific incident types:
-- ⚠️ Accidents (purple)
+- ⚠️ Collisions (purple)
 - 🚧 Construction (orange)
 - 🚫 Road Closures (blue)
 - 🌊 Flooding (teal)

@@ -6,7 +6,7 @@ import { LAYER_STYLES, layerColorVars, type LayerStyleKey } from '../../config/l
 
 interface LayerBadgeProps {
   layer: LayerStyleKey;
-  /** Overrides the layer's chip label (e.g. "Accident" instead of "Accidents") */
+  /** Overrides the layer's chip label (e.g. "Collision" instead of "Collisions") */
   label?: string;
 }
 
