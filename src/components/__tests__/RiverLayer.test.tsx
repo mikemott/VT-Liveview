@@ -127,7 +127,7 @@ describe('RiverDetail', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('Jul 11, 2023')).toBeInTheDocument();
     expect(screen.getByText(/Chittenden County, VT/)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Full forecast' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'National Weather Service' })).toHaveAttribute(
       'href',
       'https://water.noaa.gov/gauges/ESSV1',
     );

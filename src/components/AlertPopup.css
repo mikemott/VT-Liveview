@@ -195,3 +195,23 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Source line (VTL-96): DetailViews.css isn't loaded with the popup */
+.alert-popup .detail-source {
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border-secondary);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.alert-popup .detail-source a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.alert-popup .detail-source a svg {
+  margin-left: 2px;
+  vertical-align: -1px;
+}

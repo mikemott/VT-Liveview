@@ -59,7 +59,7 @@ export default function DarkSkyDetail({ site, isDark }: DarkSkyDetailProps) {
       />
       <DetailTags label="Facilities" tags={facilities} />
       {site.viewingNotes && <p className="detail-note">{site.viewingNotes}</p>}
-      <DetailSource>Bortle scale: lower is darker (1 is pristine)</DetailSource>
+      <DetailSource curated>Bortle scale: lower is darker (1 is pristine)</DetailSource>
     </div>
   );
 }

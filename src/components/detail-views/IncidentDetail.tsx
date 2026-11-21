@@ -4,7 +4,9 @@
 import { MapPin } from 'lucide-react';
 import type { TravelIncident } from '../../services/travelApi';
 import type { IncidentType } from '../../types';
+import { nwpsGaugeUrl, SOURCES, type SourceRef } from '../../utils/sourceLinks';
 import LayerBadge from './LayerBadge';
+import { DetailSource } from './DetailParts';
 import './DetailViews.css';
 
 interface IncidentDetailProps {
@@ -31,6 +33,14 @@ function formatWhen(iso: string | null | undefined): string | null {
     hour: 'numeric',
     minute: '2-digit',
   });
+}
+
+/** 511 reports come from New England 511; flooding from the gauge's NWS page */
+function incidentSource(incident: TravelIncident): SourceRef {
+  if (incident.type === 'FLOODING' && incident.id.startsWith('flood-')) {
+    return { name: 'National Weather Service', href: nwpsGaugeUrl(incident.id.slice(6)) };
+  }
+  return SOURCES.newEngland511;
 }
 
 export default function IncidentDetail({ incident, isDark }: IncidentDetailProps) {
@@ -87,7 +97,7 @@ export default function IncidentDetail({ incident, isDark }: IncidentDetailProps
         )}
       </dl>
 
-      <div className="station-updated">Source: {incident.source}</div>
+      <DetailSource sources={[incidentSource(incident)]} />
     </div>
   );
 }

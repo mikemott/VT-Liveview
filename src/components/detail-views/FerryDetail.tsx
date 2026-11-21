@@ -4,6 +4,7 @@
 import { ExternalLink } from 'lucide-react';
 import type { Ferry } from '../../data/ferries';
 import type { FerryStatus } from '../../utils/ferries';
+import { safeHttpsUrl, SOURCES } from '../../utils/sourceLinks';
 import LayerBadge from './LayerBadge';
 import { DetailHeader, DetailRows, DetailSource, DetailStatus } from './DetailParts';
 import './DetailViews.css';
@@ -27,6 +28,7 @@ const CARRIES: Record<Ferry['kind'], string> = {
 };
 
 export default function FerryDetail({ ferry, status, isDark }: FerryDetailProps) {
+  const operatorUrl = safeHttpsUrl(ferry.operatorUrl);
   return (
     <div className={`detail-view ferry-detail ${isDark ? 'dark' : ''}`}>
       <LayerBadge layer="ferries" label={KIND_LABEL[ferry.kind]} />
@@ -52,20 +54,23 @@ export default function FerryDetail({ ferry, status, isDark }: FerryDetailProps)
         </ul>
       )}
 
-      <p>
-        <a
-          className="detail-link"
-          href={ferry.operatorUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Today’s schedule and service alerts <ExternalLink size={13} aria-hidden="true" />
-        </a>
+      {operatorUrl && (
+        <p>
+          <a className="detail-link" href={operatorUrl} target="_blank" rel="noopener noreferrer">
+            Today’s schedule and service alerts <ExternalLink size={13} aria-hidden="true" />
+          </a>
+        </p>
+      )}
+
+      <p className="detail-note">
+        Weather, ice and low water change service day to day, so check the operator before you go.
       </p>
 
-      <DetailSource>
-        From the operator’s published information (October 2026); weather, ice and low water change
-        service day to day, so check the operator before you go. Route: OpenStreetMap.
+      <DetailSource
+        curated
+        sources={[{ name: ferry.operator, href: operatorUrl }, SOURCES.openStreetMap]}
+      >
+        operator information as of October 2026; route from OpenStreetMap
       </DetailSource>
     </div>
   );

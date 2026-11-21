@@ -4,6 +4,8 @@
 
 import { AlertTriangle } from 'lucide-react';
 import type { AlertFeature } from '../../types';
+import { nwsAlertSource } from '../../utils/sourceLinks';
+import { DetailSource } from './DetailParts';
 import './DetailViews.css';
 
 interface AlertDetailProps {
@@ -88,6 +90,8 @@ export default function AlertDetail({ alert, isDark }: AlertDetailProps) {
           <span className="timing-value">{formatDate(expires)}</span>
         </div>
       </div>
+
+      <DetailSource sources={[nwsAlertSource(alert)]} />
     </div>
   );
 }

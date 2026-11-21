@@ -3,6 +3,7 @@
  */
 import { ExternalLink } from 'lucide-react';
 import type { CampingArea } from '../../services/campingApi';
+import { SOURCES } from '../../utils/sourceLinks';
 import LayerBadge from './LayerBadge';
 import { PARK_TYPE_LABELS, stateParkUrl } from '../../utils/campingAreas';
 import { DetailHeader, DetailRows, DetailSource } from './DetailParts';
@@ -33,7 +34,7 @@ export default function CampingAreaDetail({ area, isDark }: CampingAreaDetailPro
           </a>
         </p>
       )}
-      <DetailSource>Source: Vermont ANR · backcountry and primitive sites</DetailSource>
+      <DetailSource sources={[SOURCES.vtAnrOpenData]}>backcountry and primitive sites</DetailSource>
     </div>
   );
 }

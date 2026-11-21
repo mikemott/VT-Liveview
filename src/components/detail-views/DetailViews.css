@@ -227,6 +227,18 @@
   border-top: 1px solid var(--color-border-secondary);
 }
 
+/* Source links in the footer line (VTL-96) */
+.detail-source a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.detail-source a svg {
+  margin-left: 2px;
+  vertical-align: -1px;
+}
+
 /* =================================================================
    Historical Detail
    ================================================================= */

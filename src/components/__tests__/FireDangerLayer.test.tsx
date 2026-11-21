@@ -116,7 +116,9 @@ describe('FireDangerDetail', () => {
     expect(screen.getByText(/spread rapidly and intensify quickly/)).toBeInTheDocument();
     expect(screen.getByText('Open burning is not advised.')).toBeInTheDocument();
     expect(screen.getByText(/permit from your town forest fire warden/)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /fire danger map/ })).toHaveAttribute(
+    expect(
+      screen.getByRole('link', { name: 'Vermont Forests, Parks & Recreation' }),
+    ).toHaveAttribute(
       'href',
       'https://fpr.vermont.gov/forest/wildland-fire/monitoring-fire-danger',
     );

@@ -2,6 +2,7 @@
  * CampgroundDetail - a campground from ANR recreation sites (VTL-64)
  */
 import type { RecreationSite } from '../../services/recreationApi';
+import { SOURCES } from '../../utils/sourceLinks';
 import LayerBadge from './LayerBadge';
 import { DetailHeader, DetailRows, DetailSource, DetailTags } from './DetailParts';
 import './DetailViews.css';
@@ -52,7 +53,7 @@ export default function CampgroundDetail({ site, isDark }: CampgroundDetailProps
         ]}
       />
       <DetailTags label="Features" tags={features} />
-      <DetailSource>Source: Vermont ANR recreation sites</DetailSource>
+      <DetailSource sources={[SOURCES.vtAnrOpenData]}>recreation sites</DetailSource>
     </div>
   );
 }

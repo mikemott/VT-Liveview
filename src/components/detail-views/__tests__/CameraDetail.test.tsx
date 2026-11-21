@@ -151,6 +151,6 @@ describe('CameraDetail', () => {
     expect(within(weather).getByText('Pavement').nextElementSibling).toHaveTextContent('31°F');
     expect(within(weather).getByText('Air').nextElementSibling).toHaveTextContent('28°F');
     expect(within(weather).getByText(/^Reading 7 min ago · I-89 Berlin$/)).toBeInTheDocument();
-    expect(screen.getByText(/and road weather station$/)).toBeInTheDocument();
+    expect(screen.getByText(/location and road weather from VTrans$/)).toBeInTheDocument();
   });
 });

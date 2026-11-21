@@ -3,6 +3,7 @@
  */
 import type { Beach } from '../../services/beachApi';
 import { getBeachDisplay, parseBeachTestDate } from '../../utils/beachStatus';
+import { SOURCES } from '../../utils/sourceLinks';
 import LayerBadge from './LayerBadge';
 import { formatDateTime } from '../../utils/formatDateTime';
 import { DetailHeader, DetailRows, DetailSource, DetailStatus, DetailTags } from './DetailParts';
@@ -21,6 +22,8 @@ export default function BeachDetail({ beach, isDark }: BeachDetailProps) {
   const showQuality = display.state !== 'stale' && display.state !== 'unmonitored';
   const tone = TONE[display.state as keyof typeof TONE] ?? 'neutral';
   const updated = formatDateTime(beach.lastUpdated);
+  // Only Burlington's beaches are tested (City of Burlington); the rest are our own list
+  const monitored = beach.lastTested !== null || beach.status !== 'unknown';
 
   return (
     <div className={`detail-view beach-detail ${isDark ? 'dark' : ''}`}>
@@ -47,9 +50,16 @@ export default function BeachDetail({ beach, isDark }: BeachDetailProps) {
 
       <DetailTags label="Amenities" tags={beach.amenities.map((a) => a.replace(/_/g, ' '))} />
 
-      <DetailSource>
-        Source: Vermont beach monitoring{updated ? ` · updated ${updated}` : ''}
-      </DetailSource>
+      {monitored ? (
+        <DetailSource sources={[SOURCES.burlington]}>
+          {updated ? `updated ${updated}` : null}
+        </DetailSource>
+      ) : (
+        <DetailSource
+          curated
+          sources={beach.parkType === 'state_park' ? [SOURCES.vtStateParks] : []}
+        />
+      )}
     </div>
   );
 }

@@ -5,7 +5,9 @@ import { Ban, CalendarClock, ExternalLink, MapPin, Snowflake, Sun } from 'lucide
 import type { SeasonalRoad } from '../../data/seasonalRoads';
 import { formatMonthDay, type RoadStatus } from '../../utils/seasonalRoads';
 import { layerColorVars } from '../../config/layers';
+import { SOURCES } from '../../utils/sourceLinks';
 import LayerBadge from './LayerBadge';
+import { DetailSource } from './DetailParts';
 import './DetailViews.css';
 
 interface SeasonalRoadDetailProps {
@@ -72,9 +74,9 @@ export default function SeasonalRoadDetail({ road, status, isDark }: SeasonalRoa
         </ul>
       </div>
 
-      <div className="station-updated">
-        Road line: VCGI / VTrans centerlines (approximate extent)
-      </div>
+      <DetailSource curated sources={[SOURCES.vcgi]}>
+        road line from VCGI / VTrans centerlines (approximate extent)
+      </DetailSource>
     </div>
   );
 }

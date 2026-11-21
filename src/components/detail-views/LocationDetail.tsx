@@ -15,6 +15,7 @@ import { formatMiles } from '../../utils/locationContext';
 import { cToF } from '../../utils/roadWeather';
 import { LAYER_STYLES, layerColorVars, type LayerStyleKey } from '../../config/layers';
 import type { DetailPanelContent, LocationContext, NearbyItem } from '../../types/detailPanel';
+import { nwsPointForecastUrl, SOURCES } from '../../utils/sourceLinks';
 import { DetailHeader, DetailSource } from './DetailParts';
 import AqiBadge, { AqiForecastList } from './AqiBadge';
 import './DetailViews.css';
@@ -189,10 +190,12 @@ export default function LocationDetail({
         <Sunset size={14} aria-hidden="true" /> {formatTime(sun.sunset)}
       </div>
 
-      <DetailSource>
-        Forecast: National Weather Service
-        {air?.current || airDays.length ? ' · Air quality: EPA AirNow' : ''}
-      </DetailSource>
+      <DetailSource
+        sources={[
+          { name: 'National Weather Service', href: nwsPointForecastUrl(lat, lng) },
+          ...(air?.current || airDays.length ? [SOURCES.airNow] : []),
+        ]}
+      />
     </div>
   );
 }

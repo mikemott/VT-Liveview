@@ -1,5 +1,5 @@
 /**
- * CreemeeDetail - a licensed Vermont creemee stand (VTL-64)
+ * CreemeeDetail - a Vermont creemee stand from our curated list (VTL-64)
  */
 import type { CreemeeStand } from '../../services/creemeeApi';
 import LayerBadge from './LayerBadge';
@@ -21,7 +21,7 @@ export default function CreemeeDetail({ stand, isDark }: CreemeeDetailProps) {
       <DetailHeader name={stand.name} location={`${stand.town}, VT`} />
       {stand.description && <p className="detail-note">{stand.description}</p>}
       <DetailTags label="Specialties" tags={stand.specialties ?? []} />
-      <DetailSource>Licensed by the Vermont Agency of Agriculture</DetailSource>
+      <DetailSource curated />
     </div>
   );
 }

@@ -1,10 +1,10 @@
 /**
  * FireDangerDetail - one of Vermont FPR's Fire Danger Rating Areas (VTL-81)
  */
-import { ExternalLink } from 'lucide-react';
 import type { FireDangerAreaView } from '../../services/fireDangerApi';
 import { getObservationAge } from '../../utils/observationAge';
 import { fireLevel, fireToneVars, isFireDangerStale } from '../../utils/fireDanger';
+import { SOURCES } from '../../utils/sourceLinks';
 import LayerBadge from './LayerBadge';
 import { DetailHeader, DetailSource } from './DetailParts';
 import '../../styles/tone.css';
@@ -53,20 +53,8 @@ export default function FireDangerDetail({ area, isDark }: FireDangerDetailProps
         fire warden, and wardens may stop issuing them when fire danger is high.
       </p>
 
-      <p>
-        <a
-          className="detail-link"
-          href="https://fpr.vermont.gov/forest/wildland-fire/monitoring-fire-danger"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Today’s fire danger map <ExternalLink size={13} aria-hidden="true" />
-        </a>
-      </p>
-
-      <DetailSource>
-        Source: Vermont Department of Forests, Parks &amp; Recreation (NFDRS rating)
-        {age.ago && !stale ? `, updated ${age.ago}` : ''}.
+      <DetailSource sources={[SOURCES.vtFpr]}>
+        NFDRS rating{age.ago && !stale ? `, updated ${age.ago}` : ''}
       </DetailSource>
     </div>
   );

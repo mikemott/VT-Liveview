@@ -14,7 +14,8 @@ import {
 import { isInVermont } from '../../utils/vermont';
 import LayerBadge from './LayerBadge';
 import AqiBadge, { AqiForecastList } from './AqiBadge';
-import { DetailHeader, DetailRows } from './DetailParts';
+import { SOURCES } from '../../utils/sourceLinks';
+import { DetailHeader, DetailRows, DetailSource } from './DetailParts';
 import './DetailViews.css';
 
 interface AirQualityDetailProps {
@@ -69,13 +70,14 @@ export default function AirQualityDetail({ monitor, isDark }: AirQualityDetailPr
         </div>
       )}
 
-      <div className="station-updated">
+      <p className="detail-note">
         {inVermont
           ? 'Vermont has only a few air quality monitors, so a reading here may differ from conditions in nearby valleys and towns.'
           : 'Just outside Vermont: shown because it is the closest monitor for nearby parts of the state.'}{' '}
-        The AQI shown is the worst of the pollutants measured here. Source: EPA AirNow (preliminary
-        data).
-      </div>
+        The AQI shown is the worst of the pollutants measured here.
+      </p>
+
+      <DetailSource sources={[SOURCES.airNow]}>preliminary data</DetailSource>
     </div>
   );
 }

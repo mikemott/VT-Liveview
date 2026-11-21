@@ -11,7 +11,9 @@ import { useVisibleInterval } from '../../hooks/useVisibleInterval';
 import { useCameraLocation, useSiteRoadWeather } from '../../hooks/useCameraSite';
 import { getObservationAge } from '../../utils/observationAge';
 import { cToF, getRoadRisk, ROAD_RISK_LABELS } from '../../utils/roadWeather';
+import { SOURCES } from '../../utils/sourceLinks';
 import LayerBadge from './LayerBadge';
+import { DetailSource } from './DetailParts';
 import './DetailViews.css';
 
 /** How often to reload the picture while the panel is open. */
@@ -181,10 +183,9 @@ export default function CameraDetail({ camera, isDark }: CameraDetailProps) {
 
       {siteStation && <SiteRoadWeather station={siteStation} />}
 
-      <div className="station-updated">
-        Source: VTrans traffic cameras; location from the VTrans 511 GIS
-        {siteStation ? ' and road weather station' : ''}
-      </div>
+      <DetailSource sources={[SOURCES.vtrans, SOURCES.newEngland511]}>
+        cameras, location{siteStation ? ' and road weather' : ''} from VTrans
+      </DetailSource>
     </div>
   );
 }
