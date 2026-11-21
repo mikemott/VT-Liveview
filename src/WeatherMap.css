@@ -7,6 +7,9 @@
   position: relative;
   width: 100vw;
   height: 100vh;
+  /* The visible height: 100vh runs behind iOS Safari's and in-app browsers'
+     toolbars, hiding the bottom search bar and chips (VTL-93) */
+  height: 100dvh;
   overflow: hidden;
 }
 
