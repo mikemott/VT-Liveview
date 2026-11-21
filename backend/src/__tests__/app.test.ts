@@ -4,6 +4,8 @@
  */
 import type { FastifyInstance } from 'fastify';
 import { http, HttpResponse } from 'msw';
+import { VTRANS_511_LOOKUP } from '../services/cameraLocations.js';
+import { vtransLookup } from '../test/upstreamHandlers.js';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { server } from '../test/msw.js';
 import { skiWebcamHandlers } from '../test/upstreamHandlers.js';
@@ -526,6 +528,59 @@ describe('traffic cameras (VTL-56)', () => {
     });
     expect(res.statusCode).toBe(200);
     expect(res.headers['last-modified']).toBeUndefined();
+  });
+
+  describe('location (VTL-94)', () => {
+    const useVtrans = (fail = false) =>
+      server.use(
+        http.get(`${VTRANS_511_LOOKUP}/:layer/query`, ({ request, params }) =>
+          fail
+            ? new HttpResponse(null, { status: 503 })
+            : HttpResponse.json(vtransLookup(new URL(request.url), String(params.layer))),
+        ),
+      );
+    const locationOf = async (id: string) =>
+      (await loadApp()).inject({
+        method: 'GET',
+        url: `/api/cameras/${encodeURIComponent(id)}/location`,
+      });
+
+    it('describes where a camera is, cached for a day', async () => {
+      useC2C();
+      useVtrans();
+      const res = await locationOf('I-89 SB BERLIN');
+      expect(res.statusCode).toBe(200);
+      expect(res.headers['cache-control']).toBe('public, max-age=86400');
+      expect(res.json()).toEqual({
+        location: {
+          town: 'Berlin',
+          county: 'Washington',
+          milepost: 50.1,
+          nearestExit: { number: '7', name: 'Berlin–Barre', distanceMi: 0.2, direction: 'south' },
+          streetName: null,
+          addressBlock: null,
+          speedLimitMph: 65,
+        },
+      });
+    });
+
+    it('returns 404 for an unknown camera', async () => {
+      useC2C();
+      useVtrans();
+      expect((await locationOf('NOPE')).statusCode).toBe(404);
+    });
+
+    it('returns 502 when VTrans or the camera list is down', async () => {
+      useC2C();
+      useVtrans(true);
+      expect((await locationOf('I-89 SB BERLIN')).json()).toEqual({
+        error: 'Camera location is unavailable',
+      });
+      useC2C(true);
+      const res = await locationOf('I-89 SB BERLIN');
+      expect(res.statusCode).toBe(502);
+      expect(res.json()).toEqual({ error: 'Traffic camera list is unavailable' });
+    });
   });
 
   it('returns 404 for a camera without a current image', async () => {

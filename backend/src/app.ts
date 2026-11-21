@@ -16,6 +16,7 @@ import { resolvers } from './resolvers/index.js';
 import { clearStationsCache } from './services/noaa.js';
 import { fetchSkiConditions } from './services/skiConditions.js';
 import { createTrafficCameraService } from './services/trafficCameras.js';
+import { createCameraLocationService } from './services/cameraLocations.js';
 import { createRoadWeatherService } from './services/roadWeather.js';
 import { createAirQualityService } from './services/airQuality.js';
 import { createSkiWebcamService } from './services/skiWebcams.js';
@@ -302,6 +303,7 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
   const cameras = createTrafficCameraService(
     `VT-Liveview/1.0 (${env.CONTACT_EMAIL ?? 'weather-app'})`,
   );
+  const cameraLocations = createCameraLocationService();
 
   // Road weather stations (VTL-61): pavement temperature, surface condition
   const roadWeather = createRoadWeatherService(
@@ -483,6 +485,32 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
       return { error: 'Traffic camera list is unavailable' };
     }
   });
+
+  // Where a camera is, in words: town, mile marker, nearest exit… (VTL-94)
+  fastify.get<{ Params: { id: string } }>(
+    '/api/cameras/:id/location',
+    async (request, reply): Promise<void> => {
+      let camera;
+      try {
+        camera = (await cameras.getCameras()).find((c) => c.id === request.params.id);
+      } catch (error) {
+        fastify.log.warn({ err: error }, 'Traffic camera list fetch failed');
+        reply.code(502).send({ error: 'Traffic camera list is unavailable' });
+        return;
+      }
+      if (!camera) {
+        reply.code(404).send({ error: 'Unknown camera' });
+        return;
+      }
+      try {
+        const location = await cameraLocations.get(camera.id, camera);
+        reply.header('Cache-Control', 'public, max-age=86400').send({ location });
+      } catch (error) {
+        fastify.log.warn({ err: error }, 'Camera location lookup failed');
+        reply.code(502).send({ error: 'Camera location is unavailable' });
+      }
+    },
+  );
 
   fastify.get<{ Params: { id: string } }>(
     '/api/cameras/:id/snapshot.jpg',

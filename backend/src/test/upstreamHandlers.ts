@@ -11,6 +11,7 @@ import {
   RECREATION_URL,
   paddedFixture,
 } from '../services/__tests__/arcgisFixtures.js';
+import { VTRANS_511_LOOKUP } from '../services/cameraLocations.js';
 
 const NOAA = 'https://api.weather.gov';
 const VT_511 = 'https://nec-por.ne-compass.com/NEC.XmlDataPortal/api/c2c';
@@ -24,6 +25,24 @@ function zoneFixture(zoneId: string): JsonBodyType {
   zone.id = `${NOAA}/zones/forecast/${zoneId}`;
   if (zone.properties) zone.properties.id = zoneId;
   return zone;
+}
+
+/**
+ * VTrans 511lookup GIS (VTL-94): answers by area (north of 44.4° is the Stowe
+ * set, south the Berlin one) and layer. Tenth-mile points honour the TWN_LR
+ * filter, so a ramp's mileage never wins over the main line.
+ */
+type VtransFeature = { attributes: Record<string, unknown> };
+export function vtransLookup(url: URL, layer: string): { features: VtransFeature[] } {
+  const fixture =
+    loadJson<Record<string, Record<string, VtransFeature[]>>>('vtrans/511lookup.json');
+  const lat = Number((url.searchParams.get('geometry') ?? '').split(',')[1]);
+  let features = fixture[lat > 44.4 ? 'stowe' : 'berlin']?.[layer] ?? [];
+  const where = url.searchParams.get('where') ?? '';
+  if (layer === '3' && where.includes('TWN_LR IN')) {
+    features = features.filter((f) => where.includes(`'${String(f.attributes.TWN_LR)}'`));
+  }
+  return { features };
 }
 
 function vt511Xml(dataTypes: string | null): string {
@@ -51,6 +70,10 @@ export const skiWebcamHandlers = [
 
 export const upstreamHandlers = [
   ...skiWebcamHandlers,
+  // VTrans 511lookup GIS: traffic camera locations (VTL-94)
+  http.get(`${VTRANS_511_LOOKUP}/:layer/query`, ({ request, params }) =>
+    HttpResponse.json(vtransLookup(new URL(request.url), String(params.layer))),
+  ),
   // NOAA
   http.get(`${NOAA}/points/:coords`, () => HttpResponse.json(loadJson('noaa/points.json'))),
   http.get(`${NOAA}/gridpoints/:office/:xy/stations`, () =>
