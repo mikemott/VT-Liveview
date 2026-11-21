@@ -33,6 +33,16 @@ function setup(props: Partial<React.ComponentProps<typeof SearchBox>> = {}) {
 }
 
 describe('SearchBox', () => {
+  it('uses the full placeholder by default', () => {
+    const { input } = setup();
+    expect(input).toHaveAttribute('placeholder', 'Search towns, ski areas, roads…');
+  });
+
+  it('uses a shorter placeholder on phones, where the full one is clipped (VTL-91)', () => {
+    const { input } = setup({ compact: true });
+    expect(input).toHaveAttribute('placeholder', 'Search towns, roads…');
+  });
+
   it('lazy-activates once on first focus', () => {
     const { input, onActivate } = setup();
     fireEvent.focus(input);

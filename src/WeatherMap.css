@@ -751,6 +751,8 @@
   width: 85vw;
   max-width: 360px;
   max-height: 100vh;
+  /* iOS: 100vh includes the area behind Safari's toolbar (VTL-91) */
+  max-height: 100dvh;
   border-radius: 0 var(--panel-border-radius) var(--panel-border-radius) 0;
   transform: translateX(0);
   transition:
@@ -768,6 +770,7 @@
 
 .controls-panel.mobile .controls-panel-scroll {
   max-height: calc(100vh - 100px);
+  max-height: calc(100dvh - 100px);
   padding-bottom: var(--space-11);
 }
 
@@ -820,6 +823,15 @@
 /* Logo container adjustments for mobile */
 .controls-panel.mobile .logo-container {
   padding: var(--space-7);
+  /* Clear the close button (36px at space-4 from the edge) on narrow phones */
+  padding-right: calc(36px + var(--space-4) * 2);
+  padding-left: calc(36px + var(--space-4) * 2);
+}
+
+/* Scale the logo into that space instead of cropping it */
+.controls-panel.mobile .app-logo {
+  height: auto;
+  object-fit: contain;
 }
 
 /* Maplibre popup styling */
