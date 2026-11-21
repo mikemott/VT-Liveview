@@ -27,6 +27,7 @@
   right: 0;
   top: 0;
   height: 100vh;
+  height: 100dvh;
   width: 400px;
   /* Same solid panel background as the controls panel and weather card: the
      old 88% glass let the map tint it cooler and greyer (VTL-71) */
@@ -46,7 +47,7 @@
 }
 
 /* Mobile: Full width */
-@media (max-width: 768px) {
+@media (max-width: 768px), (max-height: 500px) {
   .detail-panel {
     width: 100%;
     border-left: none;

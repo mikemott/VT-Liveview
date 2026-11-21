@@ -241,4 +241,22 @@
   top: auto;
   bottom: calc(100% + 6px);
   max-height: min(320px, 50vh);
+  max-height: min(320px, 50dvh);
+}
+
+/* No "/" key on a phone, and the clear button only appears once there's text */
+.search-box.floating .search-shortcut {
+  display: none;
+}
+
+.search-box.floating .search-input:placeholder-shown {
+  padding-right: var(--space-5);
+}
+
+/* Narrowest phones (iPhone SE 1st gen, 320px): give up exact centering for
+   width, and only clear the slim map controls on the right */
+@media (max-width: 359px) {
+  .search-box.floating {
+    right: calc(var(--space-5) + 31px + var(--space-3));
+  }
 }

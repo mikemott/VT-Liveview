@@ -669,6 +669,13 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
         console.log('WeatherMap: Map load event fired');
       }
 
+      // MapLibre opens the compact credit on load and only folds it to the (i)
+      // button on the first drag; on phones it sat behind the bottom search bar
+      // (VTL-93). Fold it now, the same way a drag does.
+      mapContainer.current
+        ?.querySelector('.maplibregl-ctrl-attrib.maplibregl-compact')
+        ?.classList.remove('maplibregl-compact-show');
+
       if (import.meta.env.DEV && map.current) {
         console.log('Map loaded!', {
           sources: Object.keys(map.current.getStyle().sources || {}),
