@@ -3,29 +3,18 @@
  * Replaces MapLibre popups with a consistent glassmorphic design
  */
 
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { X } from 'lucide-react';
 import type { DetailPanelContent } from '../types';
-import AlertDetail from './detail-views/AlertDetail';
-import IncidentDetail from './detail-views/IncidentDetail';
-import StationDetail from './detail-views/StationDetail';
-import LocationDetail from './detail-views/LocationDetail';
-import CameraDetail from './detail-views/CameraDetail';
-import SeasonalRoadDetail from './detail-views/SeasonalRoadDetail';
-import RoadWeatherDetail from './detail-views/RoadWeatherDetail';
-import AirQualityDetail from './detail-views/AirQualityDetail';
-import RiverDetail from './detail-views/RiverDetail';
-import EvChargerDetail from './detail-views/EvChargerDetail';
-import FireDangerDetail from './detail-views/FireDangerDetail';
-import FerryDetail from './detail-views/FerryDetail';
-import SkiDetail from './detail-views/SkiDetail';
-import BeachDetail from './detail-views/BeachDetail';
-import CreemeeDetail from './detail-views/CreemeeDetail';
-import CampgroundDetail from './detail-views/CampgroundDetail';
-import CampingAreaDetail from './detail-views/CampingAreaDetail';
-import DarkSkyDetail from './detail-views/DarkSkyDetail';
 import ShareMenu from './ShareMenu';
 import './DetailPanel.css';
+
+// The views load as their own chunk so they stay out of the first download (VTL-95)
+const loadDetailContent = () => import('./detail-views/DetailContent');
+const DetailContent = lazy(loadDetailContent);
+
+/** How long after mount to fetch the views in the background, so a first tap rarely waits */
+const PRELOAD_DELAY_MS = 3000;
 
 interface DetailPanelProps {
   content: DetailPanelContent;
@@ -45,6 +34,16 @@ export default function DetailPanel({
   isDark,
 }: DetailPanelProps) {
   const isOpen = content !== null;
+
+  // Fetch the views once the page has settled
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadDetailContent().catch(() => {
+        // A failed preload is retried by the lazy import when the panel opens
+      });
+    }, PRELOAD_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Close on Escape key
   useEffect(() => {
@@ -118,59 +117,6 @@ export default function DetailPanel({
     }
   };
 
-  const renderContent = () => {
-    if (!content) return null;
-
-    switch (content.type) {
-      case 'alert':
-        return <AlertDetail alert={content.data} isDark={isDark} />;
-      case 'incident':
-        return <IncidentDetail incident={content.data} isDark={isDark} />;
-      case 'station':
-        return <StationDetail station={content.data} isDark={isDark} />;
-      case 'camera':
-        // key: a different camera remounts with fresh image state
-        return <CameraDetail key={content.data.id} camera={content.data} isDark={isDark} />;
-      case 'roadWeather':
-        return <RoadWeatherDetail station={content.data} isDark={isDark} />;
-      case 'airQuality':
-        return <AirQualityDetail monitor={content.data} isDark={isDark} />;
-      case 'river':
-        return <RiverDetail key={content.data.id} gauge={content.data} isDark={isDark} />;
-      case 'evCharger':
-        return <EvChargerDetail station={content.data} isDark={isDark} />;
-      case 'fireDanger':
-        return <FireDangerDetail area={content.data} isDark={isDark} />;
-      case 'ferry':
-        return <FerryDetail ferry={content.data} status={content.status} isDark={isDark} />;
-      case 'ski':
-        return <SkiDetail resort={content.data} isDark={isDark} />;
-      case 'beach':
-        return <BeachDetail beach={content.data} isDark={isDark} />;
-      case 'creemee':
-        return <CreemeeDetail stand={content.data} isDark={isDark} />;
-      case 'campground':
-        return <CampgroundDetail site={content.data} isDark={isDark} />;
-      case 'campingArea':
-        return <CampingAreaDetail area={content.data} isDark={isDark} />;
-      case 'darkSky':
-        return <DarkSkyDetail site={content.data} isDark={isDark} />;
-      case 'seasonalRoad':
-        return <SeasonalRoadDetail road={content.data} status={content.status} isDark={isDark} />;
-      case 'location':
-        return (
-          <LocationDetail
-            coordinates={content.coordinates}
-            context={content.context}
-            onOpen={onNavigate}
-            isDark={isDark}
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
   return (
     <>
       {/* Backdrop overlay for mobile */}
@@ -200,7 +146,13 @@ export default function DetailPanel({
           </button>
         </div>
 
-        <div className="detail-panel-content">{renderContent()}</div>
+        <div className="detail-panel-content">
+          {content && (
+            <Suspense fallback={<div className="detail-panel-loading" aria-busy="true" />}>
+              <DetailContent content={content} onNavigate={onNavigate} isDark={isDark} />
+            </Suspense>
+          )}
+        </div>
       </div>
     </>
   );
