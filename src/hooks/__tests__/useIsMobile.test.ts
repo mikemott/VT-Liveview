@@ -6,13 +6,23 @@ import { renderHook, act } from '@testing-library/react';
 import { useIsMobile } from '../useIsMobile';
 
 const originalWidth = window.innerWidth;
+const originalHeight = window.innerHeight;
 
 function setWidth(width: number): void {
   Object.defineProperty(window, 'innerWidth', { configurable: true, writable: true, value: width });
 }
 
+function setHeight(height: number): void {
+  Object.defineProperty(window, 'innerHeight', {
+    configurable: true,
+    writable: true,
+    value: height,
+  });
+}
+
 afterEach(() => {
   setWidth(originalWidth);
+  setHeight(originalHeight);
 });
 
 describe('useIsMobile', () => {
@@ -25,6 +35,14 @@ describe('useIsMobile', () => {
 
   it('is false above the breakpoint', () => {
     setWidth(769);
+    expect(renderHook(() => useIsMobile()).result.current).toBe(false);
+  });
+
+  it('is true on a short screen, like a phone in landscape (VTL-93)', () => {
+    setWidth(863);
+    setHeight(360);
+    expect(renderHook(() => useIsMobile()).result.current).toBe(true);
+    setHeight(501);
     expect(renderHook(() => useIsMobile()).result.current).toBe(false);
   });
 
