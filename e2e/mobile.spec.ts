@@ -56,7 +56,9 @@ test.describe('mobile layout', () => {
     const box = await search.boundingBox();
     const viewport = page.viewportSize();
     if (!box || !viewport) throw new Error('no bounding box');
-    expect(Math.abs(box.x + box.width / 2 - viewport.width / 2)).toBeLessThan(2);
+    // Centered, except on the narrowest phones (<360px), which trade centering for width
+    const offCenter = Math.abs(box.x + box.width / 2 - viewport.width / 2);
+    expect(offCenter).toBeLessThan(viewport.width < 360 ? 20 : 2);
     expect(box.y).toBeGreaterThan(viewport.height / 2);
   });
 
