@@ -1,12 +1,29 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/msw';
-import { fetchCameraImage, fetchCameras } from '../cameraApi';
+import { fetchCameraImage, fetchCameraLocation, fetchCameras } from '../cameraApi';
 
 const API = 'http://localhost:4000/api/cameras';
 
 describe('cameraApi', () => {
   afterEach(() => vi.restoreAllMocks());
+
+  it('fetches a camera location by encoded id (VTL-94)', async () => {
+    let requested = '';
+    server.use(
+      http.get(`${API}/:id/location`, ({ params }) => {
+        requested = String(params.id);
+        return HttpResponse.json({ location: { town: 'Berlin', milepost: 50.1 } });
+      }),
+    );
+    await expect(fetchCameraLocation('I-89 SB BERLIN')).resolves.toEqual({
+      town: 'Berlin',
+      milepost: 50.1,
+    });
+    expect(requested).toBe('I-89 SB BERLIN');
+    server.use(http.get(`${API}/:id/location`, () => new HttpResponse(null, { status: 404 })));
+    await expect(fetchCameraLocation('NOPE')).rejects.toThrow('HTTP 404');
+  });
 
   it('lists cameras and rejects on HTTP errors', async () => {
     server.use(http.get(API, () => HttpResponse.json({ cameras: [{ id: 'A', name: 'A' }] })));

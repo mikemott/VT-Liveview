@@ -1,11 +1,16 @@
 /**
- * CameraDetail - latest snapshot from a VTrans traffic camera (VTL-56)
+ * CameraDetail - latest snapshot from a VTrans traffic camera (VTL-56), with
+ * where it is in words and the road weather at the same site (VTL-94)
  */
 import { useEffect, useRef, useState } from 'react';
 import { MapPin, RefreshCw, VideoOff } from 'lucide-react';
 import { fetchCameraImage, type CameraImage, type TrafficCamera } from '../../services/cameraApi';
+import { locationRows } from '../../utils/cameraLocation';
+import type { RoadWeatherStation } from '../../services/roadWeatherApi';
 import { useVisibleInterval } from '../../hooks/useVisibleInterval';
+import { useCameraLocation, useSiteRoadWeather } from '../../hooks/useCameraSite';
 import { getObservationAge } from '../../utils/observationAge';
+import { cToF, getRoadRisk, ROAD_RISK_LABELS } from '../../utils/roadWeather';
 import LayerBadge from './LayerBadge';
 import './DetailViews.css';
 
@@ -17,6 +22,39 @@ interface CameraDetailProps {
   isDark: boolean;
 }
 
+const fmtTemp = (c: number | null): string | null => (c === null ? null : `${cToF(c)}°F`);
+
+function SiteRoadWeather({ station }: { station: RoadWeatherStation }) {
+  const age = getObservationAge(station.observedAt);
+  const rows: [string, string | null][] = [
+    ['Conditions', ROAD_RISK_LABELS[getRoadRisk(station)]],
+    ['Surface', station.surface],
+    ['Pavement', fmtTemp(station.pavementTempC)],
+    ['Air', fmtTemp(station.airTempC)],
+  ];
+  return (
+    <section className="camera-site-weather" aria-label="Road weather at this camera">
+      <h3 className="camera-section-title">Road weather here</h3>
+      <dl className="detail-rows">
+        {rows
+          .filter((row): row is [string, string] => row[1] !== null)
+          .map(([label, value]) => (
+            <div key={label} className="detail-row">
+              <dt>{label}</dt>
+              <dd>{value}</dd>
+            </div>
+          ))}
+      </dl>
+      {age.ago && (
+        <div className={`camera-caption${age.isStale ? ' stale' : ''}`}>
+          {age.isStale ? '⚠️ Old reading: ' : 'Reading '}
+          {age.ago} · {station.name}
+        </div>
+      )}
+    </section>
+  );
+}
+
 type ImageState =
   | { status: 'loading' }
   | { status: 'ready'; image: CameraImage }
@@ -25,6 +63,8 @@ type ImageState =
 
 export default function CameraDetail({ camera, isDark }: CameraDetailProps) {
   const [state, setState] = useState<ImageState>({ status: 'loading' });
+  const { data: location } = useCameraLocation(camera.id);
+  const siteStation = useSiteRoadWeather(camera);
   const [tick, setTick] = useState(0);
 
   // Reload every minute while the page is visible; catches up on return
@@ -119,7 +159,32 @@ export default function CameraDetail({ camera, isDark }: CameraDetailProps) {
         )}
       </div>
 
-      <div className="station-updated">Source: VTrans traffic cameras</div>
+      <section className="camera-location" aria-label="Camera location">
+        <h3 className="camera-section-title">Location</h3>
+        <dl className="detail-rows">
+          {locationRows(camera, location).map(([label, value]) => (
+            <div key={label} className="detail-row">
+              <dt>{label}</dt>
+              <dd>{value}</dd>
+            </div>
+          ))}
+        </dl>
+        <a
+          className="camera-map-link"
+          href={`https://www.google.com/maps/search/?api=1&query=${camera.lat},${camera.lng}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Open in Maps ↗
+        </a>
+      </section>
+
+      {siteStation && <SiteRoadWeather station={siteStation} />}
+
+      <div className="station-updated">
+        Source: VTrans traffic cameras; location from the VTrans 511 GIS
+        {siteStation ? ' and road weather station' : ''}
+      </div>
     </div>
   );
 }

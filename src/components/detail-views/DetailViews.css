@@ -1148,3 +1148,34 @@
 .ferry-notes li + li {
   margin-top: var(--space-2);
 }
+
+/* Traffic camera site: location and road weather (VTL-94) */
+.camera-location,
+.camera-site-weather {
+  margin-top: var(--space-7);
+}
+
+.camera-section-title {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wider);
+  color: var(--color-vermont-green);
+}
+
+.camera-map-link {
+  display: inline-block;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-accent-hover);
+  text-decoration: none;
+}
+
+.camera-map-link:hover {
+  text-decoration: underline;
+}
+
+.dark .camera-map-link {
+  color: var(--color-accent-primary);
+}

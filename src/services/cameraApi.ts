@@ -49,3 +49,31 @@ export async function fetchCameraImage(
     takenAt: takenAt && !Number.isNaN(takenAt.getTime()) ? takenAt : null,
   };
 }
+
+/** Where a camera is, in words, from VTrans's 511 GIS (VTL-94) */
+export interface CameraLocation {
+  town: string | null;
+  county: string | null;
+  /** Posted interstate mile marker */
+  milepost: number | null;
+  nearestExit: {
+    number: string;
+    name: string;
+    /** Straight-line miles from the exit */
+    distanceMi: number;
+    /** Which way the camera is from the exit */
+    direction: string;
+  } | null;
+  /** Local name of the road here ("Franklin St") */
+  streetName: string | null;
+  /** "4200 block of US Route 2" */
+  addressBlock: string | null;
+  speedLimitMph: number | null;
+}
+
+export async function fetchCameraLocation(id: string): Promise<CameraLocation> {
+  const res = await fetch(`${BACKEND_URL}/api/cameras/${encodeURIComponent(id)}/location`);
+  if (!res.ok) throw new Error(`Camera location unavailable (HTTP ${res.status})`);
+  const body = (await res.json()) as { location: CameraLocation };
+  return body.location;
+}

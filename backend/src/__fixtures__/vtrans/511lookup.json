@@ -1,0 +1,74 @@
+{
+  "_comment": "Synthetic VTrans 511lookup MapServer query results (VTL-94), by area and layer id. Layers: 0 interchanges, 3 tenth-mile points, 12 roads, 16 towns, 17 E911 addresses. Coordinates sit near the two cameras in c2c/cctvStatus.xml.",
+  "berlin": {
+    "16": [
+      {
+        "attributes": {
+          "TITLENAME": "Town of Berlin",
+          "TOWNNAME": "BERLIN",
+          "COUNTYNAME": "WASHINGTON"
+        }
+      }
+    ],
+    "12": [
+      { "attributes": { "SPEEDLIMIT": 65, "PRIMARYNAME": "INTERSTATE 89 S" } },
+      { "attributes": { "SPEEDLIMIT": null, "PRIMARYNAME": "U TURN" } }
+    ],
+    "3": [
+      {
+        "attributes": { "TWN_LR": "I089-0000NR007A", "TWN_MM": 0.1 },
+        "geometry": { "x": -72.58338, "y": 44.21233 }
+      },
+      {
+        "attributes": { "TWN_LR": "I089-0000S", "TWN_MM": 50.1 },
+        "geometry": { "x": -72.5834, "y": 44.2124 }
+      },
+      {
+        "attributes": { "TWN_LR": "I089-0000", "TWN_MM": 50.2 },
+        "geometry": { "x": -72.5836, "y": 44.2138 }
+      }
+    ],
+    "0": [
+      {
+        "attributes": { "ExitNumber": "8", "InterchangeName": "Montpelier" },
+        "geometry": { "x": -72.5615, "y": 44.2494 }
+      },
+      {
+        "attributes": { "ExitNumber": "7", "InterchangeName": "Berlin - Barre" },
+        "geometry": { "x": -72.5834, "y": 44.2151 }
+      }
+    ],
+    "17": []
+  },
+  "stowe": {
+    "16": [
+      {
+        "attributes": {
+          "TITLENAME": "Town of Stowe",
+          "TOWNNAME": "STOWE",
+          "COUNTYNAME": "LAMOILLE"
+        }
+      }
+    ],
+    "12": [
+      { "attributes": { "SPEEDLIMIT": 40, "PRIMARYNAME": "MOUNTAIN RD" } },
+      { "attributes": { "SPEEDLIMIT": 50, "PRIMARYNAME": "MOUNTAIN RD" } }
+    ],
+    "3": [],
+    "0": [],
+    "17": [
+      {
+        "attributes": { "PRIMARYADDRESS": "12 SIDE RD" },
+        "geometry": { "x": -72.794, "y": 44.55801 }
+      },
+      {
+        "attributes": { "PRIMARYADDRESS": "6966 MOUNTAIN RD" },
+        "geometry": { "x": -72.7942, "y": 44.5581 }
+      },
+      {
+        "attributes": { "PRIMARYADDRESS": "7104 MOUNTAIN RD" },
+        "geometry": { "x": -72.7962, "y": 44.5601 }
+      }
+    ]
+  }
+}
