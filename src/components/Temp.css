@@ -1,0 +1,10 @@
+/* Temp (VTL-98): the °C half sits beside °F, smaller and muted.
+   In a narrow box (e.g. the station panel's big reading) it wraps under °F. */
+.temp-alt {
+  display: inline-block;
+  margin-left: 0.25em;
+  font-size: min(0.7em, var(--font-size-lg));
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}

@@ -19,6 +19,7 @@ import { compareWithNormal } from '../utils/climate';
 import { hourLabel, hoursInPeriod } from '../utils/hourlyForecast';
 import { loadLastWeather, roundWeatherCoord, saveLastWeather } from '../utils/lastWeather';
 import '../styles/aqi.css';
+import { bothUnits } from '../utils/temperature';
 import './CurrentWeather.css';
 
 // Default location: Montpelier, VT
@@ -158,6 +159,12 @@ export default function CurrentWeather({
           <div className="temperature">
             <span className="temp-value">{weatherData.temperature ?? '--'}</span>
             <span className="temp-unit">°{weatherData.temperatureUnit}</span>
+            {/* °C only once the card is opened, so the collapsed card stays clean (VTL-98) */}
+            {isExpanded && typeof weatherData.temperature === 'number' && (
+              <span className="temp-celsius">
+                {bothUnits(weatherData.temperature, weatherData.temperatureUnit).c}°C
+              </span>
+            )}
           </div>
           {!showMinimalView && (
             <div className="weather-metrics">

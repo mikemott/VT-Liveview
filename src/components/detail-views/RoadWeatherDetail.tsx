@@ -1,11 +1,13 @@
 /**
  * RoadWeatherDetail - a VTrans road weather station (VTL-61)
  */
+import type { ReactNode } from 'react';
 import { MapPin } from 'lucide-react';
 import type { RoadWeatherStation } from '../../services/roadWeatherApi';
 import { getObservationAge } from '../../utils/observationAge';
-import { cToF, describeFriction, getRoadRisk, ROAD_RISK_LABELS } from '../../utils/roadWeather';
+import { describeFriction, getRoadRisk, ROAD_RISK_LABELS } from '../../utils/roadWeather';
 import { SOURCES } from '../../utils/sourceLinks';
+import Temp from '../Temp';
 import LayerBadge from './LayerBadge';
 import { DetailSource } from './DetailParts';
 import './DetailViews.css';
@@ -15,7 +17,7 @@ interface RoadWeatherDetailProps {
   isDark: boolean;
 }
 
-const fmtTemp = (c: number | null): string => (c === null ? '—' : `${cToF(c)}°F`);
+const fmtTemp = (c: number | null): ReactNode => (c === null ? '—' : <Temp value={c} unit="C" />);
 
 export default function RoadWeatherDetail({ station, isDark }: RoadWeatherDetailProps) {
   const risk = getRoadRisk(station);
@@ -24,7 +26,7 @@ export default function RoadWeatherDetail({ station, isDark }: RoadWeatherDetail
     .filter(Boolean)
     .join(' · ');
 
-  const rows: [string, string][] = [
+  const rows: [string, ReactNode][] = [
     ['Air', fmtTemp(station.airTempC)],
     ['Dew point', fmtTemp(station.dewPointC)],
     ['Surface', station.surface ?? 'Not reported'],

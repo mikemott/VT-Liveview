@@ -3,15 +3,14 @@
  */
 import type { RoadWeatherStation } from '../services/roadWeatherApi';
 import { vermontDateKey } from './seasonalRoads';
+import { cToF } from './temperature';
 
 export type RoadRisk = 'hazard' | 'freezing' | 'nearFreezing' | 'ok' | 'unknown';
 
 /** Reported surfaces that mean slippery right now */
 const SLIPPERY_SURFACE = /ice|icy|snow|frost|slush/i;
 
-export function cToF(c: number): number {
-  return Math.round((c * 9) / 5 + 32);
-}
+export { cToF } from './temperature';
 
 /** Main number on the marker: pavement temperature, else air temperature. */
 export function headlineTempF(

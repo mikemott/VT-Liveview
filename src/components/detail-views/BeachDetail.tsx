@@ -4,6 +4,7 @@
 import type { Beach } from '../../services/beachApi';
 import { getBeachDisplay, parseBeachTestDate } from '../../utils/beachStatus';
 import { SOURCES } from '../../utils/sourceLinks';
+import Temp from '../Temp';
 import LayerBadge from './LayerBadge';
 import { formatDateTime } from '../../utils/formatDateTime';
 import { DetailHeader, DetailRows, DetailSource, DetailStatus, DetailTags } from './DetailParts';
@@ -42,7 +43,10 @@ export default function BeachDetail({ beach, isDark }: BeachDetailProps) {
           rows={[
             ['Water quality', beach.waterQualityGrade],
             ['E. coli', beach.eColiLevel === null ? null : `${beach.eColiLevel} per 100 mL`],
-            ['Water temperature', beach.waterTemp === null ? null : `${beach.waterTemp}°F`],
+            [
+              'Water temperature',
+              beach.waterTemp === null ? null : <Temp value={beach.waterTemp} />,
+            ],
             ['Tested', tested ? formatDateTime(tested.toISOString()) : null],
           ]}
         />

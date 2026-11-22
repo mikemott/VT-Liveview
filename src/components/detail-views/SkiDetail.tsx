@@ -3,6 +3,7 @@
  * base-area camera (VTL-87)
  */
 import type { SkiResort } from '../../services/skiApi';
+import Temp from '../Temp';
 import LayerBadge from './LayerBadge';
 import { formatDateTime } from '../../utils/formatDateTime';
 import { DetailHeader, DetailRows, DetailSource, DetailStatus } from './DetailParts';
@@ -62,7 +63,10 @@ export default function SkiDetail({ resort, isDark }: SkiDetailProps) {
                   ? `${resort.liftsOpen} / ${resort.liftsTotal}`
                   : null,
               ],
-              ['Temperature', resort.tempCurrent === null ? null : `${resort.tempCurrent}°F`],
+              [
+                'Temperature',
+                resort.tempCurrent === null ? null : <Temp value={resort.tempCurrent} />,
+              ],
             ]}
           />
         </>

@@ -6,6 +6,7 @@ import { MapPin, Thermometer, Wind, Droplets, Gauge } from 'lucide-react';
 import type { ObservationStation } from '../../types';
 import { getObservationAge } from '../../utils/observationAge';
 import { stationSource } from '../../utils/sourceLinks';
+import Temp from '../Temp';
 import LayerBadge from './LayerBadge';
 import { DetailSource } from './DetailParts';
 import './DetailViews.css';
@@ -69,7 +70,7 @@ export default function StationDetail({ station, isDark }: StationDetailProps) {
           </div>
           <div className="condition-info">
             <div className="condition-value">
-              {weather.temperature}°{weather.temperatureUnit}
+              <Temp value={weather.temperature} unit={weather.temperatureUnit} />
             </div>
             <div className="condition-label">Temperature</div>
           </div>
@@ -112,7 +113,7 @@ export default function StationDetail({ station, isDark }: StationDetailProps) {
             </div>
             <div className="condition-info">
               <div className="condition-value">
-                {weather.dewpoint}°{weather.temperatureUnit}
+                <Temp value={weather.dewpoint} unit={weather.temperatureUnit} />
               </div>
               <div className="condition-label">Dewpoint</div>
             </div>

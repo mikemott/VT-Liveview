@@ -2,7 +2,7 @@
  * CameraDetail - latest snapshot from a VTrans traffic camera (VTL-56), with
  * where it is in words and the road weather at the same site (VTL-94)
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { MapPin, RefreshCw, VideoOff } from 'lucide-react';
 import { fetchCameraImage, type CameraImage, type TrafficCamera } from '../../services/cameraApi';
 import { locationRows } from '../../utils/cameraLocation';
@@ -10,8 +10,9 @@ import type { RoadWeatherStation } from '../../services/roadWeatherApi';
 import { useVisibleInterval } from '../../hooks/useVisibleInterval';
 import { useCameraLocation, useSiteRoadWeather } from '../../hooks/useCameraSite';
 import { getObservationAge } from '../../utils/observationAge';
-import { cToF, getRoadRisk, ROAD_RISK_LABELS } from '../../utils/roadWeather';
+import { getRoadRisk, ROAD_RISK_LABELS } from '../../utils/roadWeather';
 import { SOURCES } from '../../utils/sourceLinks';
+import Temp from '../Temp';
 import LayerBadge from './LayerBadge';
 import { DetailSource } from './DetailParts';
 import './DetailViews.css';
@@ -24,11 +25,11 @@ interface CameraDetailProps {
   isDark: boolean;
 }
 
-const fmtTemp = (c: number | null): string | null => (c === null ? null : `${cToF(c)}°F`);
+const fmtTemp = (c: number | null): ReactNode => (c === null ? null : <Temp value={c} unit="C" />);
 
 function SiteRoadWeather({ station }: { station: RoadWeatherStation }) {
   const age = getObservationAge(station.observedAt);
-  const rows: [string, string | null][] = [
+  const rows: [string, ReactNode][] = [
     ['Conditions', ROAD_RISK_LABELS[getRoadRisk(station)]],
     ['Surface', station.surface],
     ['Pavement', fmtTemp(station.pavementTempC)],
@@ -39,7 +40,7 @@ function SiteRoadWeather({ station }: { station: RoadWeatherStation }) {
       <h3 className="camera-section-title">Road weather here</h3>
       <dl className="detail-rows">
         {rows
-          .filter((row): row is [string, string] => row[1] !== null)
+          .filter(([, value]) => value !== null && value !== undefined)
           .map(([label, value]) => (
             <div key={label} className="detail-row">
               <dt>{label}</dt>
