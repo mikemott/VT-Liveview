@@ -175,6 +175,8 @@ test.describe('map features', () => {
 
     const panel = page.locator('.detail-panel');
     await expect(panel).toHaveClass(/\bopen\b/);
+    // Readings show °C beside °F (VTL-98)
+    await expect(panel.locator('.temp-alt').first()).toHaveText(/°C$/);
     await page.getByRole('button', { name: 'Close detail panel' }).click();
     await expect(panel).not.toHaveClass(/\bopen\b/);
   });
