@@ -71,6 +71,34 @@ describe('CameraLayer', () => {
     ]);
   });
 
+  it('draws one marker per site and opens its first online view (VTL-99)', async () => {
+    const site = (n: number, online: boolean): TrafficCamera => ({
+      id: `I-89 South Burlington Exit-14 CCTV-${n}`,
+      name: `I-89 South Burlington Exit-14 CCTV-${n}`,
+      lat: 44.4697,
+      lng: -73.1795,
+      roadway: 'I-89',
+      direction: 'North',
+      online,
+    });
+    fetchMock.mockResolvedValue([site(1, false), site(2, true), site(3, true), ...CAMS]);
+    const onClick = vi.fn();
+    render(<CameraLayer map={fake.asMap()} visible onCameraClick={onClick} />);
+    await waitFor(() => expect(liveMarkers()).toHaveLength(3));
+    const exit14 = liveMarkers()[0]!.getElement();
+    expect(exit14.dataset.views).toBe('3');
+    expect(exit14.classList.contains('camera-marker--multi')).toBe(true);
+    expect(exit14.getAttribute('aria-label')).toBe(
+      'Traffic camera: I-89 South Burlington Exit-14 CCTV-2 (3 views)',
+    );
+    expect(liveMarkers()[1]!.getElement().dataset.views).toBeUndefined();
+
+    exit14.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect((onClick.mock.calls[0]![0] as TrafficCamera).id).toBe(
+      'I-89 South Burlington Exit-14 CCTV-2',
+    );
+  });
+
   it('removes markers when hidden', async () => {
     const { rerender } = render(<CameraLayer map={fake.asMap()} visible onCameraClick={vi.fn()} />);
     await waitFor(() => expect(liveMarkers()).toHaveLength(2));

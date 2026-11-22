@@ -8,6 +8,7 @@ import SkiLayer from './components/SkiLayer';
 import TrafficFlowLayer from './components/TrafficFlowLayer';
 import CameraLayer from './components/CameraLayer';
 import type { TrafficCamera } from './services/cameraApi';
+import { siteViewsFor } from './utils/cameraSites';
 import RoadWeatherLayer from './components/RoadWeatherLayer';
 import type { RoadWeatherStation } from './services/roadWeatherApi';
 import AirQualityLayer from './components/AirQualityLayer';
@@ -1519,7 +1520,12 @@ function WeatherMap({ onMapUnavailable }: WeatherMapProps = {}) {
   );
 
   // The panel as shown: a "What's here?" point gets what's around it (VTL-65)
+  // and a camera gets the other views at its site (VTL-99)
   const shownPanelContent = useMemo((): DetailPanelContent => {
+    if (panelContent?.type === 'camera') {
+      const views = siteViewsFor(panelContent.data, cameras);
+      return views.length > 0 ? { ...panelContent, views } : panelContent;
+    }
     if (panelContent?.type !== 'location') return panelContent;
     const { lat, lng } = panelContent.coordinates;
     return {

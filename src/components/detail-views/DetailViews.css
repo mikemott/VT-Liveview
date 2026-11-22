@@ -564,6 +564,48 @@
 }
 
 /* Traffic camera snapshot (VTL-56) */
+/* Switch between the views at a camera site (VTL-99) */
+.camera-views {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.camera-view-button {
+  min-height: 32px;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-vermont-green-light);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface);
+  color: var(--color-vermont-green);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}
+
+.camera-view-button:hover {
+  background: var(--color-bg-surface-hover);
+}
+
+.camera-view-button[aria-pressed='true'] {
+  background: var(--color-vermont-green);
+  border-color: var(--color-vermont-green);
+  color: var(--color-bg-primary);
+  cursor: default;
+}
+
+.camera-view-button.offline:not([aria-pressed='true']) {
+  border-style: dashed;
+  color: var(--color-text-muted);
+}
+
+.camera-view-button:focus-visible {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: 2px;
+}
+
 .camera-image-frame {
   margin: var(--space-5) 0 var(--space-3);
   border-radius: var(--radius-lg);

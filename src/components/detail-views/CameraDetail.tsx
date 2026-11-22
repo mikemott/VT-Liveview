@@ -12,6 +12,7 @@ import { useCameraLocation, useSiteRoadWeather } from '../../hooks/useCameraSite
 import { getObservationAge } from '../../utils/observationAge';
 import { getRoadRisk, ROAD_RISK_LABELS } from '../../utils/roadWeather';
 import { SOURCES } from '../../utils/sourceLinks';
+import type { CameraView } from '../../utils/cameraSites';
 import Temp from '../Temp';
 import LayerBadge from './LayerBadge';
 import { DetailSource } from './DetailParts';
@@ -22,7 +23,45 @@ const REFRESH_MS = 60_000;
 
 interface CameraDetailProps {
   camera: TrafficCamera;
+  /** Every view at this camera's site, when it has more than one (VTL-99) */
+  views?: CameraView[] | undefined;
+  /** Switch the panel to another view at the site */
+  onSelectView?: ((camera: TrafficCamera) => void) | undefined;
   isDark: boolean;
+}
+
+/** Buttons to switch between the views at a site (VTL-99) */
+function ViewSwitcher({
+  views,
+  currentId,
+  onSelect,
+}: {
+  views: CameraView[];
+  currentId: string;
+  onSelect: (camera: TrafficCamera) => void;
+}) {
+  return (
+    <div className="camera-views" role="group" aria-label="Camera views">
+      {views.map(({ camera, label }) => {
+        const current = camera.id === currentId;
+        return (
+          <button
+            key={camera.id}
+            type="button"
+            className={`camera-view-button${camera.online ? '' : ' offline'}`}
+            aria-pressed={current}
+            title={camera.online ? camera.name : `${camera.name} (offline)`}
+            onClick={() => {
+              if (!current) onSelect(camera);
+            }}
+          >
+            {label}
+            {!camera.online && <span className="sr-only"> (offline)</span>}
+          </button>
+        );
+      })}
+    </div>
+  );
 }
 
 const fmtTemp = (c: number | null): ReactNode => (c === null ? null : <Temp value={c} unit="C" />);
@@ -64,7 +103,7 @@ type ImageState =
   | { status: 'none' }
   | { status: 'error' };
 
-export default function CameraDetail({ camera, isDark }: CameraDetailProps) {
+export default function CameraDetail({ camera, views, onSelectView, isDark }: CameraDetailProps) {
   const [state, setState] = useState<ImageState>({ status: 'loading' });
   const { data: location } = useCameraLocation(camera.id);
   const siteStation = useSiteRoadWeather(camera);
@@ -125,6 +164,10 @@ export default function CameraDetail({ camera, isDark }: CameraDetailProps) {
           <MapPin size={14} />
           <span>{where}</span>
         </div>
+      )}
+
+      {views && views.length > 1 && onSelectView && (
+        <ViewSwitcher views={views} currentId={camera.id} onSelect={onSelectView} />
       )}
 
       <div className="camera-image-frame">

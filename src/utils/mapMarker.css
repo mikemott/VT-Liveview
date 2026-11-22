@@ -171,3 +171,25 @@
   width: 12px;
   height: 12px;
 }
+
+/* Camera site with several views (VTL-99): a small count in the corner.
+   The marker is already absolutely positioned by MapLibre, so the badge
+   anchors to it without touching its transform. */
+.camera-marker--multi::after {
+  content: attr(data-views);
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  box-sizing: border-box;
+  border-radius: 8px;
+  background: var(--marker-ink);
+  color: var(--marker-ground);
+  font:
+    700 10px/16px system-ui,
+    sans-serif;
+  text-align: center;
+  pointer-events: none;
+}
