@@ -43,7 +43,15 @@ export default function DetailContent({ content, onNavigate, isDark }: DetailCon
       return <StationDetail station={content.data} isDark={isDark} />;
     case 'camera':
       // key: a different camera remounts with fresh image state
-      return <CameraDetail key={content.data.id} camera={content.data} isDark={isDark} />;
+      return (
+        <CameraDetail
+          key={content.data.id}
+          camera={content.data}
+          views={content.views}
+          onSelectView={onNavigate && ((camera) => onNavigate({ type: 'camera', data: camera }))}
+          isDark={isDark}
+        />
+      );
     case 'roadWeather':
       return <RoadWeatherDetail station={content.data} isDark={isDark} />;
     case 'airQuality':

@@ -153,4 +153,41 @@ describe('CameraDetail', () => {
     expect(within(weather).getByText(/^Reading 7 min ago · I-89 Berlin$/)).toBeInTheDocument();
     expect(screen.getByText(/location and road weather from VTrans$/)).toBeInTheDocument();
   });
+
+  it('switches between the views at a multi-view site (VTL-99)', async () => {
+    imageMock.mockResolvedValue(null);
+    const north: TrafficCamera = { ...CAM, id: 'BERLIN NORTH', name: 'I-89 Berlin North' };
+    const east: TrafficCamera = {
+      ...CAM,
+      id: 'BERLIN EAST',
+      name: 'I-89 Berlin East',
+      online: false,
+    };
+    const views = [
+      { camera: north, label: 'North' },
+      { camera: CAM, label: 'South' },
+      { camera: east, label: 'East' },
+    ];
+    const onSelect = vi.fn();
+    render(<CameraDetail camera={CAM} views={views} onSelectView={onSelect} isDark={false} />);
+    await screen.findByText('This camera has no current image.');
+
+    const group = screen.getByRole('group', { name: 'Camera views' });
+    const buttons = within(group).getAllByRole('button');
+    expect(buttons.map((b) => b.textContent)).toEqual(['North', 'South', 'East (offline)']);
+    expect(buttons[1]).toHaveAttribute('aria-pressed', 'true');
+    expect(buttons[0]).toHaveAttribute('aria-pressed', 'false');
+
+    act(() => buttons[1]!.click()); // already showing: nothing to do
+    expect(onSelect).not.toHaveBeenCalled();
+    act(() => buttons[0]!.click());
+    expect(onSelect).toHaveBeenCalledWith(north);
+  });
+
+  it('shows no view buttons for a single-view camera', async () => {
+    imageMock.mockResolvedValue(null);
+    render(<CameraDetail camera={CAM} onSelectView={vi.fn()} isDark={false} />);
+    await screen.findByText('This camera has no current image.');
+    expect(screen.queryByRole('group', { name: 'Camera views' })).toBeNull();
+  });
 });

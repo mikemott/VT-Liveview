@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState, memo } from 'react';
+import { useEffect, useMemo, useRef, useState, memo } from 'react';
 import { fetchCameras, type TrafficCamera } from '../services/cameraApi';
 import { useVisibleInterval } from '../hooks/useVisibleInterval';
 import { useMapMarkers, type BuiltMarker } from '../hooks/useMapMarkers';
 import { createMapMarker } from '../utils/mapMarker';
+import { groupCameraSites, type CameraSite } from '../utils/cameraSites';
 import type { MapLibreMap } from '../types';
 
 interface CameraLayerProps {
@@ -22,17 +23,28 @@ const CAMERA_ICON = `
     <rect x="2" y="6" width="14" height="12" rx="2"/>
   </svg>`;
 
-function buildCameraMarker(camera: TrafficCamera): BuiltMarker {
+// One marker per site (VTL-99): a site's views would otherwise stack up
+function buildCameraMarker({ primary: camera, views }: CameraSite): BuiltMarker {
+  const viewCount = views.length;
+  const online = views.some((v) => v.camera.online);
+  const many = viewCount > 1 ? ` (${viewCount} views)` : '';
   const element = createMapMarker({
     layer: 'trafficCameras',
     iconSvg: CAMERA_ICON,
-    label: `Traffic camera: ${camera.name}${camera.online ? '' : ' (offline)'}`,
-    title: camera.name,
-    dimmed: !camera.online,
-    className: `camera-marker${camera.online ? '' : ' offline'}`,
+    label: `Traffic camera: ${camera.name}${many}${online ? '' : ' (offline)'}`,
+    title: `${camera.name}${many}`,
+    dimmed: !online,
+    className: `camera-marker${online ? '' : ' offline'}${viewCount > 1 ? ' camera-marker--multi' : ''}`,
   });
+  // Small count badge in the corner, drawn by CSS from this attribute
+  if (viewCount > 1) element.dataset.views = String(viewCount);
   return { lngLat: [camera.lng, camera.lat], element };
 }
+
+const openSite =
+  (onCameraClick: (camera: TrafficCamera) => void) =>
+  (site: CameraSite): void =>
+    onCameraClick(site.primary);
 
 const LIST_REFRESH_MS = 10 * 60 * 1000;
 
@@ -66,7 +78,9 @@ function CameraLayer({ map, visible, onCameraClick, onCamerasLoaded }: CameraLay
     };
   }, [map, refreshTick]);
 
-  useMapMarkers(map, visible, cameras, buildCameraMarker, onCameraClick);
+  const sites = useMemo(() => groupCameraSites(cameras), [cameras]);
+  const onSiteClick = useMemo(() => openSite(onCameraClick), [onCameraClick]);
+  useMapMarkers(map, visible, sites, buildCameraMarker, onSiteClick);
 
   return null;
 }
